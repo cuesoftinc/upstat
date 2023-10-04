@@ -97,7 +97,7 @@ body {
 
 a {
   color: inherit;
-  text-decoration: none;
+  cursor: pointer;
 }
 
 @media (prefers-color-scheme: dark) {
