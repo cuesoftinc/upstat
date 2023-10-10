@@ -1,9 +1,7 @@
 .main {
-  display: flex;
+  display: grid;
   flex-direction: column;
   gap: 100px;
-  align-items: center;
-  padding: 6rem;
   min-height: 100vh;
 }
 

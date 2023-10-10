@@ -1,8 +1,9 @@
-import Header from '@/components/Header'
+import Header from '@/components/otherComponents/Header/Header'
 import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import Footer from '@/components/Footer'
+import Head from 'next/head';
+import MenuBar from '@/components/otherComponents/MenuBar/MenuBar'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -18,10 +19,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      </Head>
       <body className={inter.className}>
         <Header />
+        <MenuBar />
         {children}
-        <Footer />
       </body>
     </html>
   )
