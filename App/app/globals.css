@@ -9,6 +9,11 @@ body {
   display: flex;
 }
 
+.main-content {
+  display: flex;
+  flex-direction: column;
+}
+
 a {
   color: inherit;
   cursor: pointer;

@@ -1,3 +1,4 @@
+"use client"
 import { styled } from "styled-components"
 import { Icon } from '@iconify/react';
 import Image from "next/image";
@@ -24,7 +25,8 @@ const Header = () => (
     </HeaderContainer>
 )
 
-const HeaderContainer = styled.header`
+const HeaderContainer = styled.div`
+    grid-area: header;
     display: flex;
     padding: 43px 62px 21px 25px;
     gap: 29px;
@@ -52,7 +54,7 @@ const IconContainer = styled.div`
 const ProfileContainer = styled.div`
     display: flex;
     gap: 16px;
-    align-items: center;
+    align-item: center;
 `
 
 const Input = styled.input`
