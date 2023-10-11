@@ -87,32 +87,32 @@ const menudata: {
         path:"/traffic"
     },
     {
-        id: 1,
+        id: 2,
         icon: "bxs:hourglass",
         name: "Uptime",
         path:"/uptime"
     },
 
     {
-        id: 2,
+        id: 3,
         icon: "mingcute:time-fill",
         name: "Page Load Time",
         path:"/pageloadtime"
     },
     {
-        id: 3,
+        id: 4,
         icon: "mdi:analytics",
         name: "SEO Metrics",
         path:"/seo"
     },
     {
-        id: 4,
+        id: 5,
         icon: "fluent:arrow-bounce-16-filled",
         name: "Bounce Rate",
         path:"/bounce"
     },
     {
-        id: 5,
+        id: 6,
         icon: "material-symbols:error",
         name: "Error Rate",
         path:"/error"
