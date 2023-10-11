@@ -87,6 +87,13 @@ const menudata: {
         path:"/traffic"
     },
     {
+        id: 1,
+        icon: "bxs:hourglass",
+        name: "Uptime",
+        path:"/uptime"
+    },
+
+    {
         id: 2,
         icon: "mingcute:time-fill",
         name: "Page Load Time",
