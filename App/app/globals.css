@@ -5,26 +5,27 @@
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  display: flex;
+  font-family: 'Poppins', sans-serif;
 }
 
-.main-content {
+main {
   display: flex;
-  flex-direction: column;
+  min-height: 100vh;
+  min-width: 100vw;
+}
+
+.content {
+  /* background: #16151C;/ */
+  width: 100%;
 }
 
 a {
   color: inherit;
   cursor: pointer;
-}
-
-p {
-  color: #3c3c3c
+  text-decoration: none;
 }
 
 svg {
-  color: #3c3c3c;
   width: 24px;
   height: 24px;
 }

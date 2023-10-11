@@ -1,7 +1,6 @@
 .main {
-  display: grid;
-  flex-direction: column;
-  gap: 100px;
-  min-height: 100vh;
+    min-height: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
-

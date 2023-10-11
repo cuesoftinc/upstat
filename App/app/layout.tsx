@@ -1,10 +1,11 @@
-import Header from '@/components/otherComponents/Header/Header'
+import Header from '@/components/layout/Header/Header'
 import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import Footer from '@/components/otherComponents/Footer/Footer'
+// import Footer from '@/components/layout/Footer/Footer'
 import Head from 'next/head';
-import MenuBar from '@/components/otherComponents/MenuBar/MenuBar'
+import MenuBar from '@/components/layout/MenuBar/MenuBar'
+import StyledComponentsRegistry from '@/libs/registry';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -21,15 +22,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <Head>
-        {/* Set the viewport meta tag */}
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap" rel="stylesheet" />
       </Head>
       <body>
-        <MenuBar />
-        <div>
-          <Header />
-          {children}
-        </div>
+        <StyledComponentsRegistry>
+          <main>
+            <MenuBar />
+            <div className='content'>
+              <Header />
+              {children}
+            </div>
+          </main>
+        </StyledComponentsRegistry>
       </body>
     </html>
   )
