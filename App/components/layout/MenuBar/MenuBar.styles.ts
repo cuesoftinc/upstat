@@ -38,14 +38,14 @@ const MenuTitle = styled.p`
     font-weight: 700;
 `
 
-const MenuItem = styled(Link)<{isActive: boolean}>`
+const MenuItem = styled(Link)<{isactive: boolean}>`
     display: flex;
     align-items: center;
     gap: 16px;
     justify-content: start;
     padding: 15px 30px;
     border-radius: 10px;
-    background: ${({isActive}) => isActive ? "rgba(0, 224, 158, 0.62)" : ""};
+    background: ${({isactive}) => isactive ? "rgba(0, 224, 158, 0.62)" : ""};
 
     &:hover {
         background: rgba(0, 224, 158, 0.62);

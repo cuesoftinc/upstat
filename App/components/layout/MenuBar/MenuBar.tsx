@@ -23,7 +23,7 @@ const MenuBar = () => {
     const menuJsx = menudata.map(el => (
         <MenuItem 
             href={el.path} key={el.id}
-            isActive={pathname === el.path}
+            isactive={pathname === el.path}
         >
             <Icon icon={el.icon} />
             {isOpen && <p>{el.name}</p>}
@@ -33,7 +33,7 @@ const MenuBar = () => {
     const accountJsx = accountData.map(el => (
         <MenuItem
             href={el.path} key={el.id}
-            isActive={pathname === el.path}
+            isactive={pathname === el.path}
         >
             <Icon icon={el.icon} />
             {isOpen && <p>{el.name}</p>}

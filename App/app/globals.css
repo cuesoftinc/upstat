@@ -31,7 +31,7 @@ svg {
 }
 
 .dummy-classname {
-  height: 100%;
+  height: 80%;
   display: grid;
   place-content: center;
 }
