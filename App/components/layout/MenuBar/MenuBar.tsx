@@ -15,7 +15,7 @@ import {
 
 
 const MenuBar = () => {
-    const [isOpen, setIsOpen] = useState(false)
+    const [isOpen, setIsOpen] = useState<boolean>(false)
     const pathname = usePathname()
 
     console.log(pathname)
@@ -68,7 +68,12 @@ const MenuBar = () => {
  )
 }
 
-const menudata = [
+const menudata: {
+    id: number,
+    icon: string,
+    name: string,
+    path: string,
+}[] = [
     {
         id: 0,
         icon: "material-symbols:dashboard",
@@ -107,7 +112,12 @@ const menudata = [
     }
 ]
 
-const accountData = [
+const accountData: {
+    id: number,
+    icon: string,
+    name: string,
+    path: string,
+}[] = [
     {
         id: 0,
         icon: "mdi:account",
