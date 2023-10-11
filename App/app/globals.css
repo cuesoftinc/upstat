@@ -29,3 +29,9 @@ svg {
   width: 24px;
   height: 24px;
 }
+
+.dummy-classname {
+  height: 100%;
+  display: grid;
+  place-content: center;
+}

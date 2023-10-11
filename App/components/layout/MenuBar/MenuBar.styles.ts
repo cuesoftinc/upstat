@@ -38,12 +38,18 @@ const MenuTitle = styled.p`
     font-weight: 700;
 `
 
-const MenuItem = styled(Link)`
+const MenuItem = styled(Link)<{isActive: boolean}>`
     display: flex;
     align-items: center;
     gap: 16px;
     justify-content: start;
     padding: 15px 30px;
+    border-radius: 10px;
+    background: ${({isActive}) => isActive ? "rgba(0, 224, 158, 0.62)" : ""};
+
+    &:hover {
+        background: rgba(0, 224, 158, 0.62);
+    }
 
     p , svg {
        color: white;
@@ -52,7 +58,6 @@ const MenuItem = styled(Link)`
 
 const LogoutItem = styled(MenuItem)`
     background: rgba(0, 224, 158, 0.62);
-    border-radius: 10px;
 `
 
 export { 

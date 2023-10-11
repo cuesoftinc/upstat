@@ -33,6 +33,7 @@ const ProfileContainer = styled.div`
 `
 
 const Input = styled.input`
+    background: transparent;
     border: none;
     min-width: 90%;
     outline: none;

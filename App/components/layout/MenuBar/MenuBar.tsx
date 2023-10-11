@@ -3,6 +3,7 @@ import Image from "next/image"
 import logo from "@/assets/logos/logo.png"
 import { Icon } from '@iconify/react'
 import { useState } from "react"
+import { useRouter } from "next/router"
 import { 
     MenuBarContainer,
     HeadSection,
@@ -15,18 +16,24 @@ import {
 
 const MenuBar = () => {
     const [isOpen, setIsOpen] = useState(false)
+    const router = useRouter()
+
+    console.log(router)
 
     const menuJsx = menudata.map(el => (
-        <MenuItem href={el.path} key={el.id}>
+        <MenuItem 
+            href={el.path} key={el.id}
+            isActive={router.pathname === el.path}
+        >
             <Icon icon={el.icon} />
-            <p>{el.name}</p>
+            {isOpen && <p>{el.name}</p>}
         </MenuItem>
     ))
 
     const accountJsx = accountData.map(el => (
         <MenuItem href={el.path} key={el.id}>
             <Icon icon={el.icon} />
-            <p>{el.name}</p>
+            {isOpen && <p>{el.name}</p>}
         </MenuItem>
     ))
 
@@ -34,8 +41,11 @@ const MenuBar = () => {
     <MenuBarContainer>
         <HeadSection>
             <Image src={logo} alt="logo" />
-            <span>Upstat</span>
-            <Icon icon="ri:arrow-right-double-line" />
+            {isOpen && <span>Upstat</span>}
+            <Icon 
+                icon={`ri:arrow-${isOpen ? "left" : "right"}-double-line`}
+                onClick={() => setIsOpen(prev => !prev)}
+            />
         </HeadSection>
         <MenuSection>
             <MenuTitle>MENU</MenuTitle>
@@ -48,7 +58,7 @@ const MenuBar = () => {
         <MenuSection>
             <LogoutItem href="#">
                 <Icon icon="majesticons:logout" />
-                <p>Log out</p>
+                {isOpen && <p>Log out</p>}
             </LogoutItem>
         </MenuSection>
     </MenuBarContainer>
@@ -60,7 +70,7 @@ const menudata = [
         id: 0,
         icon: "material-symbols:dashboard",
         name: "Dashboard",
-        path:"dashboard"
+        path:"/"
     },
     {
         id: 1,
