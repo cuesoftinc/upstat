@@ -3,7 +3,7 @@ import Image from "next/image"
 import logo from "@/assets/logos/logo.png"
 import { Icon } from '@iconify/react'
 import { useState } from "react"
-import { useRouter } from "next/router"
+import { usePathname } from "next/navigation"
 import { 
     MenuBarContainer,
     HeadSection,
@@ -16,14 +16,14 @@ import {
 
 const MenuBar = () => {
     const [isOpen, setIsOpen] = useState(false)
-    const router = useRouter()
+    const pathname = usePathname()
 
-    console.log(router)
+    console.log(pathname)
 
     const menuJsx = menudata.map(el => (
         <MenuItem 
             href={el.path} key={el.id}
-            isActive={router.pathname === el.path}
+            isActive={pathname === el.path}
         >
             <Icon icon={el.icon} />
             {isOpen && <p>{el.name}</p>}
@@ -31,7 +31,10 @@ const MenuBar = () => {
     ))
 
     const accountJsx = accountData.map(el => (
-        <MenuItem href={el.path} key={el.id}>
+        <MenuItem
+            href={el.path} key={el.id}
+            isActive={pathname === el.path}
+        >
             <Icon icon={el.icon} />
             {isOpen && <p>{el.name}</p>}
         </MenuItem>
@@ -76,31 +79,31 @@ const menudata = [
         id: 1,
         icon: "ph:traffic-sign-fill",
         name: "Traffic",
-        path:"traffic"
+        path:"/traffic"
     },
     {
         id: 2,
         icon: "mingcute:time-fill",
         name: "Page Load Time",
-        path:"pageLoadTime"
+        path:"/pageloadtime"
     },
     {
         id: 3,
         icon: "mdi:analytics",
         name: "SEO Metrics",
-        path:"seo"
+        path:"/seo"
     },
     {
         id: 4,
         icon: "fluent:arrow-bounce-16-filled",
         name: "Bounce Rate",
-        path:"bounce"
+        path:"/bounce"
     },
     {
         id: 5,
         icon: "material-symbols:error",
         name: "Error Rate",
-        path:"error"
+        path:"/error"
     }
 ]
 
@@ -109,19 +112,19 @@ const accountData = [
         id: 0,
         icon: "mdi:account",
         name: "Account",
-        path:"account"
+        path:"/account"
     },
     {
         id: 1,
         icon: "icon-park-solid:setting",
         name: "Settings",
-        path:"settings"
+        path:"/settings"
     },
     {
         id: 2,
         icon: "mdi:help-box",
         name: "Help Center",
-        path:"help"
+        path:"/help"
     },
 ]
 
