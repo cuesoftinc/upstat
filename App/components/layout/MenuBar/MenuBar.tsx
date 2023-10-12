@@ -18,12 +18,10 @@ const MenuBar = () => {
     const [isOpen, setIsOpen] = useState<boolean>(false)
     const pathname = usePathname()
 
-    console.log(pathname)
-
     const menuJsx = menudata.map(el => (
         <MenuItem 
             href={el.path} key={el.id}
-            isactive={pathname === el.path}
+            isActive={pathname === el.path}
         >
             <Icon icon={el.icon} />
             {isOpen && <p>{el.name}</p>}
@@ -33,7 +31,7 @@ const MenuBar = () => {
     const accountJsx = accountData.map(el => (
         <MenuItem
             href={el.path} key={el.id}
-            isactive={pathname === el.path}
+            isActive={pathname === el.path}
         >
             <Icon icon={el.icon} />
             {isOpen && <p>{el.name}</p>}
