@@ -1,8 +1,11 @@
-import Header from '@/components/Header'
+import Header from '@/components/layout/Header/Header'
 import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import Footer from '@/components/Footer'
+// import Footer from '@/components/layout/Footer/Footer'
+import Head from 'next/head';
+import MenuBar from '@/components/layout/MenuBar/MenuBar'
+import StyledComponentsRegistry from '@/libs/registry';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -18,10 +21,19 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <Header />
-        {children}
-        <Footer />
+      <Head>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap" rel="stylesheet" />
+      </Head>
+      <body>
+        <StyledComponentsRegistry>
+          <main>
+            <MenuBar />
+            <div className='content'>
+              <Header />
+              {children}
+            </div>
+          </main>
+        </StyledComponentsRegistry>
       </body>
     </html>
   )

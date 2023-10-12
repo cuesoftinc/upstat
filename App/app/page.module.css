@@ -1,9 +1,6 @@
 .main {
-  display: flex;
-  flex-direction: column;
-  gap: 100px;
-  align-items: center;
-  padding: 6rem;
-  min-height: 100vh;
+    min-height: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
-
