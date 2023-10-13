@@ -7,18 +7,21 @@ const MenuBarContainer = styled.section`
     background: #3c3c3c;
     display: flex;
     flex-direction: column;
-    width: fit-content;
 `
 
 const HeadSection = styled.section`
     display: flex;
     gap: 24px;
     align-items: center;
-    padding: 38px 16px 32px;
+    padding: 40px 16px 32px;
 
     span {
         font-size: 20px;
         font-weight: 600;
+    }
+
+    svg:hover {
+        transform: scale(1.1)
     }
 `
 

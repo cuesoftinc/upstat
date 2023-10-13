@@ -3,18 +3,25 @@ import { styled } from "styled-components"
 const HeaderContainer = styled.div`
     width: 100%;
     display: flex;
-    padding: 25px 43px;
+    padding: 43px 62px 24px 21px;
     gap: 29px;
+    justify-content: space-between;
+    background: #16151C;
+    color: #fff;
+
+    svg {
+        opacity: 0.51
+    }
 `
 
 const SearchBarContianer = styled.div`
     width: 60%;
     display: flex;
-    padding: 5px 14px;
+    padding: 13px 14px;
     justify-content: space-between;
     align-items: center;
     border-radius: 10px;
-    border: 0.5px solid var(--font, #3C3C3C);
+    border: 0.5px solid rgba(255, 255, 255, 0.50);
 `
 
 const IconContainer = styled.div`
@@ -29,7 +36,7 @@ const IconContainer = styled.div`
 const ProfileContainer = styled.div`
     display: flex;
     gap: 16px;
-    align-item: center;
+    align-items: center;
 `
 
 const Input = styled.input`
@@ -48,7 +55,8 @@ const DetailsContainer = styled.div`
 `
 
 const Position = styled.p`
-    color: rgba(60, 60, 60, 0.50);
+    color: rgba(255, 255, 255, 0.50);
+    margin-top: 5px;
 `
 
 export {
