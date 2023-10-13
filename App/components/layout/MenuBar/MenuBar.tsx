@@ -45,7 +45,8 @@ const MenuBar = () => {
             {isOpen && <span>Upstat</span>}
             <Icon 
                 icon={`ri:arrow-${isOpen ? "left" : "right"}-double-line`}
-                onClick={() => setIsOpen(prev => !prev)}
+                onClick={() => setIsOpen(!isOpen)}
+                style={{cursor: "pointer"}}
             />
         </HeadSection>
         <MenuSection>
@@ -57,9 +58,9 @@ const MenuBar = () => {
             {accountJsx}
         </MenuSection>
         <MenuSection>
-            <LogoutItem href="#">
-                <Icon icon="majesticons:logout" />
-                {isOpen && <p>Log out</p>}
+            <LogoutItem href="/signup">
+                <Icon icon="majesticons:login" />
+                {isOpen && <p>Log in</p>}
             </LogoutItem>
         </MenuSection>
     </MenuBarContainer>
