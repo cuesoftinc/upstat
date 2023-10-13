@@ -4,8 +4,9 @@ const HeaderContainer = styled.div`
     width: 100%;
     display: flex;
     padding: 43px 62px 24px 21px;
-    gap: 29px;
     justify-content: space-between;
+    border-bottom: 2px #3c3c3c solid;
+    gap: 29px;
     background: #16151C;
     color: #fff;
 

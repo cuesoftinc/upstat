@@ -27,13 +27,15 @@ const Login = () => {
                 <FormLabel>
                     Email
                     <FormInput
-                    type="text"
+                        type="text"
+                        placeholder="Input your email address"
                     />
                 </FormLabel>
                 <FormLabel>
                     Password
                     <FormInput
-                    type="text"
+                        type="text"
+                        placeholder="•••••••••"
                     />
                 </FormLabel>
                 <button>Login</button>

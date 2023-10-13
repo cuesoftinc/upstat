@@ -25,19 +25,22 @@ const Signup = () => {
                 <FormLabel>
                     Full Name
                     <FormInput
-                    type="text"
+                        type="text"
+                        placeholder="Input your full name"
                     />
                 </FormLabel>
                 <FormLabel>
                     Email
                     <FormInput
-                    type="text"
+                        type="text"
+                        placeholder="Input your email address"
                     />
                 </FormLabel>
                 <FormLabel>
                     Password
                     <FormInput
-                    type="text"
+                        type="password"
+                        placeholder="•••••••••"
                     />
                 </FormLabel>
                 <button>Sign Up</button>
