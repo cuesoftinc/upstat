@@ -1,4 +1,3 @@
-import Header from '@/components/layout/Header/Header'
 import './globals.css'
 import type { Metadata } from 'next'
 import MenuBar from '@/components/layout/MenuBar/MenuBar'
@@ -26,7 +25,6 @@ export default function RootLayout({
           <main>
             <MenuBar />
             <div className='content'>
-              <Header />
               {children}
             </div>
           </main>
