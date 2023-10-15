@@ -61,6 +61,7 @@ const MenuItem = styled(Link)<{ isActive: boolean }>`
 
 const LogoutItem = styled(MenuItem)`
     background: rgba(0, 224, 158, 0.62);
+    justify-content: center;
 `
 
 export { 
