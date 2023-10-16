@@ -1,6 +1,8 @@
 import styled from "styled-components";
 
-const AccountInfoSection = styled.section``;
+const AccountInfoSection = styled.section`
+  margin-left: 5rem;
+`;
 const ProfileContainer = styled.div`
   display: flex;
   gap: 16px;

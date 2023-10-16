@@ -7,8 +7,7 @@ const SettingContainer = styled.div`
   background: #16151c;
   color: #fff;
   height: 88.5%;
-
-  padding: 72px 62px 112px 90px;
+  padding: 46px 62px 24px 21px;
 `;
 
 const TabButton = styled.button<TabButtonProps>`
@@ -32,6 +31,8 @@ const TabButton = styled.button<TabButtonProps>`
 const TabHeader = styled.div`
   display: flex;
   gap: 5rem;
+  border-bottom: 2px #3c3c3c solid;
+  width: 100%;
 `;
 
 const ComponentSection = styled.div`
