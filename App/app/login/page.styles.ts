@@ -2,10 +2,10 @@ import { styled } from "styled-components"
 
 
 const LoginContainer = styled.section`
-    height: 88.5%;
     display: flex;
     align-items: start;
     padding: 72px 62px 112px 0;
+    height: 100%;
     font-size: 24px;
     background: #16151C;
     color: #fff

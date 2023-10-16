@@ -125,12 +125,6 @@ const accountData: {
     path: string,
 }[] = [
     {
-        id: 0,
-        icon: "mdi:account",
-        name: "Account",
-        path:"/account"
-    },
-    {
         id: 1,
         icon: "icon-park-solid:setting",
         name: "Settings",

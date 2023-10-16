@@ -10,7 +10,6 @@ body {
 
 main {
   display: flex;
-  min-height: 100vh;
   min-width: 100vw;
 }
 
@@ -36,4 +35,7 @@ svg {
   height: 80%;
   display: grid;
   place-content: center;
+  color: #fff;
+  height: 100%;
+  background: #16151C;
 }
