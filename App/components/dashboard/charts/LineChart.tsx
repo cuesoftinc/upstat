@@ -48,6 +48,7 @@ const data = {
       data: totalUserData.map(el => el.users),
       borderColor: 'rgba(0, 224, 158, 0.62)',
       backgroundColor: 'rgba(0, 224, 158, 0.62)',
+      tension: 0.4,
     },
   ],
 };
