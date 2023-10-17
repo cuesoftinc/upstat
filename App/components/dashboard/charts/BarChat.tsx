@@ -32,6 +32,9 @@ const options = {
     title: {
       display: true,
       text: 'Traffic By Device',
+      font: {
+        size: 16,
+      }
     },
   },
 };
@@ -45,6 +48,7 @@ const data = {
       borderColor: 'rgba(0, 224, 158, 0.62)',
       backgroundColor: 'rgba(0, 224, 158, 0.62)',
       borderRadius: 10,
+      barThickness: 27, 
     },
   ],
 };

@@ -16,6 +16,9 @@ const options = {
     title: {
       display: true,
       text: 'Traffic By Location',
+      font: {
+        size: 16,
+      }
     },
   },
 };

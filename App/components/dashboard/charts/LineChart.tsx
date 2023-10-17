@@ -35,6 +35,9 @@ const options = {
     title: {
       display: true,
       text: 'Total Users',
+      font: {
+        size: 16,
+      }
     },
   },
 };
