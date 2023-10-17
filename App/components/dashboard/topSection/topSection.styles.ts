@@ -8,6 +8,7 @@ const TopSectionContainer = styled.section`
     padding: 14px 47px 0 25px;
     color: #fff;
     background: #16151c;
+    width: 100%;
 `
 
 const HeadSection = styled.div`
@@ -18,14 +19,17 @@ const HeadSection = styled.div`
 `
 
 const AllStatsContainer = styled.div`
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));;
     gap: 26px;
+    width: 100%;
 `
 
 const StatsContainer = styled.div`
     display: flex;
     flex-direction: column;
     border-radius: 10px;
+    width: 100%;
     padding: 22px 15px;
     color: #fff;
     background: #3c3c3c;
