@@ -1,4 +1,4 @@
-import { EmailSettingContainer } from "./email.styles";
+import { EmailSettingContainer } from "./EmailSetting.styles";
 
 const EmailSetting = () => {
   return (

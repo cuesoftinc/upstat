@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import AccountInfo from "@/components/otherComponents/setting/accountInfo/AccountInfo";
+import AccountInfo from "@/components/setting/AccountInfo/AccountInfo";
 import {
   ComponentSection,
   SettingContainer,
@@ -8,9 +8,9 @@ import {
   TabHeader,
 } from "./page.styles";
 import { Icon } from "@iconify/react";
-import EmailSetting from "@/components/otherComponents/setting/email/EmailSetting";
-import PasswordSetting from "@/components/otherComponents/setting/password/PasswordSetting";
-import SecuritySetting from "@/components/otherComponents/setting/security/SecuritySetting";
+import EmailSetting from "@/components/setting/EmailSetting/EmailSetting";
+import PswdSetting from "@/components/setting/PswdSetting/PswdSetting";
+import SecuritySetting from "@/components/setting/SecuritySetting/SecuritySetting";
 
 const Settings = () => {
   const [active, setActive] = useState(1);
@@ -49,7 +49,7 @@ const Settings = () => {
       <ComponentSection>
         {active === 1 && <AccountInfo />}
         {active === 2 && <EmailSetting />}
-        {active === 3 && <PasswordSetting />}
+        {active === 3 && <PswdSetting />}
         {active === 4 && <SecuritySetting />}
       </ComponentSection>
     </SettingContainer>

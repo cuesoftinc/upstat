@@ -6,7 +6,7 @@ interface TabButtonProps {
 const SettingContainer = styled.div`
   background: #16151c;
   color: #fff;
-  height: 88.5%;
+  height: 100%;
   padding: 46px 62px 24px 21px;
 `;
 

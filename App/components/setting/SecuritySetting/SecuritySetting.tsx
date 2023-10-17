@@ -1,4 +1,4 @@
-import { SecuritySettingContainer } from "./security.styles";
+import { SecuritySettingContainer } from "./SecuritySetting.styles";
 
 const SecuritySetting = () => {
   return (
