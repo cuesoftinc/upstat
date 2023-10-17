@@ -41,14 +41,14 @@ const options = {
     x: {
       ticks: {
         font: {
-          size: 16, // Adjust as needed for the X-axis labels
+          size: 16, 
         },
       },
     },
     y: {
       ticks: {
         font: {
-          size: 16, // Adjust as needed for the Y-axis labels
+          size: 16, 
         },
       },
     },
