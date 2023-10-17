@@ -1,6 +1,6 @@
 import './globals.css'
 import type { Metadata } from 'next'
-import MenuBar from '@/components/layout/MenuBar/MenuBar'
+import MenuBar from '@/components/SharedLayouts/MenuBar/MenuBar'
 import StyledComponentsRegistry from '@/libs/registry'
 
 export const metadata: Metadata = {
