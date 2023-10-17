@@ -1,47 +1,47 @@
 export const totalUserData: {
   id: number,
-  horizontal: string,
-  vertical: number | null
+  day: string,
+  users: number | null
 }[] = [
     {
       id: 0,
-      horizontal: "",
-      vertical: null
+      day: "",
+      users: null
     },
     {
       id: 1,
-      horizontal: "Mon",
-      vertical: 1000000,
+      day: "Mon",
+      users: 1000000,
     },
     {
       id: 2,
-      horizontal: "Tue",
-      vertical: 5000000,
+      day: "Tue",
+      users: 5000000,
     },
     {
       id: 3,
-      horizontal: "Wed",
-      vertical: 7500000,
+      day: "Wed",
+      users: 7500000,
     },
     {
       id: 4,
-      horizontal: "Thur",
-      vertical: 10000000,
+      day: "Thur",
+      users: 10000000,
     },
     {
       id: 5,
-      horizontal: "Fri",
-      vertical: 12200000,
+      day: "Fri",
+      users: 12200000,
     },
     {
       id: 6,
-      horizontal: "Sat",
-      vertical: 16000000,
+      day: "Sat",
+      users: 16000000,
     },
     {
       id: 5,
-      horizontal: "Sun",
-      vertical: null
+      day: "Sun",
+      users: null
     },
   ];
   
@@ -96,4 +96,68 @@ export const totalUserData: {
       name: "Messenger",
       range: 70,
     },
+  ]
+
+  export const deviceTrafficData: {
+    id: number,
+    device: string,
+    traffic: number | null
+  }[] = [
+    {
+      id: 0,
+      device: "Macbook",
+      traffic: 230000,
+    },
+    {
+      id: 1,
+      device: "IOS",
+      traffic: 270000,
+    },
+    {
+      id: 2,
+      device: "Windows",
+      traffic: 300000,
+    },
+    {
+      id: 3,
+      device: "Andriod",
+      traffic: 360000,
+    },
+    {
+      id: 4,
+      device: "Others",
+      traffic: 270000,
+    },
+  ]
+
+  export const locationTrafficData: {
+    id: number,
+    name: string,
+    percent: number,
+    color: string,
+  }[] = [
+    {
+      id: 0,
+      name: 'London',
+      percent: 32.1,
+      color: '#fff',
+    },
+    {
+      id: 1,
+      name: 'India',
+      percent: 21.6,
+      color: '#ffc3cc',
+    },
+    {
+      id: 2,
+      name: 'Nigeria',
+      percent: 26.2,
+      color: '#17A279',
+    }, 
+    {
+      id: 3,
+      name: 'Others',
+      percent: 20.1,
+      color: '#560808'
+    }
   ]

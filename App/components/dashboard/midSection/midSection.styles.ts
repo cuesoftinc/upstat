@@ -1,6 +1,6 @@
 import { styled } from "styled-components"
 
-const MidSectionContainer = styled.div`
+const MidSectionContainer = styled.section`
     display: flex;
     gap: 26px;
     width: 100%;
@@ -15,6 +15,7 @@ const ChartContainer = styled.div`
     height: auto;
     border-radius: 10px;
     padding: 24px 40px;
+
 `
 
 const WebTraffic = styled.div`
@@ -41,7 +42,7 @@ const TrafficItem = styled.div`
 
 const TrafficGuage = styled.div`
     width: 100%;
-    height: 50%;
+    height: 7px;
     background: rgba(0, 224, 158, 0.62)
 `
 

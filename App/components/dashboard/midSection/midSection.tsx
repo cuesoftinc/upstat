@@ -13,17 +13,6 @@ import {
 } from "./MidSection.styles"
 
 const MidSection = () => {
-    const [chartData, setChartData] = useState({
-        labels: totalUserData.map((data) => data.horizontal),
-        datasets: [
-            {
-            label: "Total Users",
-            data: totalUserData.map((data) => data.vertical),
-            borderColor: "rgba(0, 224, 158, 0.62)",
-            borderWidth: 2,
-            },
-        ],
-    })
 
     const webTrafficTsx = webTrafficData.map(el => {
         return (
@@ -39,7 +28,7 @@ const MidSection = () => {
     return (
         <MidSectionContainer>
             <ChartContainer>
-                <LineChart chartData={chartData} />
+            <LineChart />
             </ChartContainer>
             <WebTraffic>
                 <p>Traffic By Website</p>

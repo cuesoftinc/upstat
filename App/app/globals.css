@@ -13,6 +13,11 @@ main {
   min-width: 100vw;
 }
 
+.content {
+  /* background: #16151C;/ */
+  width: 100%;
+}
+
 a {
   color: inherit;
   cursor: pointer;
