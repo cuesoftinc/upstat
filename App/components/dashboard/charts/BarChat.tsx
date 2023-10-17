@@ -37,6 +37,22 @@ const options = {
       }
     },
   },
+  scales: {
+    x: {
+      ticks: {
+        font: {
+          size: 16, // Adjust as needed for the X-axis labels
+        },
+      },
+    },
+    y: {
+      ticks: {
+        font: {
+          size: 16, // Adjust as needed for the Y-axis labels
+        },
+      },
+    },
+  }
 };
 
 
