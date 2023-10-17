@@ -20,7 +20,7 @@ const BottomSection = () => {
             <DetailItems>
                 <div style={{background: el.color}}></div>
                 <p>{el.name}</p>
-                <p style={{justifySelf: "flex-end"}}>{el.percent}%</p>
+                <p>{el.percent}%</p>
             </DetailItems>
         )
     })

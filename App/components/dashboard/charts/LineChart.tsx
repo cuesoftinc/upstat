@@ -44,7 +44,7 @@ const data = {
   labels: totalUserData.map(el => el.day),
   datasets: [
     {
-      label: 'Total Users',
+      label: 'Current Users',
       data: totalUserData.map(el => el.users),
       borderColor: 'rgba(0, 224, 158, 0.62)',
       backgroundColor: 'rgba(0, 224, 158, 0.62)',
