@@ -6,7 +6,7 @@ import {
     MetricsContainer,
     StatsContainer,
     HeadSection,
-} from "./topSection.styles"
+} from "./TopSection.styles"
 
 
 const downChart = "streamline:money-graph-arrow-decrease-down-stats-graph-descend-right-arrow"
