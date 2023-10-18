@@ -3,9 +3,12 @@
   padding: 0;
   margin: 0;
 }
+:root {
+  --rem: 16px; /* Set your base font size here */
+}
 
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 main {
@@ -38,4 +41,8 @@ svg {
   color: #fff;
   height: 100%;
   background: #16151C;
+}
+
+.axis-bottom-text {
+  color: white; /* Set the text color to white */
 }
