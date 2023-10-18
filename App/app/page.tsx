@@ -1,11 +1,24 @@
-import styles from './page.module.css'
-import Link from 'next/link'
+"use client"
+import BottomSection from "@/components/dashboard/bottomSection/BottomSection";
+import MidSection from "@/components/dashboard/midSection/MidSection";
+import TopSection from "@/components/dashboard/topSection/TopSection";
+import Header from "@/components/SharedLayouts/Header/Header";
+import { styled } from "styled-components";
 
 export default function Home() {
   return (
-    <main className={styles.main}>
-     <h2>Home goes here</h2>
-     <Link href="/dashboard">Go to dashboard</Link>
-    </main>
+    <DashboardPage>
+      <Header />
+      <TopSection />
+      <MidSection />
+      <BottomSection />
+    </DashboardPage>
   )
 }
+
+
+const DashboardPage = styled.div`
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+`
