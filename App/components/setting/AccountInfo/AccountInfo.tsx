@@ -70,36 +70,58 @@ const AccountInfo = () => {
       <InputGroup>
         <InputBox>
           <label htmlFor="fullName">Full Name</label>
-          <input type="text" name="fullName" />
+          <input type="text" name="fullName" placeholder="Input your name" />
         </InputBox>
 
         <InputBox>
           <label htmlFor="phone">Phone</label>
-          <input type="tel" name="phone" />
+          <input type="tel" name="phone" placeholder="+234 855 8584 984" />
         </InputBox>
 
         <InputBox>
           <label htmlFor="email">Email</label>
-          <input type="email" name="email" />
+          <input
+            type="email"
+            name="email"
+            placeholder="wasiu.abdulsalam@cuesoft.io"
+          />
         </InputBox>
         <InputBox>
           <label htmlFor="country">Country</label>
           <select name="country" id="country">
-            <option value=""> </option>
+            <option value="" disabled selected>
+              Nigeria
+            </option>
             <option value=""> Nigeria</option>
           </select>
         </InputBox>
         <InputBox>
           <label htmlFor="timeZone">Time Zone</label>
           <select name="" id="">
-            <option value=""> </option>
+            <option value="" disabled>
+              {" "}
+              ( UTC + 04:00) Europe/Egypt
+            </option>
             <option value=""> GMT+1</option>
           </select>
         </InputBox>
 
         <InputBtnGroup>
-          <button className="cancelBtn">Cancel</button>
-          <button className="saveBtn">Save Changes</button>
+          <button
+            className="cancelBtn"
+            style={{ background: "#fff", color: "#000" }}
+          >
+            Cancel
+          </button>
+          <button
+            className="saveBtn"
+            style={{
+              backgroundColor: "rgba(0, 224, 158, 0.62)",
+              color: "#fff",
+            }}
+          >
+            Save Changes
+          </button>
         </InputBtnGroup>
       </InputGroup>
     </AccountInfoSection>
