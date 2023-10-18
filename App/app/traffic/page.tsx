@@ -1,10 +1,12 @@
-import TrafficChart from "@/components/Traffic/TrafficCharts/TraficCharts";
+"use client";
+import TrafficComponent from "@/components/traffic/trafficSection/TrafficSection";
+import { TrafficPage } from "./page.styles";
 
 const Traffic = () => {
   return (
-    <section className="dummy-classname">
-      <TrafficChart />
-    </section>
+    <TrafficPage>
+      <TrafficComponent />
+    </TrafficPage>
   );
 };
 

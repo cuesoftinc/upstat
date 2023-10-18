@@ -10,6 +10,7 @@ const NewUserContainer = styled.section`
 const TrafficSection = styled.div`
   padding-top: 10rem;
 `;
+
 const UserHeader = styled.div`
   display: flex;
   color: #fff;
@@ -29,7 +30,7 @@ const UserHeader = styled.div`
 const UserSection = styled.div`
   display: flex;
   flex-direction: column;
-  padding-top: 10px;
+  padding-top: 5px;
 `;
 
 const UserItem = styled.div`
@@ -38,6 +39,7 @@ const UserItem = styled.div`
   padding-top: 20px;
   color: #fff;
 `;
+
 const UserItemCard = styled.div`
   display: flex;
   justify-content: space-between;
@@ -64,6 +66,7 @@ const UserButton = styled.button`
   background: rgba(0, 224, 158, 0.62);
   border-radius: 10px;
   outline: none;
+  margin-top: 5px;
   cursor: pointer;
   align-items: center;
   justify-items: center;
@@ -80,6 +83,7 @@ const PageViewWrapper = styled.section`
   width: 479px;
   height: 398px;
   background: #3c3c3c;
+  position: relative;
   border-radius: 10px;
 `;
 
@@ -101,6 +105,7 @@ const PageViewItemBox = styled.div`
   flex-direction: column;
   padding-top: 20px;
 `;
+
 const PageViewItemCard = styled.div`
   display: flex;
   justify-content: space-between;
@@ -165,6 +170,7 @@ const DailyVisitorWrapper = styled.section`
   border-radius: 10px;
   background: #3c3c3c;
 `;
+
 const DailyVisitorHeader = styled.div`
   display: flex;
   color: #fff;
@@ -187,10 +193,14 @@ const DailyVisitorHeader = styled.div`
     }
   }
 `;
+
 const DailyVisitorCard = styled.div`
-  margin-left: 20px;
-  margin-top: 6rem;
+  padding: 30px 20px;
+
+  width: 100%;
+  height: 280px;
 `;
+
 const UpperWrapper = styled.section`
   display: flex;
   gap: 25px;
@@ -201,9 +211,18 @@ const LowerWrapper = styled.section`
   gap: 25px;
   margin-top: 30px;
 `;
+
+const TotalChartContainer = styled.div`
+  background: #3c3c3c;
+  width: 100%;
+  height: 280px;
+  padding: 30px 20px;
+  border-radius: 10px;
+`;
 export {
   NewUserContainer,
   UserHeader,
+  TotalChartContainer,
   PageViewWrapper,
   TotalViewHeader,
   PageViewItemBox,
