@@ -1,9 +1,13 @@
+"use client";
+import TrafficComponent from "@/components/traffic/trafficSection/TrafficSection";
+import { TrafficPage } from "./page.styles";
+
 const Traffic = () => {
-    return (
-      <section className="dummy-classname">
-       <h2>Traffic goes here</h2>
-      </section>
-    )
-  }
-  
-  export default Traffic
+  return (
+    <TrafficPage>
+      <TrafficComponent />
+    </TrafficPage>
+  );
+};
+
+export default Traffic;
