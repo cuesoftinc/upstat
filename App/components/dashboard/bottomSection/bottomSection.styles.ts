@@ -49,7 +49,7 @@ const BarChartContainer = styled.div`
 
 const DonoughtChartContainer = styled.div`
     width: 50%;
-    height: 100%;
+    min-height: 266px;
 `
 
 export {
