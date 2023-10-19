@@ -3,6 +3,7 @@ import { styled } from "styled-components"
 const HeaderContainer = styled.div`
     width: 100%;
     display: flex;
+    align-items: center;
     padding: 43px 62px 24px 21px;
     justify-content: space-between;
     border-bottom: 2px #3c3c3c solid;
@@ -17,6 +18,7 @@ const HeaderContainer = styled.div`
 
 const SearchBarContianer = styled.div`
     width: 60%;
+    max-height: 50px;
     display: flex;
     padding: 13px 14px;
     justify-content: space-between;

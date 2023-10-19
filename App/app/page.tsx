@@ -7,18 +7,11 @@ import { styled } from "styled-components";
 
 export default function Home() {
   return (
-    <DashboardPage>
+    <>
       <Header />
       <TopSection />
       <MidSection />
       <BottomSection />
-    </DashboardPage>
+    </>
   )
 }
-
-
-const DashboardPage = styled.div`
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-`

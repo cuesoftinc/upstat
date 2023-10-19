@@ -29,12 +29,17 @@ const DonoughtDetailsContainer = styled.div`
 
 const DetailItems = styled.div`
     display: flex;
-    gap: 20px;
+    justify-content: space-between;
+    max-width: 200px;
 
     div {
         width: 15px;
         height: 15px;
         border-radius: 50%;
+    }
+
+    p {
+        justify-self: start;
     }
     
 `
@@ -49,7 +54,7 @@ const BarChartContainer = styled.div`
 
 const DonoughtChartContainer = styled.div`
     width: 50%;
-    height: 100%;
+    min-height: 266px;
 `
 
 export {
