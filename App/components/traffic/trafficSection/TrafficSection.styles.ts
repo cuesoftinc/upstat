@@ -1,14 +1,20 @@
 import styled from "styled-components";
 
 const NewUserContainer = styled.section`
-  width: 340px;
+  width: 30%;
   height: 398px;
   background: #3c3c3c;
   border-radius: 10px;
 `;
 
 const TrafficSection = styled.div`
-  padding-top: 10rem;
+  padding-top: 2rem;
+  width: 100%;
+
+  .headerTitle {
+    font-size: 20px;
+    padding-bottom: 30px;
+  }
 `;
 
 const UserHeader = styled.div`
@@ -80,7 +86,7 @@ const UserButton = styled.button`
 `;
 
 const PageViewWrapper = styled.section`
-  width: 479px;
+  width: 40%;
   height: 398px;
   background: #3c3c3c;
   position: relative;
@@ -108,7 +114,7 @@ const PageViewItemBox = styled.div`
 
 const PageViewItemCard = styled.div`
   display: flex;
-  justify-content: space-between;
+  gap: 26px;
   padding: 0 20px;
 
   .pageItem_card {
@@ -149,7 +155,7 @@ const ProgressInput = styled.progress`
 `;
 
 const TotalView = styled.div`
-  width: 618px;
+  width: 55%;
   height: 400px;
   background: #3c3c3c;
   border-radius: 10px;
@@ -165,7 +171,7 @@ const TotalViewHeader = styled.div`
 `;
 
 const DailyVisitorWrapper = styled.section`
-  width: 751px;
+  width: 65%;
   height: 398px;
   border-radius: 10px;
   background: #3c3c3c;
@@ -204,10 +210,12 @@ const DailyVisitorCard = styled.div`
 const UpperWrapper = styled.section`
   display: flex;
   gap: 25px;
+  width: 100%;
 `;
 
 const LowerWrapper = styled.section`
   display: flex;
+  width: 100%;
   gap: 25px;
   margin-top: 30px;
 `;

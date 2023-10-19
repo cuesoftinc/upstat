@@ -62,6 +62,7 @@ const TrafficComponent = () => {
   ));
   return (
     <TrafficSection>
+      <p className="headerTitle">Web Traffic</p>
       <UpperWrapper>
         <TotalView>
           <TotalViewHeader>
