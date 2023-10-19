@@ -65,32 +65,32 @@ export const totalUserData: {
     {
       id: 1,
       day: "Mon",
-      users: 1000000,
+      users: 1000,
     },
     {
       id: 2,
       day: "Tue",
-      users: 5000000,
+      users: 5000,
     },
     {
       id: 3,
       day: "Wed",
-      users: 7500000,
+      users: 7500,
     },
     {
       id: 4,
       day: "Thur",
-      users: 10000000,
+      users: 10000,
     },
     {
       id: 5,
       day: "Fri",
-      users: 12200000,
+      users: 12200,
     },
     {
       id: 6,
       day: "Sat",
-      users: 16000000,
+      users: 16000,
     },
     {
       id: 5,
@@ -160,27 +160,27 @@ export const totalUserData: {
     {
       id: 0,
       device: "Macbook",
-      traffic: 230000,
+      traffic: 230,
     },
     {
       id: 1,
       device: "IOS",
-      traffic: 270000,
+      traffic: 270,
     },
     {
       id: 2,
       device: "Windows",
-      traffic: 300000,
+      traffic: 300,
     },
     {
       id: 3,
       device: "Andriod",
-      traffic: 360000,
+      traffic: 360,
     },
     {
       id: 4,
       device: "Others",
-      traffic: 270000,
+      traffic: 270,
     },
   ]
 

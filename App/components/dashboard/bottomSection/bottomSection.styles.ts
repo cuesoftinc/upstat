@@ -29,12 +29,17 @@ const DonoughtDetailsContainer = styled.div`
 
 const DetailItems = styled.div`
     display: flex;
-    gap: 20px;
+    justify-content: space-between;
+    max-width: 200px;
 
     div {
         width: 15px;
         height: 15px;
         border-radius: 50%;
+    }
+
+    p {
+        justify-self: start;
     }
     
 `

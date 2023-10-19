@@ -9,17 +9,9 @@ export default function Home() {
   return (
     <>
       <Header />
-      <DashboardContainer>
-        <TopSection />
-        <MidSection />
-        <BottomSection />
-      </DashboardContainer>
+      <TopSection />
+      <MidSection />
+      <BottomSection />
     </>
   )
 }
-
-
-
-const DashboardContainer = styled.div`
-  height: 100%;
-`
