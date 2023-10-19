@@ -1,12 +1,16 @@
 "use client";
 import TrafficComponent from "@/components/traffic/trafficSection/TrafficSection";
 import { TrafficPage } from "./page.styles";
+import Header from "@/components/SharedLayouts/Header/Header";
 
 const Traffic = () => {
   return (
-    <TrafficPage>
-      <TrafficComponent />
-    </TrafficPage>
+    <>
+      <Header />
+      <TrafficPage>
+        <TrafficComponent />
+      </TrafficPage>
+    </>
   );
 };
 

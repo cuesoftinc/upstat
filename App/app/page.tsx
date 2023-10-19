@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import BottomSection from "@/components/dashboard/bottomSection/BottomSection";
 import MidSection from "@/components/dashboard/midSection/MidSection";
 import TopSection from "@/components/dashboard/topSection/TopSection";
@@ -13,5 +13,5 @@ export default function Home() {
       <MidSection />
       <BottomSection />
     </>
-  )
+  );
 }
