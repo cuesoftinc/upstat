@@ -121,6 +121,7 @@ const PageViewItemCard = styled.div`
     display: flex;
     gap: 8px;
     color: #fff;
+    width: 100%;
     justify-items: center;
     align-items: center;
 
@@ -135,7 +136,7 @@ const ProgressInput = styled.progress`
   -moz-appearance: none;
   appearance: none;
   border-radius: 15px;
-  width: 247px;
+  width: 80%;
   margin: 0;
   height: 15px;
 
