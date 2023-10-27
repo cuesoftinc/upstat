@@ -10,45 +10,80 @@ import {
     FormHeading,
     FormLabel,
     FormInput,
+    FormSection,
+    GoogleBtn,
 } from "./page.styles"
+import { useState } from "react";
 
 const Signup = () => {
+
+    const [formData, setFormData] = useState<{
+        fullName: string,
+        email: string,
+        password: string,
+    }>({
+        fullName: "",
+        email: "",
+        password: ""
+    })
+
+    const handleChange = (e: any) => {
+        const {name, value} = e.target
+        setFormData(prev => ({
+            ...prev,
+            [name] : value
+        }))
+    }
 
     return (
         <SignupContainer>
             <Image src={women} alt="women talking" style={{width: "50%", height: "auto", alignSelf: "end"}} />
-            <FormContainer>
+            <FormSection>
                 <FormHeading>
                     <h1>Sign Up With Upstat</h1>
                     <p>Have an account? <Link href="/login">Login</Link></p>
                 </FormHeading>
-                <FormLabel>
-                    Full Name
-                    <FormInput
-                        type="text"
-                        placeholder="Input your full name"
-                    />
-                </FormLabel>
-                <FormLabel>
-                    Email
-                    <FormInput
-                        type="text"
-                        placeholder="Input your email address"
-                    />
-                </FormLabel>
-                <FormLabel>
-                    Password
-                    <FormInput
-                        type="password"
-                        placeholder="•••••••••"
-                    />
-                </FormLabel>
-                <button>Sign Up</button>
-                <button>
+                <FormContainer>
+                    <FormLabel>
+                        Full Name
+                        <FormInput
+                            type="text"
+                            name="fullName"
+                            onChange={handleChange}
+                            value={formData.fullName}
+                            placeholder="Input your full name"
+                            required
+                        />
+                    </FormLabel>
+                    <FormLabel>
+                        Email
+                        <FormInput
+                            type="email"
+                            name="email"
+                            onChange={handleChange}
+                            value={formData.email}
+                            placeholder="Input your email address"
+                            required
+                        />
+                    </FormLabel>
+                    <FormLabel>
+                        Password
+                        <FormInput
+                            type="password"
+                            name="password"
+                            onChange={handleChange}
+                            value={formData.password}
+                            placeholder="•••••••••"
+                            required
+                        />
+                    </FormLabel>
+                    <button>Sign Up</button>
+                </FormContainer>
+                <GoogleBtn>
                     <Icon icon="devicon:google" />
                     <span>Continue with google</span>
-                </button>
-            </FormContainer>
+                </GoogleBtn>
+            </FormSection>
         </SignupContainer>
     )
 }
