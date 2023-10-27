@@ -16,6 +16,7 @@ const FormSection = styled.div`
 
 const FormHeading = styled.div`
     text-align: center;
+    margin-bottom: 32px;
     
     p {
         margin-top: 20px;

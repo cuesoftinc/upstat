@@ -13,19 +13,23 @@ import {
     FormSection,
     GoogleBtn,
 } from "./page.styles"
-import { useState } from "react";
+import { use, useState } from "react";
 
 const Signup = () => {
 
-    const [formData, setFormData] = useState<{
+    const defaultFormData: {
         fullName: string,
         email: string,
         password: string,
-    }>({
+    } = {
         fullName: "",
         email: "",
         password: ""
-    })
+    }
+
+    const [formData, setFormData] = useState(defaultFormData)
+    const [sucess, setSucces] = useState<string>("")
+    const [error, setError] = useState<string>("")
 
     const handleChange = (e: any) => {
         const {name, value} = e.target
@@ -33,6 +37,17 @@ const Signup = () => {
             ...prev,
             [name] : value
         }))
+    }
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
+        console.log(formData)
+
+        // Reset form
+        setFormData(defaultFormData)
+
+        // Alert user on sign up
+        alert("You have sucessfully signed up to upstat")
     }
 
     return (
@@ -43,7 +58,7 @@ const Signup = () => {
                     <h1>Sign Up With Upstat</h1>
                     <p>Have an account? <Link href="/login">Login</Link></p>
                 </FormHeading>
-                <FormContainer>
+                <FormContainer onSubmit={handleSubmit}>
                     <FormLabel>
                         Full Name
                         <FormInput
