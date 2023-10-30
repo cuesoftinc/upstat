@@ -2,7 +2,7 @@
 
 import BarChart from "../charts/BarChat";
 import DonoughtChart from "../charts/DonoughtChart";
-import { locationTrafficData } from "@/data/dashboardData";
+import { locationTrafficData } from "@/utils/dashboardData";
 import {
   DonoughtSectionContainer,
   DonoughtDetailsContainer,

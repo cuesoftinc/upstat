@@ -1,7 +1,7 @@
 import React from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
-import { locationTrafficData } from '@/data/dashboardData';
+import { locationTrafficData } from '@/utils/dashboardData';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 

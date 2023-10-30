@@ -10,7 +10,7 @@ import {
   Legend,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import { totalViewData } from "@/data/trafficData";
+import { totalViewData } from "@/utils/trafficData";
 
 ChartJS.register(
   Title,

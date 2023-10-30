@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { totalUserData, webTrafficData } from "../../../data/dashboardData";
+import { totalUserData, webTrafficData } from "../../../utils/dashboardData";
 import LineChart from "../charts/LineChart";
 import {
   MidSectionContainer,

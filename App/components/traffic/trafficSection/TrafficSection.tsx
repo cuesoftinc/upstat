@@ -26,7 +26,7 @@ import {
 import { Icon } from "@iconify/react";
 
 import Image from "next/image";
-import { pageViewData, userdata } from "@/data/trafficData";
+import { pageViewData, userdata } from "@/utils/trafficData";
 import LineChart from "../charts/LineChart";
 import BarChart from "../charts/BarChat";
 
