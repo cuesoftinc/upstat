@@ -13,7 +13,10 @@ import {
     FormSection,
     GoogleBtn,
 } from "./page.styles"
-import { use, useState } from "react";
+import { useState } from "react";
+import { userClient } from "@/client";
+import { CreateUserRequest, CreateUserResponse } from "@/proto/user_pb.d";
+
 
 const Signup = () => {
 
@@ -27,6 +30,7 @@ const Signup = () => {
         password: ""
     }
 
+
     const [formData, setFormData] = useState(defaultFormData)
     const [sucess, setSucces] = useState<string>("")
     const [error, setError] = useState<string>("")
@@ -39,16 +43,37 @@ const Signup = () => {
         }))
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         console.log(formData)
 
-        // Reset form
-        setFormData(defaultFormData)
+        const user = new CreateUserRequest()
+
+        // user.setName(formData.fullName)
+        // user.setEmail(formData.email)
+        // user.setPassword(formData.password)
+
+        try {
+            const res: CreateUserResponse = await userClient.createUser(user, null)
+            
+            if (res.getStatus() === "success") {
+                setSucces(res.getData())
+            } else {
+                setError(res.getData())
+            }
+            
+        } catch(err: any) {
+            setError(err)
+        } finally {
+            // Reset form
+            setFormData(defaultFormData)
+        }
 
         // Alert user on sign up
-        alert("You have sucessfully signed up to upstat")
+        // ssetTimeou/(alert("You have sucessfully signed up to upstat"))
     }
+
+    console.log(sucess, error,)
 
     return (
         <SignupContainer>
