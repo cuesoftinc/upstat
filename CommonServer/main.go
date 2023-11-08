@@ -1,58 +1,56 @@
 package main
 
 import (
-	"github.com/CuesoftCloud/upstat/config"
-	pb "github.com/CuesoftCloud/upstat/proto"
-	"github.com/CuesoftCloud/upstat/services"
-	"github.com/CuesoftCloud/upstat/utils"
-	"google.golang.org/grpc"
-	"log"
-	"net"
-	"sync"
+    "github.com/CuesoftCloud/upstat/config"
+    pb "github.com/CuesoftCloud/upstat/proto"
+    "github.com/CuesoftCloud/upstat/services"
+    "github.com/CuesoftCloud/upstat/utils"
+    "github.com/rs/cors"
+    "google.golang.org/grpc"
+    "log"
+    "net/http"
+    "sync"
 )
 
 var wg sync.WaitGroup
 
-//func unaryInterceptor(
-//	ctx context.Context,
-//	req interface{},
-//	info *grpc.UnaryServerInfo,
-//	handler grpc.UnaryHandler,
-//) (interface{}, error) {
-//	log.Println("--> unary interceptor: ", info.FullMethod)
-//	return handler(ctx, req)
-//}
-
 func main() {
-	// Load environment variables
-	config.LoadEnv()
+    // Load environment variables
+    config.LoadEnv()
 
-	lis, err := net.Listen("tcp", "[::1]:8080")
-	if err != nil {
-		log.Fatalln("App: Failed to start server:", err)
-	}
-	log.Println("Server listening on port 8080")
+    // Create gRPC server
+    grpcServer := grpc.NewServer(
+        grpc.UnaryInterceptor(utils.AuthenticateInterceptor),
+    )
+    service := &services.UserServiceServer{}
 
-	// Create gRPC server
-	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(utils.AuthenticateInterceptor),
-	)
-	service := &services.UserServiceServer{}
+    // Register the service with the server
+    pb.RegisterUserServiceServer(grpcServer, service)
 
-	// Register the service with the server
-	pb.RegisterUserServiceServer(grpcServer, service)
+    // Create CORS middleware
+    corsMiddleware := cors.New(cors.Options{
+        AllowedOrigins: []string{"*"},
+    })
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done() // Mark this goroutine as done when it finishes
-		err := grpcServer.Serve(lis)
-		if err != nil {
-			log.Fatalln("gRPC: Failed to start server:", err)
-		}
-	}()
+    // Set up HTTP/2 server
+    server := &http.Server{
+        Addr:    ":8080", // Set the desired port for both gRPC and HTTP
+        Handler: corsMiddleware.Handler(grpcServer), // Use the gRPC server as the handler
+    }
 
-	log.Println("gRPC server started")
+    wg.Add(1)
 
-	// Wait for both servers to start before exiting
-	wg.Wait()
+    // Start the server
+    go func() {
+        defer wg.Done()
+        err := server.ListenAndServe()
+        if err != nil {
+            log.Fatal("could not start server")
+        }
+    }()
+
+    log.Println("gRPC and HTTP servers started")
+
+    // Wait for the server to start before exiting
+    wg.Wait()
 }
