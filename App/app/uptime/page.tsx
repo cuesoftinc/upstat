@@ -1,9 +1,14 @@
+import Header from "@/components/SharedLayouts/Header/Header"
+import TopSection from "@/components/uptime/topSection/TopSection"
+
+
 const Uptime = () => {
     return (
-      <section className="dummy-classname">
-       <h2>Uptime goes here</h2>
-      </section>
+      <>
+        <Header />
+        <TopSection system="All system"/>
+      </>
     )
   }
   
-  export default Uptime
+export default Uptime
