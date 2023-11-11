@@ -1,18 +1,30 @@
+"use client"
+
+import { Icon } from '@iconify/react';
+import { styled } from "styled-components"
 import {
+    OperationStatContainer,
     TopsectionContainer,
     OperationStat,
     UpDownTime,
     StatusBar,
     DownTime,
     Uptime,
-} from "./topSection.styles"
+} from "./TopSection.styles"
+import { useRouter } from 'next/navigation';
 
-type topsectionProp = {
-    system : string
+interface topsectionProp  {
+    system : string,
+    back: boolean
 }
 
-const Topsection = ({system}: topsectionProp) => {
+const Topsection = ({system, back}: topsectionProp) => {
     const arr: (number | string)[] = new Array(10).fill(0)
+    const router = useRouter();
+
+    const goBack = () => {
+      router.back();
+    }
 
     const statusTsx = (color: string) => {
         return arr.map((el, i) => (
@@ -24,10 +36,18 @@ const Topsection = ({system}: topsectionProp) => {
 
     return (
         <TopsectionContainer>
-            <OperationStat>
-                <div></div>
-                <h2>{system} is operational</h2>
-            </OperationStat>
+            <OperationStatContainer>
+                <OperationStat>
+                    <div></div>
+                    <h2>{system} is operational</h2>
+                </OperationStat>
+                {back && (
+                    <div className='goBack' onClick={goBack}>
+                        <Icon icon="teenyicons:arrow-left-solid" />
+                        Back
+                    </div>
+                )}
+            </OperationStatContainer>
             <UpDownTime>
                 <Uptime>
                     <p>Uptime</p>
@@ -46,5 +66,6 @@ const Topsection = ({system}: topsectionProp) => {
     )
 
 }
+
 
 export default Topsection

@@ -1,5 +1,3 @@
-"use client"
-
 import { styled } from "styled-components"
 
 const TopsectionContainer = styled.section`
@@ -7,16 +5,35 @@ const TopsectionContainer = styled.section`
     display: flex;
     gap: 21px;
     color: #fff;
+    font-weight: 600;
+`
+
+const OperationStatContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    background: #3C3C3C;
+    padding: 42px 17px;
+    border-radius: 10px;
+    gap: 10px;
+
+    .goBack {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 500;
+        cursor: pointer;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
 `
 
 const OperationStat = styled.div`
     display: flex;
-    width: 80%;
-    background: #3C3C3C;
     gap: 10px;
     align-items: center;
-    padding: 42px 17px;
-    border-radius: 10px;
     max-width: 881px;
     
 
@@ -70,6 +87,7 @@ const StatusBar = styled.div`
 `
 
 export {
+    OperationStatContainer,
     TopsectionContainer,
     OperationStat,
     UpDownTime,
