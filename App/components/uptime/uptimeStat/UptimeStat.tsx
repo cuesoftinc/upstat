@@ -2,6 +2,7 @@
 
 import { Icon } from "@iconify/react"
 import { styled } from "styled-components"
+import System from "../system/System"
 
 
 const UptimeStat = () => {
@@ -23,6 +24,7 @@ const UptimeStat = () => {
                 <p>Percentage</p>
                 <p>Status Health</p>
             </StatusHeading>
+            <System />
         </UptimeStatContainer>
     )
 
