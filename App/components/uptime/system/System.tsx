@@ -12,11 +12,13 @@ const System = ({name, percent, allStatus}: systemProps) => {
 
     return (
         <SystemContainer>
-            <Name>
-                <p>{name}</p>
-                <Icon icon="cil:arrow-right" />
-            </Name>
-            <p>{percent}%</p>
+            <NameAndPercent>
+                <Name>
+                    <p>{name}</p>
+                    <Icon icon="cil:arrow-right" />
+                </Name>
+                <p>{percent}%</p>
+            </NameAndPercent>
             <StatusHealth allStatus={allStatus} />
         </SystemContainer>
     )
@@ -28,6 +30,12 @@ const SystemContainer = styled.div`
     padding: 17px 0 11px;
     border-bottom: 0.5px solid rgba(255, 255, 255, 0.50);
     font-size: 20px;
+`
+
+const NameAndPercent = styled.div`
+    min-width: 380px;
+    display: flex;
+    justify-content: space-between;
 `
 
 const Name = styled.div`
