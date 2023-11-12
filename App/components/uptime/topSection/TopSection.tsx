@@ -1,7 +1,8 @@
 "use client"
 
 import { Icon } from '@iconify/react';
-import { styled } from "styled-components"
+import { useRouter } from 'next/navigation';
+import { topsectionProp } from '@/types';
 import {
     OperationStatContainer,
     TopsectionContainer,
@@ -11,12 +12,6 @@ import {
     DownTime,
     Uptime,
 } from "./TopSection.styles"
-import { useRouter } from 'next/navigation';
-
-interface topsectionProp  {
-    system : string,
-    back: boolean
-}
 
 const Topsection = ({system, back}: topsectionProp) => {
     const arr: (number | string)[] = new Array(10).fill(0)
@@ -31,8 +26,6 @@ const Topsection = ({system, back}: topsectionProp) => {
             <StatusBar key={i} style={{background: color}} />
         ))
     }
-
-    console.log(statusTsx)
 
     return (
         <TopsectionContainer>

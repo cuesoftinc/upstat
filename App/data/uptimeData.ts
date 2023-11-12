@@ -1,31 +1,24 @@
-export const systemData: {
-    name: string,
-    percent: number,
-    status: any[],
-    final: string
-}[] = [
+import { systemDataType } from "@/types";
+
+export const systemData: systemDataType = [
     {
         name: "API",
         percent: 98,
-        status: new Array(30).fill(0),
-        final: "Up"
+        status: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,]
     },
     {
         name: "Website",
         percent: 93,
-        status: new Array(30).fill(0),
-        final: "Up"
+        status: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,]
     },
     {
         name: "Server",
         percent: 91,
-        status: new Array(30).fill(0),
-        final: "Up"
+        status: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,0,1,1,1,1,1,1,0,1,0,0,1,0,0]
     },
     {
         name: "Blog",
         percent: 32,
-        status: new Array(30).fill(0),
-        final: "Dn"
+        status: [1,0,1,0,1,0,1,1,1,1,0,0,0,0,0,0,1,1,0,0,0,1,0,1,0,1,1,1,1,0,0,0,1,0,0,0,0,1,0,0,1,0,0]
     },
 ]

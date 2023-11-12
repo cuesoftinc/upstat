@@ -3,9 +3,19 @@
 import { Icon } from "@iconify/react"
 import { styled } from "styled-components"
 import System from "../system/System"
+import { systemData } from "@/data/uptimeData"
 
 
 const UptimeStat = () => {
+
+    const allSystemtsx = systemData.map((el,i) => {
+        return <System 
+            key={i} 
+            name={el.name} 
+            percent={el.percent} 
+            allStatus={el.status}
+        />
+    })
     
     return (
         <UptimeStatContainer>
@@ -24,7 +34,7 @@ const UptimeStat = () => {
                 <p>Percentage</p>
                 <p>Status Health</p>
             </StatusHeading>
-            <System />
+            {allSystemtsx}
         </UptimeStatContainer>
     )
 
