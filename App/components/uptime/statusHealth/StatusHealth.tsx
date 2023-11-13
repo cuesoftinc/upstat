@@ -4,8 +4,12 @@ import {
     StatusHealthContainer,
     StatusBarsContainer,
     StatusBar,
-    FinalStat
+    FinalStat,
+    Dot
 } from "./StatusHealth.styles"
+
+
+const rand = (a: number,b: number) => Math.random() < 0.5 ? a : b
 
 const StatusBars = ({allStatus} : statusBarProp) => {
     let up: number = 0
@@ -20,7 +24,7 @@ const StatusBars = ({allStatus} : statusBarProp) => {
     }
 
     const statusBarTsx: ReactNode = allStatus.map((el, i) => {
-        return <StatusBar key={i} color={el} />
+        return <StatusBar key={i} color={el} sec={rand(0.1, 0)} />
     })
 
     return (
@@ -32,13 +36,13 @@ const StatusBars = ({allStatus} : statusBarProp) => {
                 { up > down ?
                 (
                     <>
-                        <div style={{background: "rgba(0, 224, 158, 0.62)"}}></div>
+                        <Dot color="rgba(0, 224, 158, 0.62)"></Dot>
                         <p>Up</p>
                     </>
                 ) :
                 (
                     <>
-                        <div style={{background: "#E63751"}}></div>
+                        <Dot color="#E63751"></Dot>
                         <p>Dn</p>
                     </> 
                 )

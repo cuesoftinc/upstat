@@ -13,8 +13,9 @@ import {
     Uptime,
 } from "./TopSection.styles"
 
+
 const Topsection = ({system, back}: topsectionProp) => {
-    const arr: (number | string)[] = new Array(10).fill(0)
+    const arr: (number)[] = new Array(10).fill(0)
     const router = useRouter();
 
     const goBack = () => {
@@ -23,7 +24,10 @@ const Topsection = ({system, back}: topsectionProp) => {
 
     const statusTsx = (color: string) => {
         return arr.map((el, i) => (
-            <StatusBar key={i} style={{background: color}} />
+            <StatusBar 
+                key={i} 
+                style={{background: color}}
+            />
         ))
     }
 
