@@ -1,4 +1,4 @@
-import { statusBarProp } from "@/types"
+import { statusBarProp } from "@/types/uptime.types"
 import { ReactNode } from "react"
 import {
     StatusHealthContainer,

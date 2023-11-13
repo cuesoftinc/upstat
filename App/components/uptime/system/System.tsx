@@ -1,6 +1,6 @@
 import { Icon } from "@iconify/react"
 import StatusHealth from "../statusHealth/StatusHealth"
-import { systemProps } from "@/types"
+import { systemProps } from "@/types/uptime.types"
 import {
     SystemContainer,
     NameAndPercent,

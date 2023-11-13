@@ -2,7 +2,7 @@
 
 import { Icon } from "@iconify/react"
 import System from "../system/System"
-import { systemData } from "@/data/uptimeData"
+import { systemData } from "@/data/uptime.data"
 import {
     UptimeStatContainer,
     UptimeStatHeading,

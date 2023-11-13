@@ -9,7 +9,7 @@ import {
   Legend,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import { deviceTrafficData } from '@/data/dashboardData';
+import { deviceTrafficData } from '@/data/dashboard.data';
 
 ChartJS.register(
   CategoryScale,

@@ -1,4 +1,4 @@
-import { systemDataType } from "@/types";
+import { systemDataType } from "@/types/uptime.types";
 
 export const systemData: systemDataType = [
     {

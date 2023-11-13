@@ -2,7 +2,7 @@
 
 import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
-import { topsectionProp } from '@/types';
+import { topsectionProp } from '@/types/uptime.types';
 import {
     OperationStatContainer,
     TopsectionContainer,
