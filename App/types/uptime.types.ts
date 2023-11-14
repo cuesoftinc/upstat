@@ -19,3 +19,7 @@ export type systemProps = {
 export type statusBarProp = {
     allStatus: (0 | 1)[]
 }
+
+export type uptimeStatProp = {
+    data: systemDataType
+}

@@ -8,10 +8,11 @@ import {
     UptimeStatHeading,
     StatusHeading
 } from "./UptimeStat.styles"
+import { uptimeStatProp } from "@/types/uptime.types"
 
-const UptimeStat = () => {
+const UptimeStat = ({data}: uptimeStatProp) => {
 
-    const allSystemtsx = systemData.map((el,i) => {
+    const allSystemtsx = data.map((el,i) => {
         return <System 
             key={i} 
             name={el.name} 

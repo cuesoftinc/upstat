@@ -2,9 +2,40 @@
 
 import { Icon } from "@iconify/react"
 import { styled } from "styled-components"
+import pulse from "@/assets/images/pulse.png"
+import Image from "next/image"
 
 
 const ChartSection = () => {
+        const responseData:
+        {
+            type: string,
+            figure: number
+        }[] = [
+            {
+                type: "Avg",
+                figure: 159.26
+            },
+            {
+                type: "Max",
+                figure: 462.63
+            },
+            {
+                type: "Min",
+                figure: 125.84
+            },
+        ]
+
+        const responseTsx = responseData.map((el, i) => {
+            return (
+                <Figure>
+                    <h2>{el.figure}ms</h2>
+                    <span>{el.type}. response time</span>
+                </Figure>
+            )
+        })
+
+
     return (
         <ChartSectionContainer>
             <ResponseTime>
@@ -17,6 +48,12 @@ const ChartSection = () => {
                         <Icon icon="bi:three-dots-vertical" />
                     </div>
                 </ResponseHeading>
+                <ChartContainer>
+                    <Pulse src={pulse} alt="pulse" />
+                </ChartContainer>
+                <FiguresContainer>
+                    {responseTsx}
+                </FiguresContainer>
             </ResponseTime>
             <OverallUptime>
                 <OverallHeading>
@@ -84,6 +121,45 @@ const OverallHeading = styled.div`
     padding: 17px 0;
     justify-content: space-between;
     border-bottom: 0.5px solid rgba(255, 255, 255, 0.50);
+`
+
+const ChartContainer = styled.div`
+    width: 100%;
+    height: fit-content;
+    padding: 64px 12.5px 0 0;
+`
+
+const Pulse = styled(Image)`
+    width: 100%;
+    height: auto;
+`
+
+const FiguresContainer = styled.div`
+    display: flex;
+    gap: 70px;
+    margin-top: 10px;
+    width: 100%;
+`
+
+const Figure = styled.div`
+    padding-right: 70px;
+
+    &:nth-of-type(1), &:nth-of-type(2) {
+        border-right: 1px solid #fff
+    }
+
+    h2 {
+        font-weight: 500;
+        font-size: 20px;
+        margin-bottom: 5px;
+    }
+
+
+    span {
+        font-weight: 500;
+        font-size: 12px
+    }
+
 `
 
 export default ChartSection
