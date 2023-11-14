@@ -1,5 +1,15 @@
-import { styled } from "styled-components"
+import { keyframes, styled } from "styled-components"
 import Image from "next/image"
+
+const pulsing = keyframes`
+    0% {
+        width: 0%
+    }
+
+    100% {
+        width: 100%
+    }
+`
 
 const OverallBody = styled.div`
     display: flex;
@@ -105,10 +115,11 @@ const PulseContainer = styled.div`
     width: 100%;
     height: fit-content;
     padding: 64px 12.5px 0 0;
+    overflow: hidden;
+    animation: ${pulsing} 10s linear infinite;
 `
 
 const Pulse = styled(Image)`
-    width: 100%;
     height: auto;
 `
 
@@ -137,14 +148,12 @@ const PulseTime = styled.div`
         font-weight: 500;
         font-size: 12px
     }
-
 `
 
 const OverallDonought = styled.div`
     min-width: 161px;
     min-height: 161px;
 `
-
 
 export {
     ChartSectionContainer,
