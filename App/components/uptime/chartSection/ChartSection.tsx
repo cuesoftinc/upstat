@@ -4,36 +4,43 @@ import { Icon } from "@iconify/react"
 import { styled } from "styled-components"
 import pulse from "@/assets/images/pulse.png"
 import Image from "next/image"
+import DonoughtChart from "../charts/DonoughtChart"
+import { chartSectionProp } from "@/types/uptime.types"
 
 
-const ChartSection = () => {
-        const responseData:
-        {
-            type: string,
-            figure: number
-        }[] = [
-            {
-                type: "Avg",
-                figure: 159.26
-            },
-            {
-                type: "Max",
-                figure: 462.63
-            },
-            {
-                type: "Min",
-                figure: 125.84
-            },
-        ]
+const ChartSection = ({response, overall}: chartSectionProp ) => {
+    const [a, b, c, d] = overall
 
-        const responseTsx = responseData.map((el, i) => {
-            return (
-                <Figure>
-                    <h2>{el.figure}ms</h2>
-                    <span>{el.type}. response time</span>
-                </Figure>
+    const responseTsx = response.map((el, i) => {
+        return (
+            <PulseTime>
+                <h2>{el.figure}ms</h2>
+                <span>{el.type}. response time</span>
+            </PulseTime>
+        )
+    })
+
+    const leftOverallTsx = overall.map(el => {
+        if(el.id === 2 || el.id === 3) {
+            return(
+                <div>
+                    <h2>{el.percent}%</h2>
+                    <p>Last {el.type}</p>
+                </div>
             )
-        })
+        }
+    })
+
+    const rightOverallTsx = overall.map(el => {
+        if(el.id === 0 || el.id === 1) {
+            return(
+                <div>
+                    <h2>{el.percent}%</h2>
+                    <p>Last {el.type}</p>
+                </div>
+            )
+        }
+    })
 
 
     return (
@@ -48,22 +55,74 @@ const ChartSection = () => {
                         <Icon icon="bi:three-dots-vertical" />
                     </div>
                 </ResponseHeading>
-                <ChartContainer>
+                <PulseContainer>
                     <Pulse src={pulse} alt="pulse" />
-                </ChartContainer>
-                <FiguresContainer>
+                </PulseContainer>
+                <PulseDetails>
                     {responseTsx}
-                </FiguresContainer>
+                </PulseDetails>
             </ResponseTime>
             <OverallUptime>
                 <OverallHeading>
                     <span>Overall Uptime</span>
                     <Icon icon="bi:three-dots-vertical" />
                 </OverallHeading>
+                <OverallBody>
+                    <LeftOverallDetail>
+                        {leftOverallTsx}
+                    </LeftOverallDetail>
+                    <OverallDonought>
+                        <DonoughtChart />
+                    </OverallDonought>
+                    <RightOverallDetail>
+                        {rightOverallTsx}
+                    </RightOverallDetail>
+                </OverallBody>
             </OverallUptime>
         </ChartSectionContainer>
     )
 }
+
+const OverallBody = styled.div`
+    display: flex;
+    padding: 13px 23px 0 13px;
+    justify-content: center;
+`
+
+const OverallDetail = styled.div`
+    display: flex;
+    gap: 52px;
+    height: inherit;
+    flex-direction: column;
+    justify-content: space-between;
+
+    div {
+        h2 {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        p {
+            color: rgba(255, 255, 255, 0.70);
+        }
+    }
+
+`
+
+const RightOverallDetail = styled(OverallDetail)`
+    div {
+        text-align: left;
+        margin-left: -8px;
+    }
+`
+
+const LeftOverallDetail = styled(OverallDetail)`
+    div {
+        text-align: right;
+        margin-right: -8px;
+    }
+`
 
 const ChartSectionContainer = styled.section`
     width: 100%;
@@ -113,17 +172,18 @@ const OverallUptime = styled.div`
     width: 40%;
     background: #3C3C3C;
     border-radius: 10px;
-    padding: 3px 18px 17px 17px;
+    padding: 15px 22px 25px 14px;
 `
 
 const OverallHeading = styled.div`
     display: flex;
-    padding: 17px 0;
+    padding-bottom: 17px;
+    font-size: 20px;
     justify-content: space-between;
     border-bottom: 0.5px solid rgba(255, 255, 255, 0.50);
 `
 
-const ChartContainer = styled.div`
+const PulseContainer = styled.div`
     width: 100%;
     height: fit-content;
     padding: 64px 12.5px 0 0;
@@ -134,14 +194,14 @@ const Pulse = styled(Image)`
     height: auto;
 `
 
-const FiguresContainer = styled.div`
+const PulseDetails = styled.div`
     display: flex;
     gap: 70px;
     margin-top: 10px;
     width: 100%;
 `
 
-const Figure = styled.div`
+const PulseTime = styled.div`
     padding-right: 70px;
 
     &:nth-of-type(1), &:nth-of-type(2) {
@@ -160,6 +220,11 @@ const Figure = styled.div`
         font-size: 12px
     }
 
+`
+
+const OverallDonought = styled.div`
+    min-width: 161px;
+    min-height: 161px;
 `
 
 export default ChartSection

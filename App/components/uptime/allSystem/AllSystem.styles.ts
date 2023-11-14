@@ -8,4 +8,5 @@ export const AllSystemContainer = styled.div`
     background: #16151C;
     gap: 26px;
     min-height: 100vh;
+    min-width: fit-content;
 `

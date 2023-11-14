@@ -10,6 +10,18 @@ export type systemDataType = {
     status: (1 | 0)[],
 }[]
 
+export type responseTimeDataType = {
+    type: string,
+    figure: number
+}[]
+
+export type overallUptimeDataType = {
+    id: number,
+    type: string,
+    percent: number,
+    color: string,
+}[]
+
 export type systemProps = {
     name: string, 
     percent: number, 
@@ -22,4 +34,9 @@ export type statusBarProp = {
 
 export type uptimeStatProp = {
     data: systemDataType
+}
+
+export type chartSectionProp = {
+    response: responseTimeDataType;
+    overall: overallUptimeDataType
 }
