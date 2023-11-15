@@ -19,6 +19,7 @@ main {
 .content {
   /* background: #16151C;/ */
   width: 100%;
+  overflow: auto;
 }
 
 a {

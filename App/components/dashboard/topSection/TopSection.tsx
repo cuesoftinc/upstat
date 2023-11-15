@@ -7,7 +7,7 @@ import {
     StatsContainer,
     HeadSection,
 } from "./TopSection.styles"
-import { statsData } from "@/data/dashboardData"
+import { statsData } from "@/data/dashboard.data"
 
 
 const TopSection = () => {

@@ -9,7 +9,7 @@ import {
   Legend,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import { dailyVisitorData } from "@/data/trafficData";
+import { dailyVisitorData } from "@/data/traffic.data";
 
 ChartJS.register(
   Title,

@@ -2,13 +2,9 @@ import user1 from "@/assets/images/user1.png";
 import user2 from "@/assets/images/user2.png";
 import user3 from "@/assets/images/user3.png";
 import user4 from "@/assets/images/user4.png";
+import { dailyVisitorDataType, pageViewDataType, totalViewDataType, userDataType } from "@/types/traffic.data";
 
-export const userdata: {
-  id: number;
-  image: any;
-  name: string;
-  country: string;
-}[] = [
+export const userData: userDataType = [
   {
     id: 1,
     image: user1,
@@ -36,12 +32,7 @@ export const userdata: {
 ];
 
 //page view data
-export const pageViewData: {
-  id: number;
-
-  name: string;
-  value: number;
-}[] = [
+export const pageViewData: pageViewDataType = [
   {
     id: 1,
     name: "Home",
@@ -79,11 +70,7 @@ export const pageViewData: {
   },
 ];
 
-export const totalViewData: {
-  id: number;
-  month: string;
-  value: number;
-}[] = [
+export const totalViewData: totalViewDataType = [
   {
     id: 0,
     month: "Jan",
@@ -146,11 +133,7 @@ export const totalViewData: {
   },
 ];
 
-export const dailyVisitorData: {
-  id: number;
-  visitor: string;
-  value: number;
-}[] = [
+export const dailyVisitorData: dailyVisitorDataType = [
   {
     id: 0,
     visitor: "1",

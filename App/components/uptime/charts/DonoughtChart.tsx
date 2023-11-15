@@ -1,37 +1,34 @@
 import React from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
-import { locationTrafficData } from '@/data/dashboard.data';
+import { overallUptimeData } from '@/data/uptime.data';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const options = {
   responsive: true,
   maintainAspectRatio: false,
-  cutout: 60,
+//   cutout: 60,
   plugins: {
     legend: {
       display: false
     },
     title: {
-      display: true,
-      text: 'Traffic By Location',
-      font: {
-        size: 16,
-      }
+      display: false,
     },
   },
 };
 
 const data = {
-  labels: locationTrafficData.map(el => el.name),
+  labels: overallUptimeData.map(el => el.type),
   datasets: [
     {
-      label: 'location',
-      data: locationTrafficData.map(el => el.percent),
-      backgroundColor: locationTrafficData.map(el => el.color),
-      borderColor: locationTrafficData.map(el => el.color),
+      label: 'percentage',
+      data: overallUptimeData.map(el => el.percent),
+      backgroundColor: overallUptimeData.map(el => el.color),
+      borderColor: overallUptimeData.map(el => el.color),
       borderWidth: 1,
+      width: 100,
     },
   ],
 };

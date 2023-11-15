@@ -1,15 +1,9 @@
+import { deviceTrafficDataType, locationTrafficDataType, statsDataType, totalUserDataType, webTrafficDataType } from "@/types/dashboard.types";
 
 const downChart = "streamline:money-graph-arrow-decrease-down-stats-graph-descend-right-arrow"
 const upChart = "streamline:money-graph-arrow-increase-ascend-growth-up-arrow-stats-graph-right-grow"
 
-export const statsData: {
-    id: number,
-    name: string,
-    number: string,
-    percent: string,
-    chart: string,
-    color: string,
-}[] = [
+export const statsData: statsDataType = [
     {
         id: 0,
         name: "Web Views",
@@ -52,11 +46,7 @@ export const statsData: {
     },
 ]
 
-export const totalUserData: {
-  id: number,
-  day: string,
-  users: number | null
-}[] = [
+export const totalUserData: totalUserDataType = [
     {
       id: 0,
       day: "",
@@ -100,11 +90,7 @@ export const totalUserData: {
   ];
   
 
-  export const webTrafficData: {
-    id: number,
-    name: string,
-    range: number,
-  }[] = [
+  export const webTrafficData:  webTrafficDataType = [
     {
       id: 0,
       name: "Google",
@@ -152,11 +138,7 @@ export const totalUserData: {
     },
   ]
 
-  export const deviceTrafficData: {
-    id: number,
-    device: string,
-    traffic: number | null
-  }[] = [
+  export const deviceTrafficData: deviceTrafficDataType = [
     {
       id: 0,
       device: "Macbook",
@@ -184,12 +166,7 @@ export const totalUserData: {
     },
   ]
 
-  export const locationTrafficData: {
-    id: number,
-    name: string,
-    percent: number,
-    color: string,
-  }[] = [
+  export const locationTrafficData: locationTrafficDataType = [
     {
       id: 0,
       name: 'London',
