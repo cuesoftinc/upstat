@@ -22,9 +22,10 @@ const OperationStatContainer = styled.div`
     flex-direction: column;
     width: 80%;
     background: #3C3C3C;
-    padding: 42px 17px;
+    padding: 24px 17px;
     border-radius: 10px;
     gap: 10px;
+    justify-content: center;
 
     .goBack {
         display: flex;
@@ -60,7 +61,7 @@ const UpDownTime = styled.div`
     gap: 19px;
     flex-direction: column;
     width: 20%;
-    padding: 24px 40px 29px 10px;
+    padding: 24px 10px;
     background: #3C3C3C;
     border-radius: 10px;
     max-width: width: 881px;

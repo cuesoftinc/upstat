@@ -144,9 +144,10 @@ const PulseTime = styled.div`
     }
 
 
-    span {
+    p {
         font-weight: 500;
-        font-size: 12px
+        font-size: 12px;
+        white-space: nowrap;
     }
 `
 

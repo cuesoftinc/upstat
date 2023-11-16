@@ -1,7 +1,7 @@
 import { styled } from "styled-components";
 
 
-export const AllSystemContainer = styled.div`
+export const UptimePagesContainer = styled.div`
     padding: 16px 18px 26px 25px;
     display: flex;
     flex-direction: column;
