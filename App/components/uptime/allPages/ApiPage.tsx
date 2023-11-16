@@ -5,6 +5,7 @@ import UptimeStat from "../uptimeStat/UptimeStat"
 import ChartSection from "../chartSection/ChartSection"
 import { overallUptimeData, responseTimeData, systemData } from "@/data/uptime.data"
 import { UptimePagesContainer } from "./AllPages.styles"
+import Events from "../events/Events"
 
 const ApiPage = () => {
   const apiData = [systemData[0]]
@@ -14,6 +15,7 @@ const ApiPage = () => {
         <TopSection system={"API system"} back={true}/>
         <UptimeStat data={apiData}/>
         <ChartSection response={responseTimeData} overall={overallUptimeData}/>
+        <Events/>
       </UptimePagesContainer>
     )
   }

@@ -22,22 +22,21 @@ import {
 } from "./ChartSection.styles"
 
 
-const ChartSection = ({response, overall}: chartSectionProp ) => {
-    const [a, b, c, d] = overall
+const ChartSection = ({ response, overall }: chartSectionProp ) => {
 
     const responseTsx = response.map((el, i) => {
         return (
-            <PulseTime>
+            <PulseTime key={i}>
                 <h2>{el.figure}ms</h2>
-                <span>{el.type}. response time</span>
+                <p>{el.type}. response time</p>
             </PulseTime>
         )
     })
 
-    const leftOverallTsx = overall.map(el => {
+    const leftOverallTsx = overall.map((el, i) => {
         if(el.id === 2 || el.id === 3) {
             return(
-                <div>
+                <div key={i}>
                     <h2>{el.percent}%</h2>
                     <p>Last {el.type}</p>
                 </div>
@@ -45,10 +44,10 @@ const ChartSection = ({response, overall}: chartSectionProp ) => {
         }
     })
 
-    const rightOverallTsx = overall.map(el => {
+    const rightOverallTsx = overall.map((el, i) => {
         if(el.id === 0 || el.id === 1) {
             return(
-                <div>
+                <div key={i}>
                     <h2>{el.percent}%</h2>
                     <p>Last {el.type}</p>
                 </div>
