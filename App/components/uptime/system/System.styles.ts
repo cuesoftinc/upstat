@@ -19,6 +19,10 @@ const Name = styled.div`
     align-items: center;
     gap: 8px;
     margin-right: 200px;
+
+    a:hover {
+        text-decoration: underline;
+    }
 `
 
 export {

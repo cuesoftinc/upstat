@@ -6,12 +6,17 @@ import {
     NameAndPercent,
     Name
 } from "./System.styles"
+import Link from "next/link"
 
 const System = ({name, percent, allStatus}: systemProps) => (
     <SystemContainer>
         <NameAndPercent>
             <Name>
-                <p>{name}</p>
+                <Link 
+                href={`/uptime/${name.toLocaleLowerCase()}`}
+                >
+                    {name}
+                </Link>
                 <Icon icon="cil:arrow-right" />
             </Name>
             <p>{percent}%</p>

@@ -3,17 +3,19 @@
 import TopSection from "@/components/uptime/topSection/TopSection"
 import UptimeStat from "../uptimeStat/UptimeStat"
 import ChartSection from "../chartSection/ChartSection"
-import { AllSystemContainer } from "./AllSystem.styles"
 import { overallUptimeData, responseTimeData, systemData } from "@/data/uptime.data"
+import { UptimePagesContainer } from "./AllPages.styles"
 
-const AllSystem = () => {
+const ApiPage = () => {
+  const apiData = [systemData[0]]
+
     return (
-      <AllSystemContainer>
-        <TopSection system={"All system"} back={false}/>
-        <UptimeStat data={systemData}/>
+      <UptimePagesContainer>
+        <TopSection system={"API system"} back={true}/>
+        <UptimeStat data={apiData}/>
         <ChartSection response={responseTimeData} overall={overallUptimeData}/>
-      </AllSystemContainer>
+      </UptimePagesContainer>
     )
   }
 
-export default AllSystem
+export default ApiPage
