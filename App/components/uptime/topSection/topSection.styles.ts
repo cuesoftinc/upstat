@@ -1,15 +1,5 @@
 import { keyframes, styled } from "styled-components"
 
-const blink = keyframes`
-    0% {
-        background: none;
-    }
-
-    100% {
-        background: rgba(0, 224, 158, 0.62);
-    }
-`
-
 const TopsectionContainer = styled.section`
     display: flex;
     gap: 21px;
@@ -50,9 +40,7 @@ const OperationStat = styled.div`
     div {
         width: 18px;
         height: 18px;
-        background: rgba(0, 224, 158, 0.62);
         border-radius: 50%;
-        animation: ${blink} 0.5s ease infinite alternate;
     }
 `
 

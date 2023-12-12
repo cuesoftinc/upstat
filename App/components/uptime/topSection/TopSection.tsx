@@ -11,9 +11,9 @@ import {
   StatusBar,
   DownTime,
   Uptime,
-} from "./topSection.styles";
+} from "./TopSection.styles";
 
-const Topsection = ({ system, back, dot }: topsectionProp) => {
+const Topsection = ({ system, back, dot, status }: topsectionProp) => {
   const arr: number[] = new Array(10).fill(0);
   const router = useRouter();
 
@@ -27,11 +27,15 @@ const Topsection = ({ system, back, dot }: topsectionProp) => {
     ));
   };
 
+  console.log(status)
+
   return (
     <TopsectionContainer>
       <OperationStatContainer>
         <OperationStat>
-          {dot && <div></div>}
+          {dot && 
+            <div style={{background: status ? "rgba(0, 224, 158, 0.62)" : "#E63751"}}></div>
+          }
           <h2>{system}</h2>
         </OperationStat>
         {back && (
