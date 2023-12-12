@@ -27,8 +27,6 @@ const Topsection = ({ system, back, dot, status }: topsectionProp) => {
     ));
   };
 
-  console.log(status)
-
   return (
     <TopsectionContainer>
       <OperationStatContainer>

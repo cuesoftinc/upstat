@@ -4,7 +4,6 @@
 import React, { useState } from "react";
 import { useServerInsertedHTML } from "next/navigation";
 import { ServerStyleSheet, StyleSheetManager } from "styled-components";
-import isPropValid from '@emotion/is-prop-valid';
 
 
 export default function StyledComponentsRegistry({
@@ -25,10 +24,7 @@ export default function StyledComponentsRegistry({
   if (typeof window !== "undefined") return <>{children}</>;
 
   return (
-    <StyleSheetManager
-      sheet={styledComponentsStyleSheet.instance}
-      shouldForwardProp={(prop) => isPropValid(prop)}
-    >
+    <StyleSheetManager sheet={styledComponentsStyleSheet.instance}>
       {children}
     </StyleSheetManager>
   );  

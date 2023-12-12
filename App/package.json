@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@bufbuild/buf": "^1.27.2",
-    "@emotion/is-prop-valid": "^1.2.1",
     "@types/node": "20.8.2",
     "@types/react": "18.2.24",
     "@types/react-dom": "18.2.8",
