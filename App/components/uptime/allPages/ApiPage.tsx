@@ -9,15 +9,31 @@ import Events from "../events/Events"
 
 const ApiPage = () => {
   const apiData = [systemData[0]]
+  const status = apiData[0].status
+  let up: number = 0;
+  let down: number = 0;
 
-    return (
-      <UptimePagesContainer>
-        <TopSection system={"API system"} back={true}/>
-        <UptimeStat data={apiData}/>
-        <ChartSection response={responseTimeData} overall={overallUptimeData}/>
-        <Events/>
-      </UptimePagesContainer>
-    )
+  for (let i = 0; i < status.length; i++) {
+    if (status[i] === 1) {
+      up++;
+    } else if (status[i] === 0) {
+      down++;
+    }
   }
+
+  return (
+    <UptimePagesContainer>
+      <TopSection 
+        system={`Website is ${up > down ? "Operational" : "down"}`} 
+        back={true} 
+        dot={true}
+        status={(up > down)}
+      />
+      <UptimeStat data={apiData}/>
+      <ChartSection response={responseTimeData} overall={overallUptimeData}/>
+      <Events/>
+    </UptimePagesContainer>
+  )
+}
 
 export default ApiPage
