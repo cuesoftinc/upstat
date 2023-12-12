@@ -2,6 +2,7 @@ export type topsectionProp = {
   system: string;
   back: boolean;
   dot: boolean;
+  status: boolean;
 };
 
 export type systemDataType = {
