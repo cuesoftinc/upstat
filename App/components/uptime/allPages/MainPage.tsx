@@ -17,6 +17,7 @@ const MainPage = () => {
         system={"All system is operational"}
         back={false}
         dot={true}
+        status={true}
       />
       <UptimeStat data={systemData} />
       <ChartSection response={responseTimeData} overall={overallUptimeData} />
