@@ -10,8 +10,13 @@ const SignupContainer = styled.section`
     color: #fff
 `
 
+const FormSection = styled.div`
+    width: 50%;
+`
+
 const FormHeading = styled.div`
     text-align: center;
+    margin-bottom: 32px;
     
     p {
         margin-top: 20px;
@@ -28,7 +33,7 @@ const FormHeading = styled.div`
 `
 
 const FormContainer = styled.form`
-    width: 50%;
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 32px;
@@ -41,16 +46,20 @@ const FormContainer = styled.form`
         border-radius: 5px;
         background: #fff;
     }
+`
 
-    button:nth-of-type(2n) {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 21px;
-        background: transparent;
-        color: #fff;
-        border: 1px solid #FFF;
-    }
+const GoogleBtn = styled.button`
+    width: 100%;
+    padding: 20px;
+    font-size: 24px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 21px;
+    background: transparent;
+    color: #fff;
+    border: 1px solid #FFF;
 `
 
 const FormLabel = styled.label`
@@ -74,7 +83,9 @@ const FormInput = styled.input`
 export {
     SignupContainer,
     FormContainer,
+    FormSection,
     FormHeading,
+    GoogleBtn,
     FormLabel,
     FormInput,
 }

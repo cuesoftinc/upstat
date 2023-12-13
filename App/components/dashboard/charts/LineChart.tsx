@@ -10,7 +10,7 @@ import {
   Legend,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { totalUserData } from '@/data/dashboardData';
+import { totalUserData } from '@/data/dashboard.data';
 
 ChartJS.register(
   CategoryScale,

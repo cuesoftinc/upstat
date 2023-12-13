@@ -56,6 +56,7 @@ const MenuItem = styled(Link)<{ isActive: boolean }>`
 
     p , svg {
        color: white;
+       white-space: nowrap;
     }
 `
 

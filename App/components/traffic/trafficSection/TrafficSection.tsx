@@ -26,13 +26,13 @@ import {
 import { Icon } from "@iconify/react";
 
 import Image from "next/image";
-import { pageViewData, userdata } from "@/data/trafficData";
+import { pageViewData, userData } from "@/data/traffic.data";
 import LineChart from "../charts/LineChart";
 import BarChart from "../charts/BarChat";
 
 const TrafficComponent = () => {
   //NewUser data
-  const userJsx = userdata.map((item) => (
+  const userJsx = userData.map((item) => (
     <UserItem key={item.id}>
       <UserItemCard>
         <div className="userItem_card">
