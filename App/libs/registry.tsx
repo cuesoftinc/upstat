@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { useServerInsertedHTML } from "next/navigation";
 import { ServerStyleSheet, StyleSheetManager } from "styled-components";
 
+
 export default function StyledComponentsRegistry({
   children,
 }: {
@@ -26,5 +27,5 @@ export default function StyledComponentsRegistry({
     <StyleSheetManager sheet={styledComponentsStyleSheet.instance}>
       {children}
     </StyleSheetManager>
-  );
+  );  
 }

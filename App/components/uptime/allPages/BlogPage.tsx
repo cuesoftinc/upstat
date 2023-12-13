@@ -7,9 +7,9 @@ import { overallUptimeData, responseTimeData, systemData } from "@/data/uptime.d
 import { UptimePagesContainer } from "./AllPages.styles"
 import Events from "../events/Events"
 
-const ApiPage = () => {
-  const apiData = [systemData[0]]
-  const status = apiData[0].status
+const BlogPage = () => {
+  const blogData = [systemData[3]]
+  const status = blogData[0].status
   let up: number = 0;
   let down: number = 0;
 
@@ -21,19 +21,19 @@ const ApiPage = () => {
     }
   }
 
-  return (
-    <UptimePagesContainer>
-      <TopSection 
-        system={`Website is ${up > down ? "Operational" : "down"}`} 
-        back={true} 
-        dot={true}
-        status={(up > down)}
-      />
-      <UptimeStat data={apiData}/>
-      <ChartSection response={responseTimeData} overall={overallUptimeData}/>
-      <Events/>
-    </UptimePagesContainer>
-  )
-}
+    return (
+      <UptimePagesContainer>
+        <TopSection 
+          system={`Blog is ${up > down ? "Operational" : "down"}`} 
+          back={true} 
+          dot={true}
+          status={(up > down ? true : false)}
+        />
+        <UptimeStat data={blogData}/>
+        <ChartSection response={responseTimeData} overall={overallUptimeData}/>
+        <Events/>
+      </UptimePagesContainer>
+    )
+  }
 
-export default ApiPage
+export default BlogPage

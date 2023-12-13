@@ -7,9 +7,9 @@ import { overallUptimeData, responseTimeData, systemData } from "@/data/uptime.d
 import { UptimePagesContainer } from "./AllPages.styles"
 import Events from "../events/Events"
 
-const ApiPage = () => {
-  const apiData = [systemData[0]]
-  const status = apiData[0].status
+const ServerPage = () => {
+  const serverData = [systemData[2]]
+  const status = serverData[0].status
   let up: number = 0;
   let down: number = 0;
 
@@ -29,11 +29,11 @@ const ApiPage = () => {
         dot={true}
         status={(up > down)}
       />
-      <UptimeStat data={apiData}/>
+      <UptimeStat data={serverData}/>
       <ChartSection response={responseTimeData} overall={overallUptimeData}/>
       <Events/>
     </UptimePagesContainer>
   )
 }
 
-export default ApiPage
+export default ServerPage
