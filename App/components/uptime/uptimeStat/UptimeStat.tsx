@@ -33,7 +33,7 @@ const UptimeStat = ({ data }: uptimeStatProp) => {
           </span>
         </div>
         <div className="right-heading">
-          <Link href="/calendar" className="calendar">
+          <Link href="/uptime/calendar" className="calendar">
             Calendar view
           </Link>
           <Icon icon="bi:three-dots-vertical" />
