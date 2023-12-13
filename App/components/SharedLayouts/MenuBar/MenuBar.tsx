@@ -12,7 +12,7 @@ import {
     MenuTitle,
     MenuItem
 } from "./MenuBar.styles"
-import { accountData, menudata } from "@/data/menuBarData"
+import { accountData, menudata } from "@/data/menuBar.data"
 
 
 const MenuBar = () => {

@@ -38,7 +38,6 @@ const MiddleSection = () => {
       setSelectedDataIndex(previousIndex);
       setCurrentPeriod((prevPeriod) => Math.max(prevPeriod - 1, 0));
     }
-    setCurrentPeriod((ev) => Math.max(ev - 1, 0));
   };
 
   //handle next functionality

@@ -1,6 +1,8 @@
 import styled from "styled-components";
 
-export const SectionWrapper = styled.div``;
+export const SectionWrapper = styled.div`
+  min-height: 100vh;
+`;
 
 export const SelectWrapper = styled.select`
   display: inline-flex;
@@ -68,6 +70,6 @@ export const CalendarWrapper = styled.div`
   display: flex;
   gap: 20px;
   width: 100%;
-  padding: 45px 20px 45px 10px;
+  padding: 65px 20px 45px 10px;
   flex-direction: row;
 `;

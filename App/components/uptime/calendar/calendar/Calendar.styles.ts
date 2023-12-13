@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 export const CalendarContainer = styled.div`
-  height: 400px;
+  height: 70%;
   width: 90%;
   border-radius: 10px;
   background: #3c3c3c;

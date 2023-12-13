@@ -1,4 +1,4 @@
-import { accountDataTypes, menudataTypes } from "@/types/menuBarDataTypes"
+import { accountDataTypes, menudataTypes } from "@/types/menuBar.types"
 
 export const menudata: menudataTypes = [
     {

@@ -1,7 +1,7 @@
 import Header from "@/components/SharedLayouts/Header/Header";
-import CalendarMainPage from "@/components/calendar/mainPage/MainPage";
+import CalendarMainPage from "@/components/uptime/calendar/mainPage/MainPage";
 
-const Calendar = () => {
+const Uptime = () => {
   return (
     <>
       <Header />
@@ -10,4 +10,4 @@ const Calendar = () => {
   );
 };
 
-export default Calendar;
+export default Uptime;
