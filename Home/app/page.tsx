@@ -3,6 +3,7 @@ import CodingView from "@/components/codingView/CodingView";
 import styled from "styled-components";
 import Workflow from "../components/workflow/Workflow";
 import BusinessNeed from "@/components/businessNeed/BusinessNeed";
+import OpenSource from "@/components/openSource/openSource/OpenSource";
 
 export default function Home() {
   return (
@@ -10,6 +11,7 @@ export default function Home() {
       <CodingView />
       <Workflow />
       <BusinessNeed />
+      <OpenSource />
     </main>
   );
 }
