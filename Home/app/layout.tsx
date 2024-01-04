@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import StyledComponentsRegistry from "@/libs/registry";
+import Footer from "@/components/sharedLayout/Footer";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -24,6 +25,7 @@ export default function RootLayout({
       <body>
         <StyledComponentsRegistry>
           <main>{children}</main>
+          <Footer />
         </StyledComponentsRegistry>
       </body>
     </html>
