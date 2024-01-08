@@ -1,11 +1,11 @@
 import React from "react";
 import { HeroWrapper } from "./Hero.styles";
-import HeaderBar from "../headerBar/HeaderBar";
+import NavBar from "../navBar/NavBar";
 
 const HeroSection = () => {
   return (
     <>
-      <HeaderBar />
+      <NavBar />
       <HeroWrapper>
         <h1>
           <span>Speed up</span> the development of tracking{" "}

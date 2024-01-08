@@ -5,11 +5,11 @@ import {
   ListContainer,
   LoginWrapper,
   LogoImage,
-} from "./Header.style";
+} from "./NavBar.styles";
 import logo from "../../assets/upstat_logo.png";
 import { Icon } from "@iconify/react";
 
-const HeaderBar = () => {
+const NavBar = () => {
   return (
     <HeaderWrapper>
       <LogoImage src={logo} alt="logo" />
@@ -54,4 +54,4 @@ const HeaderBar = () => {
   );
 };
 
-export default HeaderBar;
+export default NavBar;
