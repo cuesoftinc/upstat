@@ -6,13 +6,16 @@ import BusinessNeed from "@/components/businessNeed/BusinessNeed";
 import OpenSource from "@/components/openSource/openSource/OpenSource";
 import HeroSection from "@/components/hero/Hero";
 import ToolSection from "@/components/tools/Tools";
+import WebsiteSection from "@/components/websiteSection/WebsiteSection";
+import UpstatDev from "@/components/upstatDev/UpstatDev";
 
 export default function Home() {
   return (
     <main>
       <HeroSection />
       <ToolSection />
-      <CodingView />
+      <WebsiteSection />
+      <UpstatDev />
       <Workflow />
       <BusinessNeed />
       <OpenSource />
