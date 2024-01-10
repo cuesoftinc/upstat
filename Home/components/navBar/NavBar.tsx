@@ -47,8 +47,8 @@ const NavBar = () => {
         <p>Docs</p>
       </ListContainer>
       <LoginWrapper>
-        <button className="login">Login</button>
-        <button className="signup">Sign up</button>
+        <a href="/login" className="login">Login</a>
+        <a href="/signup" className="signup">Sign up</a>
       </LoginWrapper>
     </HeaderWrapper>
   );
