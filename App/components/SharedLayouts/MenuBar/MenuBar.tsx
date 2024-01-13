@@ -59,9 +59,8 @@ const MenuBar = () => {
             {accountJsx}
         </MenuSection>
         <MenuSection>
-            <LogoutItem href="/signup">
-                <Icon icon="majesticons:login" />
-                {isOpen && <p>Log in</p>}
+            <LogoutItem href="">
+                <Icon icon="majesticons:logout" />
             </LogoutItem>
         </MenuSection>
     </MenuBarContainer>
