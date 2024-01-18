@@ -41,7 +41,7 @@ const workflowData: workflowDataType = [
     id: 1,
     icon: <Icon icon="ri:route-line" rotate={2} />,
     header: "Git-Based Control",
-    info: "Synchronize with a Git repository and adopt consistent development workflows. Commit changes, review pull requests, and deploy seamlessly with your CI/CD pipeline",
+    info: "Synchronize with a Git repositories and adopt consistent development workflows. Commit changes, review pull requests, and deploy seamlessly with your CI/CD pipeline",
   },
   {
     id: 2,
