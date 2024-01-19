@@ -6,7 +6,7 @@ import (
 
 	"github.com/CuesoftCloud/upstat/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 func AuthorizeJWT() gin.HandlerFunc {
@@ -26,13 +26,11 @@ func AuthorizeJWT() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid Token"})
 		} else {
 			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-				// Set with it type assertion to uint
-				c.Set("jwtUserId", claims["userId"])
-				c.Set("jwtEmail", claims["email"])
+				c.Set("userId", claims["userId"])
+				c.Set("email", claims["email"])
 			} else {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid Token"})
 			}
 		}
-
 	}
 }
