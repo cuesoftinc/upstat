@@ -47,12 +47,12 @@ export const CodeSignCard = styled.div`
 `;
 
 export const CodingViewCard = styled.div`
-  padding: 0 10px;
+  padding: 0 8px;
   h1 {
     margin-top: 24px;
     color: #fff;
     font-family: Poppins;
-    font-size: 36px;
+    font-size: 34px;
     font-weight: 600;
   }
 
