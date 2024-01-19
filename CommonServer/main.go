@@ -1,57 +1,31 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"net/http"
-	"sync"
+	"os"
+
+	"github.com/CuesoftCloud/upstat/middlewares"
 
 	"github.com/CuesoftCloud/upstat/config"
-	pb "github.com/CuesoftCloud/upstat/proto"
-	"github.com/CuesoftCloud/upstat/services"
-	"github.com/CuesoftCloud/upstat/utils"
-	"github.com/rs/cors"
-	"google.golang.org/grpc"
+	"github.com/CuesoftCloud/upstat/routes"
+	"github.com/gin-gonic/gin"
 )
 
-var wg sync.WaitGroup
-
+// main is the entry point for the server
 func main() {
-    // Load environment variables
-    config.LoadEnv()
+	config.LoadEnv()
+	var db *config.DB
 
-    // Create gRPC server
-    grpcServer := grpc.NewServer(
-        grpc.UnaryInterceptor(utils.AuthenticateInterceptor),
-    )
-    service := &services.UserServiceServer{}
+	db = config.NewDBHandler()
 
-    // Register the service with the server
-    pb.RegisterUserServiceServer(grpcServer, service)
-
-    // Create CORS middleware
-    corsMiddleware := cors.New(cors.Options{
-        AllowedOrigins: []string{"*"},
-    })
-
-    // Set up HTTP/2 server
-    server := &http.Server{
-        Addr:    ":8080", // Set the desired port for both gRPC and HTTP
-        Handler: corsMiddleware.Handler(grpcServer), // Use the gRPC server as the handler
-    }
-
-    wg.Add(1)
-
-    // Start the server
-    go func() {
-        defer wg.Done()
-        err := server.ListenAndServe()
-        if err != nil {
-            log.Fatal("could not start server")
-        }
-    }()
-
-    log.Println("gRPC and HTTP servers started")
-
-    // Wait for the server to start before exiting
-    wg.Wait()
+	server := gin.New()
+	server.Use(gin.Logger())
+	server.Use(middlewares.Cors())
+	routes.SetupRoutes(server, db)
+	err := server.Run(os.Getenv("PORT"))
+	if err != nil {
+		log.Fatalln(fmt.Sprintf("Error Starting Server: %v", err))
+		return
+	}
 }
