@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: upstat-app-deployment
+spec:
+  replicas: 2 # Number of replicas
+  selector:
+    matchLabels:
+      app: upstat # Shared label
+  template:
+    metadata:
+      labels:
+        app: upstat # Shared label
+    spec:
+      containers:
+        - name: upstat-be
+          image: cuesoft/upstat-be:latest # Update with your image
+          ports:
+            - containerPort: 8080
+              protocol: TCP
