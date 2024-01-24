@@ -2,7 +2,7 @@
 
 import { Icon } from "@iconify/react";
 import Image from "next/image";
-import women from "@/assets/images/women.png"
+import women from "@/assets/women.png"
 import Link from "next/link"
 import {
     SignupContainer,
@@ -14,8 +14,8 @@ import {
     GoogleBtn,
 } from "./page.styles"
 import { useState } from "react";
-import { userClient } from "@/client";
-import { CreateUserRequest, CreateUserResponse } from "@/proto/user_pb.d";
+// import { userClient } from "@/client";
+// import { CreateUserRequest, CreateUserResponse } from "@/proto/user_pb.d";
 
 
 const Signup = () => {
@@ -45,35 +45,35 @@ const Signup = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        console.log(formData)
+    //     console.log(formData)
 
-        const user = new CreateUserRequest()
+    //     const user = new CreateUserRequest()
 
         // user.setName(formData.fullName)
         // user.setEmail(formData.email)
         // user.setPassword(formData.password)
 
-        try {
-            const res: CreateUserResponse = await userClient.createUser(user, null)
+        // try {
+            // const res: CreateUserResponse = await userClient.createUser(user, null)
             
-            if (res.getStatus() === "success") {
-                setSucces(res.getData())
-            } else {
-                setError(res.getData())
-            }
+            // if (res.getStatus() === "success") {
+            //     setSucces(res.getData())
+            // } else {
+            //     setError(res.getData())
+            // }
             
-        } catch(err: any) {
-            setError(err)
-        } finally {
-            // Reset form
-            setFormData(defaultFormData)
-        }
+        // } catch(err: any) {
+        //     setError(err)
+        // } finally {
+        //     // Reset form
+        //     setFormData(defaultFormData)
+        // }
 
         // Alert user on sign up
         // ssetTimeou/(alert("You have sucessfully signed up to upstat"))
     }
 
-    console.log(sucess, error,)
+    // console.log(sucess, error,)
 
     return (
         <SignupContainer>
