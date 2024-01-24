@@ -1,6 +1,14 @@
 package utils
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"crypto/rand"
+	"encoding/binary"
+	"fmt"
+	"github.com/jordan-wright/email"
+	"golang.org/x/crypto/bcrypt"
+	"net/smtp"
+	"os"
+)
 
 // HashPassword function to hash a password
 func HashPassword(password *string) (string, error) {
@@ -11,7 +19,7 @@ func HashPassword(password *string) (string, error) {
 }
 
 // ComparePassword function to compare a hashed password with a password
-func ComparePassword(hashedPassword string, password string) bool {
+func ComparePassword(hashedPassword, password string) bool {
 	byteHashedPassword := []byte(hashedPassword)
 	bytePassword := []byte(password)
 	err := bcrypt.CompareHashAndPassword(byteHashedPassword, bytePassword)
@@ -19,4 +27,28 @@ func ComparePassword(hashedPassword string, password string) bool {
 		return false
 	}
 	return true
+}
+
+// SendEmail function to send an email
+func SendEmail(to, subject, body string) error {
+	e := email.NewEmail()
+	e.From = "Upstat <bright.olawale@cuesoft.io>"
+	e.To = []string{to}
+	e.Subject = subject
+	e.Text = []byte(body)
+	err := e.Send("smtp.mailgun.org:587", smtp.PlainAuth("", os.Getenv("SMTP_USERNAME"), os.Getenv("SMTP_PASSWORD"), "smtp.mailgun.org"))
+	if err != nil {
+		panic(err)
+	}
+	return err
+}
+
+func GenerateRandomToken() (string, error) {
+	var token uint32
+	err := binary.Read(rand.Reader, binary.LittleEndian, &token)
+
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%x", token), nil
 }
