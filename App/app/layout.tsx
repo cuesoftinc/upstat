@@ -24,6 +24,7 @@ export default function RootLayout({
         <StyledComponentsRegistry>
           <main>
             <MenuBar />
+
             <div className="content">{children}</div>
           </main>
         </StyledComponentsRegistry>
