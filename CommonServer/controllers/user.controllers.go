@@ -1,14 +1,17 @@
 package controllers
 
 import (
+	"log"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/CuesoftCloud/upstat/config"
 	"github.com/CuesoftCloud/upstat/models"
 	"github.com/CuesoftCloud/upstat/repositories"
 	"github.com/CuesoftCloud/upstat/utils"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
-	"log"
-	"net/http"
 )
 
 type UserController interface {
@@ -16,6 +19,8 @@ type UserController interface {
 	UpdateUser(*gin.Context)
 	DeleteUser(*gin.Context)
 	ControllerLogin(*gin.Context)
+	ControllerForgotPassword(*gin.Context)
+	ControllerResetPassword(*gin.Context)
 }
 
 type UserResponse struct {
@@ -32,7 +37,8 @@ type LoginResponse struct {
 }
 
 type userController struct {
-	userRepo repositories.UserRepository
+	userRepo  repositories.UserRepository
+	tokenRepo repositories.TokenRepository
 }
 
 func NewUserController(db *config.DB) UserController {
@@ -232,4 +238,137 @@ func (u *userController) ControllerLogin(c *gin.Context) {
 		})
 		return
 	}
+}
+
+func (u *userController) ControllerForgotPassword(c *gin.Context) {
+	var user models.User
+
+	if err := c.ShouldBindJSON(&user); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, UserResponse{
+			Success: false,
+			Message: "Invalid request body",
+		})
+		return
+	}
+
+	// Get user from DB
+	email := user.Email
+
+	// Get user from DB
+	dbUser, err := u.userRepo.GetUser(email)
+
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, UserResponse{
+			Success: false,
+			Message: "Error retrieving user",
+		})
+		return
+	}
+
+	// Create a token
+	token, err := utils.GenerateRandomToken()
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, UserResponse{
+			Success: false,
+			Message: "Error Generating Token",
+		})
+		return
+	}
+
+	hashedToken, _ := utils.HashPassword(&token)
+	// Save to db
+	_, err = u.tokenRepo.CreateToken(models.Token{
+		UserID: email,
+		Token:  hashedToken,
+	})
+
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, UserResponse{
+			Success: false,
+			Message: "Failed to create token",
+		})
+		return
+	}
+
+	// Generate a link
+	link := os.Getenv("BASE_URL") + "/reset-verify/" + token
+
+	// Send email
+	err = utils.SendEmail(dbUser.Email, "Reset Password", link)
+
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, UserResponse{
+			Success: false,
+			Message: "Error sending email",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, UserResponse{
+		Success: true,
+		Message: "Email sent successfully",
+	})
+}
+
+func (u *userController) ControllerResetPassword(c *gin.Context) {
+	var user models.User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, UserResponse{
+			Success: false,
+			Message: "Invalid request body",
+		})
+		return
+	}
+	token := c.Param("token")
+
+	result, err := u.tokenRepo.GetToken(user.Email)
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusNotFound, UserResponse{
+			Success: false,
+			Message: "Invalid email",
+		})
+		return
+	}
+
+	timeDifference := time.Since(result.CreatedAt).Minutes()
+	if timeDifference > 10 {
+		c.JSON(http.StatusBadRequest, UserResponse{
+			Success: false,
+			Message: "Token expired",
+		})
+		return
+	}
+
+	hashedToken := result.Token
+	isValid := utils.ComparePassword(hashedToken, token)
+	if !isValid {
+		c.JSON(http.StatusBadRequest, UserResponse{
+			Success: false,
+			Message: "Invalid token",
+		})
+		return
+	}
+
+	hashPassword(&user.Password)
+	_, err = u.userRepo.UpdateUser(user.Email, user)
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, UserResponse{
+			Success: false,
+			Message: "Error updating password",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, UserResponse{
+		Success: true,
+		Message: "Password updated successfully",
+	})
 }
