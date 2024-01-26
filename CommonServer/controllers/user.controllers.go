@@ -30,10 +30,10 @@ type UserResponse struct {
 }
 
 type LoginResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	Token   string `json:"token,omitempty"`
-	Data    string `json:"data,omitempty"`
+	Success bool        `json:"success"`
+	Message string      `json:"message"`
+	Token   string      `json:"token,omitempty"`
+	Data    interface{} `json:"data,omitempty"`
 }
 
 type userController struct {
@@ -217,6 +217,8 @@ func (u *userController) ControllerLogin(c *gin.Context) {
 	isTrue := comparePassword(dbUser.Password, user.Password)
 
 	if isTrue {
+		// Remove password from response
+		dbUser.Password = ""
 		token := utils.GenerateToken(dbUser.Id.Hex(), dbUser.Email)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, LoginResponse{
@@ -229,6 +231,7 @@ func (u *userController) ControllerLogin(c *gin.Context) {
 			Success: true,
 			Message: "Login successful",
 			Token:   token,
+			Data:    dbUser,
 		})
 		return
 	} else {
