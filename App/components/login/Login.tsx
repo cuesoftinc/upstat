@@ -47,7 +47,9 @@ const Login = () => {
         setLoading(false);
         setSuccess("Login Successfully");
         // Store the token
+        console.log(response.data.data);
         localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.data));
 
         router.push("/");
       }
