@@ -17,6 +17,7 @@ import {
 import { useState, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import Notification from "../otherComponents/helpers/Notification";
+import axios from "axios";
 //import { useAuth } from "@/contexts/signupContext";
 //import { signupAPI } from "@/apis/signup";
 
@@ -33,6 +34,8 @@ const SignupPage = () => {
   const [success, setSuccess] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
+  const payload = JSON.stringify({ name, email, password });
+
   const handleSubmit = async (e: any) => {
     e.preventDefault();
 
@@ -40,16 +43,13 @@ const SignupPage = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5050/api/v1/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, email, password }),
-      });
+      const response = await axios.post(
+        "http://localhost:5050/api/v1/auth/signup",
+        payload
+      );
 
       // Handle the response accordingly
-      if (response.ok) {
+      if (response.status === 200) {
         // User signed up successfully
         setLoading(false);
         console.log("User signed up successfully");
@@ -58,8 +58,8 @@ const SignupPage = () => {
         router.push("/login");
       }
     } catch (error) {
-      console.error("Signup failed");
-      setError("Signup Failed");
+      console.error("user with this email already exist");
+      setError("user with this email already exist");
       setLoading(false);
     }
   };
@@ -89,6 +89,7 @@ const SignupPage = () => {
               onChange={(ev) => setName(ev.target.value)}
               value={name}
               placeholder="Input your full name"
+              required
             />
           </FormLabel>
           <FormLabel>
