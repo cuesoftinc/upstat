@@ -49,7 +49,7 @@ const SignupPage = () => {
       );
 
       // Handle the response accordingly
-      if (response.status === 200) {
+      if (response.status === 201 || response.status === 200) {
         // User signed up successfully
         setLoading(false);
         console.log("User signed up successfully");
@@ -58,7 +58,7 @@ const SignupPage = () => {
         router.push("/login");
       }
     } catch (error) {
-      console.error("user with this email already exist");
+      console.error("user with this email already exist", error);
       setError("user with this email already exist");
       setLoading(false);
     }
