@@ -1,9 +1,13 @@
+import { ProtectedRoute } from "@/components/otherComponents/protectRoute/ProtectedRoute";
+
 const Help = () => {
-    return (
+  return (
+    <ProtectedRoute>
       <section className="dummy-classname">
-       <h2>Help goes here</h2>
+        <h2>Help goes here</h2>
       </section>
-    )
-  }
-  
-  export default Help
+    </ProtectedRoute>
+  );
+};
+
+export default Help;
