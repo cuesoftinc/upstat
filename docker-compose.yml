@@ -1,0 +1,26 @@
+version: "3"
+
+services:
+  upstat_backend:
+    build: ./CommonServer
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env # Specify the path to the .env file for the app service
+    networks:
+      - mynetwork
+
+  app-frontend:
+    build:
+      context: ./App
+      target: development
+    ports:
+      - 3000:3000
+    volumes:
+      - ./App:/app
+    depends_on:
+      - upstat_backend
+
+networks:
+  mynetwork:
+    driver: bridge

@@ -15,11 +15,14 @@ import {
 } from "./page.styles"
 import { useState } from "react";
 import { userClient } from "@/client";
-import { CreateUserRequest, CreateUserResponse } from "@/proto/user_pb.d";
+import { CreateUserRequest, CreateUserResponse } from "@/proto/user_pb";
 
+export const metadata = {
+  title: "Upstat | Sign-up",
+  description: "Upstat Sign-up page",
+};
 
 const Signup = () => {
-
     const defaultFormData: {
         fullName: string,
         email: string,
@@ -45,35 +48,49 @@ const Signup = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        console.log(formData)
 
         const user = new CreateUserRequest()
 
-        // user.setName(formData.fullName)
-        // user.setEmail(formData.email)
-        // user.setPassword(formData.password)
+        user.setName(formData.fullName)
+        user.setEmail(formData.email)
+        user.setPassword(formData.password)
 
-        try {
-            const res: CreateUserResponse = await userClient.createUser(user, null)
-            
-            if (res.getStatus() === "success") {
-                setSucces(res.getData())
-            } else {
-                setError(res.getData())
+        userClient.createUser(user, null, (err, response) => {
+            if (err) return console.log(err);
+            const error = response.getStatus();
+            const msg = response.getData();
+      
+            if (error === "success") {
+            //   setSubmitted(true);
+
+            console.log("successfull")
+            console.log(msg)
+              return;
             }
+
+        });
+
+        // try {
+        //     const res: CreateUserResponse = await userClient.createUser(user, null)
             
-        } catch(err: any) {
-            setError(err)
-        } finally {
-            // Reset form
-            setFormData(defaultFormData)
-        }
+        //     if (res.getStatus() === "success") {
+        //         setSucces(res.getData())
+        //     } else {
+        //         setError(res.getData())
+        //     }
+            
+        // } catch(err: any) {
+        //     setError(err)
+        // } finally {
+        //     // Reset form
+        //     setFormData(defaultFormData)
+        // }
 
         // Alert user on sign up
         // ssetTimeou/(alert("You have sucessfully signed up to upstat"))
     }
 
-    console.log(sucess, error,)
+    // console.log(sucess, error,)
 
     return (
         <SignupContainer>
