@@ -1,37 +1,20 @@
+# Use an official Golang runtime as a parent image
+FROM golang:1.21.3-alpine
 
-# Use a specific Golang version as a base image
-FROM golang:1.21.3-alpine AS builder
-
-# Set the working directory inside the container
+# Set the working directory to /app
 WORKDIR /app
 
-# Copy the go.mod and go.sum files to the workspace
-COPY go.mod go.sum ./
+# Copy the current directory contents into the container at /app
+COPY . /app
 
-# Download and install dependencies
+# Install any needed dependencies
 RUN go mod download
 
-# Copy the entire project into the container
-COPY . .
+# Build the Go app
+RUN go build -o main .
 
-# Build the Go application
-RUN go build -o myapp
+# Expose port 8080 for the server to listen on
+EXPOSE 8080
 
-# Start a new stage from scratch
-FROM alpine:latest
-
-# Set the working directory inside the container
-WORKDIR /app
-
-# Copy the built binary from the builder stage
-COPY --from=builder /app/myapp .
-
-# Copy the .env file
-COPY .env .
-
-# Expose the port on which the application will run
-ENV PORT=8080
-EXPOSE $PORT
-
-# Command to run the executable
-CMD ["./myapp"]
+# Run the Go app when the container starts
+CMD ["./main"]

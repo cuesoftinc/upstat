@@ -17,5 +17,7 @@ func SetupRoutes(server *gin.Engine, db *config.DB) {
 	{
 		userRoutes.POST("/signup", userController.ControllerRegister)
 		userRoutes.POST("/signin", userController.ControllerLogin)
+		userRoutes.POST("/forgot-password", userController.ControllerForgotPassword)
+		userRoutes.POST("/reset-password", userController.ControllerResetPassword)
 	}
 }

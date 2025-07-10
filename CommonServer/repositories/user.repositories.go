@@ -110,9 +110,11 @@ func (db *userRepository) CreateUser(user models.User) (*mongo.InsertOneResult, 
 	defer cancel()
 
 	newUser := models.User{
-		Name:     user.Name,
-		Email:    user.Email,
-		Password: user.Password,
+		Name:      user.Name,
+		Email:     user.Email,
+		Password:  user.Password,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 	result, err := collection.InsertOne(ctx, newUser)
 	if err != nil {
@@ -127,11 +129,18 @@ func (db *userRepository) UpdateUser(id string, user models.User) (*mongo.Update
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	updatedUser := bson.M{
-		"name":     user.Name,
-		"email":    user.Email,
-		"password": user.Password,
+	// Update only the fields that are passed in
+	updatedUser := bson.M{}
+	if user.Name != "" {
+		updatedUser["name"] = user.Name
 	}
+	if user.Email != "" {
+		updatedUser["email"] = user.Email
+	}
+	if user.Password != "" {
+		updatedUser["password"] = user.Password
+	}
+	updatedUser["updated_at"] = time.Now()
 
 	result, err := collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": updatedUser})
 	if err != nil {
