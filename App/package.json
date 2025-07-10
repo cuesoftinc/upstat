@@ -20,7 +20,7 @@
     "google-protobuf": "^3.21.2",
     "grpc-web": "^1.4.2",
     "i": "^0.3.7",
-    "next": "13.5.4",
+    "next": "14.2.30",
     "npm": "^10.2.0",
     "protoc-gen-grpc-web": "^1.4.2",
     "react": "18.2.0",
