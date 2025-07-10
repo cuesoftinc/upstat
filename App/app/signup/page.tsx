@@ -17,9 +17,12 @@ import { useState } from "react";
 import { userClient } from "@/client";
 import { CreateUserRequest, CreateUserResponse } from "@/proto/user_pb";
 
+export const metadata = {
+  title: "Upstat | Sign-up",
+  description: "Upstat Sign-up page",
+};
 
 const Signup = () => {
-
     const defaultFormData: {
         fullName: string,
         email: string,

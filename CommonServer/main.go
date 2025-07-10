@@ -1,6 +1,7 @@
 package main
 
 import (
+    "github.com/CuesoftCloud/upstat/middlewares"
     "github.com/CuesoftCloud/upstat/config"
     pb "github.com/CuesoftCloud/upstat/proto"
     "github.com/CuesoftCloud/upstat/services"
@@ -11,8 +12,6 @@ import (
     "net/http"
     "sync"
 )
-
-var wg sync.WaitGroup
 
 func main() {
     // Load environment variables

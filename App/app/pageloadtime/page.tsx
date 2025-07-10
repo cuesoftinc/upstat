@@ -1,9 +1,13 @@
+import { ProtectedRoute } from "@/components/otherComponents/protectRoute/ProtectedRoute";
+
 const PageLoadTime = () => {
-    return (
+  return (
+    <ProtectedRoute>
       <section className="dummy-classname">
-       <h2>Page Load Time rate goes here</h2>
+        <h2>Page Load Time rate goes here</h2>
       </section>
-    )
-  }
-  
-  export default PageLoadTime
+    </ProtectedRoute>
+  );
+};
+
+export default PageLoadTime;

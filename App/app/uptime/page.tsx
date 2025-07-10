@@ -1,9 +1,12 @@
+import { ProtectedRoute } from "@/components/otherComponents/protectRoute/ProtectedRoute";
+import Mainpage from "@/components/uptime/allPages/MainPage";
+
 const Uptime = () => {
-    return (
-      <section className="dummy-classname">
-       <h2>Uptime goes here</h2>
-      </section>
-    )
-  }
-  
-  export default Uptime
+  return (
+    <ProtectedRoute>
+      <Mainpage />
+    </ProtectedRoute>
+  );
+};
+
+export default Uptime;
