@@ -80,3 +80,35 @@ export default function SignupPage() {
     </ThemeProvider>
   );
 }
+// import { AuthServiceClient } from "@/grpc/generated/AuthServiceClient"; 
+// import { SignUpRequest } from "@/grpc/generated/auth_pb";
+
+// // Inside your component:
+// const [loading, setLoading] = useState(false);
+// const router = useRouter();
+
+// // 1. Initialize the client to talk to Envoy on port 8081
+// const client = new AuthServiceClient("http://localhost:8081");
+
+// const handleGoogleSuccess = async (tokenResponse: any) => {
+//   setLoading(true);
+//   try {
+//     // The access token or credential token from Google
+//     const token = tokenResponse.access_token || tokenResponse.credential; 
+
+//     // 2. Build the gRPC Request message
+//     const request = new SignUpRequest();
+//     request.setGoogleToken(token); // Use the exact field name from your backend guy's .proto file
+
+//     // 3. Fire it through Envoy straight to Go
+//     const response = await client.signUpWithGoogle(request, {});
+    
+//     // 4. Handle success (Go backend should return a custom app token/session details)
+//     console.log("Go backend registered user:", response.toObject());
+//     router.push("/dashboard");
+//   } catch (err) {
+//     setError("Failed to register account with our system.");
+//   } finally {
+//     setLoading(false);
+//   }
+// };
