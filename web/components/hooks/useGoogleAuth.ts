@@ -6,7 +6,12 @@ import { useGoogleLogin } from "@react-oauth/google";
 import { UserServiceClient } from "../../components/proto/UserServiceClient";
 import { GoogleAuthRequest } from "../../components/proto/user_pb";
 
-const ENVOY_URL = process.env.NEXT_PUBLIC_ENVOY_URL || "http://localhost:8081";
+const ENVOY_URL = process.env.NEXT_PUBLIC_ENVOY_URL;
+
+if (!ENVOY_URL) {
+  throw new Error("Missing environmental variable: NEXT_PUBLIC_ENVOY_URL is not defined.");
+}
+
 const grpcClient = new UserServiceClient(ENVOY_URL);
 
 export function useGoogleAuth() {
