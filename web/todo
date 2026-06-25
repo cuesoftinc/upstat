@@ -1,0 +1,6 @@
+//layout- write function for search
+//menu-  fix closeMenu icon on mobile view
+//dashboard- configure calendar for custom date
+//reactQuery
+//app/api/dashboard/stats/route.ts- replace with real query (DB / analytics provider) scoped by `range`
+// app/api/dashboard/total-users/route.ts- replace with real backend query scoped by `range`
