@@ -2,14 +2,17 @@ package services
 
 import (
 	"context"
+	"os"
+	"time"
+
 	"github.com/CuesoftCloud/upstat/config"
 	"github.com/CuesoftCloud/upstat/models"
 	pb "github.com/CuesoftCloud/upstat/proto"
 	"github.com/CuesoftCloud/upstat/repositories"
 	"github.com/CuesoftCloud/upstat/utils"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"time"
 )
 
 type MonitorServiceServer struct {
@@ -17,13 +20,34 @@ type MonitorServiceServer struct {
 	MonitorRepo     repositories.MonitorRepository
 	CheckResultRepo repositories.CheckResultRepository
 	IncidentRepo    repositories.IncidentRepository
+	InsightGRPCConn *grpc.ClientConn
+	InsightClient   pb.InsightServiceClient
 }
 
 func NewMonitorServiceServer(db *config.DB) *MonitorServiceServer {
+	insightServiceAddr := os.Getenv("INSIGHT_SERVICE_GRPC_ADDRESS")
+	if insightServiceAddr == "" {
+		insightServiceAddr = "localhost:50051"
+	}
+
+	//go: fix inline 
+	//this thing no work? omo😂
+	conn, err := grpc.Dial(insightServiceAddr, grpc.WithInsecure())
+	if err != nil {
+		return nil
+	}
+
+	var insightClient pb.InsightServiceClient
+	if conn != nil {
+		insightClient = pb.NewInsightServiceClient(conn)
+	}
+
 	return &MonitorServiceServer{
 		MonitorRepo:     repositories.NewMonitorRepository(db),
 		CheckResultRepo: repositories.NewCheckResultRepository(db),
 		IncidentRepo:    repositories.NewIncidentRepository(db),
+		InsightGRPCConn: conn,
+		InsightClient:   insightClient,
 	}
 }
 
@@ -200,6 +224,54 @@ func (s *MonitorServiceServer) GetStatusPage(
 		TotalChecks:         totalChecks,
 		SuccessfulChecks:    successfulChecks,
 	}, nil
+}
+
+func (s *MonitorServiceServer) GetRecentChecks(ctx context.Context, req *pb.GetRecentChecksRequest) (*pb.GetRecentChecksResponse, error) {
+	if req.GetMonitorId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "monitor_id is required")
+	}
+
+	limit := req.GetLimit()
+	if limit <= 0 {
+		limit = 50
+	}
+
+	checks, err := s.CheckResultRepo.ListRecentByMonitor(req.GetMonitorId(), int64(limit))
+	if err != nil {
+		return nil, status.Error(codes.Internal, "could not retrieve recent checks")
+	}
+
+	protoChecks := make([]*pb.MonitorCheck, 0, len(checks))
+	for _, check := range checks {
+		protoChecks = append(protoChecks, &pb.MonitorCheck{
+			MonitorId:    check.MonitorID,
+			Success:      check.Status == "up",
+			ResponseTime: int32(check.ResponseTimeMs),
+			StatusCode:   int32(check.StatusCode),
+			CheckedAt:    check.CheckedAt.Format(time.RFC3339),
+		})
+	}
+
+	return &pb.GetRecentChecksResponse{
+		Checks: protoChecks,
+	}, nil
+}
+
+func (s *MonitorServiceServer) GetMonitorInsight(ctx context.Context, req *pb.GetMonitorInsightRequest) (*pb.GetMonitorInsightResponse, error) {
+	if req.GetMonitorId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "monitor_id is required")
+	}
+
+	if s.InsightClient == nil {
+		return nil, status.Error(codes.Unavailable, "insight service not available")
+	}
+
+	insightResp, err := s.InsightClient.GetMonitorInsight(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return insightResp, nil
 }
 
 func (s *MonitorServiceServer) recentUptimeStats(monitors []*models.Monitor) (int64, int64, float64, error) {

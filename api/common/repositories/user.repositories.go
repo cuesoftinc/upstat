@@ -40,7 +40,7 @@ func collectionHelper(db *config.DB) *mongo.Collection {
 
 	// Create index if it doesn't exist
 	indexModel := mongo.IndexModel{
-		Keys:    bson.D{{"email", 1}},
+		Keys:    bson.D{{Key: "email", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}
 

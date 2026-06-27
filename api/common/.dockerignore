@@ -1,0 +1,6 @@
+.env
+.env.*
+tmp/
+upstat
+*.log
+*.tmp

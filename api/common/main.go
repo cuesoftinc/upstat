@@ -2,14 +2,15 @@ package main
 
 import (
 	"context"
+	"log"
+	"net"
+
 	"github.com/CuesoftCloud/upstat/config"
 	pb "github.com/CuesoftCloud/upstat/proto"
 	"github.com/CuesoftCloud/upstat/services"
 	"github.com/CuesoftCloud/upstat/utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"log"
-	"net"
 )
 
 func main() {
