@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Upstat Architecture
 
 ## Overview
@@ -113,3 +114,5 @@ flowchart LR
 - The Go backend owns monitor state and check execution, making it the authoritative source for recent monitor health.
 - The Python service owns analytics and machine learning, consuming the Go backend via a clear gRPC interface.
 - The system separates operational monitoring from analysis, which is the key architectural boundary.
+=======
+>>>>>>> upstream
