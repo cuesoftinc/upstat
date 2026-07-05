@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-import insight_pb2 as insight__pb2
+from proto import insight_pb2 as proto_dot_insight__pb2
 
 GRPC_GENERATED_VERSION = '1.81.1'
 GRPC_VERSION = grpc.__version__
@@ -18,7 +18,7 @@ except ImportError:
 if _version_not_supported:
     raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + ' but the generated code in insight_pb2_grpc.py depends on'
+        + ' but the generated code in proto/insight_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
@@ -36,8 +36,8 @@ class InsightServiceStub:
         """
         self.GetMonitorInsight = channel.unary_unary(
                 '/proto.InsightService/GetMonitorInsight',
-                request_serializer=insight__pb2.GetMonitorInsightRequest.SerializeToString,
-                response_deserializer=insight__pb2.GetMonitorInsightResponse.FromString,
+                request_serializer=proto_dot_insight__pb2.GetMonitorInsightRequest.SerializeToString,
+                response_deserializer=proto_dot_insight__pb2.GetMonitorInsightResponse.FromString,
                 _registered_method=True)
 
 
@@ -55,8 +55,8 @@ def add_InsightServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'GetMonitorInsight': grpc.unary_unary_rpc_method_handler(
                     servicer.GetMonitorInsight,
-                    request_deserializer=insight__pb2.GetMonitorInsightRequest.FromString,
-                    response_serializer=insight__pb2.GetMonitorInsightResponse.SerializeToString,
+                    request_deserializer=proto_dot_insight__pb2.GetMonitorInsightRequest.FromString,
+                    response_serializer=proto_dot_insight__pb2.GetMonitorInsightResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -84,8 +84,8 @@ class InsightService:
             request,
             target,
             '/proto.InsightService/GetMonitorInsight',
-            insight__pb2.GetMonitorInsightRequest.SerializeToString,
-            insight__pb2.GetMonitorInsightResponse.FromString,
+            proto_dot_insight__pb2.GetMonitorInsightRequest.SerializeToString,
+            proto_dot_insight__pb2.GetMonitorInsightResponse.FromString,
             options,
             channel_credentials,
             insecure,
