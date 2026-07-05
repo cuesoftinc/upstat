@@ -13,12 +13,12 @@ services:
       - mynetwork
 
   reliability_service:
-    build: ./reliability-service
+    build: ./api/reliability-service
     ports:
       - "8000:8000"
     env_file:
       - ./api/common/.env
-      - ./reliability-service/.env
+      - ./api/reliability-service/.env
     environment:
       - UPSTAT_GRPC_ADDRESS=upstat_backend:8080
       - UPSTAT_GRPC_AUTH_TOKEN=${UPSTAT_GRPC_AUTH_TOKEN}
