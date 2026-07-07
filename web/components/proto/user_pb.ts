@@ -1,6 +1,11 @@
 import * as jspb from "google-protobuf";
 
 export class GoogleAuthRequest extends jspb.Message {
+  constructor(data?: any[] | null) {
+    super();
+    jspb.Message.initialize(this, data || [], 0, -1, null, null);
+  }
+
   getIdToken(): string {
     return jspb.Message.getFieldWithDefault(this, 1, "");
   }
@@ -54,6 +59,11 @@ export namespace GoogleAuthRequest {
 }
 
 export class GetUserResponse extends jspb.Message {
+  constructor(data?: any[] | null) {
+    super();
+    jspb.Message.initialize(this, data || [], 0, -1, null, null);
+  }
+
   getId(): string { return jspb.Message.getFieldWithDefault(this, 1, ""); }
   setId(value: string): GetUserResponse { 
     jspb.Message.setField(this, 1, value); 

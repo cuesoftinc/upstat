@@ -142,3 +142,12 @@ export const GoogleBtn = styled.button`
     padding: ${(props) => props.theme.spacing.sm};
   }
 `;
+
+export const HiddenGoogleButtonWrapper = styled.div`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+`;

@@ -1,7 +1,9 @@
 "use client";
 
+import { useRef } from "react";
 import { ThemeProvider } from "styled-components";
-import { darkTheme } from "@/components/libs/theme2"; 
+import { GoogleLogin } from "@react-oauth/google";
+import { darkTheme } from "@/components/libs/theme2";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import women from "../../components/assets/images/women.png";
@@ -12,10 +14,19 @@ import {
     FormSection,
     FormHeading,
     GoogleBtn,
+    HiddenGoogleButtonWrapper,
 } from "./login.styles";
 
 export default function LoginPage() {
-    const { handleAuthSubmit, isLoading, error } = useGoogleAuth();
+    const { handleBackendAuthentication, handleAuthError, isLoading, error } = useGoogleAuth();
+    const hiddenButtonRef = useRef<HTMLDivElement>(null);
+
+    const triggerGoogleLogin = () => {
+        const realButton = hiddenButtonRef.current?.querySelector(
+            'div[role="button"]'
+        ) as HTMLElement | null;
+        realButton?.click();
+    };
 
     return (
         <ThemeProvider theme={darkTheme}>
@@ -34,10 +45,17 @@ export default function LoginPage() {
                         {error !== "" && <Notification msg={error} type="error" />}
                     </FormHeading>
 
-                    <GoogleBtn disabled={isLoading} onClick={handleAuthSubmit}>
+                    <GoogleBtn disabled={isLoading} onClick={triggerGoogleLogin}>
                         <Icon icon="devicon:google" />
                         <span>{isLoading ? "Connecting..." : "Continue with Google"}</span>
                     </GoogleBtn>
+
+                    <HiddenGoogleButtonWrapper ref={hiddenButtonRef}>
+                        <GoogleLogin
+                            onSuccess={handleBackendAuthentication}
+                            onError={handleAuthError}
+                        />
+                    </HiddenGoogleButtonWrapper>
                 </FormSection>
             </LoginContainer>
         </ThemeProvider>
