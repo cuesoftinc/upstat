@@ -36,7 +36,7 @@ func tokenCollection(db *config.DB) *mongo.Collection {
 
 	// Create index if it doesn't exist
 	indexModel := mongo.IndexModel{
-		Keys:    bson.D{{"user_id", 1}},
+		Keys:    bson.D{{Key: "user_id", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}
 

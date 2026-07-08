@@ -2,16 +2,17 @@ package utils
 
 import (
 	"fmt"
-	"github.com/golang-jwt/jwt/v4"
 	"os"
 	"time"
+
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// GenerateToken Generate JWT Token
+// GenerateToken Generate JWT Token (expires in 2 hours)
 func GenerateToken(userId string, email string) string {
 	claims := jwt.MapClaims{
 		"userId": userId,
@@ -27,8 +28,23 @@ func GenerateToken(userId string, email string) string {
 	return signedToken
 }
 
+// GenerateNonExpiringToken Generate a JWT token that never expires (for service accounts)
+func GenerateNonExpiringToken(userId string, email string) string {
+	claims := jwt.MapClaims{
+		"userId": userId,
+		"email":  email,
+		"iat":    time.Now().Unix(),
+		"issuer": "CuesoftCloud",
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, _ := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+
+	return signedToken
+}
+
 func ValidateToken(tokenString string) (string, string, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}

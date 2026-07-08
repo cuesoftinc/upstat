@@ -311,12 +311,13 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	MonitorService_CreateMonitor_FullMethodName = "/proto.MonitorService/CreateMonitor"
-	MonitorService_UpdateMonitor_FullMethodName = "/proto.MonitorService/UpdateMonitor"
-	MonitorService_GetMonitor_FullMethodName    = "/proto.MonitorService/GetMonitor"
-	MonitorService_ListMonitors_FullMethodName  = "/proto.MonitorService/ListMonitors"
-	MonitorService_DeleteMonitor_FullMethodName = "/proto.MonitorService/DeleteMonitor"
-	MonitorService_GetStatusPage_FullMethodName = "/proto.MonitorService/GetStatusPage"
+	MonitorService_CreateMonitor_FullMethodName   = "/proto.MonitorService/CreateMonitor"
+	MonitorService_UpdateMonitor_FullMethodName   = "/proto.MonitorService/UpdateMonitor"
+	MonitorService_GetMonitor_FullMethodName      = "/proto.MonitorService/GetMonitor"
+	MonitorService_ListMonitors_FullMethodName    = "/proto.MonitorService/ListMonitors"
+	MonitorService_DeleteMonitor_FullMethodName   = "/proto.MonitorService/DeleteMonitor"
+	MonitorService_GetStatusPage_FullMethodName   = "/proto.MonitorService/GetStatusPage"
+	MonitorService_GetRecentChecks_FullMethodName = "/proto.MonitorService/GetRecentChecks"
 )
 
 // MonitorServiceClient is the client API for MonitorService service.
@@ -329,6 +330,7 @@ type MonitorServiceClient interface {
 	ListMonitors(ctx context.Context, in *ListMonitorsRequest, opts ...grpc.CallOption) (*ListMonitorsResponse, error)
 	DeleteMonitor(ctx context.Context, in *DeleteMonitorRequest, opts ...grpc.CallOption) (*DeleteMonitorResponse, error)
 	GetStatusPage(ctx context.Context, in *GetStatusPageRequest, opts ...grpc.CallOption) (*GetStatusPageResponse, error)
+	GetRecentChecks(ctx context.Context, in *GetRecentChecksRequest, opts ...grpc.CallOption) (*GetRecentChecksResponse, error)
 }
 
 type monitorServiceClient struct {
@@ -399,6 +401,16 @@ func (c *monitorServiceClient) GetStatusPage(ctx context.Context, in *GetStatusP
 	return out, nil
 }
 
+func (c *monitorServiceClient) GetRecentChecks(ctx context.Context, in *GetRecentChecksRequest, opts ...grpc.CallOption) (*GetRecentChecksResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRecentChecksResponse)
+	err := c.cc.Invoke(ctx, MonitorService_GetRecentChecks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MonitorServiceServer is the server API for MonitorService service.
 // All implementations must embed UnimplementedMonitorServiceServer
 // for forward compatibility.
@@ -409,6 +421,7 @@ type MonitorServiceServer interface {
 	ListMonitors(context.Context, *ListMonitorsRequest) (*ListMonitorsResponse, error)
 	DeleteMonitor(context.Context, *DeleteMonitorRequest) (*DeleteMonitorResponse, error)
 	GetStatusPage(context.Context, *GetStatusPageRequest) (*GetStatusPageResponse, error)
+	GetRecentChecks(context.Context, *GetRecentChecksRequest) (*GetRecentChecksResponse, error)
 	mustEmbedUnimplementedMonitorServiceServer()
 }
 
@@ -436,6 +449,9 @@ func (UnimplementedMonitorServiceServer) DeleteMonitor(context.Context, *DeleteM
 }
 func (UnimplementedMonitorServiceServer) GetStatusPage(context.Context, *GetStatusPageRequest) (*GetStatusPageResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetStatusPage not implemented")
+}
+func (UnimplementedMonitorServiceServer) GetRecentChecks(context.Context, *GetRecentChecksRequest) (*GetRecentChecksResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetRecentChecks not implemented")
 }
 func (UnimplementedMonitorServiceServer) mustEmbedUnimplementedMonitorServiceServer() {}
 func (UnimplementedMonitorServiceServer) testEmbeddedByValue()                        {}
@@ -566,6 +582,24 @@ func _MonitorService_GetStatusPage_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MonitorService_GetRecentChecks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRecentChecksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MonitorServiceServer).GetRecentChecks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MonitorService_GetRecentChecks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MonitorServiceServer).GetRecentChecks(ctx, req.(*GetRecentChecksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MonitorService_ServiceDesc is the grpc.ServiceDesc for MonitorService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -596,6 +630,10 @@ var MonitorService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetStatusPage",
 			Handler:    _MonitorService_GetStatusPage_Handler,
+		},
+		{
+			MethodName: "GetRecentChecks",
+			Handler:    _MonitorService_GetRecentChecks_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
