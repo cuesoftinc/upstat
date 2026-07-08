@@ -1,20 +1,23 @@
-# Use an official Golang runtime as a parent image
-FROM golang:1.25-alpine
+FROM golang:1.25-alpine AS builder
 
-# Set the working directory to /app
+RUN apk add --no-cache git
+
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY . /app
-
-# Install any needed dependencies
+COPY go.mod go.sum ./
 RUN go mod download
 
-# Build the Go app
-RUN go build -o main .
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o upstat .
 
-# Expose port 8080 for the server to listen on
+FROM alpine:3.20
+
+RUN apk add --no-cache ca-certificates
+
+WORKDIR /app
+
+COPY --from=builder /app/upstat /app/upstat
+
 EXPOSE 8080
 
-# Run the Go app when the container starts
-CMD ["./main"]
+CMD ["/app/upstat"]

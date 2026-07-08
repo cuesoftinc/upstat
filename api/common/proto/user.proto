@@ -21,6 +21,7 @@ service MonitorService{
    rpc ListMonitors(ListMonitorsRequest) returns (ListMonitorsResponse);
    rpc DeleteMonitor(DeleteMonitorRequest) returns (DeleteMonitorResponse);
    rpc GetStatusPage(GetStatusPageRequest) returns (GetStatusPageResponse);
+   rpc GetRecentChecks(GetRecentChecksRequest) returns (GetRecentChecksResponse);
 }
 
 message GetStatusPageRequest{
@@ -34,6 +35,23 @@ message GetStatusPageResponse {
   double uptime_percentage = 4;
   int64 total_checks = 5;
   int64 successful_checks = 6;
+}
+
+message GetRecentChecksRequest{
+  string monitor_id = 1;
+  int32 limit = 2;
+}
+
+message MonitorCheck {
+  string monitor_id = 1;
+  bool success = 2;
+  int32 response_time = 3;
+  int32 status_code = 4;
+  string checked_at =5;
+}
+
+message GetRecentChecksResponse{
+   repeated MonitorCheck checks = 1;
 }
 
 message Incident {

@@ -1,125 +1,117 @@
-# Upstat
 
-Upstat Monorepo
+# Upstat Architecture
 
+## Overview
+This diagram describes the main components of Upstat and how they interact.
 
-## About
+```mermaid
+flowchart LR
+    subgraph Frontend
+        UI[Next.js UI / React App]
+    end
 
-Upstat is a comprehensive web application designed to monitor the health and performance of your websites, servers, and APIs. Equipped with real-time charts, status indicators, and incident reporting, Upstat provides a centralized dashboard that allows you to keep tabs on your digital assets. With its intuitive interface and robust analytics, you can quickly identify issues, analyze trends, and take proactive measures to ensure optimal uptime and user experience. Whether you're a small business or a large enterprise, Upstat offers a scalable solution to meet your monitoring needs.
+    subgraph Proxy
+        Envoy[Envoy Proxy]
+    end
 
-## Features
-- **Real-time charts** — live performance and response time graphs
-- **Status indicators** — instant up/down/degraded signals per monitor
-- **Incident reporting** — automated incident creation, updates, and resolution
-- **Alerting** — notifications via email, Slack, webhooks, and more
-- **Multi-region checks** — monitor from multiple geographic locations
-- **Public status pages** — shareable uptime pages for your users
-- **Team access control** — role-based access for organisations
-  
----
+    subgraph Backend
+        GoBackend[Go gRPC Backend]
+        PythonService[Python Reliability Service]
+    end
 
-## Repository Structure
+    subgraph Data
+        Mongo[MongoDB]
+    end
+
+    UI -->|HTTP / API requests| Envoy
+    Envoy -->|gRPC / HTTP| GoBackend
+    UI -->|Reads dashboards/status pages| GoBackend
+    PythonService -->|gRPC GetRecentChecks / GetStatusPage| GoBackend
+    GoBackend -->|writes monitor/check/incident data| Mongo
+    PythonService -->|persists generated insights| Mongo
+
+    click GoBackend "api/common/main.go" "Go gRPC backend entrypoint"
+    click PythonService "reliability-service/main.py" "Python FastAPI analytics service entrypoint"
+    click Mongo "api/common/.env" "Database configuration"
 ```
-upstat/
-├── api/
-│   ├── nodejs/           # Node.js REST API (core monitoring engine)
-│   └── go/               # Go service (high-frequency ping workers)
-├── app/
-│   ├── web/              # Next.js web dashboard
-│   └── mobile/           # React Native mobile app
-├── packages/
-│   ├── ui/               # Shared React component library
-│   ├── types/            # Shared TypeScript types & interfaces
-│   └── utils/            # Shared utility functions
-├── deploy/
-│   ├── docker/           # Docker Compose configs
-│   ├── helm/             # Kubernetes Helm charts
-│   └── terraform/        # Infrastructure as Code
-├── docs/                 # Architecture, API refs, guides
-├── scripts/              # Dev, CI, and release scripts
-└── .github/
-    ├── ISSUE_TEMPLATE/   # Bug report & feature request templates
-    └── workflows/        # GitHub Actions CI/CD pipelines
+
+## Components
+
+- **Frontend**: Next.js / React application in `web` and `App`.
+- **Envoy**: Proxy layer in `deploy/envoy/envoy.yaml` and Docker Compose.
+- **Go Backend**: gRPC server in `api/common`, exposing `MonitorService` and `UserService` and acting as the authoritative source for monitor health and check data.
+- **Python Reliability Service**: FastAPI service in `reliability-service`, calling the Go backend via gRPC for recent monitor checks and running ML-powered analysis.
+- **MongoDB**: Primary database for monitors, check results, incidents, and saved insights.
+
+## Communication patterns
+
+- `UI -> Envoy -> GoBackend`: frontend requests route through Envoy to the backend.
+- `PythonService -> GoBackend`: gRPC client calls use shared proto definitions in `api/common/proto/user.proto`.
+- `GoBackend -> Mongo`: persistence for monitors, checks, and incidents.
+- `PythonService -> Mongo`: persisting generated insights and supporting historical model training.
+
+## Notes
+
+- The system is distributed: services run in separate containers/processes and communicate over network protocols.
+- Docker Compose is used for local orchestration, with `upstat_backend`, `reliability_service`, and `envoy` containers.
+- The Go backend contains an internal monitor worker that schedules periodic health checks and writes results to MongoDB.
+- The Python service consumes the Go backend via gRPC and enriches health data with analysis, scoring, and insight persistence.
+
+## Backend + Python Reliability Service Details
+
+```mermaid
+flowchart LR
+    subgraph Backend
+        GoServer[Go gRPC Backend]
+        MonitorWorker[Monitor Worker]
+        Mongo[MongoDB]
+    end
+
+    subgraph PythonService
+        PythonAPI[Python FastAPI Service]
+        InsightGenerator[Insight Generator / ML Pipeline]
+        PythonRepo[gRPC Monitor Repository]
+        InsightsDB[Insight Storage]
+    end
+
+    MonitorWorker -->|writes check results| Mongo
+    GoServer -->|reads/writes monitors, incidents, checks| Mongo
+    PythonRepo -->|gRPC GetRecentChecks| GoServer
+    InsightGenerator -->|reads recent checks| PythonRepo
+    InsightGenerator -->|writes generated insights| InsightsDB
+    PythonAPI -->|endpoint triggers| InsightGenerator
+    PythonAPI -->|serves insight results| Client[Client / Frontend]
+
+    click GoServer "api/common/main.go" "Go gRPC backend entrypoint"
+    click MonitorWorker "api/common/services/monitor_worker.service.go" "Periodic monitor scheduler"
+    click PythonRepo "reliability-service/repositories/monitor_repository.py" "Python gRPC client for checks"
+    click InsightGenerator "reliability-service/services/insight_generator.py" "Insight generation pipeline"
 ```
----
-## Tech Stack
-| Layer | Technology |
-|---|---|
-| Web Dashboard | Next.js, React, Tailwind CSS |
-| Mobile | React Native |
-| API (core) | Node.js, Express/ Fastify |
-| API (workers) | Go |
-| Database | PostgreSQL (via Supabase) |
-| Real-time | WebSockets / Server-Sent Events |
-| Infrastructure | Docker, Helm, Terraform |
-| CI/CD  | Github Actions |
 
----
+### Go backend
 
-## Getting Started
-### Prerequisites
+1. The Go service starts in `api/common/main.go`, initializes the MongoDB connection, and registers the gRPC `MonitorService` and `UserService` handlers.
+2. The gRPC API is defined in `api/common/proto/user.proto` and includes `GetRecentChecks`, `GetStatusPage`, and monitor CRUD operations.
+3. The internal monitor worker in `api/common/services/monitor_worker.service.go` wakes periodically, loads active monitors, and executes checks concurrently.
+4. Check execution is done in `api/common/services/checker.service.go`, which performs the HTTP request, measures response time, and assembles a check result.
+5. Check results are persisted through `api/common/repositories/check_result.repositories.go`.
+6. Incidents and monitor state are updated through `api/common/repositories/incident.repositories.go` and `api/common/repositories/monitor.repositories.go`.
 
-- [Git](https://git-scm.com/)
-- [Docker](https://www.docker.com/) & Docker Compose
-- [Node.js](https://nodejs.org/) v20+
-- [Go](https://go.dev/) 1.21+ (for ping workers)
+### Python reliability service
 
-### Setup
-  ```bash
-  # 1. Clone the repo
-  git clone https://github.com/cuesoftinc/upstat.git
-  cd upstat
+1. The Python service starts in `reliability-service/main.py` and loads env vars from `reliability-service/.env`.
+2. Its FastAPI routes are defined in `reliability-service/api/insights.py` and `reliability-service/api/analyze.py`.
+3. `GET /insights/{monitor_id}` and `POST /analyze/{monitor_id}` call `generate_insight(monitor_id)` in `reliability-service/services/insight_generator.py`.
+4. That generator calls `reliability-service/repositories/monitor_repository.py`, which opens a gRPC connection to the Go backend and requests recent checks.
+5. The gRPC response is converted into local `MonitorCheck` objects.
+6. Feature extraction is performed by `reliability-service/ml/feature_builder.py`, producing metrics such as failed checks, total checks, and average response time.
+7. Risk scoring and anomaly classification are performed by `reliability-service/services/risk_scorer.py`, `services/severity_classifier.py`, and `services/anomaly_detector.py`.
+8. Human-readable signals are generated by `reliability-service/analysis/failure_analysis.py`, `latency_analysis.py`, and `trend_analysis.py`.
+9. The final `Insight` object is saved through `reliability-service/repositories/insight_repository.py` and returned to the caller.
 
-  # 2. Install all dependencies
-  make setup
+### Why this is useful
 
-  # 3. Copy environment variables
-  cp .env.example .env
-  # Fill in your values in .env
+- The Go backend owns monitor state and check execution, making it the authoritative source for recent monitor health.
+- The Python service owns analytics and machine learning, consuming the Go backend via a clear gRPC interface.
+- The system separates operational monitoring from analysis, which is the key architectural boundary.
 
-  # 4. Start all services locally
-  make dev
-  ```
-
-  Open [http://localhost:3000](http://localhost:3000) to view the dashboard.
-
-  ---
-
-  ## Self-Hosting
-  See the [Self-Hosting Guide](./docs/SELF_HOSTING.md) for instructions on deploying Upstat with Docker, Kubernetes (Helm), or Terraform.
-
-  ---
-
-  ## Contributing
-
-  We welcome contributions of all kinds- bug fixes, new features, documentation, translations, and more.
-  Please read our [Contributing Guide](./CONTRIBUTING.md) before opening a PR.
-
-  For first-time contributors, look for issues labelled [`good first issue`](https://github.com/cuesoftinc/upstat/labels/good%20first%20issue).
-
----
-
-## Documentation 
-Full Documentation is in the [./docs/](./docs/) folder:
-
-- [Architecture Overview](./docs/ARCHITECTURE.md)
-- [Local Development](./docs/LOCAL_DEVELOPMENT.md)
-- [API Reference](./docs/API_REFERENCE.md)
-- [Self-Hosting](./docs/SELF_HOSTING.md)
-
----
-
-## License
-
-Upstat is open-source software licensed under the [MIT License](./LICENSE).
-
----
-
-## Community
-
-- [GitHub Discussions](https://github.com/cuesoftinc/upstat/discussions)
-- [Report a Bug](https://github.com/cuesoftinc/upstat/issues/new?template=bug_report.md)
-- [Request a Feature](https://github.com/cuesoftinc/upstat/issues/new?template=feature_request.md)
-- Security issues: [security@cuesoftinc.com](mailto:security@cuesoftinc.com)
-
-  

@@ -2,11 +2,12 @@ package utils
 
 import (
 	"context"
+	"strings"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"strings"
 )
 
 type contextKey string
@@ -27,7 +28,8 @@ func AuthenticateInterceptor(
 		"/proto.UserService/CreateUser",
 		"/proto.UserService/GetUser",
 		"/proto.MonitorService/GetStatusPage",
-		"/proto.UserService/GoogleAuth":
+		"/proto.MonitorService/GetRecentChecks",
+				"/proto.UserService/GoogleAuth":
 		return handler(ctx, req)
 	}
 

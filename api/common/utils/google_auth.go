@@ -76,7 +76,7 @@ func VerifyGoogleIDToken(idToken string) (*GoogleUser, error) {
 	}, nil
 }
 
-func googleKeyFunc(token *jwt.Token) (interface{}, error) {
+func googleKeyFunc(token *jwt.Token) (any, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 		return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 	}
@@ -132,16 +132,16 @@ func rsaPublicKey(key googleJWK) (*rsa.PublicKey, error) {
 	}, nil
 }
 
-func validGoogleIssuer(value interface{}) bool {
+func validGoogleIssuer(value any) bool {
 	issuer, _ := value.(string)
 	return issuer == "accounts.google.com" || issuer == "https://accounts.google.com"
 }
 
-func validAudience(value interface{}, expected string) bool {
+func validAudience(value any, expected string) bool {
 	switch audience := value.(type) {
 	case string:
 		return audience == expected
-	case []interface{}:
+	case []any:
 		for _, item := range audience {
 			if item == expected {
 				return true
@@ -151,7 +151,7 @@ func validAudience(value interface{}, expected string) bool {
 	return false
 }
 
-func validEmailVerified(value interface{}) bool {
+func validEmailVerified(value any) bool {
 	switch verified := value.(type) {
 	case bool:
 		return verified
