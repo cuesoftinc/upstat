@@ -31,22 +31,23 @@ export default function LoginPage() {
     return (
         <ThemeProvider theme={darkTheme}>
             <LoginContainer>
+
                 <Image
                     src={women}
                     alt="women-talking"
-                    style={{ width: "50%", height: "auto", alignSelf: "end" }}
+                    className="login-illustration"
                     priority
                 />
 
                 <FormSection>
                     <FormHeading>
-                        <h1>Sign in to Upstat</h1>
+                        <h1>Sign up with Upstat</h1>
                         <p>Welcome back. Sign in or create an account to get started.</p>
                         {error !== "" && <Notification msg={error} type="error" />}
                     </FormHeading>
 
                     <GoogleBtn disabled={isLoading} onClick={triggerGoogleLogin}>
-                        <Icon icon="devicon:google" />
+                        <Icon icon="flat-color-icons:google" />
                         <span>{isLoading ? "Connecting..." : "Continue with Google"}</span>
                     </GoogleBtn>
 
@@ -57,6 +58,7 @@ export default function LoginPage() {
                         />
                     </HiddenGoogleButtonWrapper>
                 </FormSection>
+
             </LoginContainer>
         </ThemeProvider>
     );

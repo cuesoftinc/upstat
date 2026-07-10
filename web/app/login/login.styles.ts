@@ -2,99 +2,101 @@ import styled from "styled-components";
 
 export const LoginContainer = styled.section`
   display: flex;
-  justify-content: center;
+  flex-direction: row;
+  justify-content: space-between;
   align-items: center;
-  height: 100vh;
+  width: 100%;
+  height: 100vh; 
+  max-height: 100vh;
+  
   background: ${(props) => props.theme.colors.surface.main};
   color: ${(props) => props.theme.colors.text.primary};
-  width: 100%;
-  padding: 0 ${(props) => props.theme.spacing.md};
+  padding: 0 max(4vw, ${(props) => props.theme.spacing.xl});
+  box-sizing: border-box;
   transition: ${(props) => props.theme.transitions.themeShift};
-
-  img {
+  overflow: hidden; 
+  .login-illustration {
     display: block;
     max-width: 50%;
-    height: auto !important;
-    object-fit: contain;
+    width: auto;
+    height: auto;
+    max-height: 85vh; 
+      object-fit: contain;
+    align-self: flex-end;
   }
 
-  @media (max-width: 1024px) {
-    img {
-      max-width: 45%;
-    }
-  }
-
-  @media (max-width: 768px) {
+  @media (max-width: 968px) {
     flex-direction: column;
-    padding: ${(props) => props.theme.spacing.lg} ${(props) => props.theme.spacing.md};
-    justify-content: space-around;
+    justify-content: center;
+    align-items: center;
+    
+    height: auto;
+    min-height: 100vh;
+    max-height: none;
+    overflow-y: auto; 
+    
+    padding: ${(props) => props.theme.spacing.xxl} ${(props) => props.theme.spacing.lg};
+    gap: ${(props) => props.theme.spacing.xl};
 
-    img {
-      max-width: 280px;
-      order: 2;
-      align-self: center !important;
+    .login-illustration {
+      max-width: 85%;
+      width: 320px;
+      max-height: 40vh;
+      align-self: center;
     }
   }
 
   @media (max-width: 480px) {
-    justify-content: center;
-    gap: ${(props) => props.theme.spacing.xl};
+    padding: ${(props) => props.theme.spacing.xl} ${(props) => props.theme.spacing.md};
+    gap: ${(props) => props.theme.spacing.lg};
 
-    img {
-      display: none;
+    .login-illustration {
+      width: 260px;
     }
   }
 `;
 
 export const FormSection = styled.div`
   display: flex;
-  width: 40%;
+  width: 45%;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: ${(props) => props.theme.spacing.lg};
+  gap: ${(props) => props.theme.spacing.xl};
+  box-sizing: border-box;
 
-  @media (max-width: 1024px) {
-    width: 50%;
-  }
-
-  @media (max-width: 768px) {
+  @media (max-width: 968px) {
     width: 100%;
-    order: 1;
+    max-width: 420px;
   }
 `;
 
 export const FormHeading = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${(props) => props.theme.spacing.xs};
+  gap: ${(props) => props.theme.spacing.sm};
   text-align: center;
   font-family: ${(props) => props.theme.typography.fontFamily};
+  width: 100%;
 
   h1 {
+    margin: 0;
     font-weight: ${(props) => props.theme.typography.weights.bold};
-    font-size: ${(props) => props.theme.typography.sizes.display};
+    font-size: calc(${(props) => props.theme.typography.sizes.display} * 0.85);
+    letter-spacing: -0.02em;
   }
 
   p {
+    margin: 0;
     font-weight: ${(props) => props.theme.typography.weights.regular};
     font-size: ${(props) => props.theme.typography.sizes.base};
     color: ${(props) => props.theme.colors.text.muted};
-  }
-
-  a {
-    color: ${(props) => props.theme.colors.brand};
-    font-weight: ${(props) => props.theme.typography.weights.medium};
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
+    line-height: 1.5;
   }
 
   @media (max-width: 480px) {
     h1 {
-      font-size: ${(props) => props.theme.typography.sizes.xl};
+      font-size: ${(props) => props.theme.typography.sizes.xxl};
     }
     p {
       font-size: ${(props) => props.theme.typography.sizes.sm};
@@ -103,43 +105,40 @@ export const FormHeading = styled.div`
 `;
 
 export const GoogleBtn = styled.button`
-  gap: ${(props) => props.theme.spacing.sm};
+  gap: ${(props) => props.theme.spacing.md};
   font-family: ${(props) => props.theme.typography.fontFamily};
-  font-size: ${(props) => props.theme.typography.sizes.lg};
-  font-weight: ${(props) => props.theme.typography.weights.regular};
-  
-  /* Adapts high-contrast button styling cleanly across mode themes */
+  font-size: ${(props) => props.theme.typography.sizes.base};
+  font-weight: ${(props) => props.theme.typography.weights.medium};
   color: ${(props) => props.theme.colors.text.primary};
   background: transparent;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: ${(props) => props.theme.spacing.sm} ${(props) => props.theme.spacing.md};
-  border: 1px solid ${(props) => props.theme.colors.text.primary};
-  border-radius: ${(props) => props.theme.borderRadius.sm};
+  padding: ${(props) => props.theme.spacing.md};
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: ${(props) => props.theme.borderRadius.md};
   cursor: pointer;
   transition: ${(props) => props.theme.transitions.default};
   width: 100%;
-  max-width: 320px;
+  box-sizing: border-box;
 
-  &:hover {
-    background: ${(props) => props.theme.isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)"};
+  svg {
+    font-size: 1.25rem;
   }
 
-  &:active {
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  &:active:not(:disabled) {
     transform: scale(0.98);
-    background: ${(props) => props.theme.isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.1)"};
+    background: rgba(255, 255, 255, 0.1);
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    transform: none;
-  }
-
-  @media (max-width: 480px) {
-    font-size: ${(props) => props.theme.typography.sizes.base};
-    padding: ${(props) => props.theme.spacing.sm};
   }
 `;
 
