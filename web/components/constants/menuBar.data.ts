@@ -5,7 +5,7 @@ export const menudata: menudataTypes = [
         id: 0,
         icon: "material-symbols:dashboard",
         name: "Dashboard",
-        path:"/"
+        path:"/dashboard"
     },
     {
         id: 1,

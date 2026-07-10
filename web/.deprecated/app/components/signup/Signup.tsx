@@ -16,7 +16,7 @@ import {
 } from "./Signup.styles";
 import { useState, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import Notification from "../otherComponents/helpers/Notification";
+import Notification from "../../../../components/helpers/notification/Notification";
 import axios from "axios";
 //import { useAuth } from "@/contexts/signupContext";
 //import { signupAPI } from "@/apis/signup";

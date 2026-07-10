@@ -1,12 +1,13 @@
 "use client";
 
+
 import { useRef } from "react";
 import { ThemeProvider } from "styled-components";
 import { GoogleLogin } from "@react-oauth/google";
 import { darkTheme } from "@/components/libs/theme2";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
-import women from "../../components/assets/images/women.png";
+import women from "../../components/assets/images/womenImg.png";
 import Notification from "@/components/ui/notification/page";
 import { useGoogleAuth } from "@/components/hooks/useGoogleAuth";
 import {

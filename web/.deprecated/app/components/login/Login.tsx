@@ -16,7 +16,7 @@ import {
   GoogleBtnContainer,
   FormWrapper,
 } from "./Login.styles";
-import Notification from "../otherComponents/helpers/Notification";
+import Notification from "../../../../components/helpers/notification/Notification";
 
 const Login = () => {
   const router = useRouter();

@@ -7,6 +7,7 @@ export const theme = {
     text: "#ffffff",
     textMuted: "rgba(255, 255, 255, 0.5)",
     border: "#3c3c3c",
+    red: "#E63751",
 
     green: {
       light: "#e6f6f4",
