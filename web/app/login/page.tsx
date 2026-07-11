@@ -16,7 +16,7 @@ import {
     FormHeading,
     GoogleBtn,
     HiddenGoogleButtonWrapper,
-} from "./login.styles";
+} from "./loginStyles";
 
 export default function LoginPage() {
     const { handleBackendAuthentication, handleAuthError, isLoading, error } = useGoogleAuth();
