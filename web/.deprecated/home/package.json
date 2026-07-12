@@ -1,0 +1,25 @@
+{
+  "name": "home",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "iconify-icon": "^1.0.8",
+    "next": "15.5.18",
+    "react": "^18",
+    "react-dom": "^18",
+    "styled-components": "^6.1.6"
+  },
+  "devDependencies": {
+    "@iconify/react": "^4.1.1",
+    "@types/node": "20.10.7",
+    "@types/react": "18.2.47",
+    "@types/react-dom": "^18",
+    "typescript": "5.3.3"
+  }
+}
