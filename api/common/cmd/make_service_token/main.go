@@ -8,8 +8,8 @@ import (
 )
 
 func main() {
-    userId := "service-reliability"
-    email := "reliability-service@local"
+    userId := "service-observability"
+    email := "observability@local"
     if len(os.Args) >= 2 {
         userId = os.Args[1]
     }

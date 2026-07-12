@@ -11,7 +11,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] %(levelname)s %(name)s: %(message)s",
 )
-logger = logging.getLogger("reliability-service")
+logger = logging.getLogger("observability")
 
 load_env_file()
 
@@ -27,7 +27,7 @@ def _grpc_enabled() -> bool:
 
 @app.on_event("startup")
 def startup_event():
-    logger.info("Starting reliability-service")
+    logger.info("Starting observability")
     logger.info(f"UPSTAT_GRPC_ADDRESS={os.getenv('UPSTAT_GRPC_ADDRESS', '<unset>')}")
     logger.info(f"UPSTAT_GRPC_AUTH_TOKEN set={bool(os.getenv('UPSTAT_GRPC_AUTH_TOKEN'))}")
 
