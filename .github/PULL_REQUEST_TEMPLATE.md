@@ -14,13 +14,13 @@
 
 ## Affected areas
 - [ ] `api/common` (Go)
-- [ ] `api/observability` (Python)
+- [ ] `api/<service>`
 - [ ] `web`
 - [ ] `mobile`
 - [ ] `deploy` / CI
 
 ## Checklist
-- [ ] I followed the [Contributing guide](../CONTRIBUTING.md).
+- [ ] I followed the Contributing guide.
 - [ ] Commits follow Conventional Commits (`feat:`, `fix:`, `chore:`…).
 - [ ] Lint and tests pass locally.
 - [ ] No secrets, credentials, or `.env` files are committed.

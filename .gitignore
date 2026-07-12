@@ -1,7 +1,64 @@
-node_modules/
-.next/
-tmp/
+# ── OS / editor ──
+.DS_Store
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.iml
+
+# ── Environment & secrets (never commit) ──
 .env
 .env.*
 !.env.example
-.DS_Store
+*.pem
+firebase-secrets.json
+*service-account*.json
+*.tfvars
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# ── Go ──
+bin/
+.air.toml
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# ── Node / Next.js ──
+node_modules/
+.next/
+out/
+dist/
+build/
+coverage/
+.eslintcache
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp.js
+.vercel
+
+# ── Flutter / Dart ──
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+*.apk
+*.aab
+*.ipa
+*.app
+
+# ── Logs & temp ──
+*.log
+tmp/
+
+# NOTE: do NOT ignore .dockerignore; commit lockfiles (package-lock.json,
+# go.sum, pubspec.lock, .terraform.lock.hcl).

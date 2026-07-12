@@ -28,8 +28,8 @@ Examples of unacceptable behavior:
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the maintainers listed in [CODEOWNERS](CODEOWNERS). All complaints
-will be reviewed and investigated promptly and fairly.
+reported to the maintainers listed in CODEOWNERS. All complaints will be
+reviewed and investigated promptly and fairly.
 
 ## Attribution
 

@@ -1,18 +1,36 @@
 # Root .dockerignore — baseline excludes for any build context.
-# Each service build context (api/common, api/observability, web, …) may add its own.
+# Each service build context (api/common, web, …) may add its own.
 .git
 .github
 .gitignore
-**/.env
-**/.env.*
-**/*service-account*.json
-**/*.pem
+.dockerignore
+
+# OS / editor
+**/.DS_Store
+*.swp
+*.swo
+
+# Dependencies & build output
 **/node_modules
 **/.next
+**/out
+**/dist
+**/build
+**/bin
+**/tmp
+**/.dart_tool
 **/__pycache__
 **/*.pyc
-**/build
-**/tmp
+
+# Environment & secrets (never ship into an image)
+**/.env
+**/.env.*
+!**/.env.example
+**/*service-account*.json
+**/firebase-secrets.json
+**/*.pem
+**/*.tfvars
+
+# Logs & docs
 **/*.log
-**/.DS_Store
 *.md
