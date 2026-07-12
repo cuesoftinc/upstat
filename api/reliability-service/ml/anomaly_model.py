@@ -75,8 +75,15 @@ class AnomalyDetectionModel:
     
     def save(self, filepath: str) -> None:
         """Persist the trained model to disk."""
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        with open(filepath, "wb") as f:
+        # Guard against path traversal: ``filepath`` is derived from a
+        # user-provided monitor id upstream, so the resolved path must stay
+        # inside the fixed model directory.
+        base_dir = os.path.realpath("ml/models")
+        real_path = os.path.realpath(filepath)
+        if not real_path.startswith(base_dir + os.sep):
+            raise ValueError(f"Refusing to save model outside {base_dir}: {filepath!r}")
+        os.makedirs(os.path.dirname(real_path), exist_ok=True)
+        with open(real_path, "wb") as f:
             pickle.dump(self.model, f)
         logger.info(f"Model saved to {filepath}")
     

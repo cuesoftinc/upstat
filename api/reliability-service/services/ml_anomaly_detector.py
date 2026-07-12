@@ -1,11 +1,10 @@
 import os
 import pickle
 import logging
-from pathlib import Path
 import numpy as np
 from dataclasses import asdict, is_dataclass
 
-from ml.model_manager import ensure_model_exists
+from ml.model_manager import ensure_model_exists, resolve_model_paths
 
 logger = logging.getLogger(__name__)
 
@@ -29,9 +28,11 @@ class MLAnomalyDetector:
     
     def _load_model(self):
         """Load model and transformer from disk, if they exist. Attempt to train if missing."""
-        model_dir = Path("ml/models")
-        model_path = model_dir / f"{self.monitor_id}_anomaly_model.pkl"
-        transformer_path = model_dir / f"{self.monitor_id}_transformer.pkl"
+        try:
+            model_path, transformer_path = resolve_model_paths(self.monitor_id)
+        except ValueError as e:
+            logger.error(f"Refusing to load model: {e}")
+            return False
         
         # Try to ensure model exists (train if necessary)
         if not ensure_model_exists(self.monitor_id):
