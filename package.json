@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "@iconify/react": "^6.0.2",
-    "styled-components": "^6.4.2"
-  },
-  "devDependencies": {
-    "@types/styled-components": "^5.1.36"
-  }
-}
