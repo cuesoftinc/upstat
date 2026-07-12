@@ -1,1 +1,6 @@
 .env
+
+# Compiled binary and local build artifacts (do not commit)
+/upstat
+tmp/
+*.log
