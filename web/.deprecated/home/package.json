@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "iconify-icon": "^1.0.8",
-    "next": "15.5.18",
+    "next": "16.2.10",
     "react": "^18",
     "react-dom": "^18",
     "styled-components": "^6.1.6"
