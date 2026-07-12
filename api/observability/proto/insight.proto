@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "github.com/CuesoftCloud/upstat/proto";
+
+service InsightService {
+  rpc GetMonitorInsight(GetMonitorInsightRequest) returns (GetMonitorInsightResponse);
+}
+
+message GetMonitorInsightRequest {
+  string monitor_id = 1;
+}
+
+message MonitorInsight {
+  string monitor_id = 1;
+  string monitor_name = 2;
+  int32 risk_score = 3;
+  bool anomaly_detected = 4;
+  string severity = 5;
+  string summary = 6;
+  string recommended_action = 7;
+  string human_readable = 8;
+  string generated_at = 9;
+}
+
+message GetMonitorInsightResponse {
+  MonitorInsight insight = 1;
+}

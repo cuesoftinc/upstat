@@ -1,0 +1,14 @@
+# Next.js web build context.
+node_modules
+.next
+out
+.env
+.env.*
+!.env.example
+npm-debug.log*
+.git
+.gitignore
+.dockerignore
+Dockerfile
+README.md
+.DS_Store

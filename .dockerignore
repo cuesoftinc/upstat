@@ -1,0 +1,18 @@
+# Root .dockerignore — baseline excludes for any build context.
+# Each service build context (api/common, api/observability, web, …) may add its own.
+.git
+.github
+.gitignore
+**/.env
+**/.env.*
+**/*service-account*.json
+**/*.pem
+**/node_modules
+**/.next
+**/__pycache__
+**/*.pyc
+**/build
+**/tmp
+**/*.log
+**/.DS_Store
+*.md
