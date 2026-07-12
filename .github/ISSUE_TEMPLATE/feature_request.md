@@ -14,6 +14,6 @@ Describe the change you'd like.
 ## Alternatives considered
 
 ## Affected area
-`api/common` / `api/observability` / `web` / `mobile` / `deploy` / other
+`api/common` / `api/<service>` / `web` / `mobile` / `deploy` / other
 
 ## Additional context

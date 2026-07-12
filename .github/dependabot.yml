@@ -1,6 +1,5 @@
 version: 2
 updates:
-  # Go backend (main/shared service)
   - package-ecosystem: gomod
     directory: /api/common
     schedule:
@@ -9,7 +8,6 @@ updates:
       go-dependencies:
         patterns: ["*"]
 
-  # Python observability service
   - package-ecosystem: pip
     directory: /api/observability
     schedule:
@@ -18,20 +16,10 @@ updates:
       python-dependencies:
         patterns: ["*"]
 
-  # Next.js web + dashboard
   - package-ecosystem: npm
     directory: /web
     schedule:
       interval: weekly
     groups:
       npm-dependencies:
-        patterns: ["*"]
-
-  # CI workflows / GitHub Actions
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: weekly
-    groups:
-      actions-dependencies:
         patterns: ["*"]

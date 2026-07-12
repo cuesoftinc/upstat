@@ -9,7 +9,7 @@ labels: [bug]
 A clear and concise description of the bug.
 
 ## Affected area
-`api/common` / `api/observability` / `web` / `mobile` / `deploy` / other
+`api/common` / `api/<service>` / `web` / `mobile` / `deploy` / other
 
 ## Steps to reproduce
 1.

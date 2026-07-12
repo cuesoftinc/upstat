@@ -1,27 +1,24 @@
-# Contributing to Upstat
+# Contributing
 
-Thanks for your interest in contributing! This guide covers how to propose
-changes.
+Thanks for your interest in contributing! This guide applies across CueLABS
+repositories, which share a common structure and conventions.
 
 ## Getting started
 
 1. Fork and clone the repository.
 2. Create a feature branch: `git checkout -b feature/short-description`.
-3. Install dependencies for the area you're working on — see
+3. Install dependencies for the area you're working on — see the repository's
    [docs/setup.md](docs/setup.md).
 
 ## Repository layout
 
-This is a monorepo. Work happens in one of:
+CueLABS repositories follow a shared standard:
 
-- `api/common` — Go gRPC backend (monitors, checks, incidents, users)
-- `api/observability` — Python reliability analytics / ML service
-- `web` — Next.js dashboard + status pages
-- `mobile/flutter` — Flutter mobile app (placeholder)
+- `api/common` — Go backend (auth + core API)
+- `api/<service>` — additional services, named by function
+- `web` — Next.js web + dashboard
+- `mobile/flutter` — Flutter mobile app
 - `deploy`, `docs`, `scripts`
-
-Services are named by **function**, never by language: `api/common` is the
-shared Go backend, and every other service lives under `api/<service-name>`.
 
 ## Commit messages
 
@@ -30,11 +27,8 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 
 ## Before opening a pull request
 
-- Run the relevant lint and tests for the area you changed
-  (`go test ./...` in `api/common`, `npm run lint` in `web`, etc.).
+- Run the relevant lint and tests for the area you changed.
 - Do **not** commit secrets, credentials, or `.env` files.
-- Regenerate gRPC stubs if you changed a `.proto` file, and keep the Go and
-  Python definitions in sync.
 - Fill out the pull request template and link any related issues.
 - Keep PRs focused; smaller PRs review faster.
 
