@@ -13,13 +13,13 @@ localhost:8080
 Proto source of truth:
 
 ```text
-api/common/proto/user.proto
+api/common/internal/proto/user.proto
 ```
 
 Frontend/client proto copy:
 
 ```text
-App/proto/user.proto
+web/src/proto/user.proto
 ```
 
 The server enables gRPC reflection, so clients (Insomnia, grpcurl, etc.) can
@@ -616,7 +616,7 @@ localhost:8080
 4. Import or reference (or rely on server reflection):
 
 ```text
-api/common/proto/user.proto
+api/common/internal/proto/user.proto
 ```
 
 5. Select a service:

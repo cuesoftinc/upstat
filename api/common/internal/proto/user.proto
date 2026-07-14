@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package proto;
 
-option go_package = "github.com/CuesoftCloud/upstat/proto";
+option go_package = "github.com/cuesoftinc/upstat/api/common/internal/proto";
 
 service UserService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse);

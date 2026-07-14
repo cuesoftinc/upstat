@@ -39,6 +39,11 @@ export function useGoogleAuth() {
         sameSite: "strict",
         expires: 7,
       });
+      Cookies.set(
+        "upstat_user",
+        JSON.stringify({ name: data.name, email: data.email }),
+        { secure: true, sameSite: "strict", expires: 7 }
+      );
 
       setIsLoading(false);
       router.push("/dashboard");

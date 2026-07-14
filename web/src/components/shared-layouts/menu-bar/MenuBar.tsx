@@ -1,4 +1,5 @@
 "use client";
+import Cookies from "js-cookie";
 
 import Image from "next/image";
 import logo from '@/assets/logos/upstat-vector.png';
@@ -33,8 +34,8 @@ const MenuBar = ({ isMobileOpen, closeMobileMenu }: MenuBarProps) => {
   }, [pathname]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    Cookies.remove("upstat_token");
+    Cookies.remove("upstat_user");
     router.push("/login");
   };
 

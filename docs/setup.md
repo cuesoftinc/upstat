@@ -19,7 +19,6 @@ service ships a `.env.example` to copy from.
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID for sign-in |
 | `JWT_SECRET` | Secret used to sign/verify JWTs |
 | `BASE_URL` | Public base URL of the backend |
-| `SMTP_USERNAME` / `SMTP_PASSWORD` | SMTP credentials for notifications |
 | `INSIGHT_SERVICE_GRPC_ADDRESS` | Address of the observability gRPC server |
 
 ### `api/observability` (Python service)

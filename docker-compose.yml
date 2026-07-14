@@ -35,8 +35,6 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       BASE_URL: ${BASE_URL:-http://localhost:8080/}
       INSIGHT_SERVICE_GRPC_ADDRESS: api-observability:50051
-      SMTP_USERNAME: ${SMTP_USERNAME:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
     depends_on:
       mongo:
         condition: service_healthy
@@ -63,7 +61,7 @@ services:
 
   # gRPC-Web proxy: browser gRPC-Web (:8082 on the host) -> native gRPC (api-common:8080).
   envoy:
-    image: envoyproxy/envoy:v1.31-latest
+    image: envoyproxy/envoy:v1.31.5
     volumes:
       - ./deploy/helm/envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
     ports:

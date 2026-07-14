@@ -4,3 +4,4 @@
 /upstat
 tmp/
 *.log
+/server

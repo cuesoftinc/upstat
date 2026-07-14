@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import grpc
 from grpc import aio
 from proto import insight_pb2, insight_pb2_grpc
 from service.insight_generator import generate_insight
@@ -19,7 +20,7 @@ class InsightServicer(insight_pb2_grpc.InsightServiceServicer):
             if insight is None:
                 logger.warning(f"No insight found for monitor_id={monitor_id}")
                 await context.abort(
-                    aio.StatusCode.NOT_FOUND,
+                    grpc.StatusCode.NOT_FOUND,
                     f"Insight not found for monitor {monitor_id}"
                 )
             
@@ -39,7 +40,7 @@ class InsightServicer(insight_pb2_grpc.InsightServiceServicer):
             
         except Exception as e:
             logger.error(f"Error in GetMonitorInsight: {str(e)}", exc_info=True)
-            await context.abort(aio.StatusCode.INTERNAL, f"Internal error: {str(e)}")
+            await context.abort(grpc.StatusCode.INTERNAL, f"Internal error: {str(e)}")
 
 
 async def serve(host: str = "0.0.0.0", port: int = 50051):

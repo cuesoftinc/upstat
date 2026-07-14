@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Chart.Name }}-envoy-config
+  labels:
+    {{- include "chart.selectorLabels" (dict "name" "envoy" "root" $) | nindent 4 }}
+    {{- include "chart.labels" . | nindent 4 }}
+data:
+  envoy.yaml: |
+{{ .Files.Get "envoy/envoy.yaml" | indent 4 }}

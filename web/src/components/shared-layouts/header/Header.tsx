@@ -1,4 +1,5 @@
 "use client";
+import Cookies from "js-cookie";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -17,8 +18,7 @@ const Header = () => {
   const [user, setUser] = useState<{ name?: string } | null>(null);
 
   useEffect(() => {
-    // localStorage is browser-only; read after mount so SSR/prerender is safe.
-    const userString = localStorage.getItem("user");
+    const userString = Cookies.get("upstat_user");
     setUser(userString ? JSON.parse(userString) : null);
   }, []);
 
