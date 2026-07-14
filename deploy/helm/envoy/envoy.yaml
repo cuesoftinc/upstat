@@ -67,5 +67,7 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: upstat_backend
+                      # Resolves in both Docker Compose (service name) and
+                      # Kubernetes (Service name) — no network alias needed.
+                      address: api-common
                       port_value: 8080

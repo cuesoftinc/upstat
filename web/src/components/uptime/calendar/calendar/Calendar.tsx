@@ -1,4 +1,4 @@
-import { calendarProps } from "@/types/calendar.type";
+import { calendarProps } from "@/types/calendar.types";
 import { CalendarContainer, Header } from "./calendar.styles";
 import StatusHealth from "../status-health/StatusHealth";
 const Calendar = ({ name, percentage, status }: calendarProps) => {

@@ -16,6 +16,7 @@ service ships a `.env.example` to copy from.
 | Variable | Description |
 |----------|-------------|
 | `MONGO_URI` | MongoDB connection string |
+| `MONGO_DB` | MongoDB database name (e.g. `Upstat`) |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID for sign-in |
 | `JWT_SECRET` | Secret used to sign/verify JWTs |
 | `BASE_URL` | Public base URL of the backend |
@@ -56,12 +57,15 @@ cd api/common && cp .env.example .env && go run ./cmd/server
 # Python observability service
 cd api/observability && cp .env.example .env \
   && pip install -r requirements.txt \
-  && uvicorn main:app --reload
+  && uvicorn app.main:app --reload
 
 # Web (dashboard + status pages)
 cd web && npm install && npm run dev
 
 # Envoy (gRPC-Web -> gRPC proxy) — the browser reaches the backend through Envoy,
-# so it must be running for the web app to talk to api/common
+# so it must be running for the web app to talk to api/common.
+# The config targets hostname `api-common` (the Compose/Kubernetes service name);
+# for a native run, point it at loopback first:
+#   echo "127.0.0.1 api-common" | sudo tee -a /etc/hosts
 envoy -c deploy/helm/envoy/envoy.yaml
 ```

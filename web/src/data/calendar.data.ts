@@ -1,4 +1,4 @@
-import { calendarDataType } from "@/types/calendar.type";
+import { calendarDataType } from "@/types/calendar.types";
 
 export const calendarData: calendarDataType = [
   {
