@@ -5,7 +5,7 @@ replicaCount: 1
 
 services:
   api-common:
-    image: cuesoftinc/upstat-api-common:latest
+    image: cuesoft/upstat-api-common:latest
     port: 8080
     h2c: true # gRPC + HTTP health multiplexed on one port
     healthPath: /health
@@ -16,7 +16,7 @@ services:
       INSIGHT_SERVICE_GRPC_ADDRESS: api-observability:50051
 
   api-observability:
-    image: cuesoftinc/upstat-api-observability:latest
+    image: cuesoft/upstat-api-observability:latest
     port: 8081
     healthPath: /health
     readyPath: /ready
@@ -31,8 +31,9 @@ services:
       UPSTAT_GRPC_ADDRESS: api-common:8080
 
   web:
-    image: cuesoftinc/upstat-web:latest
+    image: cuesoft/upstat-web:latest
     port: 3000
+    runAsUser: 1000 # node user in the web image
     healthPath: /
     env:
       PORT: "3000"
@@ -40,4 +41,5 @@ services:
   envoy:
     image: envoyproxy/envoy:v1.31.5
     port: 8081
+    runAsUser: 101 # envoy user in the official image
     envoyConfig: true # mounts envoy/envoy.yaml via ConfigMap (gRPC-Web -> api-common)
