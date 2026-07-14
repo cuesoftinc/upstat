@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import StyledComponentsRegistry from "@/components/libs/Registry";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -21,10 +22,16 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // Inlined at build time; Google sign-in buttons no-op without it rather
+  // than taking the whole site down.
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+
   return (
     <html lang="en" className={poppins.variable}>
       <body>
-        <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
+        <GoogleOAuthProvider clientId={googleClientId}>
+          <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
+        </GoogleOAuthProvider>
       </body>
     </html>
   );

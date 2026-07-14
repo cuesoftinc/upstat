@@ -1,17 +1,66 @@
-import React from "react";
-import Login from "@/components/login/Login";
+"use client";
 
-export const metadata = {
-  title: "Upstat | Login",
-  description: "Upstat Login page",
-};
 
-const LoginPage = () => {
-  return (
-    <>
-      <Login />
-    </>
-  );
-};
+import { useRef } from "react";
+import { ThemeProvider } from "styled-components";
+import { GoogleLogin } from "@react-oauth/google";
+import { darkTheme } from "@/components/libs/dashboard-theme";
+import { Icon } from "@iconify/react";
+import Image from "next/image";
+import women from "@/assets/images/women.png";
+import Notification from "@/components/ui/notification/Notification";
+import { useGoogleAuth } from "@/components/hooks/use-google-auth";
+import {
+    LoginContainer,
+    FormSection,
+    FormHeading,
+    GoogleBtn,
+    HiddenGoogleButtonWrapper,
+} from "./login.styles";
 
-export default LoginPage;
+export default function LoginPage() {
+    const { handleBackendAuthentication, handleAuthError, isLoading, error } = useGoogleAuth();
+    const hiddenButtonRef = useRef<HTMLDivElement>(null);
+
+    const triggerGoogleLogin = () => {
+        const realButton = hiddenButtonRef.current?.querySelector(
+            'div[role="button"]'
+        ) as HTMLElement | null;
+        realButton?.click();
+    };
+
+    return (
+        <ThemeProvider theme={darkTheme}>
+            <LoginContainer>
+
+                <Image
+                    src={women}
+                    alt="women-talking"
+                    className="login-illustration"
+                    priority
+                />
+
+                <FormSection>
+                    <FormHeading>
+                        <h1>Log in to Upstat</h1>
+                        <p>Welcome back. Sign in or create an account to get started.</p>
+                        {error !== "" && <Notification msg={error} type="error" />}
+                    </FormHeading>
+
+                    <GoogleBtn disabled={isLoading} onClick={triggerGoogleLogin}>
+                        <Icon icon="flat-color-icons:google" />
+                        <span>{isLoading ? "Connecting..." : "Continue with Google"}</span>
+                    </GoogleBtn>
+
+                    <HiddenGoogleButtonWrapper ref={hiddenButtonRef}>
+                        <GoogleLogin
+                            onSuccess={handleBackendAuthentication}
+                            onError={handleAuthError}
+                        />
+                    </HiddenGoogleButtonWrapper>
+                </FormSection>
+
+            </LoginContainer>
+        </ThemeProvider>
+    );
+}
