@@ -21,6 +21,7 @@ services:
 
   api-common:
     build: ./api/common
+    image: cuesoft/upstat-api-common:latest
     networks:
       default:
         # Envoy's cluster config (deploy/helm/envoy/envoy.yaml) targets this hostname.
@@ -42,6 +43,7 @@ services:
 
   api-observability:
     build: ./api/observability
+    image: cuesoft/upstat-api-observability:latest
     ports:
       - "8081:8081"
     environment:
@@ -72,6 +74,7 @@ services:
     restart: unless-stopped
 
   web:
+    image: cuesoft/upstat-web:latest
     build:
       context: ./web
       # NEXT_PUBLIC_* are inlined into the standalone build, so pass them here.
