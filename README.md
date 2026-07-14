@@ -11,8 +11,9 @@ configuration, and documentation for the platform. A Go backend owns monitor
 state and check execution, a Python service adds analytics and anomaly
 detection, and a Next.js frontend talks to the backend over gRPC-Web through an
 Envoy proxy. For a deeper description of the components and how they fit
-together, see [docs/overview.md](docs/overview.md) and
-[docs/architecture.md](docs/architecture.md).
+together, see [docs/overview.md](docs/overview.md).
+
+## Architecture
 
 ```
 client                     proxy               server                    data
@@ -32,6 +33,17 @@ web dashboard   ─gRPC-Web─▶ Envoy   ──gRPC──▶  common api (Go)  
 - The **observability** service is a gRPC client of the Go backend: it pulls
   recent checks, runs anomaly detection / insight generation, and persists the
   results.
+
+### Tech stack
+
+| Layer          | Technology                                             |
+| -------------- | ------------------------------------------------------ |
+| Backend API    | Go 1.25, gRPC, MongoDB (`api/common`)                  |
+| Observability  | Python, FastAPI, scikit-learn, gRPC (`api/observability`) |
+| Web            | Next.js, React, TypeScript, gRPC-Web                   |
+| Proxy          | Envoy (gRPC-Web → gRPC)                                 |
+| Mobile         | Flutter (placeholder)                                  |
+| Infrastructure | Docker, Helm, Terraform                                |
 
 ## Repository structure
 
@@ -58,20 +70,30 @@ function (never by its language).
 
 ## Getting started
 
-See [docs/setup.md](docs/setup.md) for prerequisites and per-service run
-commands. Common tasks are wired into the [Makefile](Makefile):
+### Prerequisites
+
+- [Docker](https://www.docker.com/) & Docker Compose (recommended path)
+- For native development: [Go](https://go.dev/) 1.25+, [Node.js](https://nodejs.org/)
+  (see `web/.nvmrc`), Python 3.11+, and Envoy (for gRPC-Web)
+
+### Quick start
 
 ```bash
-make setup   # install dependencies for all services
-make api     # run the Go backend (api/common)
-make obs     # run the Python observability service
-make web     # run the Next.js web app
+cp .env.example .env
+make up      # build + start mongo, api-common (:8080), api-observability (:8081), web (:3000)
+make logs    # follow logs
+make down    # stop
 ```
 
 Configuration is provided at runtime via environment variables (for example
 `MONGO_URI`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, and the inter-service gRPC auth
-token). Never commit credentials or bake them into an image — see
-[SECURITY.md](SECURITY.md).
+token). See [docs/setup.md](docs/setup.md) for details; `make help` lists all
+targets. Never commit credentials or bake them into an image.
+
+## Documentation
+
+- [Project overview](docs/overview.md) — architecture and components
+- [Local setup](docs/setup.md) — development environment and per-service run commands
 
 ## Contributing
 
