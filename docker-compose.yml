@@ -21,6 +21,11 @@ services:
 
   api-common:
     build: ./api/common
+    networks:
+      default:
+        # Envoy's cluster config (deploy/helm/envoy/envoy.yaml) targets this hostname.
+        aliases:
+          - upstat_backend
     ports:
       - "8080:8080"
     environment:
@@ -56,17 +61,33 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # gRPC-Web proxy: browser gRPC-Web (:8082 on the host) -> native gRPC (api-common:8080).
+  envoy:
+    image: envoyproxy/envoy:v1.31-latest
+    volumes:
+      - ./deploy/helm/envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+    ports:
+      - "8082:8081"
+    depends_on:
+      api-common:
+        condition: service_healthy
+    restart: unless-stopped
+
   web:
     build:
       context: ./web
       # NEXT_PUBLIC_* are inlined into the standalone build, so pass them here.
       args:
         NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:8080}
+        NEXT_PUBLIC_ENVOY_URL: ${NEXT_PUBLIC_ENVOY_URL:-http://localhost:8082}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
     ports:
       - "3000:3000"
     depends_on:
       api-common:
         condition: service_healthy
+      envoy:
+        condition: service_started
     restart: unless-stopped
 
 volumes:

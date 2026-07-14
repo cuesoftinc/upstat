@@ -38,13 +38,14 @@ service ships a `.env.example` to copy from.
 
 ```bash
 cp .env.example .env
-make up        # build + start mongo, api-common (:8080), api-observability (:8081), web (:3000)
+make up        # build + start mongo, api-common (:8080), api-observability (:8081), envoy (:8082), web (:3000)
 make logs      # follow logs
 make down      # stop
 ```
 
 - API (common): http://localhost:8080 — health `/health`, readiness `/ready`
 - API (observability): http://localhost:8081 — health `/health`, readiness `/ready`
+- gRPC-Web proxy (Envoy): http://localhost:8082
 - Web: http://localhost:3000
 
 ## Running natively (without Docker)

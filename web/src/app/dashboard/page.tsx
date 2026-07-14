@@ -1,18 +1,22 @@
 "use client";
-import BottomSection from "@/components/dashboard/bottom-section/BottomSection";
-import MidSection from "@/components/dashboard/mid-section/MidSection";
-import TopSection from "@/components/dashboard/top-section/TopSection";
-import { ProtectedRoute } from "@/components/other-components/protect-route/ProtectedRoute";
-import Header from "@/components/shared-layouts/header/Header";
-import { styled } from "styled-components";
 
-export default function Home() {
+import { useDateRange } from "@/components/hooks/use-date-range";
+import DateRangeFilter from "@/components/pages/dashboard/date-range-filter";
+import StatsOverview from "@/components/pages/dashboard/stats-overview";
+import TotalUsersChart from "@/components/pages/dashboard/total-users-chart";
+import { ChartsRow } from "@/components/pages/dashboard/charts-layout.styles";
+
+export default function Dashboard() {
+  const dateRange = useDateRange();
+
   return (
-    <ProtectedRoute>
-      <Header />
-      <TopSection />
-      <MidSection />
-      <BottomSection />
-    </ProtectedRoute>
+    <div>
+      <DateRangeFilter dateRange={dateRange} />
+      <StatsOverview range={dateRange.selected} />
+
+      <ChartsRow>
+        <TotalUsersChart range={dateRange.selected} />
+       </ChartsRow>
+    </div>
   );
 }

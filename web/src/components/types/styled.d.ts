@@ -1,5 +1,6 @@
 import "styled-components";
-import { AppTheme } from "@/libs/theme";
+
+import { AppTheme } from "@/components/libs/dashboard-theme";
 
 declare module "styled-components" {
   export interface DefaultTheme extends AppTheme {}

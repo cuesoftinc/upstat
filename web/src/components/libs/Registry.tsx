@@ -19,14 +19,14 @@ export default function StyledComponentsRegistry({
   });
 
   if (typeof window !== "undefined") return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={theme as any}>
       {children}
     </ThemeProvider>
   );
 
   return (
     <StyleSheetManager sheet={styledComponentsStyleSheet.instance}>
-      <ThemeProvider theme={theme}>
+      <ThemeProvider theme={theme as any}>
         {children}
       </ThemeProvider>
     </StyleSheetManager>
