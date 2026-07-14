@@ -26,7 +26,7 @@ services:
       - "8080:8080"
     environment:
       PORT: "8080"
-      MONGO_URI: mongodb://mongo:27017/upstat
+      MONGO_URI: mongodb://mongo:27017
       MONGO_DB: ${MONGO_DB:-Upstat}
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
@@ -44,7 +44,7 @@ services:
       - "8081:8081"
     environment:
       PORT: "8081"
-      MONGO_URI: mongodb://mongo:27017/upstat
+      MONGO_URI: mongodb://mongo:27017
       MONGO_DB: ${MONGO_DB:-Upstat}
       UPSTAT_GRPC_ADDRESS: api-common:8080
       UPSTAT_GRPC_AUTH_TOKEN: ${UPSTAT_GRPC_AUTH_TOKEN:-}

@@ -16,9 +16,12 @@ services:
     readyPath: /ready
     env:
       PORT: "8080"
-      MONGO_URI: mongodb://mongo:27017/upstat
+      MONGO_URI: mongodb://mongo:27017
       MONGO_DB: Upstat
       INSIGHT_SERVICE_GRPC_ADDRESS: api-observability:50051
+    # Inject secrets (e.g. JWT_SECRET) from a Kubernetes Secret instead of env:
+    # envFrom:
+    #   - secretRef: api-common-secrets
 
   api-observability:
     image: cuesoft/upstat-api-observability:latest
@@ -32,7 +35,8 @@ services:
       PORT: "8081"
       GRPC_PORT: "50051"
       ENABLE_GRPC_SERVER: "true"
-      MONGO_URI: mongodb://mongo:27017/upstat
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DB: Upstat
       UPSTAT_GRPC_ADDRESS: api-common:8080
 
   web:
