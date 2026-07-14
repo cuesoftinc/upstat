@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Helm chart deploys the actual stack (it shipped a foreign demo image and
   deployed none of Upstat's services); terraform is cluster-agnostic
   (kubeconfig-based) instead of GKE-specific.
+- api-common was never given `MONGO_DB` by compose/helm/env examples, so every
+  Mongo call targeted an empty database name; Envoy's upstream host is now the
+  `api-common` service name (the old `upstat_backend` alias only existed on the
+  compose network, breaking gRPC-Web on Kubernetes); doc run commands corrected
+  (`go run ./cmd/server`, `uvicorn app.main:app`).
 
 ### Security
 - Unauthenticated `GetUser` without a password no longer returns any user's
@@ -28,6 +33,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   filenames renamed to snake_case; flagged log calls moved to slog; observability
   entrypoint moved to `app/main.py`; per-service README/.gitignore/.env.example
   standardized; Envoy image pinned.
+- Architecture doc paths (incl. mermaid click links) updated for the
+  `cmd/server` + `internal/` and `app/` restructures; the gRPC API doc now
+  covers `GetRecentChecks` and the companion `InsightService` proto and drops
+  removed SMTP config; Helm values document the external MongoDB requirement
+  and gained an optional `envFrom` secret hook; `calendar.type.ts` renamed to
+  `calendar.types.ts` to match the `.types.ts` convention.
 
 ### Removed
 - 24MB committed build binary, trained `.pkl` artifacts (now git-ignored), junk

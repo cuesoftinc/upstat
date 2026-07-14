@@ -22,16 +22,12 @@ services:
   api-common:
     build: ./api/common
     image: cuesoft/upstat-api-common:latest
-    networks:
-      default:
-        # Envoy's cluster config (deploy/helm/envoy/envoy.yaml) targets this hostname.
-        aliases:
-          - upstat_backend
     ports:
       - "8080:8080"
     environment:
       PORT: "8080"
       MONGO_URI: mongodb://mongo:27017/upstat
+      MONGO_DB: ${MONGO_DB:-Upstat}
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       BASE_URL: ${BASE_URL:-http://localhost:8080/}

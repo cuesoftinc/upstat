@@ -42,8 +42,6 @@ MONGO_DB=Upstat
 JWT_SECRET=replace-with-a-long-random-secret
 GOOGLE_CLIENT_ID=replace-with-google-client-id.apps.googleusercontent.com
 BASE_URL=http://localhost:8080/
-SMTP_USERNAME=
-SMTP_PASSWORD=
 ```
 
 `GOOGLE_CLIENT_ID` must match the Google OAuth client used by the frontend to obtain the Google ID token.
@@ -67,8 +65,14 @@ service MonitorService {
   rpc ListMonitors(ListMonitorsRequest) returns (ListMonitorsResponse);
   rpc DeleteMonitor(DeleteMonitorRequest) returns (DeleteMonitorResponse);
   rpc GetStatusPage(GetStatusPageRequest) returns (GetStatusPageResponse);
+  rpc GetRecentChecks(GetRecentChecksRequest) returns (GetRecentChecksResponse);
 }
 ```
+
+A companion proto, `internal/proto/insight.proto`, defines `InsightService`
+(`GetMonitorInsight`). It is served by `api/observability` on its gRPC port
+(`:50051`) and consumed by this backend (`INSIGHT_SERVICE_GRPC_ADDRESS`), so it
+is not part of the API this service exposes.
 
 ## Auth Model
 
@@ -90,11 +94,13 @@ proto.UserService/CreateUser
 proto.UserService/GetUser
 proto.UserService/GoogleAuth
 proto.MonitorService/GetStatusPage
+proto.MonitorService/GetRecentChecks
 ```
 
 For `MonitorService` RPCs the authenticated user id is taken from the token and
 used as the monitor owner, so the owner is never sent in the request body
-(except `GetStatusPage`, which is public and takes an explicit `owner_id`).
+(except the public RPCs: `GetStatusPage` takes an explicit `owner_id`, and
+`GetRecentChecks` takes an explicit monitor id).
 
 Common auth errors:
 
@@ -382,7 +388,7 @@ Notes:
 Common errors:
 
 ```text
-Unauthenticated: missing authentiacated user
+Unauthenticated: missing authenticated user
 InvalidArgument: name, type and target required
 Internal: internal server error, could not create monitor
 ```
@@ -602,7 +608,7 @@ Internal: could not calculate uptime statistics
 
 ```bash
 cd api/common
-go run main.go
+go run ./cmd/server
 ```
 
 2. Create a gRPC request in Insomnia.

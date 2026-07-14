@@ -1,7 +1,9 @@
 .env
+.env.*
+!.env.example
 
-# Compiled binary and local build artifacts (do not commit)
+# local build output
 /upstat
+/server
 tmp/
 *.log
-/server

@@ -1,4 +1,4 @@
-import { CalendarStatusBarProp } from "@/types/calendar.type";
+import { CalendarStatusBarProp } from "@/types/calendar.types";
 import { StatusBarsContainer, StatusBar } from "./status-health.styles";
 import { ReactNode } from "react";
 
