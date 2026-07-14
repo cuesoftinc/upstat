@@ -2,11 +2,9 @@
 
 ## Prerequisites
 
-- Go 1.25+ (see `api/common/go.mod`) — backend
-- Python 3.11+ — `api/observability`
-- Node.js (see `web/.nvmrc`) — `web`
-- MongoDB — primary datastore
-- Envoy — gRPC-Web proxy (typically run via Docker)
+- [Docker](https://www.docker.com/) & Docker Compose (recommended path)
+- For native development: Go 1.25+ (see `api/common/go.mod`), Python 3.11+
+  (`api/observability`), Node.js (see `web/.nvmrc`), MongoDB, and Envoy (gRPC-Web proxy)
 
 ## Configuration
 
@@ -36,11 +34,24 @@ service ships a `.env.example` to copy from.
 | `GRPC_PORT` | Port the observability gRPC server listens on |
 | `ENABLE_GRPC_SERVER` | Toggle the embedded gRPC server (`true`/`false`) |
 
-## Running services
+## Quick start (Docker)
 
 ```bash
-# Go backend
-cd api/common && cp .env.example .env && go run .
+cp .env.example .env
+make up        # build + start mongo, api-common (:8080), api-observability (:8081), web (:3000)
+make logs      # follow logs
+make down      # stop
+```
+
+- API (common): http://localhost:8080 — health `/health`, readiness `/ready`
+- API (observability): http://localhost:8081 — health `/health`, readiness `/ready`
+- Web: http://localhost:3000
+
+## Running natively (without Docker)
+
+```bash
+# Go backend — listens on :8080 (override with PORT)
+cd api/common && cp .env.example .env && go run ./cmd/server
 
 # Python observability service
 cd api/observability && cp .env.example .env \
@@ -50,12 +61,7 @@ cd api/observability && cp .env.example .env \
 # Web (dashboard + status pages)
 cd web && npm install && npm run dev
 
-# Envoy (gRPC-Web -> gRPC proxy)
+# Envoy (gRPC-Web -> gRPC proxy) — the browser reaches the backend through Envoy,
+# so it must be running for the web app to talk to api/common
 envoy -c deploy/helm/envoy/envoy.yaml
 ```
-
-The browser reaches the backend through Envoy (gRPC-Web), so Envoy must be
-running for the web app to talk to `api/common`.
-
-Common tasks are also wired into the root [Makefile](../Makefile)
-(`make setup`, `make api`, `make obs`, `make web`).

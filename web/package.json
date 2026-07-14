@@ -9,19 +9,26 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@iconify/react": "^5",
+    "axios": "^1",
+    "chart.js": "^4",
+    "google-protobuf": "^3.21",
+    "grpc-web": "^1.5",
     "next": "16.2.10",
     "react": "19.2.7",
-    "react-dom": "19.2.7"
+    "react-chartjs-2": "^5",
+    "react-dom": "19.2.7",
+    "styled-components": "^6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^26",
+    "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^10",
+    "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",
-    "typescript": "^7"
+    "typescript": "^5.9.3"
   },
   "overrides": {
     "postcss": "^8.5.10"

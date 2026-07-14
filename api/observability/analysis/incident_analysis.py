@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from models.incident_context import IncidentContext
+from model.incident_context import IncidentContext
 
 
 def _format_duration(seconds: int) -> str:

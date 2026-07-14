@@ -1,7 +1,7 @@
 import logging
 import os
 
-from api.grpc_server import start_grpc_server_sync
+from router.grpc_server import start_grpc_server_sync
 
 logging.basicConfig(
     level=logging.INFO,

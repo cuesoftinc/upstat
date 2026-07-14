@@ -1,6 +1,6 @@
 from collections import Counter
 
-from models.monitor import MonitorCheck
+from model.monitor import MonitorCheck
 
 
 def build_features(checks: list[MonitorCheck]) -> dict:
