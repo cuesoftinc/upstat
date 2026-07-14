@@ -28,7 +28,7 @@ import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { pageViewData, userData } from "@/data/traffic.data";
 import LineChart from "../charts/LineChart";
-import BarChart from "../charts/BarChat";
+import BarChart from "../charts/BarChart";
 
 const TrafficComponent = () => {
   //NewUser data

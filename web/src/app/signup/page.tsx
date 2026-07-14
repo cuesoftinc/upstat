@@ -15,7 +15,7 @@ import {
 } from "./page.styles"
 import { useState } from "react";
 import { userClient } from "@/client";
-import { CreateUserRequest, CreateUserResponse } from "@/proto/user_pb";
+import { CreateUserRequest } from "@/proto/user_pb";
 
 const Signup = () => {
     const defaultFormData: {
@@ -30,10 +30,10 @@ const Signup = () => {
 
 
     const [formData, setFormData] = useState(defaultFormData)
-    const [sucess, setSucces] = useState<string>("")
+    const [success, setSuccess] = useState<string>("")
     const [error, setError] = useState<string>("")
 
-    const handleChange = (e: any) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const {name, value} = e.target
         setFormData(prev => ({
             ...prev,
@@ -51,41 +51,22 @@ const Signup = () => {
         user.setPassword(formData.password)
 
         userClient.createUser(user, null, (err, response) => {
-            if (err) return console.log(err);
-            const error = response.getStatus();
-            const msg = response.getData();
-      
-            if (error === "success") {
-            //   setSubmitted(true);
-
-            console.log("successfull")
-            console.log(msg)
-              return;
+            if (err) {
+                setError(err.message || "Sign-up failed");
+                return;
             }
+            const status = response.getStatus();
+            const msg = response.getData();
 
+            if (status === "success") {
+                setSuccess(msg);
+                setFormData(defaultFormData);
+            } else {
+                setError(msg);
+            }
         });
-
-        // try {
-        //     const res: CreateUserResponse = await userClient.createUser(user, null)
-            
-        //     if (res.getStatus() === "success") {
-        //         setSucces(res.getData())
-        //     } else {
-        //         setError(res.getData())
-        //     }
-            
-        // } catch(err: any) {
-        //     setError(err)
-        // } finally {
-        //     // Reset form
-        //     setFormData(defaultFormData)
-        // }
-
-        // Alert user on sign up
-        // ssetTimeou/(alert("You have sucessfully signed up to upstat"))
     }
 
-    // console.log(sucess, error,)
 
     return (
         <SignupContainer>
@@ -130,6 +111,8 @@ const Signup = () => {
                         />
                     </FormLabel>
                     <button>Sign Up</button>
+                    {error && <p role="alert" style={{ color: "#E63751" }}>{error}</p>}
+                    {success && <p role="status" style={{ color: "#00A991" }}>{success}</p>}
                 </FormContainer>
                 <GoogleBtn>
                     <Icon icon="devicon:google" />

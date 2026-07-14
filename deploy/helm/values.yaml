@@ -1,17 +1,45 @@
+# One chart deploys all services. Images are built from this repo — push to a
+# registry and override per environment. Secrets (JWT_SECRET, tokens) should
+# come from Kubernetes Secrets in real deployments, not plain values.
 replicaCount: 1
-containerPort: 80
 
-image:
-  repository: iferrum/storefront-frontend:latest
-  pullPolicy: IfNotPresent
+services:
+  api-common:
+    image: cuesoft/upstat-api-common:latest
+    port: 8080
+    h2c: true # gRPC + HTTP health multiplexed on one port
+    healthPath: /health
+    readyPath: /ready
+    env:
+      PORT: "8080"
+      MONGO_URI: mongodb://mongo:27017/upstat
+      INSIGHT_SERVICE_GRPC_ADDRESS: api-observability:50051
 
-service:
-  port: 80
-  targetPort: http
-  # The service type is a LoadBalancer so that we can access it from the browser
-  # type: LoadBalancer
-  type: NodePort
-  nodePort: 30080
-  name: http
-  protocol: TCP
+  api-observability:
+    image: cuesoft/upstat-api-observability:latest
+    port: 8081
+    healthPath: /health
+    readyPath: /ready
+    extraPorts:
+      - name: grpc
+        port: 50051
+    env:
+      PORT: "8081"
+      GRPC_PORT: "50051"
+      ENABLE_GRPC_SERVER: "true"
+      MONGO_URI: mongodb://mongo:27017/upstat
+      UPSTAT_GRPC_ADDRESS: api-common:8080
 
+  web:
+    image: cuesoft/upstat-web:latest
+    port: 3000
+    runAsUser: 1000 # node user in the web image
+    healthPath: /
+    env:
+      PORT: "3000"
+
+  envoy:
+    image: envoyproxy/envoy:v1.31.5
+    port: 8081
+    runAsUser: 101 # envoy user in the official image
+    envoyConfig: true # mounts envoy/envoy.yaml via ConfigMap (gRPC-Web -> api-common)

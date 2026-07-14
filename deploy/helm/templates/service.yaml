@@ -1,17 +1,25 @@
+{{- range $name, $svc := .Values.services }}
+---
 apiVersion: v1
 kind: Service
 metadata:
+  name: {{ $name }}
   labels:
-    app: {{ .Release.Name }}
-  name: {{ .Release.Name }}
+    {{- include "chart.selectorLabels" (dict "name" $name "root" $) | nindent 4 }}
+    {{- include "chart.labels" $ | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
   selector:
-    app: {{ .Release.Name }}
+    {{- include "chart.selectorLabels" (dict "name" $name "root" $) | nindent 4 }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.targetPort }}
-      nodePort: {{ .Values.service.nodePort }}
-      protocol: {{ .Values.service.protocol }}
-      name: {{ .Values.service.name }}
-
+    - name: http
+      port: {{ $svc.port }}
+      targetPort: http
+      {{- if $svc.h2c }}
+      appProtocol: kubernetes.io/h2c
+      {{- end }}
+    {{- range $svc.extraPorts }}
+    - name: {{ .name }}
+      port: {{ .port }}
+      targetPort: {{ .name }}
+    {{- end }}
+{{- end }}

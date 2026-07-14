@@ -1,24 +1,23 @@
-variable "gke_cluster_host" {
+variable "kubeconfig_path" {
   type        = string
-  description = "Host Url for GKE cluster"
+  description = "Path to the kubeconfig used to reach the target cluster."
+  default     = "~/.kube/config"
 }
 
-variable "gke_cluster_token" {
+variable "kube_context" {
   type        = string
-  description = "Token for GKE cluster"
+  description = "Optional kubeconfig context to use (defaults to the current context)."
+  default     = null
 }
 
-variable "gke_cluster_ca_certificate" {
+variable "namespace" {
   type        = string
-  description = "CA certificate for GKE cluster"
+  description = "Namespace to install into."
+  default     = "upstat"
 }
 
-variable "gcp_region" {
-  type        = string
-  description = "Region where GKE cluster is created"
-}
-
-variable "gcp_project" {
-  type        = string
-  description = "Project ID for GKE cluster"
+variable "chart_values" {
+  type        = list(string)
+  description = "Extra values YAML documents applied to the release (highest precedence last)."
+  default     = []
 }

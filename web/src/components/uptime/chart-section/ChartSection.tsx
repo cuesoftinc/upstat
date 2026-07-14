@@ -2,7 +2,7 @@
 
 import { Icon } from "@iconify/react"
 import pulse from "@/assets/images/pulse.png"
-import DonoughtChart from "../charts/DonoughtChart"
+import DoughnutChart from "../charts/DoughnutChart"
 import { chartSectionProp } from "@/types/uptime.types"
 import {
     ChartSectionContainer,
@@ -15,7 +15,7 @@ import {
     OverallUptime,
     OverallHeading,
     OverallBody,
-    OverallDonought,
+    OverallDoughnut,
     OverallDetail,
     LeftOverallDetail,
     RightOverallDetail,
@@ -84,9 +84,9 @@ const ChartSection = ({ response, overall }: chartSectionProp ) => {
                     <LeftOverallDetail>
                         {leftOverallTsx}
                     </LeftOverallDetail>
-                    <OverallDonought>
-                        <DonoughtChart />
-                    </OverallDonought>
+                    <OverallDoughnut>
+                        <DoughnutChart />
+                    </OverallDoughnut>
                     <RightOverallDetail>
                         {rightOverallTsx}
                     </RightOverallDetail>

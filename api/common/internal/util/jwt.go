@@ -13,34 +13,39 @@ type Claims struct {
 }
 
 // GenerateToken Generate JWT Token (expires in 2 hours)
-func GenerateToken(userId string, email string) string {
+func GenerateToken(userId string, email string) (string, error) {
 	claims := jwt.MapClaims{
 		"userId": userId,
 		"email":  email,
 		"exp":    time.Now().Add(time.Hour * 2).Unix(),
 		"iat":    time.Now().Unix(),
-		"issuer": "CuesoftCloud",
+		"issuer": "cuesoftinc",
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedToken, _ := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
-
-	return signedToken
+	return signToken(claims)
 }
 
 // GenerateNonExpiringToken Generate a JWT token that never expires (for service accounts)
-func GenerateNonExpiringToken(userId string, email string) string {
+func GenerateNonExpiringToken(userId string, email string) (string, error) {
 	claims := jwt.MapClaims{
 		"userId": userId,
 		"email":  email,
 		"iat":    time.Now().Unix(),
-		"issuer": "CuesoftCloud",
+		"issuer": "cuesoftinc",
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedToken, _ := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	return signToken(claims)
+}
 
-	return signedToken
+// signToken signs claims with JWT_SECRET, refusing an empty key (an empty
+// secret would silently produce forgeable tokens).
+func signToken(claims jwt.MapClaims) (string, error) {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		return "", fmt.Errorf("JWT_SECRET is not set")
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(secret))
 }
 
 func ValidateToken(tokenString string) (string, string, error) {

@@ -12,7 +12,6 @@
     "@iconify/react": "^5",
     "@react-oauth/google": "^0.13.5",
     "@tanstack/react-query": "^5.101.2",
-    "axios": "^1",
     "chart.js": "^4",
     "google-protobuf": "^3.21",
     "grpc-web": "^1.5",

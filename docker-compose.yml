@@ -21,6 +21,7 @@ services:
 
   api-common:
     build: ./api/common
+    image: cuesoft/upstat-api-common:latest
     networks:
       default:
         # Envoy's cluster config (deploy/helm/envoy/envoy.yaml) targets this hostname.
@@ -35,8 +36,6 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       BASE_URL: ${BASE_URL:-http://localhost:8080/}
       INSIGHT_SERVICE_GRPC_ADDRESS: api-observability:50051
-      SMTP_USERNAME: ${SMTP_USERNAME:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
     depends_on:
       mongo:
         condition: service_healthy
@@ -44,6 +43,7 @@ services:
 
   api-observability:
     build: ./api/observability
+    image: cuesoft/upstat-api-observability:latest
     ports:
       - "8081:8081"
     environment:
@@ -63,7 +63,7 @@ services:
 
   # gRPC-Web proxy: browser gRPC-Web (:8082 on the host) -> native gRPC (api-common:8080).
   envoy:
-    image: envoyproxy/envoy:v1.31-latest
+    image: envoyproxy/envoy:v1.31.5
     volumes:
       - ./deploy/helm/envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
     ports:
@@ -74,6 +74,7 @@ services:
     restart: unless-stopped
 
   web:
+    image: cuesoft/upstat-web:latest
     build:
       context: ./web
       # NEXT_PUBLIC_* are inlined into the standalone build, so pass them here.

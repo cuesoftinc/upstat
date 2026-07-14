@@ -14,6 +14,7 @@ import { Icon } from "@iconify/react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { menudata } from "@/components/constants/menu-bar.data";
+import { ProtectedRoute } from "@/components/other-components/protect-route/ProtectedRoute";
 
 const DashboardLayoutWrapper = styled.div`
   display: flex;
@@ -91,7 +92,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <MainContentCanvas>
               <DashboardHeader onMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
               <ScrollableDashboardBody>
-                {children}
+                <ProtectedRoute>{children}</ProtectedRoute>
               </ScrollableDashboardBody>
             </MainContentCanvas>
 

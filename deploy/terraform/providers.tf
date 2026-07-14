@@ -1,37 +1,19 @@
 terraform {
+  required_version = ">= 1.5"
+
   required_providers {
     helm = {
       source  = "hashicorp/helm"
-      version = "2.12.1"
-    }
-
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "2.25.2"
-    }
-
-    google = {
-      source  = "hashicorp/google"
-      version = "5.16.0"
+      version = "~> 2.12"
     }
   }
 }
 
+# Cluster-agnostic: authenticates via kubeconfig, so any Kubernetes cluster
+# works (GKE, EKS, AKS, k3s, kind, minikube, ...).
 provider "helm" {
-  # Configuration options
   kubernetes {
-    host                   = var.gke_cluster_host
-    token                  = var.gke_cluster_token
-    cluster_ca_certificate = var.gke_cluster_ca_certificate
+    config_path    = var.kubeconfig_path
+    config_context = var.kube_context
   }
-}
-
-provider "kubernetes" {
-  # Configuration options
-}
-
-provider "google" {
-  # Configuration options
-  region  = var.gcp_region
-  project = var.gcp_project
 }

@@ -2,11 +2,11 @@ package config
 
 import (
 	"github.com/joho/godotenv"
-	"log"
+	"log/slog"
 )
 
 func LoadEnv() {
 	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
+		slog.Warn("no .env file found; using environment variables")
 	}
 }

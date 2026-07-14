@@ -13,7 +13,7 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 GROQ_TIMEOUT_SECONDS = int(os.getenv("GROQ_TIMEOUT_SECONDS", "12"))
 
-print('LLM Renderer initiated')
+logger.info("LLM renderer initiated")
 
 def _build_prompt(insight: Insight):
     return [
@@ -56,28 +56,6 @@ def _build_prompt(insight: Insight):
         },
     ]
 
-# def _sanitize_output(text: str) -> str:
-#     bad_prefixes = [
-#         "we need to",
-#         "i need to",
-#         "let me",
-#         "reasoning:",
-#         "analysis:",
-#         "thought:",
-#         "plan:",
-#     ]
-
-#     lower = text.lower()
-
-#     for prefix in bad_prefixes:
-#         idx = lower.find(prefix)
-#         if idx == 0:
-#             split = text.rfind(".")
-#             if split != -1:
-#                 sentences = text.split(".")
-#                 return ".".join(sentences[-2:]).strip()
-
-#     return text.strip()
 
 def _extract_text(response_json: dict[str, Any]) -> str:
     if not response_json:
