@@ -4,7 +4,7 @@ import (
     "fmt"
     "os"
 
-    "github.com/CuesoftCloud/upstat/utils"
+    "github.com/CuesoftCloud/upstat/internal/util"
 )
 
 func main() {
@@ -17,6 +17,6 @@ func main() {
         email = os.Args[2]
     }
 
-    token := utils.GenerateNonExpiringToken(userId, email)
+    token := util.GenerateNonExpiringToken(userId, email)
     fmt.Println(token)
 }

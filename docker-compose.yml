@@ -1,0 +1,73 @@
+# Local development stack for upstat.
+# Usage: cp .env.example .env  &&  make up
+#
+# Service wiring:
+#   api-common (Go)          gRPC + HTTP /health on :8080 (h2c), MongoDB, monitor worker
+#   api-observability (Py)   FastAPI /health on :8081, internal gRPC on :50051, ML insights
+#   The two call each other over gRPC on the compose network (lazy clients), so
+#   neither hard-depends on the other — both only wait for mongo.
+services:
+  mongo:
+    image: mongo:7
+    volumes:
+      - upstat-mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ping:1}).ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  api-common:
+    build: ./api/common
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      MONGO_URI: mongodb://mongo:27017/upstat
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      BASE_URL: ${BASE_URL:-http://localhost:8080/}
+      INSIGHT_SERVICE_GRPC_ADDRESS: api-observability:50051
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+
+  api-observability:
+    build: ./api/observability
+    ports:
+      - "8081:8081"
+    environment:
+      PORT: "8081"
+      MONGO_URI: mongodb://mongo:27017/upstat
+      MONGO_DB: ${MONGO_DB:-Upstat}
+      UPSTAT_GRPC_ADDRESS: api-common:8080
+      UPSTAT_GRPC_AUTH_TOKEN: ${UPSTAT_GRPC_AUTH_TOKEN:-}
+      UPSTAT_GRPC_CHECK_LIMIT: ${UPSTAT_GRPC_CHECK_LIMIT:-100}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GRPC_PORT: "50051"
+      ENABLE_GRPC_SERVER: "true"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      # NEXT_PUBLIC_* are inlined into the standalone build, so pass them here.
+      args:
+        NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:8080}
+    ports:
+      - "3000:3000"
+    depends_on:
+      api-common:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  upstat-mongo:
