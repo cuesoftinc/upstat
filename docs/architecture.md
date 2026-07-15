@@ -113,3 +113,114 @@ flowchart LR
 - The Go backend owns monitor state and check execution, making it the authoritative source for recent monitor health.
 - The Python service owns analytics and machine learning, consuming the Go service via a clear gRPC interface.
 - The system separates operational monitoring from analysis, which is the key architectural boundary.
+
+---
+
+# Target architecture (PRD phase)
+
+> Everything above documents the system as it exists. This section adds the
+> PRD-driven target design. Markers: **[PRD]** = stated requirement,
+> **[Proposed]** = design decision for ratification. See [prd.md](prd.md) for
+> the requirement register (M1 monitoring / M2 analytics / M3 ecosystem
+> tracking).
+
+## Target context
+
+```mermaid
+flowchart LR
+    subgraph Monitored & tracked
+        SITE[Customer websites<br/>tracking script]
+        SIB[Sibling products<br/>apparule, expendit servers]
+        TGT[Monitored targets<br/>HTTP endpoints]
+    end
+
+    subgraph upstat.cuesoft.io
+        LAND[Landing<br/>Figma design, demo cards]
+        DASH[Dashboard<br/>monitors + real analytics]
+        STATUS[Public status pages]
+    end
+
+    subgraph Backend
+        ING[Event ingestion<br/>HTTP, property-key authed]
+        GO[api/common Go<br/>monitors, users, alerts]
+        OBS[api/observability Python<br/>insights, rollup worker]
+        MG[(MongoDB<br/>+ TTL retention)]
+        CH[Alert channels<br/>email, webhook]
+    end
+
+    SITE -->|page_view beacons| ING
+    SIB -->|server-side events| ING
+    GO -->|scheduled checks| TGT
+    ING --> MG
+    OBS -->|hourly/daily rollups| MG
+    GO -->|state change| CH
+    DASH --> GO
+    DASH -->|stats queries| ING
+    STATUS --> GO
+```
+
+## The events layer (M2 + M3) **[Proposed]**
+
+This is the design for what sibling roadmaps call **dependency D2** — Upstat
+as the ecosystem's standardized event tracker **[PRD §4.2]**.
+
+- **Ingestion**: `POST /v1/events` — plain HTTP/JSON (browser `sendBeacon`
+  compatible), authenticated by a *write-only property key* + origin
+  allowlist + rate limiting. Payloads validate against a closed schema
+  (name + coarse dims only) so sensitive data is rejected structurally
+  (data-model.md §2).
+- **Tracking script**: `upstat.js` — a few KB, cookieless; auto page-views on
+  history changes + `upstat("event", "demo_start")` for custom events.
+- **Aggregation**: the observability service gains a rollup worker (hour/day
+  buckets, approximate uniques via the daily-rotating `visitor_hash`).
+  Dashboards and the stats API read rollups, never raw events.
+- **Dashboards**: the existing traffic page moves from mock
+  `/api/dashboard/*` routes onto `GET /v1/stats` (ANA-002); bounce/SEO/
+  page-load pages follow only where honest data exists (prd.md §4).
+
+```mermaid
+sequenceDiagram
+    participant B as Browser (customer site)
+    participant I as POST /v1/events
+    participant M as MongoDB
+    participant R as Rollup worker (observability)
+    participant D as Dashboard
+
+    B->>I: sendBeacon {property_key, name: page_view, dims}
+    I->>I: key + origin + schema + rate checks
+    I->>M: insert EVENT (TTL 90d)
+    R->>M: hourly: aggregate events → ROLLUP upserts
+    D->>I: GET /v1/stats?property&period&name
+    I->>M: read ROLLUP
+    I-->>D: series + uniques
+```
+
+## Alerting (MON-001) **[Proposed]**
+
+The monitor worker already tracks `consecutiveFailures` vs `failureThreshold`
+and flips `status` — alerting hooks that transition:
+
+```mermaid
+sequenceDiagram
+    participant W as Monitor worker (Go)
+    participant M as MongoDB
+    participant CH as Channel (email/webhook)
+
+    W->>W: check fails, threshold crossed → status: down
+    W->>M: load ALERT_RULEs for monitor (+cooldown state)
+    alt rule matches "down" and not cooling down
+        W->>CH: dispatch (template: monitor, target, since, last error)
+        W->>M: record dispatch time (cooldown)
+    end
+    W->>W: later: recovery → status: up
+    W->>CH: "recovered" per rule
+```
+
+Email provider is an open decision (prd.md §8.2); webhooks are
+provider-independent and may ship first if the email decision stalls.
+
+## Non-goals guardrail
+
+Per PRD §5, the target explicitly excludes APM/tracing/log aggregation and
+session replay. Any feature request in those directions re-opens the PRD
+rather than growing scope silently.

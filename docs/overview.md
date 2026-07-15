@@ -40,3 +40,11 @@ machine learning, consuming the backend through a clear gRPC interface.
 See [setup.md](setup.md) to run the stack locally, [architecture.md](architecture.md)
 for detailed data flows, and the
 [repository structure](../README.md#repository-structure) in the README.
+
+## Product & design documentation
+
+- [prd.md](prd.md) — product requirements breakdown (triple mandate: monitoring, analytics, ecosystem tracking)
+- [architecture.md](architecture.md) — current system + PRD-phase target design (events layer, alerting)
+- [data-model.md](data-model.md) — current + target entities, retention & privacy defaults
+- [api.md](api.md) — gRPC surface map + the /v1/events ecosystem contract ("D2")
+- [roadmap.md](roadmap.md) — phased plan; Phase 1 unblocks apparule/expendit analytics
