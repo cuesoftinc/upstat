@@ -161,3 +161,68 @@ Modeling notes:
 | Visitor data | events, visitor_hash | cookieless, anonymized, no cross-property joins; disclosed on the privacy page (UPS-005) |
 | Customer data | monitors, targets, alert configs | targets may embed internal hostnames — treat as confidential |
 | Operational | checks, rollups, insights | safe for internal metrics |
+
+---
+
+## 5. Observability platform entities (2026-07-16) **[Proposed]**
+
+Control plane (MongoDB) additions:
+
+```mermaid
+erDiagram
+    ORG ||--o{ INGEST_KEY : issues
+    ORG ||--o{ DASHBOARD : owns
+    DASHBOARD ||--o{ WIDGET : arranges
+    ORG ||--o{ MONITOR_RULE : defines
+    MONITOR_RULE }o--o{ ALERT_CHANNEL : notifies
+    ORG ||--o{ SLO : tracks
+    ORG ||--o{ INCIDENT_V2 : manages
+    INCIDENT_V2 ||--o{ TIMELINE_ENTRY : logs
+    ORG ||--o{ SERVICE_ENTRY : catalogs
+
+    INGEST_KEY { objectid _id PK
+        objectid org_id FK
+        string scope "otlp|rum|statsd|all"
+        string key_hash
+        json quotas }
+    DASHBOARD { objectid _id PK
+        objectid org_id FK
+        string name
+        json layout "12-col grid"
+        json template_vars }
+    WIDGET { objectid _id PK
+        objectid dashboard_id FK
+        string type "timeseries|query_value|toplist|table|heatmap|logstream|slo|status|servicemap|markdown"
+        json query "shared grammar"
+        json viz_options }
+    MONITOR_RULE { objectid _id PK
+        objectid org_id FK
+        string signal "uptime|metric|log|trace|slo_burn"
+        json query
+        json thresholds "warn/crit + window"
+        json notify "channels, renotify, mute_windows" }
+    SLO { objectid _id PK
+        objectid org_id FK
+        string sli_source "check|metric_ratio|latency"
+        float target "e.g. 99.9"
+        string window "30d rolling" }
+    INCIDENT_V2 { objectid _id PK
+        objectid org_id FK
+        int sev "1..4"
+        string status "declared|mitigated|resolved"
+        json roles "commander, responders"
+        string postmortem_key }
+    SERVICE_ENTRY { objectid _id PK
+        objectid org_id FK
+        string name
+        string owner
+        json links "repo, runbook"
+        json environments }
+```
+
+Telemetry plane (ClickHouse, pending R2): `metrics_points`
+(series-hash, ts, value, tags), `logs` (ts, org, service, level, message,
+attrs map, trace_id), `spans` (trace_id, span_id, parent, service, name,
+start, duration, status, attrs) — schemas finalized during OBS-001 design.
+Retention defaults extend §4's table: metrics 13mo (rollup-thinned), logs
+15d hot (+archive later), traces 7d sampled **[Proposed]**.

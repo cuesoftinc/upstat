@@ -73,3 +73,32 @@ two other product roadmaps are blocked on it and it's additive (new endpoints,
 no changes to the working monitor path). Phase 2 then makes the product honest
 (real data) and complete (alerts — the biggest monitoring-product gap). Phase 3
 waits on external contracts.
+
+---
+
+## Revision — observability platform expansion (2026-07-16)
+
+Supersedes the §5-restraint framing above (kept for audit). Phases 0–2 stand
+— they build the landing, the events layer (now the RUM foundation), honest
+dashboards, and alerting channels. The expansion then proceeds by pillar,
+each gated on the storage decision **R2 (ClickHouse — ratify)**:
+
+- **Phase 3 — Ingestion + Metrics**: OTLP gateway, ingest keys/quotas,
+  telemetry store, metrics explorer, dashboard grid v1 (OBS-001/002/005),
+  monitor engine generalized to metric thresholds.
+- **Phase 4 — Logs**: log intake, explorer + live tail + facets, log
+  monitors (OBS-003).
+- **Phase 5 — APM**: trace intake, service pages, waterfall, service map,
+  latency/error monitors (OBS-004, OBS-010 catalog alongside).
+- **Phase 6 — RUM maturation**: browser SDK grows vitals + error tracking on
+  the events layer (OBS-007); analytics pages complete.
+- **Phase 7 — SRE layer**: incident management v2, SLOs + burn monitors,
+  postmortems (OBS-008/009); mobile on-call companion enters design.
+- Ongoing: synthetics beyond HTTP, log patterns/archives, usage metering
+  (OBS-011/012).
+
+Sequencing rationale: metrics before logs before traces matches ingestion
+complexity and monitor value; RUM rides the already-shipped events layer;
+the SRE layer needs signals to exist first. Every pillar ships explorer +
+retention + monitors together (architecture honesty stance) — feature flags
+keep partial pillars invisible.

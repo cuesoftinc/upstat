@@ -115,3 +115,22 @@ schema-as-privacy-boundary enforceable.
 Shared ecosystem conventions (error envelope, pagination, idempotency) apply
 to the new HTTP surfaces exactly as written in apparule's api.md §4; gRPC
 error semantics stay as documented in grpc-api.md. **[Proposed]**
+
+---
+
+## 6. Observability platform surface (2026-07-16) **[Proposed]** — deltas
+
+| Group | Surface |
+| --- | --- |
+| Ingestion | OTLP/gRPC + OTLP/HTTP (`/v1/otlp/{traces,metrics,logs}`), authn `Upstat-Ingest-Key`; StatsD UDP/TCP shim; existing `/v1/events` + vitals payloads (RUM SDK) |
+| Query | `POST /v1/query` (shared grammar → timeseries/log/trace results; powers explorers, dashboards, monitor evaluator) |
+| Dashboards | CRUD + portable JSON import/export |
+| Monitors | rule CRUD (signal-generic), `POST /v1/monitors/{id}/test` (24h replay), triggered-feed |
+| Incidents | declare/update/resolve, timeline entries, postmortem attach |
+| SLOs | CRUD + status/burn endpoints |
+| Service catalog | CRUD + telemetry-presence summary |
+| Keys | ingest-key CRUD with scopes/quotas |
+
+gRPC remains for the existing user/monitor control plane; all new surfaces
+are HTTP/JSON (ecosystem conventions). RUM/browser SDK (`upstat.js`) extends
+the Phase-1 script with web-vitals + error capture — same property keys.

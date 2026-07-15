@@ -224,3 +224,66 @@ provider-independent and may ship first if the email decision stalls.
 Per PRD §5, the target explicitly excludes APM/tracing/log aggregation and
 session replay. Any feature request in those directions re-opens the PRD
 rather than growing scope silently.
+
+---
+
+# Observability platform expansion (2026-07-16) **[Directive]**
+
+> Supersedes the "Non-goals guardrail" above and the PRD §5 restraint: Upstat
+> now targets a **full observability & SRE platform** (Datadog-class) —
+> pillars in [pages.md](pages.md). The events layer and alerting designed
+> above stand unchanged; they become the RUM pillar's foundation and the
+> monitor engine respectively.
+
+## Ingestion architecture **[Proposed]**
+
+**OpenTelemetry-native**: OTLP (gRPC + HTTP) is the single first-party intake
+for traces, metrics, and logs — customers use standard OTel SDKs/collectors,
+no proprietary agent to build or maintain. Complements: the existing HTTP
+events API + `upstat.js` (RUM), StatsD-compat shim (metrics), uptime checker
+(synthetics).
+
+```mermaid
+flowchart LR
+    subgraph Customer
+        SDK[OTel SDKs] --> COL[OTel Collector]
+        JS[upstat.js RUM]
+        AGENTLESS[StatsD apps]
+    end
+    COL -->|OTLP| GW[Ingestion gateway<br/>authn: org ingest keys,<br/>rate/quota, schema guard]
+    JS -->|/v1/events + vitals| GW
+    AGENTLESS -->|statsd shim| GW
+    GW --> BUF[[Buffer/queue]]
+    BUF --> TS[(Timeseries store<br/>metrics)]
+    BUF --> LS[(Column/log store<br/>logs + traces)]
+    BUF --> MG[(MongoDB<br/>control plane: orgs, monitors,<br/>dashboards, incidents, SLOs)]
+    TS --> Q[Query layer]
+    LS --> Q
+    MG --> Q
+    Q --> APP[Dashboards / explorers / monitors]
+```
+
+## The storage decision (gating, R2)
+
+MongoDB cannot serve high-cardinality timeseries or log search at platform
+scale. **Proposal: ClickHouse as the unified telemetry store** (metrics,
+logs, traces in columnar tables — the Signoz/HyperDX-proven pattern), with
+MongoDB retained solely as the control plane. Alternative split
+(VictoriaMetrics + OpenSearch) rejected for operational surface. Self-host
+compose gains one ClickHouse container; helm adds a StatefulSet or external
+endpoint — mirrors the existing "chart deploys no DB" stance. **[Ratify
+before OBS-001 implementation.]**
+
+## Query layer
+
+One internal query service translating the shared QueryBar grammar
+(design.md §3) to store-specific queries; all pillars and the monitor
+evaluator consume it — monitors are "saved queries + thresholds on a
+schedule", nothing pillar-specific.
+
+## Honesty stance for the build-out
+
+Pillars ship behind org-level feature flags; a pillar is not "available"
+until its explorer, retention, and monitor support all work. Marketing may
+list pillars as "early access" but the in-app empty states (MI-16) never
+pretend data exists. Sequencing in roadmap.md revision.
