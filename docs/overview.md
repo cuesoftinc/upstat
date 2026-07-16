@@ -40,3 +40,18 @@ machine learning, consuming the backend through a clear gRPC interface.
 See [setup.md](setup.md) to run the stack locally, [architecture.md](architecture.md)
 for detailed data flows, and the
 [repository structure](../README.md#repository-structure) in the README.
+
+## Product & design documentation
+
+- [prd.md](prd.md) — product requirements breakdown (triple mandate: monitoring, analytics, ecosystem tracking)
+- [architecture.md](architecture.md) — current system + PRD-phase target design (events layer, alerting)
+- [data-model.md](data-model.md) — current + target entities, retention & privacy defaults
+- [api.md](api.md) — gRPC surface map + the /v1/events ecosystem contract ("D2")
+- [roadmap.md](roadmap.md) — phased plan; Phase 1 unblocks apparule/expendit analytics
+- [design.md](design.md) + [pages.md](pages.md) — design language, pillars, microinteractions
+- [query-grammar.md](query-grammar.md) — the shared query grammar behind explorers, widgets, monitors
+- [decisions.md](decisions.md) — the open-decision register: ratify to unblock phases
+- [deployment.md](deployment.md) — Cloud Run + App Hosting contract (cuesoft-iac provisioning, CI/CD pattern)
+- flows/ — feature flow specs with edge cases: [auth](flows/auth.md), [monitor](flows/monitor.md), [alert](flows/alert.md)
+- [analytics-math.md](analytics-math.md) — visitor hashing, sessionization, rollups, uniques honesty rules
+- [engineering.md](engineering.md) — error catalog, authz matrix, rate limits, testing strategy, logging rules
