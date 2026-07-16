@@ -42,6 +42,8 @@ for detailed data flows, and the
 [repository structure](../README.md#repository-structure) in the README.
 
 ## Product & design documentation
+> Published site: **https://cuesoft.gitbook.io/upstat** (Git-synced from this folder on every merge to main).
+
 
 - [prd.md](prd.md) — product requirements breakdown (triple mandate: monitoring, analytics, ecosystem tracking)
 - [architecture.md](architecture.md) — current system + PRD-phase target design (events layer, alerting)
