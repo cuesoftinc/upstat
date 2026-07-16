@@ -114,3 +114,16 @@ observability-service touch, not as its own phase.
   consumer-API keys to third-party AI vendors in cloud deployments — data
   stays inside GCP, which strengthens every privacy disclosure. Self-host
   fallback: bring-your-own Gemini/Groq key via env (existing code path). ☑
+- **X-5 Data plane (RATIFIED 2026-07-16, per-product DB decided by delegation)**:
+  **Aiven Postgres** for the control plane (users, monitors, dashboards,
+  rules, incidents, SLOs) — migrating from Mongo with the monitors-v2/OBS
+  work; **ClickHouse** remains the telemetry store (U-1 unchanged).
+  **Shared Redis**: the sandbox **Aiven Redis** instance, tenancy by
+  **`REDIS_DB` index** (the irealty pattern: discrete `REDIS_HOST/PORT/
+  USERNAME/PASSWORD/TLS/DB` vars; e.g. irealty prd=0, stg/dev=1) — indices
+  per product/config assigned in Doppler by the owner. **Doppler is the env
+  source of truth**: project `upstat` with `dev / dev_personal / stg / prd`
+  configs (already created). **Object storage**: the **default Cloud Storage bucket** in
+  `sandbox-e306a` (per-product prefixes `upstat/<env>/…`) for capture
+  media, exports, and artifacts. Self-host compose keeps its bundled
+  stores. ☑
