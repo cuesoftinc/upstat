@@ -174,7 +174,7 @@ component samples are the next Style Guide iteration.
 | 0 Foundations | type ramp (§2) · series palette swatches ×8 · Lucide icons · 12-col dashboard grid + 8px gutters | everything |
 | 1 Atoms | Button, Input, StatusPill, query pill, level chip, Toast | molecules |
 | 2 Molecules | TimePicker, QueryBar (pills+autocomplete), FacetSidebar group, MonitorRow, LogLine (collapsed/expanded), SLOCard, IncidentBanner, UptimeCard | panels |
-| 3 Panels | TimeseriesPanel (line/area/bars + legend), WidgetShell, TraceWaterfall row, ServiceMapNode, alert channel/rule forms | dashboards |
+| 3 Panels | TimeseriesPanel (line/area/bars + legend), WidgetShell, TraceWaterfall row + span drawer, ServiceMapNode, alert channel/rule forms · **widget content kit**: QueryValue, TopList, Table, Heatmap, LogHistogram · **status page kit**: StatusPageHeader, StatusPageComponentRow, IncidentHistoryEntry | dashboards + status pages |
 | 4 Screen templates | dashboard home, monitors list+detail, alert config, traffic (real-data layout), status page (slug public view), settings/properties | app design |
 | 5 Landing | extend Desktop-1: pillar grid (8), ingestion diagram section, demo cards, cloud-vs-oss | landing v2 |
 
@@ -194,7 +194,22 @@ component samples are the next Style Guide iteration.
 | WidgetShell | view / edit (drag handle) / fullscreen |
 | ServiceMapNode | healthy / erroring (ring %) / selected |
 | Alert forms | channel: webhook / email · unverified / verified / degraded |
+| AlertRuleCard | type: metric-threshold / log-pattern / trace-latency / slo-burn · mono query summary + threshold line (pages.md B "alert rules") |
+| TraceWaterfall | span row: depth indent ×3 · service color (series/n) · status ok/error · default / hover (mini-summary) / selected · chrome: time-axis header + SpanDrawer (tabs: tags / logs-in-span / process) — MI-7, pages.md B5 |
+| QueryValue | big tabular value + delta chip · threshold tint: none / ok / warn / crit · with/without sparkline (dashboard "query value" widget) |
+| TopList | ranked horizontal bars ×5 (series palette) + right-aligned values · loading / empty (dashboard "top list" widget) |
+| Table | header + rows, numeric right-aligned mono · compact density (dashboard "table" widget) |
+| Heatmap | time×bucket cell grid, intensity ramp on series/1 · hover cell tooltip (dashboard "heatmap" widget) |
+| LogHistogram | level-stacked volume bars over time axis · hover count tooltip (logs explorer header, pages.md B4) |
+| StatusPageHeader | overall: operational / degraded / partial_outage / major_outage · last-updated ts (public status page, pages.md B7) |
+| StatusPageComponentRow | component name + StatusPill + 90-day bar strip + uptime % (UptimeCard technique, public view) |
+| IncidentHistoryEntry | phase: investigating / identified / monitoring / resolved · timestamped update list (status page history + incident timeline) |
 | EmptyState | per-pillar MI-16 (snippet + radar + docs link) ×4 minimum |
+
+Remaining pages.md widget types compose existing sets inside `WidgetShell`
+(log stream = LogLine list · SLO = SLOCard · status = StatusPill grid ·
+service map = ServiceMapNode cluster · trace latency = TimeseriesPanel ·
+markdown = text) — no separate components needed.
 
 ### 8.3 Design-prep needed from content
 
