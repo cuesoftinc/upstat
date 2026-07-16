@@ -6,16 +6,13 @@ generates ML-powered reliability insights.
 
 ## Architecture
 
-```
-client                     proxy               server                    data
-──────                     ─────               ──────                    ────
-web dashboard   ─gRPC-Web─▶ Envoy   ──gRPC──▶  common api (Go)   ──────▶  MongoDB
-(Next.js)                                      · monitor worker           ▲
-                                               · checks / incidents       │
-                                               · MonitorService (gRPC)     │
-                                       gRPC     observability (Python) ────┘
-                                    GetRecentChecks · ML anomaly detection
-                                                     · insight generation
+```mermaid
+flowchart LR
+    WEB[web dashboard<br/>Next.js] -->|gRPC-Web| ENV[Envoy]
+    ENV -->|gRPC| AC[api/common — Go<br/>monitor worker · checks · incidents<br/>MonitorService · UserService]
+    OBS[api/observability — Python<br/>ML anomaly detection · insights] -->|gRPC GetRecentChecks| AC
+    AC --> MG[(MongoDB)]
+    OBS --> MG
 ```
 
 - **`web`** — Next.js dashboard and public status pages. Talks to the backend
