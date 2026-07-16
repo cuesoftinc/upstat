@@ -88,3 +88,14 @@ is the standing proof.
 - [ ] Rollup re-run produces byte-identical settled buckets
 - [ ] Storage-scan test proves no raw IP/UA at rest
 - [ ] Release smoke drives a real down→alert→recover cycle in sandbox
+
+## CORS contract (ecosystem standard)
+
+- Env: **`CORS_ORIGINS`** — comma-separated exact origins; no wildcard in
+  cloud; `http://localhost:3000` default for native dev.
+- Behaviour: echo the request Origin **only if allowlisted**; `Vary: Origin`;
+  `Allow-Credentials: false` (bearer auth — no cookies);
+  methods `GET,POST,PUT,PATCH,DELETE,OPTIONS`; headers
+  `Authorization, Content-Type, Idempotency-Key, X-Org-Id`; preflight 204
+  with `Access-Control-Max-Age: 600`.
+- App-level CORS applies to the HTTP surfaces (api.md §1a) from U1-2; browser gRPC-Web CORS stays in Envoy config.

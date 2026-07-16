@@ -53,7 +53,20 @@ The single protected GitHub environment is **`Sandbox`** (X-6) — required
 reviewers + the sandbox URLs (`api.upstat.cuesoft.io`,
 `ingest.upstat.cuesoft.io` at OBS-001). No other deploy environments exist.
 
-## 4. Not in this phase
+## 4. Runtime contract (Cloud Run) **[Decided defaults]**
+
+| Service | CPU / mem | Concurrency | Min–max instances | Timeout |
+| --- | --- | --- | --- | --- |
+| api/common | 1 vCPU / 512 MiB | 80 | **1**–5 (worker lease, flows/monitor.md §3) | 60 s |
+| api/observability | 1 vCPU / 1 GiB | 10 | 0–3 | 120 s |
+| envoy (sunset at monitors-v2, X-8) | 0.5 vCPU / 256 MiB | 200 | 0–3 | 60 s |
+
+- Domains: `api.upstat.cuesoft.io` → api/common; `ingest.upstat.cuesoft.io`
+  arrives with OBS-001; `status.upstat.cuesoft.io` → status pages.
+- Rollback: redeploy the previous image digest (recorded in the release run).
+- Web env: `NEXT_PUBLIC_*` flows Doppler → `apphosting.yaml` at rollout.
+
+## 5. Not in this phase
 
 Writing these workflows + the Pulumi stack is **implementation work**, out of
 scope for the docs phase — this document is the contract they'll be built

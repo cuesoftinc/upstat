@@ -1,6 +1,12 @@
-# Upstat Architecture
+# Upstat — System Architecture
 
-## Overview
+> Canonical structure (ecosystem standard): current state → target state →
+> service breakdown → deep dives → deployment → dependencies. All content
+> preserved from the organic original; decisions.md governs where markers
+> lag. Markers: **[Current]**, **[PRD]**, **[Directive]**, **[Decided]**.
+
+## 1. Context — current state **[Current]**
+
 This diagram describes the main components of Upstat and how they interact.
 
 ```mermaid
@@ -35,7 +41,8 @@ flowchart LR
     click Mongo "docker-compose.yml" "Database configuration (compose)"
 ```
 
-## Components
+
+### 1.1 Components
 
 - **Frontend**: Next.js / React application in `web`.
 - **Envoy**: Proxy layer in `deploy/helm/envoy/envoy.yaml` and Docker Compose.
@@ -43,88 +50,20 @@ flowchart LR
 - **Python Observability Service**: FastAPI service in `api/observability`, calling Go backend via gRPC to analyze recent monitor checks.
 - **MongoDB**: Primary database for monitors, check results, incidents, and insights.
 
-## Communication patterns
+### 1.2 Communication patterns
 
 - `UI -> Envoy -> GoBackend`: frontend requests route through Envoy.
 - `PythonService -> GoBackend`: gRPC client calls using shared proto definitions in `api/common/internal/proto/user.proto`.
 - `GoBackend -> Mongo`: persistence for monitors, checks, incidents.
 - `PythonService -> Mongo`: insight persistence.
 
-## Notes
+### 1.3 Notes
 
 - The system is distributed: services run in separate containers/processes and communicate over network protocols.
 - The project currently uses Docker Compose for local orchestration.
 - The Go backend contains an internal monitor worker that schedules periodic checks.
 
-## Backend + Python Observability Service Details
-
-```mermaid
-flowchart LR
-    subgraph Backend
-        GoServer[Go gRPC Backend]
-        MonitorWorker[Monitor Worker]
-        Mongo[MongoDB]
-    end
-
-    subgraph PythonService
-        PythonAPI[Python FastAPI Service]
-        InsightGenerator[Insight Generator / ML Pipeline]
-        PythonRepo[gRPC Monitor Repository]
-        InsightsDB[Insight Storage]
-    end
-
-    MonitorWorker -->|writes check results| Mongo
-    GoServer -->|reads/writes monitors, incidents, checks| Mongo
-    PythonRepo -->|gRPC GetRecentChecks| GoServer
-    InsightGenerator -->|reads recent checks| PythonRepo
-    InsightGenerator -->|writes insights| InsightsDB
-    PythonAPI -->|endpoint triggers| InsightGenerator
-    PythonAPI -->|serves insight results| Client[Client / Frontend]
-
-    click GoServer "api/common/cmd/server/main.go" "Go gRPC backend entrypoint"
-    click MonitorWorker "api/common/internal/service/monitor_worker_service.go" "Periodic monitor scheduler"
-    click PythonRepo "api/observability/repository/monitor_repository.py" "Python gRPC client for checks"
-    click InsightGenerator "api/observability/service/insight_generator.py" "Insight generation pipeline"
-```
-
-### Go backend 
-
-1. The Go service starts in `api/common/cmd/server/main.go`, initializing the MongoDB connection and registering the gRPC `MonitorService` and `UserService` handlers.
-2. The gRPC API is defined in `api/common/internal/proto/user.proto` and includes `GetRecentChecks`, `GetStatusPage`, and monitor CRUD operations.
-3. The internal monitor worker in `api/common/internal/service/monitor_worker_service.go` wakes periodically, loads active monitors, and executes checks concurrently.
-4. Check execution is done in `api/common/internal/service/checker_service.go`, which performs the HTTP request, measures response time, and assembles a check result.
-5. Check results are persisted through `api/common/internal/repository/check_result_repository.go`.
-6. Incidents and monitor state are updated through the corresponding repository methods in `api/common/internal/repository/incident_repository.go` and `api/common/internal/repository/monitor_repository.go`.
-
-### Python observability service 
-
-1. The Python service starts in `api/observability/app/main.py` and loads env vars from `api/observability/.env`.
-2. Its FastAPI routes are defined in `api/observability/router/insights.py` and `api/observability/router/analyze.py`.
-3. `GET /insights/{monitor_id}` and `POST /analyze/{monitor_id}` both call `generate_insight(monitor_id)` in `api/observability/service/insight_generator.py`.
-4. That generator calls `api/observability/repository/monitor_repository.py`, which opens a gRPC connection to the Go backend and calls `GetRecentChecks`.
-5. The gRPC response is converted into local `MonitorCheck` objects.
-6. Feature extraction is performed by `api/observability/ml/feature_builder.py`, producing metrics such as failed checks, total checks, and average response time.
-7. Risk scoring and anomaly classification are performed by `api/observability/service/risk_scorer.py`, `service/severity_classifier.py`, and `service/ml_anomaly_detector.py`.
-8. Human-readable signals are generated by `api/observability/analysis/failure_analysis.py`, `latency_analysis.py`, and `trend_analysis.py`.
-9. The final `Insight` object is saved through `api/observability/repository/insight_repository.py` and returned to the caller.
-
-### Why this is useful
-
-- The Go backend owns monitor state and check execution, making it the authoritative source for recent monitor health.
-- The Python service owns analytics and machine learning, consuming the Go service via a clear gRPC interface.
-- The system separates operational monitoring from analysis, which is the key architectural boundary.
-
----
-
-# Target architecture (PRD phase)
-
-> Everything above documents the system as it exists. This section adds the
-> PRD-driven target design. Markers: **[PRD]** = stated requirement,
-> **[Proposed]** = design decision for ratification. See [prd.md](prd.md) for
-> the requirement register (M1 monitoring / M2 analytics / M3 ecosystem
-> tracking).
-
-## Target context
+## 2. Context — target state **[Decided]**
 
 ```mermaid
 flowchart LR
@@ -159,7 +98,38 @@ flowchart LR
     STATUS --> GO
 ```
 
-## The events layer (M2 + M3) **[Proposed]**
+## 3. Service breakdown — backend + observability internals **[Current]**
+
+```mermaid
+flowchart LR
+    subgraph Backend
+        GoServer[Go gRPC Backend]
+        MonitorWorker[Monitor Worker]
+        Mongo[MongoDB]
+    end
+
+    subgraph PythonService
+        PythonAPI[Python FastAPI Service]
+        InsightGenerator[Insight Generator / ML Pipeline]
+        PythonRepo[gRPC Monitor Repository]
+        InsightsDB[Insight Storage]
+    end
+
+    MonitorWorker -->|writes check results| Mongo
+    GoServer -->|reads/writes monitors, incidents, checks| Mongo
+    PythonRepo -->|gRPC GetRecentChecks| GoServer
+    InsightGenerator -->|reads recent checks| PythonRepo
+    InsightGenerator -->|writes insights| InsightsDB
+    PythonAPI -->|endpoint triggers| InsightGenerator
+    PythonAPI -->|serves insight results| Client[Client / Frontend]
+
+    click GoServer "api/common/cmd/server/main.go" "Go gRPC backend entrypoint"
+    click MonitorWorker "api/common/internal/service/monitor_worker_service.go" "Periodic monitor scheduler"
+    click PythonRepo "api/observability/repository/monitor_repository.py" "Python gRPC client for checks"
+    click InsightGenerator "api/observability/service/insight_generator.py" "Insight generation pipeline"
+```
+
+## 4. The events layer (M2 + M3) **[Decided]**
 
 This is the design for what sibling roadmaps call **dependency D2** — Upstat
 as the ecosystem's standardized event tracker **[PRD §4.2]**.
@@ -195,7 +165,7 @@ sequenceDiagram
     I-->>D: series + uniques
 ```
 
-## Alerting (MON-001) **[Proposed]**
+## 5. Alerting (MON-001) **[Decided]**
 
 The monitor worker already tracks `consecutiveFailures` vs `failureThreshold`
 and flips `status` — alerting hooks that transition:
@@ -219,23 +189,11 @@ sequenceDiagram
 Email provider is an open decision (prd.md §8.2); webhooks are
 provider-independent and may ship first if the email decision stalls.
 
-## Non-goals guardrail
+## 6. Observability platform expansion (2026-07-16) **[Directive]**
 
-Per PRD §5, the target explicitly excludes APM/tracing/log aggregation and
-session replay. Any feature request in those directions re-opens the PRD
-rather than growing scope silently.
+> Supersedes the earlier "lightweight" guardrail (kept below for audit).
 
----
-
-# Observability platform expansion (2026-07-16) **[Directive]**
-
-> Supersedes the "Non-goals guardrail" above and the PRD §5 restraint: Upstat
-> now targets a **full observability & SRE platform** (Datadog-class) —
-> pillars in [pages.md](pages.md). The events layer and alerting designed
-> above stand unchanged; they become the RUM pillar's foundation and the
-> monitor engine respectively.
-
-## Ingestion architecture **[Proposed]**
+### 6.1 Ingestion architecture
 
 > **X-5 note:** every "MongoDB" box in the earlier (pre-X-5) diagrams of this
 > file reads as the control-plane store — now **Aiven Postgres**; Phase-1
@@ -266,7 +224,7 @@ flowchart LR
     Q --> APP[Dashboards / explorers / monitors]
 ```
 
-## Ingestion operations **[Decided]**
+### 6.2 Ingestion operations
 
 - **Buffering**: Phase 1 (/v1/events) has **no external buffer** — direct
   Postgres inserts; overload answers `429` (never silent drop; rejected
@@ -281,7 +239,7 @@ flowchart LR
   quotas enforced at the gateway per ingest key; per-org query concurrency
   cap 4 in the query layer (noisy-neighbor containment).
 
-## The storage decision (gating, R2)
+### 6.3 The storage decision (U-1, ratified)
 
 MongoDB cannot serve high-cardinality timeseries or log search at platform
 scale. **Proposal: ClickHouse as the unified telemetry store** (metrics,
@@ -292,16 +250,40 @@ compose gains one ClickHouse container; helm adds a StatefulSet or external
 endpoint — mirrors the existing "chart deploys no DB" stance. **[Ratify
 before OBS-001 implementation.]**
 
-## Query layer
+### 6.4 Query layer
 
 One internal query service translating the shared QueryBar grammar
 (design.md §3) to store-specific queries; all pillars and the monitor
 evaluator consume it — monitors are "saved queries + thresholds on a
 schedule", nothing pillar-specific.
 
-## Honesty stance for the build-out
+### 6.5 Honesty stance for the build-out
 
 Pillars ship behind org-level feature flags; a pillar is not "available"
 until its explorer, retention, and monitor support all work. Marketing may
 list pillars as "early access" but the in-app empty states (MI-16) never
 pretend data exists. Sequencing in roadmap.md revision.
+
+### 6.6 Superseded non-goals guardrail (audit trail)
+
+Per PRD §5, the target explicitly excludes APM/tracing/log aggregation and
+session replay. Any feature request in those directions re-opens the PRD
+rather than growing scope silently.
+
+---
+
+## 7. Deployment view
+
+Cloud: [deployment.md](deployment.md) (Cloud Run via cuesoft-iac, X-3/X-6 —
+api/common `min-instances: 1` + scheduler lease). Self-host: compose
+(mongo/redis/envoy + services) and the standard-form Helm chart + terraform
+in `deploy/` — validated end-to-end on a live cluster.
+
+## 8. Cross-repo dependencies
+
+| ID | Dependency | Direction | Notes |
+| --- | --- | --- | --- |
+| D2 | Event-ingestion API | **provided by this repo** (Phase 1) | unblocks apparule/expendit analytics |
+| D1 | `account.cuesoft.io` facade | consumed, later | X-1: Firebase interim ratified — not blocking |
+| D3 | Upstat clause on privacy.cuesoft.io | consumed | UPS-005 copy |
+| X-5/X-7 | Aiven PG + Redis, Brevo | consumed | shared data/email plane |
