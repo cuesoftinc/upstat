@@ -91,6 +91,7 @@ token). See [docs/setup.md](docs/setup.md) for details; `make help` lists all
 targets. Never commit credentials or bake them into an image.
 
 ## Documentation
+- [Hosted docs](https://cuesoft.gitbook.io/upstat) — the full documentation site (auto-synced from `docs/`)
 
 - [Project overview](docs/overview.md) — architecture and components
 - [Local setup](docs/setup.md) — development environment and per-service run commands
