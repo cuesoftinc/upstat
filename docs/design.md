@@ -42,7 +42,7 @@
 | `text-2` | #6B6F7B | #9BA0AC | secondary |
 | `brand` | #00E09E | #00E09E | nav, CTAs, focus (sampled from the landing) |
 | `brand-deep` | #00A991 | #00A991 | hover/active brand states, secondary accents |
-| `on-brand` | #0E1113 | #0E1113 | labels/knobs on `brand` & destructive fills — **[Decided 2026-07-16]** dark ink in *both* modes (brand teal is bright; fixes the light-mode white-on-teal contrast flag) |
+| `on-brand` | #0E1113 | #0E1113 | labels/knobs on `brand` fills **only** — **[Decided 2026-07-16]** dark ink in *both* modes (brand teal is bright; fixes the light-mode white-on-teal contrast flag). **[Decided 2026-07-17]** destructive-fill labels stay raw `#FFFFFF` pending a possible `on-crit` token — `on-brand` does not extend to `crit` fills (matches the built destructive Button; recorded so docs and build no longer diverge silently) |
 | `ok` | #2E9950 | #3DCC70 | up / passing |
 | `warn` | #C77D00 | #FFB020 | degraded / warn thresholds |
 | `crit` | #D32F2F | #FF5C5C | down / alerting |
@@ -159,16 +159,30 @@ Guide** page, backed by a variable collection **`upstat/tokens`** with **true Li
 variable (scopes: frame/shape/text fills + strokes) so designs bind to tokens,
 never raw hexes; the Style Guide page renders swatches (both modes), the type
 scale, and status/accent samples. Token changes happen in Figma first, then
-sync back into this document — the two must never diverge. Type styles and
-component samples are the next Style Guide iteration.
+sync back into this document — the two must never diverge. Type styles are
+built (12 local styles, `Axis/11` through `PageTitle/20` plus three Mono
+styles) — the earlier "next iteration" note is retired; the remaining
+iteration is the Style Guide *page* refresh below.
 
 Additions (2026-07-16): (1) the new `on-brand` token (§2) now exists in the
-`upstat/tokens` collection — components placing labels/knobs on `brand` or
-destructive fills bind it instead of a raw ink. (2) OpenType tabular figures
+`upstat/tokens` collection — components placing labels/knobs on `brand`
+fills bind it instead of a raw ink (**[Decided 2026-07-17]** `on-brand`
+applies to brand fills only; destructive-fill labels stay raw `#FFFFFF`
+pending a possible `on-crit` token — see §2). (2) OpenType tabular figures
 (`tnum`) must be enabled **manually** on numeric text styles in the Figma UI —
 the plugin API cannot set font features — so the §2 "tabular figures in all
 numeric contexts" rule is applied by hand when each numeric type style is
 created or edited.
+
+Updates (2026-07-17): (1) the Style Guide page is being refreshed to match
+the collection — add the missing `on-brand` swatch, correct the type samples
+(the rendered `Display / 32 Bold` and `Title / 24 Bold` samples contradict
+the §2 400/500/600 weight ramp), and render the z-index layer row
+(`z/base`…`z/toast` exist as variables but have no swatches) — the page and
+this doc must never diverge. (2) the legacy `Variable collection` (font /
+ITEM / BACKGROUND / white, single mode — predates `upstat/tokens`) and the
+Deprecated-page contents are **quarantined as pending cleanup**: whether and
+when to delete them is an owner decision, deliberately not scheduled here.
 
 ## 8. Figma component build plan (design phase)
 
@@ -181,7 +195,7 @@ created or edited.
 | Stage | Build | Unlocks |
 | --- | --- | --- |
 | 0 Foundations | type ramp (§2) · series palette swatches ×8 · Lucide icons — **extended set (2026-07-16)**, see icon note below · approved brand glyphs (Google 'G', GitHub, Discord, Slack) · 12-col dashboard grid + 8px gutters | everything |
-| 1 Atoms | Button, Input, StatusPill, query pill, level chip, Toast · **primitives kit (2026-07-16)**: Switch, Checkbox, Tooltip, Avatar/AvatarStack, KbdChip, CountBadge/BufferedCountChip, SevChip, GoogleSignInCTA | molecules |
+| 1 Atoms | Button, Input, StatusPill, query pill, level chip, Toast · **primitives kit (2026-07-16)**: Switch, Checkbox, Tooltip, Avatar/AvatarStack, KbdChip, CountBadge/BufferedCountChip, SevChip, GoogleAuthButton | molecules |
 | 2 Molecules | TimePicker, QueryBar (pills+autocomplete), FacetSidebar group, MonitorRow, LogLine (collapsed/expanded), SLOCard, IncidentBanner, UptimeCard, SettingsRow · **overlay/input kit**: Select/DropdownMenu, Modal/Sheet, SavedViewChip, ZoomStackChip · **account kit**: MemberRow, APIKeyRow/PropertyKeyRow, DashboardListRow | panels |
 | 3 Panels | TimeseriesPanel (line/area/bars + legend), WidgetShell, TraceWaterfall row + span drawer, ServiceMapNode, alert channel/rule forms · **widget content kit**: QueryValue, TopList, Table, Heatmap, LogHistogram · **status page kit**: StatusPageHeader, StatusPageComponentRow, IncidentHistoryEntry · **chrome kit**: NavRail/NavRailItem, TopBar, CommandPalette/SearchOverlay, ShortcutCheatsheet · **alert/incident kit**: AlertFeedRow + NotificationPopover, IncidentComposer, ThresholdOverlay · **explorer extras**: ServiceCatalogRow, ErrorGroupRow, TraceMinimap | dashboards + status pages |
 | 4 Screen templates | dashboard home, monitors list+detail, alert config, traffic (real-data layout), status page (slug public view), settings/properties, **/login** (the single Google CTA screen per X-1 — added 2026-07-16; previously omitted) | app design |
@@ -206,12 +220,36 @@ links); `trending-up` / `trending-down` (QueryValue delta chips); `calendar`
 `pencil` (widget/rule edit); `keyboard` (MI-17 cheatsheet affordance,
 optional). **Brand glyphs** — the Google 'G' for the X-1 auth CTA, the GitHub
 mark, Discord, Slack — are approved additions per the shared-foundations
-iconography rule (§2), **not Lucide**.
+iconography rule (§2), **not Lucide**. All four stay on the approved list:
+Google 'G' and GitHub are built; Discord and Slack are in build now
+(2026-07-17), not deferred.
+
+**Naming standard [Decided 2026-07-17]** — canonical across the ecosystem,
+recorded here since the file never stated it: component sets are
+**PascalCase**; variant property names are **lowercase**; icons are named
+`icon/<lucide-slug>` (e.g. `icon/chevron-down`); brand glyphs are
+`icon/brand-<name>` — the built `brand/google-g` and `brand/github` are
+renamed to `icon/brand-google` and `icon/brand-github` to match. The single
+auth CTA component is named **GoogleAuthButton** in every product; the
+earlier `GoogleSignInCTA` set is renamed accordingly (§8.2b).
 
 ### 8.2 Variant matrices
 
+> **Theme note [Decided 2026-07-17]:** "every component ships both themes"
+> (and any "theme ×2" phrasing) is satisfied by the `upstat/tokens` true
+> Light/Dark variable modes — components carry **no** theme variant axis;
+> dark/light QA runs on the preview frames. The first six rows below were
+> added 2026-07-17: as-built contracts for Stage-1 atoms that shipped
+> without one.
+
 | Component | Variants × states |
 | --- | --- |
+| Button | kind: brand / quiet / destructive × state: default / hover / disabled — destructive labels raw `#FFFFFF` per the §2 `on-crit` decision |
+| Input | state: default / focus / error / disabled |
+| Toast | kind: info / success / error |
+| QueryPill | state: default / hover |
+| LevelChip | level ×5 — mapping **[Decided 2026-07-16]**: INFO → `brand` · DEBUG → `text-2` · TRACE → `nodata` (ERROR/WARN keep `crit`/`warn`); extracted from LogLine's level chip |
+| FacetGroup | expanded / collapsed — the §3 FacetSidebar group ships as the set **FacetGroup** (naming recorded) |
 | StatusPill | ok / warn / crit (breathing) / nodata / paused / pending · dot+label / dot-only — **[Decided 2026-07-16]** paused → `nodata` tint · pending → `text-2` |
 | TimePicker | preset selected ×6 / custom range open / live (pulsing dot) — built ×3; remaining preset cells covered via instance overrides **[Decided 2026-07-16]** |
 | QueryBar | empty / pills / autocomplete open / syntax-error (red underline + hint) |
@@ -225,10 +263,10 @@ iconography rule (§2), **not Lucide**.
 | ServiceMapNode | healthy / erroring (ring %) / selected |
 | Alert forms | channel: webhook / email · unverified / verified / degraded |
 | AlertRuleCard | type: metric-threshold / log-pattern / trace-latency / slo-burn · mono query summary + threshold line (pages.md B "alert rules") |
-| TraceWaterfall | span row: depth indent ×3 · service color (series/n) · status ok/error · default / hover (mini-summary) / selected · chrome: time-axis header + SpanDrawer (tabs: tags / logs-in-span / process) — MI-7, pages.md B5 |
+| TraceWaterfall | span row: depth indent ×3 · service color (series/n) · status ok/error · default / hover (mini-summary) / selected · chrome: time-axis header + SpanDrawer (tabs: tags / logs-in-span / process) — MI-7, pages.md B5 — **as built (2026-07-17):** SpanRow set + SpanDrawer set + a TraceWaterfall exemplar single (chrome assembled once, not a variant set) |
 | QueryValue | big tabular value + delta chip · threshold tint: none / ok / warn / crit · with/without sparkline (dashboard "query value" widget) |
 | TopList | ranked horizontal bars ×5 (series palette) + right-aligned values · loading / empty (dashboard "top list" widget) |
-| Table | header + rows, numeric right-aligned mono · compact density (dashboard "table" widget) |
+| Table | header + rows, numeric right-aligned mono · compact density (dashboard "table" widget) — **as built (2026-07-17):** exemplar single, not a variant set |
 | Heatmap | time×bucket cell grid, intensity ramp on series/1 · hover cell tooltip (dashboard "heatmap" widget) |
 | LogHistogram | level-stacked volume bars over time axis · hover count tooltip (logs explorer header, pages.md B4) |
 | StatusPageHeader | overall: operational / degraded / partial_outage / major_outage · last-updated ts (public status page, pages.md B7) |
@@ -246,36 +284,43 @@ markdown = text) — no separate components needed.
 
 Parity audit of pages.md / features.md / flows against the built inventory
 surfaced these missing contracts. Same rules as §8.2: dark theme primary,
-every component ships both themes. Blocking for Stage-4 assembly: NavRail,
+every component ships both themes (per the §8.2 theme note — via token
+modes, no theme variant axis). Blocking for Stage-4 assembly: NavRail,
 TopBar, Select/DropdownMenu, APIKeyRow/PropertyKeyRow; blocking for Stage 5:
 PillarCard, CodeSnippet + Tabs — the rest rank important or nice-to-have in
 build-order terms.
 
+Reconciliation (2026-07-17): ServiceCatalogRow, ErrorGroupRow, TraceMinimap,
+and CloudVsSelfHostTable remain **live contracts — in build now**, not
+deferred; likewise the Discord and Slack brand glyphs (§8.1). As-built
+annotations on individual rows below record where the shipped shape
+intentionally differs from the original row text.
+
 | Component | Variants × states |
 | --- | --- |
 | **App chrome** | |
-| NavRail / NavRailItem | pillar icon ×12 · item: default / hover (flyout label) / active (brand accent) · rail chrome 56px: flyout-open / collapsed |
-| TopBar | org/env switcher closed/open · global TimePicker slot · search (`/`) field · bell: idle / unread-badge / flash (MI-14) |
+| NavRail / NavRailItem | pillar icon ×12 · item: default / hover (flyout label) / active (brand accent) · rail chrome 56px: flyout-open / collapsed — **as built (2026-07-17):** NavRailItem is the variant set; NavRail ships as a single chrome component with rail states documented in its description |
+| TopBar | org/env switcher closed/open · global TimePicker slot · search (`/`) field · bell: idle / unread-badge / flash (MI-14) — **as built (2026-07-17):** single chrome component, switcher/bell states documented in its description; bell badge states are CountBadge instances |
 | Modal / Sheet | modal sm/lg · right sheet · header + body slot + footer actions · z `sheet/modal 40` (§2 layers) |
 | CommandPalette / SearchOverlay | empty / results / no-results · result row: icon + label + kbd hint (`/` search, MI-17) |
 | **Primitives** | |
-| Select / DropdownMenu | trigger: default / open / disabled · menu item: default / hover / selected · type-ahead variant for long lists (IANA timezones per X-10) |
-| Switch (standalone) | on / off × default / hover / disabled — today baked into MonitorRow/SettingsRow only |
+| Select / DropdownMenu | trigger: default / open / disabled · menu item: default / hover / selected · type-ahead variant for long lists (IANA timezones per X-10) — **as built (2026-07-17):** trigger ×4 (closed / open / open-typeahead / disabled); menu-item states are baked into the open frame, not a separate item set |
+| Switch (standalone) | on / off × default / hover / disabled — today baked into MonitorRow/SettingsRow only — hover states in build now (2026-07-17); the contract stands |
 | Checkbox (standalone) | checked / unchecked / indeterminate × default / disabled — facet checkboxes stay baked into FacetSidebar |
 | Tooltip | placement top/bottom · text-only / multi-metric rows (throughput · error · latency — service-map edges, uptime bars) |
-| Avatar / AvatarStack | 20 / 24px · image / initials fallback · stack ×2–5 + "+n" overflow |
-| KbdChip + ShortcutCheatsheet | single key / chord (`g d`) · both themes · cheatsheet: 2-col grid overlay (`?`, MI-17) |
+| Avatar / AvatarStack | 20 / 24px · image / initials fallback · stack ×2–5 + "+n" overflow — image variant in build now (2026-07-17) with a neutral placeholder; real photos land at screen time |
+| KbdChip + ShortcutCheatsheet | single key / chord (`g d`) · both themes · cheatsheet: 2-col grid overlay (`?`, MI-17) — **as built (2026-07-17):** the cheatsheet is an exemplar single (grid assembled once, not a variant set) |
 | CountBadge / BufferedCountChip | bell unread dot+n / buffered "▼ n new" pill (MI-4) · idle / pulse-on-increment |
 | SevChip (standalone) | sev1 / sev2 / sev3 — extracted from IncidentBanner for timeline/composer/feed reuse |
-| GoogleSignInCTA | default / hover / loading · Google 'G' glyph + "Continue with Google" — the product's single auth CTA (X-1) |
+| GoogleAuthButton | default / hover / loading · Google 'G' glyph + "Continue with Google" — the product's single auth CTA (X-1); renamed from `GoogleSignInCTA` 2026-07-17 per the §8.1 naming standard (same name in every product) |
 | **Product rows & overlays** | |
 | APIKeyRow / PropertyKeyRow | kind: ingestion-token (per-pillar scope chips) / property-key (RUM) · active / rotation-grace (24h) / revoked · mono key + copy + rejection-counter cell |
 | MemberRow | avatar + name + email · role select: owner / admin / member · active / invited / disabled |
 | DashboardListRow | favorite star on/off · org-shared indicator · default / hover · name + updated ts |
 | SavedViewChip | personal / org-shared (avatar stack) · default / active (MI-18) |
-| AlertFeedRow + NotificationPopover | sev tint ×3 · unread / read · ts + monitor name + 300ms slide-in (MI-14) · popover: empty / list |
+| AlertFeedRow + NotificationPopover | sev tint: sev1 / sev2 / resolved — **[Decided 2026-07-17]** the third tint is `resolved`, not sev3 (as built; standalone SevChip keeps sev1–3) · unread / read · ts + monitor name + 300ms slide-in (MI-14) · popover: empty / list |
 | IncidentComposer | idle / typing / slash-command autocomplete open (`/status`, `/sev`) / posting (optimistic prepend, MI-10) |
-| ThresholdOverlay | warn band / crit band / would-have-fired marker — composes over TimeseriesPanel (MI-9 test replay) |
+| ThresholdOverlay | warn band / crit band / would-have-fired marker — composes over TimeseriesPanel (MI-9 test replay) — **as built (2026-07-17):** exemplar single, not a variant set |
 | ServiceCatalogRow | telemetry presence dots per pillar (present/absent ×4) · owner + repo/runbook links · default / hover |
 | ErrorGroupRow | fingerprint msg (mono) + count + sparkline + last-seen · new / ongoing / regressed |
 | ZoomStackChip | depth ×n label · default / hover (reset affordance) — MI-3 zoom breadcrumb; a QueryPill re-skin is acceptable |
@@ -283,7 +328,7 @@ build-order terms.
 | **Marketing (Stage 5)** | |
 | MarketingNav + PillarDropdown | default / pillar-dropdown open (mini feature map ×8, reuses PillarCard) · GitHub star badge · Sign in + Try Cloud CTAs |
 | PillarCard | pillar ×8 (icon + pillar color accent) · default / hover (lift + accent) |
-| CodeSnippet + Tabs | tab: Go / Python / Node / k8s (active/inactive) · copy: idle / copied-check · mono block on `bg-elev` |
+| CodeSnippet + Tabs | tab: Go / Python / Node / k8s (active/inactive) · copy: idle / copied-check · mono block on `bg-elev` — **as built (2026-07-17):** the tab axis is the variant set; copy idle/copied-check is handled via instance overrides, not a variant dimension |
 | CloudVsSelfHostTable | 2 plan columns × feature rows (check / dash) · per-column CTA footer |
 
 ### 8.3 Design-prep needed from content
