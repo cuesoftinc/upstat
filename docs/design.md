@@ -160,3 +160,44 @@ never raw hexes; the Style Guide page renders swatches (both modes), the type
 scale, and status/accent samples. Token changes happen in Figma first, then
 sync back into this document — the two must never diverge. Type styles and
 component samples are the next Style Guide iteration.
+
+## 8. Figma component build plan (design phase)
+
+> Work order over the live `upstat/tokens` collection + Style Guide page
+> (§7). Dark theme is primary; every component ships both themes. The
+> existing landing design (Desktop-1) is the base for Stage 5.
+
+### 8.1 Build order
+
+| Stage | Build | Unlocks |
+| --- | --- | --- |
+| 0 Foundations | type ramp (§2) · series palette swatches ×8 · Lucide icons · 12-col dashboard grid + 8px gutters | everything |
+| 1 Atoms | Button, Input, StatusPill, query pill, level chip, Toast | molecules |
+| 2 Molecules | TimePicker, QueryBar (pills+autocomplete), FacetSidebar group, MonitorRow, LogLine (collapsed/expanded), SLOCard, IncidentBanner, UptimeCard | panels |
+| 3 Panels | TimeseriesPanel (line/area/bars + legend), WidgetShell, TraceWaterfall row, ServiceMapNode, alert channel/rule forms | dashboards |
+| 4 Screen templates | dashboard home, monitors list+detail, alert config, traffic (real-data layout), status page (slug public view), settings/properties | app design |
+| 5 Landing | extend Desktop-1: pillar grid (8), ingestion diagram section, demo cards, cloud-vs-oss | landing v2 |
+
+### 8.2 Variant matrices
+
+| Component | Variants × states |
+| --- | --- |
+| StatusPill | ok / warn / crit (breathing) / nodata / paused / pending · dot+label / dot-only |
+| TimePicker | preset selected ×6 / custom range open / live (pulsing dot) |
+| QueryBar | empty / pills / autocomplete open / syntax-error (red underline + hint) |
+| TimeseriesPanel | line / area / bars · with/without legend · loading (axis-first) / empty (radar sweep MI-16) / crosshair active |
+| UptimeCard | all-up / with-outage-bars / nodata-gaps · % footer |
+| LogLine | collapsed / expanded (JSON tree) / level ×5 tints |
+| MonitorRow | status ×6 · muted toggle on/off |
+| IncidentBanner | sev1 / sev2 (persistent) · resolved (transient) |
+| SLOCard | healthy / burning (flame) / exhausted |
+| WidgetShell | view / edit (drag handle) / fullscreen |
+| ServiceMapNode | healthy / erroring (ring %) / selected |
+| Alert forms | channel: webhook / email · unverified / verified / degraded |
+| EmptyState | per-pillar MI-16 (snippet + radar + docs link) ×4 minimum |
+
+### 8.3 Design-prep needed from content
+
+Synthetic telemetry series (realistic p50/p95 shapes, an outage window, a
+flapping window) for honest-looking panels; log fixture lines; the 90-day
+uptime strip data pattern.
