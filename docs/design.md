@@ -25,14 +25,21 @@
 
 ### Color **[Proposed]**
 
+> **Brand reconciliation (2026-07-16):** the existing Figma landing design is
+> **dark-first with a mint/teal accent** — that is Upstat's actual brand, and
+> it stays. "datadoghq.com look and feel" contributes the *data-UI patterns*
+> (density, pillar nav, synced graphs), not Datadog's purple. The `brand`
+> token below is teal; exact hex sampled from the Figma file into the
+> `upstat/tokens` variable collection (§7).
+
 | Token | Light | Dark | Use |
 | --- | --- | --- | --- |
-| `bg` | #FFFFFF | #14151A | canvas (dashboards default dark **[Proposed]** — graphs read better; marketing light) |
-| `bg-elev` | #F7F8FA | #1D1F26 | panels, cells |
-| `border` | #E4E6EB | #2C2F38 | hairlines |
+| `bg` | #FFFFFF | #0E1113 | canvas (dashboards + marketing default dark, per the existing landing; light mode supported) |
+| `bg-elev` | #F7F8FA | #171B1E | panels, cells |
+| `border` | #E4E6EB | #262C30 | hairlines |
 | `text` | #1B1D22 | #EDEEF2 | primary |
 | `text-2` | #6B6F7B | #9BA0AC | secondary |
-| `brand` | #6C3FC5 | #8A5CF6 | the Upstat purple (Datadog-adjacent): nav, CTAs, focus |
+| `brand` | teal (sampled from landing, ~#2AD8A4 family) | same | nav, CTAs, focus — final hex from the Figma sample |
 | `ok` | #2E9950 | #3DCC70 | up / passing |
 | `warn` | #C77D00 | #FFB020 | degraded / warn thresholds |
 | `crit` | #D32F2F | #FF5C5C | down / alerting |
@@ -40,7 +47,9 @@
 | Series palette | 8-step categorical (colorblind-safe, starts purple) | — | charts; consistent series→color per view session |
 
 Status semantics are sacred: `ok/warn/crit/nodata` colors are reserved — never
-used decoratively anywhere in the product.
+used decoratively anywhere in the product. Because the brand accent is teal,
+`ok` green must stay visually distinct from `brand` (bluer/deeper green;
+verified in both themes) — the one extra constraint the teal brand imposes.
 
 ### Type & numerals
 
@@ -118,3 +127,14 @@ used decoratively anywhere in the product.
 | Home (public) | `/` page + Figma landing design | pages.md Part A (Datadog-style product-led marketing) |
 | Dashboard | monitor CRUD + mock analytics pages | pages.md Part B — pillar-based observability app |
 | Mobile | — | later: on-call/incident companion app sketch (pages.md Part C) — parity direction **[Directive]** |
+
+## 7. Figma Style Guide (source of truth for tokens)
+
+The design system lives in the product's Figma file on a dedicated **Style
+Guide** page, backed by a variable collection **`upstat/tokens`** with
+**Light** and **Dark** modes. Every color token in §2 exists as a Figma
+variable (scopes: frame/shape/text fills + strokes) so designs bind to tokens,
+never raw hexes; the Style Guide page renders swatches (both modes), the type
+scale, and status/accent samples. Token changes happen in Figma first, then
+sync back into this document — the two must never diverge. Type styles and
+component samples are the next Style Guide iteration.

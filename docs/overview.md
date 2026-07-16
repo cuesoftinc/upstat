@@ -48,3 +48,5 @@ for detailed data flows, and the
 - [data-model.md](data-model.md) — current + target entities, retention & privacy defaults
 - [api.md](api.md) — gRPC surface map + the /v1/events ecosystem contract ("D2")
 - [roadmap.md](roadmap.md) — phased plan; Phase 1 unblocks apparule/expendit analytics
+- [design.md](design.md) + [pages.md](pages.md) — design language, pillars, microinteractions
+- [query-grammar.md](query-grammar.md) — the shared query grammar behind explorers, widgets, monitors
