@@ -61,7 +61,9 @@ incidents, SLOs). Browsers and sibling products never need proto toolchains.
 
 **Recommendation ⭐:** raw events 90d · hourly rollups 90d · daily rollups
 13mo · check results 90d · incidents indefinite · metrics 13mo
-(rollup-thinned) · logs 15d hot (archive later) · traces 7d sampled.
+(**rollup ladder: raw 15d → 1m avg 90d → 1h avg 13mo**) · logs 15d hot
+(archive later) · traces 7d (**head sampling, default 10%, per-org
+configurable; errors always kept — tail sampling later**).
 
 ☑ Ratified as recommended
 
@@ -98,9 +100,9 @@ observability-service touch, not as its own phase.
   the Firebase project; backends reject non-Google-provider tokens
   (`provider_not_allowed`); UI ships exactly one auth CTA. Full contract:
   [flows/auth.md](flows/auth.md). Environment/secrets live in **Doppler**
-  (`cueprise/cuesoft_stg`; see also the `cuesoft-iac` project) — CLI token
-  currently expired (`doppler login` to refresh); config names to be mirrored
-  into docs once readable. ☑
+  — resolved: Doppler access works via the cuesoft-iac token; **services read
+  project `upstat`, config `stg`** (dev* = local convenience; prd empty until
+  a production exists). Redis DB index recorded when assigned. ☑
 - **X-2 Docs platform**: GitBook space per product, Git-synced; Scalar API
   refs. ☑
 - **X-3 Cloud deployment target (RATIFIED, directive)**: all backend

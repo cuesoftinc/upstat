@@ -1,7 +1,9 @@
 # Upstat — Engineering Contracts
 
 > Error catalog, authorization matrix, rate limits, testing strategy, logging
-> rules. Ecosystem envelope + conventions per apparule engineering.md §1;
+> rules. Ecosystem envelope (inlined, normative):
+> `{"error": {"code": "snake_case_stable", "message": "human copy", "details": {}}}` —
+> codes stable, cross-tenant access always `not_found`;
 > gRPC surfaces map the same codes onto status codes
 > (`INVALID_ARGUMENT`/`UNAUTHENTICATED`/`PERMISSION_DENIED`/`NOT_FOUND`/
 > `ALREADY_EXISTS`/`RESOURCE_EXHAUSTED`/`FAILED_PRECONDITION`).
@@ -33,7 +35,11 @@ owner-only model as "owner=everything, others=nothing" until then:
 | Incidents declare/update | — | ✓ | ✓ | ✓ |
 | SLOs define | — | — | ✓ | ✓ |
 | Org members, retention settings | — | — | — | ✓ |
-| Public status pages | world-readable by design | | | config: admin+ |
+| Public status pages (read) | ✓ (world) | ✓ | ✓ | ✓ |
+| Status-page config | — | — | ✓ | ✓ |
+
+Role source **[Decided]**: org roles live in the control-plane DB (not
+Firebase custom claims) — resolved per request alongside org context.
 
 Machine identities: `SERVICE_TOKEN` (observability↔common, fixed scope);
 property public keys (write-only ingest, U-2) — neither ever grants user-API
@@ -48,13 +54,18 @@ access.
 | Monitor CRUD | 60/min per user |
 | Monitor test-replay (MI-9) | 6/min per user |
 | Channel verification sends | 5/hr per channel |
-| OTLP ingest (OBS-001) | per-key quotas (data-model.md `INGEST_KEY.quotas`) |
+| OTLP ingest (OBS-001) | per-key quotas, defaults: 10k metric points/s, 5k log lines/s, 1k spans/s **[Decided defaults]** |
+| `/v1/events` pre-auth | 1,000 req/min per IP (invalid-key flood guard) |
+| Insights `GET /insights/*`, `POST /analyze/*` | **bearer-authed (REVISED — was open)**; analyze 6/min per user (LLM cost guard) |
+
+Limit store: **shared Aiven Redis** (X-5 — this is Redis's role here, plus
+dispatch cooldown cache); `429 rate_limited` + `Retry-After` (cataloged §1).
 
 ## 4. Testing strategy
 
 | Layer | Scope | Non-negotiables |
 | --- | --- | --- |
-| Unit (Go/pytest) | worker, dispatcher, rollups, hash | **evaluation-semantics transition table** (flows/monitor.md §2 — every edge incl. `nodata`); dispatch ordering + cooldown fixtures (flows/alert.md §5); visitor-hash rotation vectors; rollup idempotency (analytics-math.md §7) |
+| Unit (Go/pytest) | worker, dispatcher, rollups, hash | **evaluation-semantics transition table** (flows/monitor.md §2 — every edge incl. `nodata`); dispatch ordering + cooldown fixtures (flows/alert.md §3); visitor-hash rotation vectors; rollup idempotency (analytics-math.md §7) |
 | Contract | error catalog + query grammar | grammar: valid/invalid corpus with position-accurate errors; `uniques_additive:false` metadata presence |
 | Integration (compose) | web → envoy → gRPC; events → rollup → stats | webhook signature fixture (documented recipe verifies) |
 | E2E smoke (release tag) | signin → create monitor → down-simulation → alert → recover | against sandbox in release.yml; uses a controllable target service |

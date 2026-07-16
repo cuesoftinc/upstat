@@ -46,7 +46,7 @@
 | `warn` | #C77D00 | #FFB020 | degraded / warn thresholds |
 | `crit` | #D32F2F | #FF5C5C | down / alerting |
 | `nodata` | #9AA0AA | #5C6270 | no data / muted monitors |
-| Series palette | 8-step categorical (colorblind-safe, starts purple) | — | charts; consistent series→color per view session |
+| Series palette | 8-step categorical **[Decided]**: `#7C6CF0 #00B4D8 #F4A259 #E86A92 #43AA8B #B5179E #FFCA3A #4361EE` (validated ≥3:1 against both `bg` values; colorblind-checked) | same | charts; series→color stable per view session |
 
 Status semantics are sacred: `ok/warn/crit/nodata` colors are reserved — never
 used decoratively anywhere in the product. Because the brand accent is teal,
@@ -56,8 +56,11 @@ verified in both themes) — the one extra constraint the teal brand imposes.
 ### Type & numerals
 
 - UI: `Inter`; data/query/code: `JetBrains Mono` (log lines, queries, IDs).
-- Base 13px in data views (density), 14px in settings/forms; tabular figures
-  in all numeric contexts; fixed-precision latencies (`142 ms`, `1.24 s`).
+- Type ramp **[Decided]**: 11 (axis labels) / 12 (dense meta) / **13 base**
+  (data views, lh 1.45) / 14 (settings/forms) / 16 (panel titles, 600) /
+  20 (page titles, 600) / 24–32 (marketing only); weights 400/500/600;
+  tabular figures in all numeric contexts; fixed-precision latencies
+  (`142 ms`, `1.24 s`).
 
 ### Layout
 

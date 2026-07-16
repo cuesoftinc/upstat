@@ -28,12 +28,14 @@ status is public; privacy stance published.
 | `upstat.js` tracking script (cookieless, SPA-aware) | ANA-001 |
 | Rollup worker in api/observability (hour/day, approx uniques) | ANA-001 |
 | `GET /v1/stats` | ANA-002 dependency |
-| TTL retention indexes + documented policy | ANA-003 |
+| Scheduled retention job (Postgres partitioned events, X-5) + documented policy | ANA-003 |
 | Register sibling consumers (apparule, expendit event names) | ECO-TRACK |
 
 **Exit criteria:** sibling products' events flow end-to-end and appear in
-stats queries; retention enforced by TTL; D2 declared **delivered** to the
-other repos.
+stats queries; retention enforced by the scheduled job; D2 declared
+**delivered** to the other repos. **Phase 1 includes provisioning the
+Aiven Postgres control plane (new unit U1-0)** — events never touch Mongo;
+U2-7 then migrates only the pre-existing Mongo control-plane data.
 
 ## Phase 2 — Honest dashboards + alerting
 

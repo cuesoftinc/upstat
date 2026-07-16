@@ -26,13 +26,23 @@ metadata (interceptor swaps local-JWT verification for Firebase);
 | Tracking beacons | property public key (U-2) |
 | Public status/GetRecentChecks | unauthenticated allowlist (unchanged) |
 
-## 3. Migration
+## 3. Migration & failure paths
 
 Link-by-email on first Google sign-in (Google emails pre-verified), same
-shape as expendit flows/auth.md §3 including the 60-day window
-(`FAILED_PRECONDITION migrate_to_firebase` after) and the stranded-user
-support path. `CreateUser`/password fields deprecate out of `user.proto` at
-the next proto rev.
+shape as expendit flows/auth.md §3 including the stranded-user support path.
+Precise semantics **[Decided]**: the **60-day window starts at the release
+tag that ships Firebase auth** (recorded in decisions.md when cut); after it,
+password sign-in returns `FAILED_PRECONDITION migrate_to_firebase`.
+`CreateUser`/password fields deprecate out of `user.proto` at the next proto
+rev; RPC fates per grpc-api.md's status banner (normative).
+
+Failure paths: Firebase outage → sign-ins fail closed
+(`UNAVAILABLE auth_upstream`); existing sessions survive until token expiry
+(~1h). Token revocation (disabled user) → `PERMISSION_DENIED
+account_disabled` on next verify. Clock skew absorbed by Firebase's ±5min
+leeway. Email collision (legacy row's email now owned by a different Google
+account): first-verifier wins the link; the loser routes to support — same
+policy as the stranded path.
 
 ## 4. Instrumentation & acceptance
 

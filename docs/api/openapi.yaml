@@ -18,7 +18,7 @@ paths:
       summary: "Ingest events (batch ≤100; property key auth; origin-checked; schema-validated)"
       security: [{ propertyKey: [] }]
       responses:
-        "202": { description: "{accepted, rejected}" }
+        "202": { description: Per-item results, content: { application/json: { schema: { $ref: "#/components/schemas/EventBatchResult" } } } }
         "422": { description: ts_out_of_range / schema rejection }
         "429": { description: rate_limited (600/min sustained) }
   /v1/stats:
@@ -31,7 +31,61 @@ paths:
     post: { tags: [alerts], summary: Verify channel, security: [{ firebase: [] }], responses: { "200": { description: Verified } } }
   /v1/monitors/{id}/rules:
     put: { tags: [alerts], summary: Set alert rules (on/cooldown/channels), security: [{ firebase: [] }], responses: { "200": { description: Rules } } }
+  /v1/channels/{id}:
+    delete: { tags: [alerts], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Delete channel (detaches from rules), security: [{ firebase: [] }], responses: { "204": { description: Deleted } } }
+  /v1/channels-list:
+    get: { tags: [alerts], summary: List channels (owner), security: [{ firebase: [] }], responses: { "200": { description: Channels } } }
+  /v1/monitors/{id}/rules-get:
+    get: { tags: [alerts], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Get rules, security: [{ firebase: [] }], responses: { "200": { description: Rules } } }
+
 components:
   securitySchemes:
     firebase: { type: http, scheme: bearer, bearerFormat: "Firebase ID token (google.com provider only)" }
-    propertyKey: { type: http, scheme: bearer, bearerFormat: "write-only property public key" }
+    propertyKey: { type: http, scheme: bearer, bearerFormat: "write-only property public key (pk_..., 24h rotation grace)" }
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string } }
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string, description: snake_case stable (engineering.md §1) }
+            message: { type: string }
+            details: { type: object }
+    EventBatch:
+      type: object
+      required: [events]
+      properties:
+        events:
+          type: array
+          maxItems: 100
+          items:
+            type: object
+            required: [name]
+            properties:
+              name: { type: string, description: registered event name (api.md §3.4) }
+              ts: { type: string, format: date-time, description: "within [now-48h, now+5min]" }
+              dims: { type: object, description: only dims registered for this event }
+    EventBatchResult:
+      type: object
+      properties:
+        accepted: { type: integer }
+        rejected: { type: integer }
+        rejections: { type: array, items: { type: object, properties: { index: { type: integer }, code: { enum: [unknown_event, unknown_dim, ts_out_of_range, bad_shape] } } } }
+    StatsResponse:
+      type: object
+      properties:
+        series: { type: array, items: { type: object, properties: { bucket: { type: string, format: date-time }, count: { type: integer }, uniques: { type: integer } } } }
+        totals: { type: object, properties: { count: { type: integer }, uniques_daily_avg: { type: number } } }
+        uniques_additive: { type: boolean, description: always false (analytics-math.md §4) }
+    AlertRule:
+      type: object
+      properties:
+        "on": { enum: [down, recovered, nodata, all] }
+        channel_ids: { type: array, items: { type: string } }
+        cooldown_minutes: { type: integer, default: 30 }
+        renotify_minutes: { type: integer, default: 0 }

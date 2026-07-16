@@ -13,6 +13,10 @@ detection, and a Next.js frontend talks to the backend over gRPC-Web through an
 Envoy proxy. For a deeper description of the components and how they fit
 together, see [docs/overview.md](docs/overview.md).
 
+> **Scope note:** the diagram below is current state (uptime/status core).
+> Upstat's ratified direction is a full observability platform — see
+> [docs/prd.md §9](docs/prd.md) and [docs/decisions.md](docs/decisions.md).
+
 ## Architecture
 
 ```mermaid

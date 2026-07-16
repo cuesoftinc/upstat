@@ -17,7 +17,7 @@
 - [Architecture](architecture.md)
 - [Data Model](data-model.md)
 - [API Surface](api.md)
-- [gRPC Reference](../api/common/docs/grpc-api.md)
+- [gRPC Reference](https://github.com/cuesoftinc/upstat/blob/main/api/common/docs/grpc-api.md)
 - [Query Grammar](query-grammar.md)
 - [Analytics Math](analytics-math.md)
 - [OpenAPI Draft](api/openapi.yaml)

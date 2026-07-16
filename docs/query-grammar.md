@@ -69,9 +69,50 @@ indexes ranked by cardinality (design.md MI-13).
 
 One internal query service parses the grammar into an AST, validates facets
 against the catalog/indexes, then compiles per store: ClickHouse SQL for
-logs/spans/metrics (pending R2), Mongo aggregation for control-plane data.
-The AST — not the string — is what monitors persist, so grammar evolution
-can re-serialize saved queries.
+logs/spans/metrics (U-1 ratified), **Postgres** for control-plane data (X-5).
+**Persistence [Decided — unified]: both monitors AND dashboard widgets
+persist the AST** (widgets additionally cache the display string).
+
+### AST v1 (versioned JSON — the compatibility contract)
+
+```json
+{
+  "v": 1,
+  "filters": {"op": "and", "terms": [
+    {"facet": "service", "cmp": "eq", "value": "api-common"},
+    {"op": "or", "terms": [{"facet": "level", "cmp": "eq", "value": "error"},
+                             {"facet": "level", "cmp": "eq", "value": "warn"}]},
+    {"facet": "trace.duration_ms", "cmp": "gt", "value": 250},
+    {"not": {"facet": "level", "cmp": "eq", "value": "debug"}},
+    {"text": "timeout"}
+  ]},
+  "agg": [{"fn": "p95", "field": "trace.duration_ms"}],
+  "group_by": ["path"],
+  "step": "auto"
+}
+```
+
+Rules the string grammar adds to §1 **[Decided]**:
+- **Quoting/escaping**: values with `:`/spaces/parens are double-quoted;
+  `\"` escapes a quote; facet names never need quoting.
+- **Nesting**: parentheses nest arbitrarily — `(a OR (b c)) -d` is legal;
+  the AST is the normative structure.
+- **Typing**: facets are typed at registration (string/number/duration);
+  numeric comparators on string facets → `invalid_query`.
+- **Step**: `| … by …` series take an implicit `step=auto`
+  (range/200 buckets, snapped to 10s/1m/5m/1h/1d); `?step=` overrides.
+
+### Function semantics per signal (normative table)
+
+| fn | logs/events | spans | metrics | checks |
+| --- | --- | --- | --- | --- |
+| `count()` | row count | span count | point count | check count |
+| `rate()` | rows/sec | spans/sec | — (use the metric) | **pass ratio** (passing ÷ completed — the documented exception) |
+| `sum/avg/min/max/p50/p95/p99(field)` | numeric attr | field required (e.g. `trace.duration_ms`) | over values | `response_time_ms` |
+| `uniq(field)` | distinct attr values | distinct field | distinct series | — |
+
+Bare `p95()` with no field is `invalid_query` everywhere except metrics
+(where the selected series' value is implicit).
 
 ## 5. URL representation
 
