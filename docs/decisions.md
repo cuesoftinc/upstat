@@ -3,6 +3,10 @@
 > Ratify by checking a box; each decision flips its **[Proposed]** tags to
 > **[Decided]** and unblocks the listed phases. Status: ☐ open · ☑ ratified.
 
+> **RATIFIED 2026-07-16** — all recommendations approved wholesale ("decisions
+> look solid"). Where other docs still carry **[Proposed]** on these topics,
+> this sheet governs; tags flip to **[Decided]** as docs are next touched.
+
 ## U-1 · Unified telemetry store (R2) — gates Phases 3–7 (every pillar)
 
 | Option | For | Against |
@@ -14,7 +18,7 @@
 **Also ratify with it:** self-host compose gains a `clickhouse` service; helm
 documents external-or-StatefulSet options (same stance as Mongo today).
 
-☐ Ratified: option ___
+☑ Ratified: option (a) ClickHouse
 
 ## U-2 · Browser event auth (ANA-001) — gates Phase 1 (events layer, "D2")
 
@@ -23,7 +27,7 @@ per-key rate limits + closed event/dims schema; `visitor_hash` computed
 server-side. This is the standard cookieless-analytics posture
 (Plausible/Fathom-class). No cookies, no raw IPs at rest.
 
-☐ Ratified
+☑ Ratified
 
 ## U-3 · Cookieless visitor model — privacy-defining, published in UPS-005
 
@@ -31,7 +35,7 @@ server-side. This is the standard cookieless-analytics posture
 salt rotates daily; raw IP never stored; uniques are approximate and
 documented as such; no cross-property joins, ever.
 
-☐ Ratified
+☑ Ratified
 
 ## U-4 · Alert channels & email provider (MON-001) — gates Phase 2
 
@@ -40,7 +44,7 @@ immediately), **email via Resend** second (developer-grade DX, sane pricing;
 SES is the cost-optimization escape hatch later); Slack via webhook URL
 initially, native app later.
 
-☐ Ratified: email provider ___
+☑ Ratified: email provider Resend
 
 ## U-5 · Protocol split — gates all new surfaces
 
@@ -49,7 +53,7 @@ initially, native app later.
 (events, stats, query, OTLP/HTTP alongside OTLP/gRPC, dashboards, monitors-v2,
 incidents, SLOs). Browsers and sibling products never need proto toolchains.
 
-☐ Ratified
+☑ Ratified
 
 ## U-6 · Retention defaults per signal — published per UPS-003
 
@@ -57,7 +61,7 @@ incidents, SLOs). Browsers and sibling products never need proto toolchains.
 13mo · check results 90d · incidents indefinite · metrics 13mo
 (rollup-thinned) · logs 15d hot (archive later) · traces 7d sampled.
 
-☐ Ratified (or adjust: ___)
+☑ Ratified as recommended
 
 ## U-7 · Brand & theme (sampled 2026-07-16)
 
@@ -66,10 +70,17 @@ from the existing landing, now in `upstat/tokens`); dashboards **default
 dark**, light supported; `ok` green kept visually distinct from brand teal.
 Effectively already true — ratifying makes it official.
 
-☐ Ratified
+☑ Ratified
 
 ## Cross-cutting
 
-- **X-1 account.cuesoft.io**: OIDC target; local JWT interim. ☐
+- **X-1 account.cuesoft.io / identity (RATIFIED)**: interim + sandbox identity
+  is **Firebase Authentication on GCP project `sandbox-e306a`** ("sandbox") —
+  Google sign-in + email flows come from Firebase; services verify Firebase ID
+  tokens (OIDC-compatible). The `account.cuesoft.io` facade fronts this later
+  without contract changes. Environment/secrets live in **Doppler**
+  (`cueprise/cuesoft_stg`; see also the `cuesoft-iac` project) — CLI token
+  currently expired (`doppler login` to refresh); config names to be mirrored
+  into docs once readable. ☑
 - **X-2 Docs platform**: GitBook space per product, Git-synced; Scalar API
-  refs. ☐
+  refs. ☑
