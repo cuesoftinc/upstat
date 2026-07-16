@@ -77,3 +77,4 @@ retention gates; every pillar ships explorer + retention + monitors together
 | UX-5 | build-and-test.yml + release.yml (tag-gated) | deployment.md, X-6 |
 | UX-6 | cuesoft-iac upstat stack (Cloud Run ×3, WIF, Doppler, Aiven PG) | deployment.md §2 |
 | UX-7 | E2E smoke: down→alert→recover cycle | engineering §4 |
+| UX-8 | OTel self-instrumentation (upstat dogfoods its own OTLP ingest once OBS-001 lands) | engineering §Telemetry, X-9 |

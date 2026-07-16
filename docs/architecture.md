@@ -200,7 +200,10 @@ provider-independent and may ship first if the email decision stalls.
 > events land in Postgres partitioned tables with a scheduled retention job
 > (data-model §3), NOT Mongo TTL. Diagrams are updated as touched.
 
-**OpenTelemetry-native**: OTLP (gRPC + HTTP) is the single first-party intake
+**OpenTelemetry-native**: OTLP (gRPC 4317 + HTTP 4318) is the single
+first-party intake — and per **X-9** the ecosystem's: apparule and expendit
+ship their traces/metrics/logs here (direct SDK export, ingest-key authed),
+making the sibling products this gateway's first customers
 for traces, metrics, and logs — customers use standard OTel SDKs/collectors,
 no proprietary agent to build or maintain. Complements: the existing HTTP
 events API + `upstat.js` (RUM), StatsD-compat shim (metrics), uptime checker
