@@ -96,7 +96,7 @@ observability-service touch, not as its own phase.
   2026-07-16: Google sign-in is the ONLY method — no username/password
   signup or login, product-wide.** Email/Password provider disabled at
   the Firebase project; backends reject non-Google-provider tokens
-  (`provider-not-allowed`); UI ships exactly one auth CTA. Full contract:
+  (`provider_not_allowed`); UI ships exactly one auth CTA. Full contract:
   [flows/auth.md](flows/auth.md). Environment/secrets live in **Doppler**
   (`cueprise/cuesoft_stg`; see also the `cuesoft-iac` project) — CLI token
   currently expired (`doppler login` to refresh); config names to be mirrored

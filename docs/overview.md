@@ -55,3 +55,4 @@ for detailed data flows, and the
 - flows/ — feature flow specs with edge cases: [auth](flows/auth.md), [monitor](flows/monitor.md), [alert](flows/alert.md)
 - [analytics-math.md](analytics-math.md) — visitor hashing, sessionization, rollups, uniques honesty rules
 - [engineering.md](engineering.md) — error catalog, authz matrix, rate limits, testing strategy, logging rules
+- [features.md](features.md) — granular build backlog (stable unit IDs per phase)
