@@ -11,7 +11,7 @@
 Ecosystem standard (apparule flows/auth.md §1): Firebase provider config +
 backend `sign_in_provider == google.com` check + single Google CTA. In gRPC
 terms: the unary interceptor verifies Firebase ID tokens from metadata and
-returns `PERMISSION_DENIED provider-not-allowed` for non-Google tokens.
+returns `PERMISSION_DENIED provider_not_allowed` for non-Google tokens.
 
 ## 2. Session & boundaries
 
@@ -30,7 +30,7 @@ metadata (interceptor swaps local-JWT verification for Firebase);
 
 Link-by-email on first Google sign-in (Google emails pre-verified), same
 shape as expendit flows/auth.md §3 including the 60-day window
-(`FAILED_PRECONDITION migrate-to-firebase` after) and the stranded-user
+(`FAILED_PRECONDITION migrate_to_firebase` after) and the stranded-user
 support path. `CreateUser`/password fields deprecate out of `user.proto` at
 the next proto rev.
 

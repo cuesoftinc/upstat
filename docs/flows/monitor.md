@@ -9,11 +9,11 @@
 
 | Field | Validation | Notes |
 | --- | --- | --- |
-| Name | 1–80 chars, unique per owner | `409 name-taken` |
+| Name | 1–80 chars, unique per owner | `409 name_taken` |
 | Target | absolute `http(s)://` URL; DNS-resolvable not required at save | private/internal IPs allowed (self-hosters monitor internal services); cloud MAY restrict RFC-1918 targets **[Decided default: warn, don't block]** |
 | Type | `website \| server \| api \| blog` | display taxonomy only — checks behave identically **[Current]** |
 | Interval | 30s–24h, default 60s **[Current default]** | sub-30s is a paid-tier conversation, out of scope |
-| Timeout | 1s–60s, default 10s; must be < interval | `422 timeout-gte-interval` |
+| Timeout | 1s–60s, default 10s; must be < interval | `422 timeout_gte_interval` |
 | Failure threshold | 1–10, default 3 | consecutive failures before `down` |
 
 Edits apply from the next scheduled check; in-flight checks complete under

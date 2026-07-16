@@ -66,7 +66,7 @@ metadata to make the contract machine-visible.
 ## 5. Ingest-time bounding
 
 Events accept client `ts` within `[now − 48h, now + 5min]`; outside →
-rejected (`422 ts-out-of-range`, counted in the property's rejected
+rejected (`422 ts_out_of_range`, counted in the property's rejected
 counter). The 48h floor matches the rollup self-heal window — nothing
 accepted can land in an immutable bucket.
 
