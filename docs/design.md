@@ -29,8 +29,9 @@
 > **dark-first with a mint/teal accent** — that is Upstat's actual brand, and
 > it stays. "datadoghq.com look and feel" contributes the *data-UI patterns*
 > (density, pillar nav, synced graphs), not Datadog's purple. The `brand`
-> token below is teal; exact hex sampled from the Figma file into the
-> `upstat/tokens` variable collection (§7).
+> token below is teal, sampled from the file: **#00E09E** (primary, 63 uses)
+> with **#00A991** as `brand-deep` — both now live in the `upstat/tokens`
+> variable collection (§7).
 
 | Token | Light | Dark | Use |
 | --- | --- | --- | --- |
@@ -39,7 +40,8 @@
 | `border` | #E4E6EB | #262C30 | hairlines |
 | `text` | #1B1D22 | #EDEEF2 | primary |
 | `text-2` | #6B6F7B | #9BA0AC | secondary |
-| `brand` | teal (sampled from landing, ~#2AD8A4 family) | same | nav, CTAs, focus — final hex from the Figma sample |
+| `brand` | #00E09E | #00E09E | nav, CTAs, focus (sampled from the landing) |
+| `brand-deep` | #00A991 | #00A991 | hover/active brand states, secondary accents |
 | `ok` | #2E9950 | #3DCC70 | up / passing |
 | `warn` | #C77D00 | #FFB020 | degraded / warn thresholds |
 | `crit` | #D32F2F | #FF5C5C | down / alerting |
@@ -131,8 +133,7 @@ verified in both themes) — the one extra constraint the teal brand imposes.
 ## 7. Figma Style Guide (source of truth for tokens)
 
 The design system lives in the product's Figma file on a dedicated **Style
-Guide** page, backed by a variable collection **`upstat/tokens`** with
-**Light** and **Dark** modes. Every color token in §2 exists as a Figma
+Guide** page, backed by a variable collection **`upstat/tokens`**. The file's plan allows a single variable mode, so themes are expressed as **`light/` and `dark/` variable groups** (same token names in each) rather than modes — migrate to true modes if the plan changes. Every color token in §2 exists as a Figma
 variable (scopes: frame/shape/text fills + strokes) so designs bind to tokens,
 never raw hexes; the Style Guide page renders swatches (both modes), the type
 scale, and status/accent samples. Token changes happen in Figma first, then
