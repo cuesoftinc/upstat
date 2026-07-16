@@ -57,6 +57,9 @@ keyed `(property, period, bucket, name, dims)`:
   within the trailing 48h — late events self-heal; a bucket becomes immutable
   only once `bucket_end < now − 48h`, which (with the §5 accept window)
   guarantees nothing accepted can target an immutable bucket.
+- Bucket keys and storage are **UTC**; display bucketing resolves in the org
+  timezone (`ORG.timezone`, data-model.md §5 / X-10) — presentation only,
+  rollup keys never shift.
 
 ## 4. Uniques across ranges (the non-additivity rule)
 

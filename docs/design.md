@@ -173,7 +173,7 @@ component samples are the next Style Guide iteration.
 | --- | --- | --- |
 | 0 Foundations | type ramp (§2) · series palette swatches ×8 · Lucide icons · 12-col dashboard grid + 8px gutters | everything |
 | 1 Atoms | Button, Input, StatusPill, query pill, level chip, Toast | molecules |
-| 2 Molecules | TimePicker, QueryBar (pills+autocomplete), FacetSidebar group, MonitorRow, LogLine (collapsed/expanded), SLOCard, IncidentBanner, UptimeCard | panels |
+| 2 Molecules | TimePicker, QueryBar (pills+autocomplete), FacetSidebar group, MonitorRow, LogLine (collapsed/expanded), SLOCard, IncidentBanner, UptimeCard, SettingsRow | panels |
 | 3 Panels | TimeseriesPanel (line/area/bars + legend), WidgetShell, TraceWaterfall row + span drawer, ServiceMapNode, alert channel/rule forms · **widget content kit**: QueryValue, TopList, Table, Heatmap, LogHistogram · **status page kit**: StatusPageHeader, StatusPageComponentRow, IncidentHistoryEntry | dashboards + status pages |
 | 4 Screen templates | dashboard home, monitors list+detail, alert config, traffic (real-data layout), status page (slug public view), settings/properties | app design |
 | 5 Landing | extend Desktop-1: pillar grid (8), ingestion diagram section, demo cards, cloud-vs-oss | landing v2 |
@@ -204,6 +204,7 @@ component samples are the next Style Guide iteration.
 | StatusPageHeader | overall: operational / degraded / partial_outage / major_outage · last-updated ts (public status page, pages.md B7) |
 | StatusPageComponentRow | component name + StatusPill + 90-day bar strip + uptime % (UptimeCard technique, public view) |
 | IncidentHistoryEntry | phase: investigating / identified / monitoring / resolved · timestamped update list (status page history + incident timeline) |
+| SettingsRow | label + description + control slot: text / select / toggle · default / disabled (settings screens; org timezone IANA selector per X-10) |
 | EmptyState | per-pillar MI-16 (snippet + radar + docs link) ×4 minimum |
 
 Remaining pages.md widget types compose existing sets inside `WidgetShell`

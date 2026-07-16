@@ -121,6 +121,11 @@ pillars. Every pillar's empty state = MI-16 inline onboarding.
 - Org/members/roles; **API keys & ingestion tokens** (per-pillar scopes);
   property keys (RUM); integrations (webhooks, Slack); retention per signal;
   usage metering per pillar **[Proposed]**; privacy/data controls.
+- **Organization profile**: name, **timezone (IANA)** — all report rendering
+  and time-bucketing (dashboards, uptime day boundaries, rollup display,
+  scheduled reports) resolve in the org timezone; storage stays UTC
+  (analytics-math.md §3). Deliberately the entire upstat identity
+  requirement per X-10 tier-1-minimal (decisions.md).
 
 ## Part C — Mobile companion (later; parity direction **[Directive]**)
 

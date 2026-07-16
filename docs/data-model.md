@@ -203,6 +203,10 @@ erDiagram
     INCIDENT_V2 ||--o{ TIMELINE_ENTRY : logs
     ORG ||--o{ SERVICE_ENTRY : catalogs
 
+    ORG { objectid _id PK
+        string name
+        string timezone "IANA tz, default UTC - set at org creation, editable in Settings (pages.md B12)"
+        datetime created_at }
     INGEST_KEY { objectid _id PK
         objectid org_id FK
         string scope "otlp|rum|statsd|all"
@@ -243,6 +247,15 @@ erDiagram
         json environments }
 ```
 
+Identity posture (X-10, ratified 2026-07-16 — [decisions.md](decisions.md)):
+upstat is **tier 0 + tier-1-minimal** — Google identity (X-1) plus exactly
+one profile field, `ORG.timezone` (IANA, default `UTC`; set at org creation,
+editable in Settings, pages.md B12). It exists so report rendering and
+time-bucketing *display* resolve in the org's timezone while storage and
+rollups stay UTC ([analytics-math.md](analytics-math.md) §3). The `country`
+in `EVENT.dims` (§2) is a coarse *event* dimension, **not** org identity —
+no address or country identity field exists. Tier 2 (provider-verified
+financial identity) is N/A until billing enters the PRD.
 
 ### Telemetry-plane DDL sketch (ClickHouse, U-1 — draft to finalize at OBS-001)
 
