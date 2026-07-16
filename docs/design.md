@@ -42,6 +42,7 @@
 | `text-2` | #6B6F7B | #9BA0AC | secondary |
 | `brand` | #00E09E | #00E09E | nav, CTAs, focus (sampled from the landing) |
 | `brand-deep` | #00A991 | #00A991 | hover/active brand states, secondary accents |
+| `on-brand` | #0E1113 | #0E1113 | labels/knobs on `brand` & destructive fills — **[Decided 2026-07-16]** dark ink in *both* modes (brand teal is bright; fixes the light-mode white-on-teal contrast flag) |
 | `ok` | #2E9950 | #3DCC70 | up / passing |
 | `warn` | #C77D00 | #FFB020 | degraded / warn thresholds |
 | `crit` | #D32F2F | #FF5C5C | down / alerting |
@@ -161,6 +162,14 @@ scale, and status/accent samples. Token changes happen in Figma first, then
 sync back into this document — the two must never diverge. Type styles and
 component samples are the next Style Guide iteration.
 
+Additions (2026-07-16): (1) the new `on-brand` token (§2) now exists in the
+`upstat/tokens` collection — components placing labels/knobs on `brand` or
+destructive fills bind it instead of a raw ink. (2) OpenType tabular figures
+(`tnum`) must be enabled **manually** on numeric text styles in the Figma UI —
+the plugin API cannot set font features — so the §2 "tabular figures in all
+numeric contexts" rule is applied by hand when each numeric type style is
+created or edited.
+
 ## 8. Figma component build plan (design phase)
 
 > Work order over the live `upstat/tokens` collection + Style Guide page
@@ -171,23 +180,44 @@ component samples are the next Style Guide iteration.
 
 | Stage | Build | Unlocks |
 | --- | --- | --- |
-| 0 Foundations | type ramp (§2) · series palette swatches ×8 · Lucide icons · 12-col dashboard grid + 8px gutters | everything |
-| 1 Atoms | Button, Input, StatusPill, query pill, level chip, Toast | molecules |
-| 2 Molecules | TimePicker, QueryBar (pills+autocomplete), FacetSidebar group, MonitorRow, LogLine (collapsed/expanded), SLOCard, IncidentBanner, UptimeCard, SettingsRow | panels |
-| 3 Panels | TimeseriesPanel (line/area/bars + legend), WidgetShell, TraceWaterfall row + span drawer, ServiceMapNode, alert channel/rule forms · **widget content kit**: QueryValue, TopList, Table, Heatmap, LogHistogram · **status page kit**: StatusPageHeader, StatusPageComponentRow, IncidentHistoryEntry | dashboards + status pages |
-| 4 Screen templates | dashboard home, monitors list+detail, alert config, traffic (real-data layout), status page (slug public view), settings/properties | app design |
-| 5 Landing | extend Desktop-1: pillar grid (8), ingestion diagram section, demo cards, cloud-vs-oss | landing v2 |
+| 0 Foundations | type ramp (§2) · series palette swatches ×8 · Lucide icons — **extended set (2026-07-16)**, see icon note below · approved brand glyphs (Google 'G', GitHub, Discord, Slack) · 12-col dashboard grid + 8px gutters | everything |
+| 1 Atoms | Button, Input, StatusPill, query pill, level chip, Toast · **primitives kit (2026-07-16)**: Switch, Checkbox, Tooltip, Avatar/AvatarStack, KbdChip, CountBadge/BufferedCountChip, SevChip, GoogleSignInCTA | molecules |
+| 2 Molecules | TimePicker, QueryBar (pills+autocomplete), FacetSidebar group, MonitorRow, LogLine (collapsed/expanded), SLOCard, IncidentBanner, UptimeCard, SettingsRow · **overlay/input kit**: Select/DropdownMenu, Modal/Sheet, SavedViewChip, ZoomStackChip · **account kit**: MemberRow, APIKeyRow/PropertyKeyRow, DashboardListRow | panels |
+| 3 Panels | TimeseriesPanel (line/area/bars + legend), WidgetShell, TraceWaterfall row + span drawer, ServiceMapNode, alert channel/rule forms · **widget content kit**: QueryValue, TopList, Table, Heatmap, LogHistogram · **status page kit**: StatusPageHeader, StatusPageComponentRow, IncidentHistoryEntry · **chrome kit**: NavRail/NavRailItem, TopBar, CommandPalette/SearchOverlay, ShortcutCheatsheet · **alert/incident kit**: AlertFeedRow + NotificationPopover, IncidentComposer, ThresholdOverlay · **explorer extras**: ServiceCatalogRow, ErrorGroupRow, TraceMinimap | dashboards + status pages |
+| 4 Screen templates | dashboard home, monitors list+detail, alert config, traffic (real-data layout), status page (slug public view), settings/properties, **/login** (the single Google CTA screen per X-1 — added 2026-07-16; previously omitted) | app design |
+| 5 Landing | extend Desktop-1: pillar grid (8), ingestion diagram section, demo cards, cloud-vs-oss · **marketing kit**: MarketingNav + PillarDropdown, PillarCard, CodeSnippet + Tabs, CloudVsSelfHostTable | landing v2 |
+
+**Stage 0 icon set — extension (2026-07-16).** Beyond the pillar glyphs, the
+Lucide set includes: `house` / `layout-dashboard` / `target` (or `gauge`) for
+the Home / Dashboards / SLOs rail items; `chevron-down` (select & dropdown
+triggers, org switcher, TimePicker, facet-group collapse); `chevron-right`
+(LogLine accordion expand MI-5, drill-down rows); `x` (QueryPill remove,
+drawer/modal close — `x-circle` alone is too heavy inline); `copy` + `check`
+(MI-5 copy-path, MI-16 snippet "copied ✓", API-key copy); `more-horizontal`
+(WidgetShell ⋯ menu); `flame` (MI-15 burn-rate; SLOCard burning variant);
+`star` (dashboard favorites); `plus` (create CTAs: monitor, dashboard, rule,
+API key, declare incident); `trash-2` (revoke/delete keys, widgets, rules);
+`grip-vertical` (widget drag handle, MI-11); `maximize-2` (widget fullscreen,
+MI-12); `download` / `upload` (dashboard JSON export/import); `mail` +
+`webhook` (alert channel cards); `key` (API keys & ingestion tokens screen);
+`users` (members/roles, org menu); `external-link` (repo/runbook + docs
+links); `trending-up` / `trending-down` (QueryValue delta chips); `calendar`
+(TimePicker absolute range); `bell-off` (monitor mute, mute windows);
+`pencil` (widget/rule edit); `keyboard` (MI-17 cheatsheet affordance,
+optional). **Brand glyphs** — the Google 'G' for the X-1 auth CTA, the GitHub
+mark, Discord, Slack — are approved additions per the shared-foundations
+iconography rule (§2), **not Lucide**.
 
 ### 8.2 Variant matrices
 
 | Component | Variants × states |
 | --- | --- |
-| StatusPill | ok / warn / crit (breathing) / nodata / paused / pending · dot+label / dot-only |
-| TimePicker | preset selected ×6 / custom range open / live (pulsing dot) |
+| StatusPill | ok / warn / crit (breathing) / nodata / paused / pending · dot+label / dot-only — **[Decided 2026-07-16]** paused → `nodata` tint · pending → `text-2` |
+| TimePicker | preset selected ×6 / custom range open / live (pulsing dot) — built ×3; remaining preset cells covered via instance overrides **[Decided 2026-07-16]** |
 | QueryBar | empty / pills / autocomplete open / syntax-error (red underline + hint) |
-| TimeseriesPanel | line / area / bars · with/without legend · loading (axis-first) / empty (radar sweep MI-16) / crosshair active |
+| TimeseriesPanel | line / area / bars · with/without legend · loading (axis-first) / empty (radar sweep MI-16) / crosshair active — built ×9; the full mode × legend × state matrix is covered via instance overrides **[Decided 2026-07-16]** |
 | UptimeCard | all-up / with-outage-bars / nodata-gaps · % footer |
-| LogLine | collapsed / expanded (JSON tree) / level ×5 tints |
+| LogLine | collapsed / expanded (JSON tree) / level ×5 tints — level chip mapping **[Decided 2026-07-16]**: INFO → `brand` · DEBUG → `text-2` · TRACE → `nodata` (ERROR/WARN keep `crit`/`warn`) |
 | MonitorRow | status ×6 · muted toggle on/off |
 | IncidentBanner | sev1 / sev2 (persistent) · resolved (transient) |
 | SLOCard | healthy / burning (flame) / exhausted |
@@ -211,6 +241,50 @@ Remaining pages.md widget types compose existing sets inside `WidgetShell`
 (log stream = LogLine list · SLO = SLOCard · status = StatusPill grid ·
 service map = ServiceMapNode cluster · trace latency = TimeseriesPanel ·
 markdown = text) — no separate components needed.
+
+### 8.2b Completion pass (2026-07-16)
+
+Parity audit of pages.md / features.md / flows against the built inventory
+surfaced these missing contracts. Same rules as §8.2: dark theme primary,
+every component ships both themes. Blocking for Stage-4 assembly: NavRail,
+TopBar, Select/DropdownMenu, APIKeyRow/PropertyKeyRow; blocking for Stage 5:
+PillarCard, CodeSnippet + Tabs — the rest rank important or nice-to-have in
+build-order terms.
+
+| Component | Variants × states |
+| --- | --- |
+| **App chrome** | |
+| NavRail / NavRailItem | pillar icon ×12 · item: default / hover (flyout label) / active (brand accent) · rail chrome 56px: flyout-open / collapsed |
+| TopBar | org/env switcher closed/open · global TimePicker slot · search (`/`) field · bell: idle / unread-badge / flash (MI-14) |
+| Modal / Sheet | modal sm/lg · right sheet · header + body slot + footer actions · z `sheet/modal 40` (§2 layers) |
+| CommandPalette / SearchOverlay | empty / results / no-results · result row: icon + label + kbd hint (`/` search, MI-17) |
+| **Primitives** | |
+| Select / DropdownMenu | trigger: default / open / disabled · menu item: default / hover / selected · type-ahead variant for long lists (IANA timezones per X-10) |
+| Switch (standalone) | on / off × default / hover / disabled — today baked into MonitorRow/SettingsRow only |
+| Checkbox (standalone) | checked / unchecked / indeterminate × default / disabled — facet checkboxes stay baked into FacetSidebar |
+| Tooltip | placement top/bottom · text-only / multi-metric rows (throughput · error · latency — service-map edges, uptime bars) |
+| Avatar / AvatarStack | 20 / 24px · image / initials fallback · stack ×2–5 + "+n" overflow |
+| KbdChip + ShortcutCheatsheet | single key / chord (`g d`) · both themes · cheatsheet: 2-col grid overlay (`?`, MI-17) |
+| CountBadge / BufferedCountChip | bell unread dot+n / buffered "▼ n new" pill (MI-4) · idle / pulse-on-increment |
+| SevChip (standalone) | sev1 / sev2 / sev3 — extracted from IncidentBanner for timeline/composer/feed reuse |
+| GoogleSignInCTA | default / hover / loading · Google 'G' glyph + "Continue with Google" — the product's single auth CTA (X-1) |
+| **Product rows & overlays** | |
+| APIKeyRow / PropertyKeyRow | kind: ingestion-token (per-pillar scope chips) / property-key (RUM) · active / rotation-grace (24h) / revoked · mono key + copy + rejection-counter cell |
+| MemberRow | avatar + name + email · role select: owner / admin / member · active / invited / disabled |
+| DashboardListRow | favorite star on/off · org-shared indicator · default / hover · name + updated ts |
+| SavedViewChip | personal / org-shared (avatar stack) · default / active (MI-18) |
+| AlertFeedRow + NotificationPopover | sev tint ×3 · unread / read · ts + monitor name + 300ms slide-in (MI-14) · popover: empty / list |
+| IncidentComposer | idle / typing / slash-command autocomplete open (`/status`, `/sev`) / posting (optimistic prepend, MI-10) |
+| ThresholdOverlay | warn band / crit band / would-have-fired marker — composes over TimeseriesPanel (MI-9 test replay) |
+| ServiceCatalogRow | telemetry presence dots per pillar (present/absent ×4) · owner + repo/runbook links · default / hover |
+| ErrorGroupRow | fingerprint msg (mono) + count + sparkline + last-seen · new / ongoing / regressed |
+| ZoomStackChip | depth ×n label · default / hover (reset affordance) — MI-3 zoom breadcrumb; a QueryPill re-skin is acceptable |
+| TraceMinimap | default / span-service highlight (series color) — MI-7 |
+| **Marketing (Stage 5)** | |
+| MarketingNav + PillarDropdown | default / pillar-dropdown open (mini feature map ×8, reuses PillarCard) · GitHub star badge · Sign in + Try Cloud CTAs |
+| PillarCard | pillar ×8 (icon + pillar color accent) · default / hover (lift + accent) |
+| CodeSnippet + Tabs | tab: Go / Python / Node / k8s (active/inactive) · copy: idle / copied-check · mono block on `bg-elev` |
+| CloudVsSelfHostTable | 2 plan columns × feature rows (check / dash) · per-column CTA footer |
 
 ### 8.3 Design-prep needed from content
 
