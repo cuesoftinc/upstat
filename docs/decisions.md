@@ -18,7 +18,9 @@
 **Also ratify with it:** self-host compose gains a `clickhouse` service; helm
 documents external-or-StatefulSet options (same stance as Mongo today).
 
-☑ Ratified: option (a) ClickHouse
+☑ Ratified: option (a) ClickHouse — **control-plane note revised by X-5:**
+the control plane migrates Mongo→**Aiven Postgres**; "Mongo stays" in the
+option text is superseded
 
 ## U-2 · Browser event auth (ANA-001) — gates Phase 1 (events layer, "D2")
 

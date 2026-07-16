@@ -141,9 +141,9 @@ Modeling notes:
 
 | Concern | Choice | Rationale |
 | --- | --- | --- |
-| Everything current | MongoDB (`Upstat` db) **[Current]** | as-is |
-| Events + rollups | MongoDB collections with TTL indexes **[Proposed]** | "lightweight architecture" (§5): no new datastore; TTL indexes give free retention enforcement; revisit only if volume demands it |
-| Alert dispatch state | Mongo (rule cooldown timestamps) | avoids a queue dependency at this scale |
+| Everything current | MongoDB (`Upstat` db) **[Current]** | as-is until the control-plane→**Postgres** migration (X-5, with the monitors-v2/OBS work) |
+| Events + rollups | Phase 1: control-plane store (**Postgres** partitioned tables + scheduled retention job, per X-5) | folds into **ClickHouse** when OBS-001 lands (U-1); the TTL-index shortcut died with the Mongo control plane |
+| Alert dispatch state | control-plane store (rule cooldown timestamps) | avoids a queue dependency at this scale |
 
 ## 4. Retention & privacy **[Proposed defaults, to ratify + publish per UPS-003/005]**
 
