@@ -50,3 +50,4 @@ for detailed data flows, and the
 - [roadmap.md](roadmap.md) — phased plan; Phase 1 unblocks apparule/expendit analytics
 - [design.md](design.md) + [pages.md](pages.md) — design language, pillars, microinteractions
 - [query-grammar.md](query-grammar.md) — the shared query grammar behind explorers, widgets, monitors
+- [decisions.md](decisions.md) — the open-decision register: ratify to unblock phases
