@@ -1,0 +1,37 @@
+openapi: 3.1.0
+info:
+  title: Upstat HTTP API
+  version: 0.1.0-draft
+  description: >-
+    Draft contract for the HTTP surfaces (events, stats, query, alerts-v2,
+    OTLP omitted — standard protocol). Monitors/users remain gRPC
+    (api/common/docs/grpc-api.md). Auth: Firebase ID tokens for user routes;
+    property public keys for ingestion (U-2).
+servers:
+  - url: https://api.upstat.cuesoft.io
+  - url: http://localhost:8080
+tags: [{ name: events }, { name: stats }, { name: alerts }, { name: query }]
+paths:
+  /v1/events:
+    post:
+      tags: [events]
+      summary: "Ingest events (batch ≤100; property key auth; origin-checked; schema-validated)"
+      security: [{ propertyKey: [] }]
+      responses:
+        "202": { description: "{accepted, rejected}" }
+        "422": { description: ts_out_of_range / schema rejection }
+        "429": { description: rate_limited (600/min sustained) }
+  /v1/stats:
+    get: { tags: [stats], summary: "Rollup series (uniques_additive: false in metadata)", security: [{ firebase: [] }], responses: { "200": { description: Series } } }
+  /v1/query:
+    post: { tags: [query], summary: Shared-grammar query (query-grammar.md), security: [{ firebase: [] }], responses: { "200": { description: Results }, "400": { description: "invalid_query {position, hint}" } } }
+  /v1/channels:
+    post: { tags: [alerts], summary: Create alert channel (webhook/email), security: [{ firebase: [] }], responses: { "201": { description: Channel (unverified) } } }
+  /v1/channels/{id}/verify:
+    post: { tags: [alerts], summary: Verify channel, security: [{ firebase: [] }], responses: { "200": { description: Verified } } }
+  /v1/monitors/{id}/rules:
+    put: { tags: [alerts], summary: Set alert rules (on/cooldown/channels), security: [{ firebase: [] }], responses: { "200": { description: Rules } } }
+components:
+  securitySchemes:
+    firebase: { type: http, scheme: bearer, bearerFormat: "Firebase ID token (google.com provider only)" }
+    propertyKey: { type: http, scheme: bearer, bearerFormat: "write-only property public key" }
