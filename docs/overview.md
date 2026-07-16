@@ -53,3 +53,4 @@ for detailed data flows, and the
 - [decisions.md](decisions.md) — the open-decision register: ratify to unblock phases
 - [deployment.md](deployment.md) — Cloud Run + App Hosting contract (cuesoft-iac provisioning, CI/CD pattern)
 - flows/ — feature flow specs with edge cases: [auth](flows/auth.md), [monitor](flows/monitor.md), [alert](flows/alert.md)
+- [analytics-math.md](analytics-math.md) — visitor hashing, sessionization, rollups, uniques honesty rules
