@@ -9,9 +9,9 @@
 
 | Surface | Runs on | Provisioned by |
 | --- | --- | --- |
-| `api/common` (Go, gRPC/h2c) | Cloud Run (HTTP/2 enabled) | cuesoft-iac stack `upstat` |
+| `api/common` (Go, gRPC/h2c) | Cloud Run (HTTP/2 enabled), **`min-instances: 1`** — the monitor worker must never scale to zero, and check scheduling runs under a Postgres advisory-lock lease so scale-out never double-checks (flows/monitor.md §3) | cuesoft-iac stack `upstat` |
 | `api/observability` (Python) | Cloud Run | cuesoft-iac stack `upstat` |
-| envoy gRPC-Web proxy | Cloud Run (or folded into gateway design at OBS-001) | cuesoft-iac stack `upstat` |
+| envoy gRPC-Web proxy | Cloud Run **[Decided: ships as its own service now; revisit only when OBS-001's gateway lands — UX-6 builds against 3 services]** | cuesoft-iac stack `upstat` |
 | `web` (Next.js) | **Firebase App Hosting** | App Hosting backend |
 
 ## 2. Provisioning (cuesoft-iac)
@@ -49,8 +49,9 @@ Two hard-won rules inherited from cueprise, non-negotiable:
 2. **WIF only** (`google-github-actions/auth@v3` with
    `workload_identity_provider` + `service_account`) — no JSON keys.
 
-GitHub environments (`Staging <Project>`, `Production`) gate the deploy
-jobs and carry the URLs.
+The single protected GitHub environment is **`Sandbox`** (X-6) — required
+reviewers + the sandbox URLs (`api.upstat.cuesoft.io`,
+`ingest.upstat.cuesoft.io` at OBS-001). No other deploy environments exist.
 
 ## 4. Not in this phase
 

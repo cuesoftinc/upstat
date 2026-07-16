@@ -237,6 +237,11 @@ rather than growing scope silently.
 
 ## Ingestion architecture **[Proposed]**
 
+> **X-5 note:** every "MongoDB" box in the earlier (pre-X-5) diagrams of this
+> file reads as the control-plane store — now **Aiven Postgres**; Phase-1
+> events land in Postgres partitioned tables with a scheduled retention job
+> (data-model §3), NOT Mongo TTL. Diagrams are updated as touched.
+
 **OpenTelemetry-native**: OTLP (gRPC + HTTP) is the single first-party intake
 for traces, metrics, and logs — customers use standard OTel SDKs/collectors,
 no proprietary agent to build or maintain. Complements: the existing HTTP
@@ -254,14 +259,27 @@ flowchart LR
     JS -->|/v1/events + vitals| GW
     AGENTLESS -->|statsd shim| GW
     GW --> BUF[[Buffer/queue]]
-    BUF --> TS[(Timeseries store<br/>metrics)]
-    BUF --> LS[(Column/log store<br/>logs + traces)]
+    BUF --> CH[(ClickHouse — one store<br/>metrics + logs + traces, U-1)]
     BUF --> MG[(MongoDB<br/>control plane: orgs, monitors,<br/>dashboards, incidents, SLOs)]
-    TS --> Q[Query layer]
-    LS --> Q
+    CH --> Q[Query layer]
     MG --> Q
     Q --> APP[Dashboards / explorers / monitors]
 ```
+
+## Ingestion operations **[Decided]**
+
+- **Buffering**: Phase 1 (/v1/events) has **no external buffer** — direct
+  Postgres inserts; overload answers `429` (never silent drop; rejected
+  counters tell the truth). OBS-001 (OTLP) uses **ClickHouse async_insert**
+  as the buffer with gateway backpressure → `429 quota_exceeded`; ingest SLO
+  target p99 < 250ms accept latency.
+- **ClickHouse ops**: single node to start (sandbox), daily backups to the
+  Cloud Storage bucket, disk sized to retention (13mo metrics / 15d logs /
+  7d traces), replication deferred until load demands (documented upgrade
+  path: ReplicatedMergeTree + 3 keepers).
+- **Tenancy isolation**: `org_id` prefixes every ORDER BY (data-model DDL);
+  quotas enforced at the gateway per ingest key; per-org query concurrency
+  cap 4 in the query layer (noisy-neighbor containment).
 
 ## The storage decision (gating, R2)
 

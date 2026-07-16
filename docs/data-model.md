@@ -27,7 +27,9 @@ erDiagram
         string target "URL"
         string type "website | server | api | blog"
         bool active
-        string status "up | down | ..."
+        string status "up | down | pending | nodata | paused (flows/monitor.md §2)"
+        datetime created_at
+        datetime updated_at
         int intervalSeconds
         int timeoutSeconds
         int failureThreshold
@@ -85,7 +87,8 @@ erDiagram
         objectid _id PK
         string ownerId
         string name "e.g. apparule.cuesoft.io"
-        string public_key "write-only ingest key, rotatable"
+        string public_key "format pk_<8 random bytes hex>; write-only"
+        string previous_key "valid 24h after rotation (grace overlap) — the rotation contract"
         json allowed_origins "CORS allowlist for beacons"
         datetime created_at
     }
@@ -110,8 +113,28 @@ erDiagram
     ALERT_RULE {
         objectid _id PK
         objectid monitor_id FK
-        string on "down | recovered | both"
+        string on "down | recovered | nodata | all"
+        json channel_ids "linked ALERT_CHANNELs"
         int cooldown_minutes
+        int renotify_minutes "0 = off (default)"
+    }
+    DISPATCH {
+        objectid _id PK
+        objectid rule_id FK
+        objectid channel_id FK
+        json transition
+        string state "pending | delivered | failed"
+        int attempts
+        datetime next_attempt_at
+    }
+    VISIT_ROLLUP {
+        objectid _id PK
+        objectid property_id FK
+        string period "hour | day"
+        datetime bucket
+        int visits
+        int bounce_visits
+        int total_visit_seconds
     }
     ALERT_CHANNEL {
         objectid _id PK
@@ -166,7 +189,7 @@ Modeling notes:
 
 ## 5. Observability platform entities (2026-07-16) **[Proposed]**
 
-Control plane (MongoDB) additions:
+Control plane additions (**Aiven Postgres** per X-5; entity names keep their shapes):
 
 ```mermaid
 erDiagram
@@ -211,7 +234,7 @@ erDiagram
         int sev "1..4"
         string status "declared|mitigated|resolved"
         json roles "commander, responders"
-        string postmortem_key }
+        string postmortem_key "Cloud Storage: upstat/postmortems/{org}/{incident}.md" }
     SERVICE_ENTRY { objectid _id PK
         objectid org_id FK
         string name
@@ -220,7 +243,43 @@ erDiagram
         json environments }
 ```
 
-Telemetry plane (ClickHouse, pending R2): `metrics_points`
+
+### Telemetry-plane DDL sketch (ClickHouse, U-1 — draft to finalize at OBS-001)
+
+```sql
+CREATE TABLE metrics_points (
+  org_id LowCardinality(String), series_hash UInt64,
+  name LowCardinality(String), tags Map(String, String),
+  ts DateTime64(3), value Float64
+) ENGINE = MergeTree
+  PARTITION BY toYYYYMM(ts)
+  ORDER BY (org_id, series_hash, ts)
+  TTL toDateTime(ts) + INTERVAL 13 MONTH;
+
+CREATE TABLE logs (
+  org_id LowCardinality(String), service LowCardinality(String),
+  level LowCardinality(String), ts DateTime64(3),
+  message String, attrs Map(String, String), trace_id String
+) ENGINE = MergeTree
+  PARTITION BY toDate(ts)
+  ORDER BY (org_id, service, ts)
+  TTL toDateTime(ts) + INTERVAL 15 DAY;
+
+CREATE TABLE spans (
+  org_id LowCardinality(String), trace_id String, span_id String,
+  parent_id String, service LowCardinality(String), name LowCardinality(String),
+  start DateTime64(6), duration_ns UInt64, status UInt8,
+  attrs Map(String, String)
+) ENGINE = MergeTree
+  PARTITION BY toDate(start)
+  ORDER BY (org_id, service, start)
+  TTL toDateTime(start) + INTERVAL 7 DAY;
+```
+
+`org_id` leads every ORDER BY — the tenancy-isolation primitive (queries are
+always org-scoped; cross-org reads are structurally awkward by design).
+
+Legacy sketch note (superseded by the DDL above): `metrics_points`
 (series-hash, ts, value, tags), `logs` (ts, org, service, level, message,
 attrs map, trace_id), `spans` (trace_id, span_id, parent, service, name,
 start, duration, status, attrs) — schemas finalized during OBS-001 design.

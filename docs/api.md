@@ -24,15 +24,24 @@
 | `GET /insights/{monitor_id}`, `POST /analyze/{monitor_id}` (observability :8081) | insight read/trigger |
 | `web /api/dashboard/stats`, `/api/dashboard/total-users` | **mock data** — scaffolding to be replaced (ANA-002), not product surface |
 
-## 2. Target surface — monitors & alerts **[Proposed]**
+## 1a. Service topology for new surfaces **[Decided]**
 
-Monitors stay gRPC (working, typed, already browser-reachable via Envoy).
-Additions:
+| Surface | Service | Port | Hostname | CORS/origin enforcement |
+| --- | --- | --- | --- | --- |
+| `/v1/events`, `/v1/stats`, `/v1/query`, `/v1/channels`, `/v1/monitors/*/rules` | **api/common** (Go — gains an HTTP mux alongside gRPC/h2c) | 8080 | `api.upstat.cuesoft.io` | in-app middleware (origin allowlist per property for /v1/events; standard CORS for user routes) |
+| `upstat.js` static | web | 3000 | `upstat.cuesoft.io/upstat.js` | n/a (public asset) |
+| OTLP gRPC/HTTP (OBS-001) | ingest gateway (new service at OBS-001) | 4317/4318 | `ingest.upstat.cuesoft.io` | key-authed, no browser CORS |
+| Existing gRPC-Web | Envoy → api/common | 8082→8080 | as today | Envoy CORS (current) |
+
+## 2. Target surface — monitors & alerts
+
+> **Superseded by U-5 (HTTP-only for new surfaces):** the gRPC `AlertService`
+> sketch below is retired — the alert surface is HTTP (`/v1/channels`,
+> `/v1/monitors/{id}/rules`, openapi.yaml), same semantics. Kept for audit.
 
 | Service / RPC | Purpose |
 | --- | --- |
-| `AlertService.CreateChannel / ListChannels / VerifyChannel / DeleteChannel` | email/webhook channels (MON-001) |
-| `AlertService.SetRules / GetRules` | per-monitor rules (on: down/recovered, cooldown) |
+| ~~`AlertService.*` (gRPC)~~ | → HTTP per U-5; see flows/alert.md + openapi.yaml |
 
 ## 3. Target surface — events & stats (M2/M3, the ecosystem "D2" contract) **[Proposed]**
 
@@ -64,8 +73,14 @@ Origin: enforced against the property allowlist  (browser calls)
 → 202 {accepted: n, rejected: m}
 ```
 
-Rules: batch ≤ 100; unknown `dims` keys → event rejected (privacy by schema);
-per-key rate limits; `visitor_hash` computed server-side (cookieless).
+Rules: batch ≤ 100. **Mixed-batch semantics [Decided]:** the endpoint returns
+`202 {accepted: n, rejected: m, rejections: [{index, code}]}` — per-item
+rejection codes (`unknown_event`, `unknown_dim`, `ts_out_of_range`,
+`bad_shape`) so sibling consumers can debug; whole-request 4xx is reserved
+for auth (`401`), origin (`403 origin_not_allowed`), rate (`429`), and
+malformed JSON (`400`). Unknown dims reject the item (privacy by schema);
+per-key rate limits; `visitor_hash` computed server-side (cookieless,
+browser events only — see §3.4a).
 
 ### 3.2 The tracking script (UPS-003 install surface)
 
@@ -80,10 +95,20 @@ Auto page-views (incl. SPA history changes) + manual custom events.
 ### 3.3 Stats query (dashboards + sibling products' own metric reads)
 
 ```
-GET /v1/stats?property=…&name=page_view&period=day&from=…&to=…&dim=path
-Authorization: user JWT (owner) — not the public key
-→ {series: [{bucket, count, uniques}], totals: {…}}
+GET /v1/stats?property=…&name=page_view&period=hour|day&from=RFC3339&to=RFC3339&dim=path
+Authorization: Firebase bearer (owner) — not the public key
+→ 200 {
+    series: [{bucket: RFC3339, count, uniques}],
+    totals: {count, uniques_daily_avg},
+    uniques_additive: false,
+    by_dim?: [{value, count}]        // when &dim= given; top 50 by count
+  }
 ```
+
+Contract: max range 92 days (`422 range_too_large`); one `dim` per query
+(multi-dim = multiple queries); `period=hour` limited to ≤ 8-day ranges;
+no pagination (bounded by range); errors: `404 not_found` (property not
+owned), `422 invalid_period | range_too_large | ts_out_of_range`.
 
 ### 3.4 Consumer registry (who sends what)
 
@@ -94,6 +119,28 @@ Authorization: user JWT (owner) — not the public key
 | expendit web (landing) | `page_view`, `try_cloud_click`, `self_host_click`, `github_click`, `demo_interact` | counters only |
 | expendit api | `auth_signin_completed`, `auth_migration_completed`, `auth_migration_stranded`, `upload_success{file_type}`, `import_confirmed`, `import_discarded`, `report_generation{kind}`, `bank_link_created`, `bank_sync_completed`, `bank_reauth_required`, `consent_recorded{document}` | counters + `file_type`/`kind` dims only — never amounts/descriptions/institutions |
 | upstat itself | `page_view` on upstat.cuesoft.io, `auth_signin_completed`, `auth_migration_completed`, `monitor_created`, `monitor_state_changed{to}` | dogfooding (§5 reliability showcase) |
+
+### 3.4a Registry-as-schema **[Decided — closes the dims contradiction]**
+
+The registry table IS the ingest schema: the §3.1 "closed vocabulary" =
+`page_view`'s browser dims (`path`, `referrer_host`, `device_class`,
+`country`) **plus, per registered event, exactly the dim keys named in its
+registry row** (e.g. `vault_qc_failed{code}` admits `code` with the
+capture-qc enum; `upload_success{file_type}` admits `file_type`). The ingest
+validator resolves the event name against the registry and rejects any dim
+not registered for that event (`unknown_dim`). Value enums live with the
+registry row's source doc.
+
+**Uniques eligibility:** server-emitted events (sibling `api` rows) carry the
+*server's* IP/UA — they are `unique_ineligible: true` in the registry and
+excluded from uniques math (analytics-math.md §4a); only browser events count
+visitors.
+
+Pending registration (added now): apparule `request_quoted`,
+`request_declined{reason}`, `payout_released` (flows/designer.md);
+expendit `statement_confirmed{kind}` (flows/statement-mapping.md).
+`auth_migration_stranded` is REMOVED from the registry (it is a support-ticket
+tag, not an ingest event).
 
 This table is the **master event registry** for the ecosystem — sibling repos'
 instrumentation sections reference it; adding an event means updating this

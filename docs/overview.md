@@ -17,7 +17,7 @@ flowchart LR
 
 - **`web`** — Next.js dashboard and public status pages. Talks to the backend
   over **gRPC-Web**.
-- **Envoy** — front proxy at [deploy/helm/envoy/envoy.yaml](../deploy/helm/envoy/envoy.yaml).
+- **Envoy** — front proxy at [deploy/helm/envoy/envoy.yaml](https://github.com/cuesoftinc/upstat/blob/main/deploy/helm/envoy/envoy.yaml).
   Translates browser gRPC-Web into native gRPC for the Go backend and applies
   CORS.
 - **`api/common`** — Go gRPC backend: `MonitorService` and `UserService`, the
@@ -36,7 +36,7 @@ machine learning, consuming the backend through a clear gRPC interface.
 
 See [setup.md](setup.md) to run the stack locally, [architecture.md](architecture.md)
 for detailed data flows, and the
-[repository structure](../README.md#repository-structure) in the README.
+[repository structure](https://github.com/cuesoftinc/upstat#repository-structure) in the README.
 
 ## Product & design documentation
 > Published site: **https://cuesoft.gitbook.io/upstat** (Git-synced from this folder on every merge to main).

@@ -21,6 +21,7 @@ service ships a `.env.example` to copy from.
 | `JWT_SECRET` | Secret used to sign/verify JWTs |
 | `BASE_URL` | Public base URL of the backend |
 | `INSIGHT_SERVICE_GRPC_ADDRESS` | Address of the observability gRPC server |
+| `SERVICE_TOKEN_HASH` | Server-side hash api/common validates the observability service token against (client sends `UPSTAT_GRPC_AUTH_TOKEN`) |
 
 ### `api/observability` (Python service)
 

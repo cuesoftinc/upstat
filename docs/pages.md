@@ -20,7 +20,7 @@ community-driven") remains the visual base, extended for the new pillars.
 | A1 | Nav | logo · Platform (pillar dropdown) · Docs (GitBook) · Community · GitHub badge · Sign in · **Try Cloud** | pillar dropdown = mini feature map |
 | A2 | Hero | H1 (from Figma pillars); dual CTA **Try Cloud** / **Self Host**; hero visual: live-looking dashboard with animated timeseries + synced crosshair demo | crosshair demo animates on an 8s loop |
 | A3 | Pillar grid | 8 cards: Uptime & Synthetics · Website Analytics/RUM · Metrics · Logs · APM/Traces · Dashboards · Alerting · Incidents & SLOs | hover lifts + pillar color accent |
-| A4 | Live demo strip | embedded read-only demo org (synthetic telemetry): status page + one dashboard | interactive TimePicker within bounds |
+| A4 | Demo strip | **static demo cards** (synthetic data, U0-3) — the interactive embedded demo org is descoped to a post-Phase-3 enhancement **[Decided]** | — |
 | A5 | How ingestion works | OTLP/agent diagram: your services → OTel SDK/collector → Upstat | copyable snippet tabs (Go/Python/Node/k8s) |
 | A6 | Reliability showcase | Upstat's own public status page embedded (self-referential trust, PRD §5) | |
 | A7 | Open source | compose snippet, architecture diagram, GitHub/CONTRIBUTING | |
@@ -37,8 +37,9 @@ pillars. Every pillar's empty state = MI-16 inline onboarding.
 
 ### B1 Home
 - Org health at a glance: open incidents banner (MI-14), triggered monitors,
-  SLO burn cards (MI-15), watched dashboards row, recent deploy markers
-  **[Proposed: deploy events via API]**.
+  SLO burn cards (MI-15), watched dashboards row. (Deploy markers CUT from
+  v1 — no deploy-events API exists; aspirational item for the service
+  catalog era.)
 
 ### B2 Dashboards
 - List (org-shared, favorites) → grid editor (MI-11/12): widget types:
@@ -79,12 +80,19 @@ pillars. Every pillar's empty state = MI-16 inline onboarding.
   as planned, ANA-002).
 
 ### B7 Synthetics / Uptime (the current core, absorbed)
+- **Coexistence contract [Decided]**: existing gRPC monitors ARE the uptime
+  pillar — at monitors-v2 (OBS-006) each becomes a `MONITOR_RULE` with
+  `signal: uptime` via one-time migration; no dual-write period (v2 reads
+  both until migration completes within the release). B7 reads the unified
+  view.
 - Monitors (existing CRUD) → "Uptime checks" within Synthetics: HTTP checks
   (existing), multi-step API checks **[Later]**, browser checks **[Later]**.
 - UptimeCards + per-monitor page: check history, response-time chart,
   incidents, insight panel (existing ML insight surfaces here).
-- Public status pages: existing `GetStatusPage` + configurable status-page
-  builder (logo, components, subscribe-to-updates **[Later]**).
+- Public status pages: URL scheme **[Decided]** `status.upstat.cuesoft.io/{slug}`
+  (owner-chosen slug, unique; never raw owner ids in URLs); upstat's own page
+  = slug `upstat` (U0-5 config = create the slugged page over the existing
+  `GetStatusPage` data). Builder (logo, components, subscribe) **[Later]**.
 
 ### B8 Monitors (alerting on any signal)
 - Monitor types: uptime state (exists conceptually), metric threshold,
@@ -128,7 +136,7 @@ maturity.
 | OBS-002 | Metrics explorer + storage | Must | OBS-001 |
 | OBS-003 | Logs explorer + live tail + facets | Must | OBS-001 |
 | OBS-004 | APM: services, trace explorer, waterfall, service map | Must | OBS-001 |
-| OBS-005 | Composable dashboards (grid editor, portable JSON) | Must | OBS-002/003 minimum |
+| OBS-005 | Composable dashboards (grid editor, portable JSON) | Must | OBS-002 **or** OBS-003 (either signal suffices) |
 | OBS-006 | Monitors on any signal + channels | Must | pillar queries |
 | OBS-007 | RUM: browser SDK (vitals, errors) atop events layer | Must | events layer (Phase 1) |
 | OBS-008 | Incident management (sev, roles, timeline, postmortem) | Should | OBS-006 |

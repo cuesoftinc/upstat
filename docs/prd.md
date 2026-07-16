@@ -66,7 +66,7 @@ demonstrate Cuesoft's engineering standards and infrastructure stability
 
 | ID | Requirement | Rationale |
 | --- | --- | --- |
-| MON-001 | **Alerting** — notify on monitor state change (email first, webhook second) | Features grid says "alerts"; today status flips are silent — a monitoring product that tells no one is a dashboard, not a monitor |
+| MON-001 | **Alerting** — notify on monitor state change *(U-4 ratified: webhooks first, email via Resend)* | Features grid says "alerts"; today status flips are silent — a monitoring product that tells no one is a dashboard, not a monitor |
 | ANA-001 | Event-ingestion API + JS tracking script | M2/M3 foundation; lightweight page-view + custom-event beacon |
 | ANA-002 | Dashboards read real aggregates | Replace the mock `/api/dashboard/*` routes — mocks were acceptable scaffolding, not product |
 | ANA-003 | Data-retention policy, stated and enforced | UPS-003 requires documenting retention; you can't document what isn't defined (data-model.md §4 proposes 90d raw / 13mo rollups) |
@@ -108,13 +108,13 @@ demonstrate Cuesoft's engineering standards and infrastructure stability
 
 ## 8. Open questions
 
-1. **Event API authentication for browsers** — tracking scripts can't hold
+1. ~~**Event API authentication for browsers**~~ **RESOLVED (U-2)**. Original — tracking scripts can't hold
    secrets. Proposed: public write-only property key, origin-checked, rate
    limited (api.md §3.1); confirm this satisfies the privacy posture.
-2. **Alert channels order** — email first (needs an SMTP/provider decision —
+2. ~~**Alert channels order**~~ **RESOLVED (U-4: webhooks first, Resend email)**. Original — email first (needs an SMTP/provider decision —
    note the old SMTP plumbing was deliberately removed), webhook second,
    Slack later? MON-001 assumes email→webhook.
-3. **gRPC-Web vs REST for new surfaces** — monitors stay gRPC (works today);
+3. ~~**gRPC-Web vs REST**~~ **RESOLVED (U-5: new surfaces HTTP)**. Original — monitors stay gRPC (works today);
    event ingestion + stats query are proposed as plain HTTP/JSON (browser
    beacons + simpler consumer contract). Confirm the split is acceptable.
 4. **Managed-client reports** (ECO-SUPPORT) — format and cadence owned by

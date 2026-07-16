@@ -16,9 +16,10 @@
 - Webhook signing: `X-Upstat-Signature: hex(hmac-sha256(secret, body))` +
   `X-Upstat-Timestamp`; consumers must reject >5min skew (documented in
   UPS-003 setup docs).
-- Failing channels: 5 consecutive delivery failures → `degraded` badge +
-  email-to-owner (if any email channel works) + banner; deliveries keep
-  trying (no auto-disable — silent alert loss is worse than noise).
+- Failing channels: 5 consecutive **dispatch-level failures** (post-retry
+  `failed` rows) → `degraded` badge + email-to-owner + banner; resets on the
+  first `delivered`. Email (Resend) failures use the same ladder/timeout as
+  webhooks. Deliveries keep trying (no auto-disable).
 - Deleting a channel detaches it from all rules; rules left with zero
   channels show a "no destination" warning badge.
 
@@ -48,18 +49,29 @@ sequenceDiagram
     end
 ```
 
-- **At-least-once** per channel with the retry ladder; a channel's failure
-  never blocks the others.
-- **Ordering**: `recovered` dispatch always awaits the corresponding `down`
-  dispatch outcome (never out-of-order pairs on one channel).
+- **At-least-once, durably [Decided]**: every dispatch writes a
+  `DISPATCH { rule, channel, transition, state: pending|delivered|failed,
+  attempts, next_attempt_at }` row BEFORE delivery; a crash-recovery scan on
+  worker start re-drives `pending` rows — the transition and its
+  notifications can't be lost together. Per-attempt webhook timeout **10s**;
+  retry ladder 1s/5s/25s then `failed`.
+- **Ordering**: `recovered` dispatch on a channel waits for the paired
+  `down` dispatch to reach a terminal state (`delivered` OR `failed` after
+  retries); if the `down` ended `failed`, the `recovered` message prepends
+  "(missed: was down since {t})" so the recipient gets the full story.
 - **Cooldown** applies per rule per state-direction — a `down` at minute 0
   suppresses re-`down` noise until cooldown lapses, but never suppresses the
   `recovered`.
 - **Renotify** (delta, optional): `renotify_minutes` re-sends "still down"
   while an incident stays open; off by default.
-- **Flapping guard** (with monitor.md §2): >6 transitions/30min → one
-  "Monitor X is flapping" alert; normal dispatch resumes after 30 quiet
-  minutes; suppressed transitions visible in the alert feed (MI-14).
+- **Flapping guard** (with monitor.md §2), precise algorithm **[Decided]**:
+  count only `up↔down` edges (nodata/pause edges excluded) in a **sliding
+  30-min window**; the 7th edge enters flapping mode → one `monitor.flapping`
+  dispatch (bypasses per-rule cooldown, fires on rules with `on: down` or
+  `all`), then suppression; exit when the sliding window holds ≤1 edge
+  ("30 quiet minutes" = that predicate); on exit, one summary line in the
+  feed and normal dispatch resumes with cooldown stamps reset. Suppressed
+  transitions remain visible in the alert feed (MI-14).
 
 ## 4. Payloads
 

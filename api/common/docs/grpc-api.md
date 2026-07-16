@@ -1,5 +1,23 @@
 # Upstat Common Server gRPC API
 
+> **STATUS BANNER (X-1 hardened, 2026-07-16)** — per-RPC fate:
+> `GoogleAuth` → **replaced** by Firebase ID-token verification in the
+> interceptor (docs/flows/auth.md); `CreateUser` + password-based `GetUser`
+> sign-in → **retired** after the 60-day migration window
+> (`FAILED_PRECONDITION migrate_to_firebase`); `GetUser` (profile fetch),
+> `UpdateUser`, `DeleteUser`, `GetAllUsers` → **kept** (bearer-authed);
+> `MonitorService` → **kept** unchanged; app-JWT issuance → **retired**.
+> Password/JWT sections below document the pre-migration system.
+>
+> **Monitor field notes**: examples use `type: "http"` — the current enum is
+> `website | server | api | blog` (display taxonomy); initial
+> `status: "unknown"` maps to the state machine's `pending`
+> (docs/flows/monitor.md §2). `GetRecentChecks` (public, used by the
+> observability service): request `{monitor_id, limit ≤ 100 (default per
+> UPSTAT_GRPC_CHECK_LIMIT)}` → response `{checks: [{up, status_code,
+> response_time_ms, checked_at}]}`; public rate posture = same per-IP limit
+> as other public RPCs (engineering.md §3).
+
 This document describes the gRPC API exposed by the Go backend in `api/common`.
 
 ## Server
