@@ -10,7 +10,7 @@
 | Kind | Config | Verification |
 | --- | --- | --- |
 | Webhook | URL (https only) + optional secret | "Verify" sends a signed test event; channel unusable until a 2xx returns (`verified: true`) |
-| Email (Resend) | address | 6-digit code mailed; entered in-app; 15min expiry, 3 attempts |
+| Email (Brevo REST API, X-7 — no SMTP) | address | 6-digit code mailed; entered in-app; 15min expiry, 3 attempts |
 
 - Channels are owner-scoped and reusable across monitors.
 - Webhook signing: `X-Upstat-Signature: hex(hmac-sha256(secret, body))` +
@@ -18,7 +18,7 @@
   UPS-003 setup docs).
 - Failing channels: 5 consecutive **dispatch-level failures** (post-retry
   `failed` rows) → `degraded` badge + email-to-owner + banner; resets on the
-  first `delivered`. Email (Resend) failures use the same ladder/timeout as
+  first `delivered`. Email (Brevo API) failures use the same ladder/timeout as
   webhooks. Deliveries keep trying (no auto-disable).
 - Deleting a channel detaches it from all rules; rules left with zero
   channels show a "no destination" warning badge.
@@ -40,7 +40,7 @@ sequenceDiagram
     participant CH as Channels
 
     W->>D: transition {monitor, from, to, at, cause}
-    D->>D: load rules; filter by "on"; check cooldown stamps
+    D->>D: load rules · filter by 'on' · check cooldown stamps
     alt within cooldown
         D->>D: drop (recorded as suppressed in alert feed)
     else
