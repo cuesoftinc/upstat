@@ -51,3 +51,5 @@ for detailed data flows, and the
 - [design.md](design.md) + [pages.md](pages.md) — design language, pillars, microinteractions
 - [query-grammar.md](query-grammar.md) — the shared query grammar behind explorers, widgets, monitors
 - [decisions.md](decisions.md) — the open-decision register: ratify to unblock phases
+- [deployment.md](deployment.md) — Cloud Run + App Hosting contract (cuesoft-iac provisioning, CI/CD pattern)
+- flows/ — feature flow specs with edge cases: [auth](flows/auth.md), [monitor](flows/monitor.md), [alert](flows/alert.md)
