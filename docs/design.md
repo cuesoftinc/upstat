@@ -201,6 +201,15 @@ when to delete them is an owner decision, deliberately not scheduled here.
 | 4 Screen templates | dashboard home, monitors list+detail, alert config, traffic (real-data layout), status page (slug public view), settings/properties, **/login** (the single Google CTA screen per X-1 — added 2026-07-16; previously omitted) | app design |
 | 5 Landing | extend Desktop-1: pillar grid (8), ingestion diagram section, demo cards, cloud-vs-oss · **marketing kit**: MarketingNav + PillarDropdown, PillarCard, CodeSnippet + Tabs, CloudVsSelfHostTable | landing v2 |
 
+**Stage 4 screen-state rule [Directive 2026-07-18].** Every data-driven
+screen template ships **three frames**: default (populated), **empty**
+(EmptyState + first-run copy; a demo-data toggle where the screen's spec
+calls for one), and **loading** (Skeleton). First application: the pages.md
+B1/B2/B4/B5 templates. The loading frames may introduce a **Skeleton**
+primitive and the pages.md A15 FAQ a marketing **FAQItem** — if the build
+adds either, they land in the §8.2/§8.2b matrices annotated as iteration-1
+additions.
+
 **Stage 0 icon set — extension (2026-07-16).** Beyond the pillar glyphs, the
 Lucide set includes: `house` / `layout-dashboard` / `target` (or `gauge`) for
 the Home / Dashboards / SLOs rail items; `chevron-down` (select & dropdown
@@ -232,6 +241,11 @@ recorded here since the file never stated it: component sets are
 renamed to `icon/brand-google` and `icon/brand-github` to match. The single
 auth CTA component is named **GoogleAuthButton** in every product; the
 earlier `GoogleSignInCTA` set is renamed accordingly (§8.2b).
+
+**Canvas hygiene [Directive 2026-07-18]** — design canvases carry **product
+copy only**: spec annotations (MI references, requirement IDs,
+implementation notes) live in component descriptions and in these docs,
+never on screens. A screen frame must read as the shipped product would.
 
 ### 8.2 Variant matrices
 

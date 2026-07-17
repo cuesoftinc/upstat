@@ -28,6 +28,19 @@ community-driven") remains the visual base, extended for the new pillars.
 | A9 | Cloud vs Self-host table | per-column CTAs | |
 | A10 | Footer | standard + privacy (UPS-005) | |
 
+Iteration 1 additions **[Directive 2026-07-18]** — existing rows keep their
+IDs (cross-referenced elsewhere); each new row notes where it slots into the
+page order.
+
+| # | Section | Content | Interactions |
+| --- | --- | --- | --- |
+| A11 | Feature deep-dives | benefit-led deep-dive per pillar (richer than the A3 card grid, slots after A3): headline benefit, 2–3 proof points, real product screenshot — alternating left/right layout | scroll-linked screenshot swap per pillar |
+| A12 | How it works | 3 steps (install snippet → send data → see everything) — each step carries a **real screen thumbnail** from the Stage-4 templates (design.md §8.1), no abstract art; extends A5's diagram | step thumbnail → matching A4 demo card |
+| A13 | For developers — Contribute | stack line (Go gRPC services · React/TS · columnstore), "interesting problems" list (ingestion pipeline, query grammar, TSDB), good-first-issues + CONTRIBUTING links, Discord invite, GitHub badge — expands A7's repo links, slots after A7 | badge shows live star count |
+| A14 | Self-host | data-ownership pitch (your telemetry, your box), compose one-liner, what ships in the box (every pillar, no feature gates), self-host docs link — expands A7's compose snippet, pairs with A9 | copy button on the one-liner |
+| A15 | FAQ | 4–5 product Q&As: cloud vs self-host? · OTel-compatible? · what happens at retention limits? · is everything open source? · how is this not Datadog? | accordion, single-open |
+| A16 | Final CTA band | full-width closing band: one-line pitch + dual CTA **Try Cloud** / **Self Host** (mirrors A2), sits above A10 | |
+
 ## Part B — Dashboard (the observability app)
 
 Left icon rail (design.md §2): **Home · Dashboards · Metrics · Logs · Traces ·
@@ -35,11 +48,20 @@ RUM/Analytics · Synthetics/Uptime · Monitors · Incidents · SLOs · Service
 Catalog · Settings**. Global TimePicker + QueryBar grammar shared across
 pillars. Every pillar's empty state = MI-16 inline onboarding.
 
+Screen states **[Directive 2026-07-18]**: the B1/B2/B4/B5 templates ship
+explicit empty (EmptyState/MI-16 + first-run copy; demo-data toggle where
+specced) and loading (Skeleton) frames per the three-frame rule in
+design.md §8.1.
+
 ### B1 Home
 - Org health at a glance: open incidents banner (MI-14), triggered monitors,
   SLO burn cards (MI-15), watched dashboards row. (Deploy markers CUT from
   v1 — no deploy-events API exists; aspirational item for the service
   catalog era.)
+- First-run onboarding **[Directive 2026-07-18]**: create-org screen (name +
+  IANA timezone per X-10/B12) → "send your first data" getting-started
+  screen (ingestion key + copyable snippet + MI-16 waiting-for-data state);
+  resolves to Home on first datapoint.
 
 ### B2 Dashboards
 - List (org-shared, favorites) → grid editor (MI-11/12): widget types:
@@ -47,6 +69,9 @@ pillars. Every pillar's empty state = MI-16 inline onboarding.
   latency, SLO, status, service map, markdown.
 - Template variables (`$env`, `$service`) with dropdown bar; JSON
   import/export of dashboard definitions **[Proposed: portable format]**.
+- Create-dashboard flow + widget picker **[Directive 2026-07-18]**: name →
+  widget picker overlay (type grid from the list above) → lands in MI-11
+  edit mode.
 
 ### B3 Metrics
 - Explorer: QueryBar (metric, filters, group-by, aggregation, rollup) → chart
@@ -78,6 +103,9 @@ pillars. Every pillar's empty state = MI-16 inline onboarding.
   grouped by fingerprint).
 - Existing traffic dashboard pages fold into this pillar (mock routes die
   as planned, ANA-002).
+- Property create **[Directive 2026-07-18]**: RUM property-create screen
+  (site/domain → property key issuance + browser-SDK snippet; keys managed
+  in B12).
 
 ### B7 Synthetics / Uptime (the current core, absorbed)
 - **Coexistence contract [Decided]**: existing gRPC monitors ARE the uptime
@@ -101,12 +129,20 @@ pillars. Every pillar's empty state = MI-16 inline onboarding.
   test-replay; notification channels (email, webhook, Slack **[phased]**),
   cooldown/renotify, mute windows.
 - Triggered feed with MI-14; monitor status page (grouped by state).
+- Create-monitor form **[Directive 2026-07-18]**: monitor type picker →
+  rule editor as a dedicated create screen.
+- Rule test/replay state **[Directive 2026-07-18]**: the MI-9 replay
+  rendered as its own frame — trigger bands + would-have-fired markers over
+  the last 24h.
 
 ### B9 Incidents
 - Existing incident records grow into incident management: declare (from
   alert or manual), sev levels, roles (commander/responders), timeline
   composer (MI-10), status page linkage, postmortem doc template on resolve
   **[Proposed]**.
+- Declare-incident modal state **[Directive 2026-07-18]**: modal (sev
+  picker, title, commander assignment) reachable from an alert row or
+  manually.
 
 ### B10 SLOs
 - Define: SLI source (uptime check, metric ratio, latency threshold), target
