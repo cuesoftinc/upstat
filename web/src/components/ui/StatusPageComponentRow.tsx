@@ -35,7 +35,8 @@ export function StatusPageComponentRow({
         <span className="text-[13px] font-medium text-text">{name}</span>
         <StatusPill status={status} />
       </div>
-      <div className="flex h-6 items-stretch gap-px" role="img" aria-label={`${name} 90-day uptime`}>
+      {/* overflow-x-auto: 90 fixed-width bars scroll on narrow viewports */}
+      <div className="flex h-6 items-stretch gap-px overflow-x-auto" role="img" aria-label={`${name} 90-day uptime`}>
         {days.map((day) => (
           <Tooltip
             key={day.date}

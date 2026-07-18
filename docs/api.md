@@ -118,7 +118,7 @@ owned), `422 invalid_period | range_too_large | ts_out_of_range`.
 | apparule api | `auth_signin_completed`, `auth_signin_failed`, `vault_capture_started`, `vault_qc_failed{code}`, `vault_session_saved{method}`, `vault_manual_entry`, `request_started`, `request_submitted`, `request_paid`, `request_delivered`, `request_disputed{reason}`, `consent_recorded{document}` | counters + listed dims only — never measurement values or amounts |
 | expendit web (landing) | `page_view`, `try_cloud_click`, `self_host_click`, `github_click`, `demo_interact` | counters only |
 | expendit api | `auth_signin_completed`, `auth_migration_completed`, `auth_migration_stranded`, `upload_success{file_type}`, `import_confirmed`, `import_discarded`, `report_generation{kind}`, `bank_link_created`, `bank_sync_completed`, `bank_reauth_required`, `consent_recorded{document}` | counters + `file_type`/`kind` dims only — never amounts/descriptions/institutions |
-| upstat itself | `page_view` on upstat.cuesoft.io, `auth_signin_completed`, `auth_migration_completed`, `monitor_created`, `monitor_state_changed{to}` | dogfooding (§5 reliability showcase) |
+| upstat itself | `page_view` on upstat.cuesoft.io, `try_cloud_click`, `self_host_click`, `github_click` (landing CTAs — registered 2026-07-18 ahead of W2 instrumentation, per §3.4a registry-first), `auth_signin_completed`, `auth_migration_completed`, `monitor_created`, `monitor_state_changed{to}` | dogfooding (§5 reliability showcase); landing events counters only |
 
 ### 3.4a Registry-as-schema **[Decided — closes the dims contradiction]**
 

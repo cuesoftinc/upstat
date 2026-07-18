@@ -1,37 +1,33 @@
-"use client";
-
-import { useRouter } from "next/navigation";
-import { MarketingNav } from "@/components/ui/MarketingNav";
-import Hero from "@/components/pages/home/hero/Hero";
-import Customers from "@/components/pages/home/customers/Customers";
-import Team from "@/components/pages/home/team/Team";
-import Developer from "@/components/pages/home/developer/Developer";
-import Workflow from "@/components/pages/home/workflow/Workflow";
-import BusinessNeeds from "@/components/pages/home/business-needs/BusinessNeeds";
-import Community from "@/components/pages/home/community/Community";
-import Footer from "@/components/pages/home/footer/Footer";
+import type { Metadata } from "next";
+import { HomeView } from "@/components/home/HomeView";
 
 /**
- * / — public home. The nav is the W1 MarketingNav (the legacy NavBar is
- * quarantined in src/legacy — it linked the retired /login route); the
- * remaining sections are the live legacy home until W2 rebuilds Part A.
+ * / — public home (pages.md Part A; Figma landing v2 frame 135:2, W2).
+ * Server shell carries the route metadata; the view is client-composed
+ * from the registry via the home controller.
  */
+
+const TITLE = "Upstat — all your telemetry, one open platform";
+const DESCRIPTION =
+  "Uptime, RUM, metrics, logs, traces, dashboards, alerts, SLOs and status pages — one open-source platform, OTel-native and ClickHouse-fast.";
+
+export const metadata: Metadata = {
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "https://upstat.cuesoft.io",
+    siteName: "Upstat",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
+};
+
 export default function Home() {
-  const router = useRouter();
-  return (
-    <div>
-      <MarketingNav
-        onSignIn={() => router.push("/signin")}
-        onTryCloud={() => router.push("/signin")}
-      />
-      <Hero />
-      <Customers />
-      <Team />
-      <Developer />
-      <Workflow />
-      <BusinessNeeds />
-      <Community />
-      <Footer />
-    </div>
-  );
+  return <HomeView />;
 }

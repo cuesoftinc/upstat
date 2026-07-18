@@ -51,7 +51,9 @@ export function UptimeCard({ name, days, uptimePct, p95Ms, status, className }: 
         <StatusPill status={status ?? deriveStatus(days)} dotOnly />
       </div>
 
-      <div className="flex items-stretch gap-px" role="img" aria-label={`${name} 90-day uptime`}>
+      {/* overflow-x-auto: the 90 fixed-width bars scroll inside the card on
+          narrow viewports (375w); desktop rendering is unchanged */}
+      <div className="flex items-stretch gap-px overflow-x-auto" role="img" aria-label={`${name} 90-day uptime`}>
         {days.map((day, i) => (
           <Tooltip
             key={day.date}

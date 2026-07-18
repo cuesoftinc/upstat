@@ -26,7 +26,8 @@ export function MarketingNav({ onSignIn, onTryCloud, starCount = null, className
     <nav
       aria-label="Marketing"
       className={clsx(
-        "font-ui sticky top-0 z-[var(--z-sticky)] flex h-14 items-center gap-4 border-b border-border bg-bg px-6",
+        // gap/padding compress below md (375w support); md+ is the QA'd layout
+        "font-ui sticky top-0 z-[var(--z-sticky)] flex h-14 items-center gap-3 border-b border-border bg-bg px-4 md:gap-4 md:px-6",
         className,
       )}
     >
@@ -41,7 +42,7 @@ export function MarketingNav({ onSignIn, onTryCloud, starCount = null, className
       </a>
 
       <div
-        className="relative"
+        className="relative hidden md:block"
         onMouseEnter={() => setDropdownOpen(true)}
         onMouseLeave={() => setDropdownOpen(false)}
       >
@@ -78,10 +79,10 @@ export function MarketingNav({ onSignIn, onTryCloud, starCount = null, className
         )}
       </div>
 
-      <a href="https://docs.upstat.cuesoft.io" className="text-[13px] font-medium text-text-2 hover:text-text">
+      <a href="https://docs.upstat.cuesoft.io" className="hidden text-[13px] font-medium text-text-2 hover:text-text md:block">
         Docs
       </a>
-      <a href="#community" className="text-[13px] font-medium text-text-2 hover:text-text">
+      <a href="#community" className="hidden text-[13px] font-medium text-text-2 hover:text-text md:block">
         Community
       </a>
 

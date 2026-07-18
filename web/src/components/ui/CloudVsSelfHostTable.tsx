@@ -14,6 +14,12 @@ export interface CloudVsSelfHostTableProps {
   rows?: PlanFeatureRow[];
   onTryCloud?: () => void;
   onSelfHost?: () => void;
+  /** Header/CTA overrides — the landing v2 instance (Figma 135:688) uses
+   *  an empty feature header, "Upstat Cloud", and "Deploy with compose". */
+  featureHeader?: string;
+  cloudHeader?: string;
+  selfHostHeader?: string;
+  selfHostCta?: string;
   className?: string;
 }
 
@@ -32,6 +38,10 @@ export function CloudVsSelfHostTable({
   rows = DEFAULT_ROWS,
   onTryCloud,
   onSelfHost,
+  featureHeader = "Feature",
+  cloudHeader = "Cloud",
+  selfHostHeader = "Self-host",
+  selfHostCta = "Self Host",
   className,
 }: CloudVsSelfHostTableProps) {
   const Mark = ({ yes }: { yes: boolean }) =>
@@ -51,13 +61,13 @@ export function CloudVsSelfHostTable({
       <thead>
         <tr className="border-b border-border bg-bg-elev">
           <th scope="col" className="p-3 text-left text-[13px] font-semibold text-text">
-            Feature
+            {featureHeader}
           </th>
           <th scope="col" className="w-32 p-3 text-center text-[13px] font-semibold text-text">
-            Cloud
+            {cloudHeader}
           </th>
           <th scope="col" className="w-32 p-3 text-center text-[13px] font-semibold text-text">
-            Self-host
+            {selfHostHeader}
           </th>
         </tr>
       </thead>
@@ -84,7 +94,7 @@ export function CloudVsSelfHostTable({
           </td>
           <td className="p-3 text-center">
             <Button kind="quiet" size="sm" onClick={onSelfHost}>
-              Self Host
+              {selfHostCta}
             </Button>
           </td>
         </tr>

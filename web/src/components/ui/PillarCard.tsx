@@ -6,11 +6,11 @@ import {
   Activity,
   BarChart3,
   Bell,
-  Flame,
-  Gauge,
-  LayoutDashboard,
-  Radio,
-  ScrollText,
+  FileText,
+  Globe,
+  LayoutGrid,
+  Route,
+  Target,
 } from "lucide-react";
 
 export interface PillarCardProps {
@@ -25,19 +25,26 @@ export interface PillarCardProps {
   className?: string;
 }
 
-/** The pages.md A3 pillar set (8). */
+/**
+ * The pages.md A3 pillar set (8) — copy + icons per the landing v2 masters
+ * (Figma 91:1517 instances on frame 135:2, W2 QA loop).
+ */
 export const MARKETING_PILLARS: Omit<PillarCardProps, "compact" | "className">[] = [
-  { pillar: 1, icon: Radio, title: "Uptime & Synthetics", description: "HTTP checks, status pages, and the classic 90-day strip." },
-  { pillar: 2, icon: BarChart3, title: "Website Analytics / RUM", description: "Cookieless visitors, web vitals, and JS error tracking." },
-  { pillar: 3, icon: Gauge, title: "Metrics", description: "OTLP + StatsD ingestion with a fast explorer." },
-  { pillar: 4, icon: ScrollText, title: "Logs", description: "Live tail, facets, and the ⌘click pivot." },
-  { pillar: 5, icon: Activity, title: "APM / Traces", description: "Waterfalls, service pages, and the service map." },
-  { pillar: 6, icon: LayoutDashboard, title: "Dashboards", description: "Composable grids with portable JSON." },
-  { pillar: 7, icon: Bell, title: "Alerting", description: "Monitors on any signal with honest thresholds." },
-  { pillar: 8, icon: Flame, title: "Incidents & SLOs", description: "Sev levels, timelines, and burn-rate math." },
+  { pillar: 1, icon: Activity, title: "Uptime & Synthetics", description: "Catch downtime before your users do" },
+  { pillar: 2, icon: Globe, title: "Website Analytics / RUM", description: "Real-user vitals & errors, cookieless" },
+  { pillar: 3, icon: BarChart3, title: "Metrics", description: "Explore any metric in one grammar" },
+  { pillar: 4, icon: FileText, title: "Logs", description: "Live-tail production in seconds" },
+  { pillar: 5, icon: Route, title: "APM / Traces", description: "See where every slow request went" },
+  { pillar: 6, icon: LayoutGrid, title: "Dashboards", description: "Every signal, one synced grid" },
+  { pillar: 7, icon: Bell, title: "Alerting", description: "Page on any signal, not just pings" },
+  { pillar: 8, icon: Target, title: "Incidents & SLOs", description: "Sev workflow, honest error budgets" },
 ];
 
-/** PillarCard — §8.2b: pillar ×8 (icon + color accent) · default/hover (lift). */
+/**
+ * PillarCard — §8.2b: pillar ×8 (icon + color accent) · default/hover (lift).
+ * Master 91:1517 (landing v2 state): accent dash (24×3) above a 24px icon,
+ * 16/semibold title, 12/text-2 benefit line.
+ */
 export function PillarCard({
   pillar,
   icon: Icon,
@@ -67,12 +74,18 @@ export function PillarCard({
         (e.currentTarget as HTMLElement).style.borderColor = "";
       }}
     >
-      <Icon aria-hidden="true" className="size-5" style={{ color: accent }} />
+      {/* accent dash — master 91:1517 */}
+      <span
+        aria-hidden="true"
+        className="h-[3px] w-6 rounded-full"
+        style={{ background: accent }}
+      />
+      <Icon aria-hidden="true" className={compact ? "size-5" : "size-6"} style={{ color: accent }} />
       <span className={clsx("font-semibold text-text", compact ? "text-[13px]" : "text-[16px]")}>
         {title}
       </span>
       {!compact && (
-        <span className="text-[13px] leading-[1.45] text-text-2">{description}</span>
+        <span className="text-[12px] leading-[1.45] text-text-2">{description}</span>
       )}
     </a>
   );

@@ -16,3 +16,19 @@ if (typeof Element !== "undefined") {
   Element.prototype.releasePointerCapture ??= () => undefined;
   Element.prototype.scrollIntoView ??= () => undefined;
 }
+
+// jsdom has no matchMedia. Tests run as reduced-motion: animation loops
+// (hero crosshair, MI pulses) stay off, keeping renders deterministic.
+if (typeof window !== "undefined" && typeof window.matchMedia !== "function") {
+  window.matchMedia = (query: string) =>
+    ({
+      matches: query.includes("prefers-reduced-motion"),
+      media: query,
+      onchange: null,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      dispatchEvent: () => false,
+    }) as MediaQueryList;
+}

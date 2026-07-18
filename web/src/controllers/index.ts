@@ -10,3 +10,4 @@ export * from "./incidents";
 export * from "./slos";
 export * from "./catalog";
 export * from "./settings";
+export * from "./home";

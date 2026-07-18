@@ -11,7 +11,8 @@ export interface IncidentHistoryUpdate {
 }
 
 export interface IncidentHistoryEntryProps {
-  title: string;
+  /** Optional — the landing v2 use-case embed (224:11118) renders updates only. */
+  title?: string;
   updates: IncidentHistoryUpdate[];
   className?: string;
 }
@@ -30,7 +31,7 @@ const PHASE_TINT: Record<IncidentPhase, string> = {
 export function IncidentHistoryEntry({ title, updates, className }: IncidentHistoryEntryProps) {
   return (
     <article className={clsx("font-ui flex flex-col gap-2 border-b border-border py-4", className)}>
-      <h3 className="text-[14px] font-semibold text-text">{title}</h3>
+      {title && <h3 className="text-[14px] font-semibold text-text">{title}</h3>}
       <ol className="flex flex-col gap-2">
         {updates.map((update, i) => (
           <li key={`${update.ts}-${i}`} data-phase={update.phase} className="flex gap-3">
