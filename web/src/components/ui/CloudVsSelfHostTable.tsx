@@ -1,0 +1,94 @@
+"use client";
+
+import { clsx } from "clsx";
+import { Check, Minus } from "lucide-react";
+import { Button } from "./Button";
+
+export interface PlanFeatureRow {
+  feature: string;
+  cloud: boolean;
+  selfHost: boolean;
+}
+
+export interface CloudVsSelfHostTableProps {
+  rows?: PlanFeatureRow[];
+  onTryCloud?: () => void;
+  onSelfHost?: () => void;
+  className?: string;
+}
+
+/** Default rows — MIT copy + “Managed upgrades & backups” per the §8.2b as-built notes. */
+const DEFAULT_ROWS: PlanFeatureRow[] = [
+  { feature: "Every pillar — no feature gates", cloud: true, selfHost: true },
+  { feature: "MIT-licensed source", cloud: true, selfHost: true },
+  { feature: "Your telemetry on your box", cloud: false, selfHost: true },
+  { feature: "Managed upgrades & backups", cloud: true, selfHost: false },
+  { feature: "One-line docker compose install", cloud: false, selfHost: true },
+  { feature: "Zero-ops onboarding", cloud: true, selfHost: false },
+];
+
+/** CloudVsSelfHostTable — §8.2b: 2 plan columns × feature rows + CTA footers (A9). */
+export function CloudVsSelfHostTable({
+  rows = DEFAULT_ROWS,
+  onTryCloud,
+  onSelfHost,
+  className,
+}: CloudVsSelfHostTableProps) {
+  const Mark = ({ yes }: { yes: boolean }) =>
+    yes ? (
+      <Check aria-label="included" className="mx-auto size-4 text-ok" />
+    ) : (
+      <Minus aria-label="not included" className="mx-auto size-4 text-nodata" />
+    );
+
+  return (
+    <table
+      className={clsx(
+        "font-ui w-full max-w-2xl border-collapse overflow-hidden rounded-(--radius) border border-border",
+        className,
+      )}
+    >
+      <thead>
+        <tr className="border-b border-border bg-bg-elev">
+          <th scope="col" className="p-3 text-left text-[13px] font-semibold text-text">
+            Feature
+          </th>
+          <th scope="col" className="w-32 p-3 text-center text-[13px] font-semibold text-text">
+            Cloud
+          </th>
+          <th scope="col" className="w-32 p-3 text-center text-[13px] font-semibold text-text">
+            Self-host
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <tr key={row.feature} className="border-b border-border">
+            <td className="p-3 text-[13px] leading-[1.45] text-text">{row.feature}</td>
+            <td className="p-3 text-center">
+              <Mark yes={row.cloud} />
+            </td>
+            <td className="p-3 text-center">
+              <Mark yes={row.selfHost} />
+            </td>
+          </tr>
+        ))}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td className="p-3" />
+          <td className="p-3 text-center">
+            <Button kind="brand" size="sm" onClick={onTryCloud}>
+              Try Cloud
+            </Button>
+          </td>
+          <td className="p-3 text-center">
+            <Button kind="quiet" size="sm" onClick={onSelfHost}>
+              Self Host
+            </Button>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  );
+}
