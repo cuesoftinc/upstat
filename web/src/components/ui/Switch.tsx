@@ -1,5 +1,6 @@
 "use client";
 
+import * as SwitchPrimitive from "@radix-ui/react-switch";
 import { clsx } from "clsx";
 
 export interface SwitchProps {
@@ -10,7 +11,11 @@ export interface SwitchProps {
   className?: string;
 }
 
-/** Switch — §8.2b standalone: on/off × default/hover/disabled. */
+/**
+ * Switch — §8.2b standalone: on/off × default/hover/disabled.
+ * W2 Radix convergence: role/aria/keyboard ride @radix-ui/react-switch;
+ * track + knob chrome is the W1 Figma-QA'd markup unchanged.
+ */
 export function Switch({
   checked,
   onCheckedChange,
@@ -19,13 +24,11 @@ export function Switch({
   ...aria
 }: SwitchProps) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={aria["aria-label"]}
+    <SwitchPrimitive.Root
+      checked={checked}
+      onCheckedChange={onCheckedChange}
       disabled={disabled}
-      onClick={() => onCheckedChange?.(!checked)}
+      aria-label={aria["aria-label"]}
       className={clsx(
         "relative inline-flex h-4.5 w-8 shrink-0 items-center rounded-full border",
         "transition-colors duration-[var(--duration-base)] ease-standard",
@@ -37,7 +40,7 @@ export function Switch({
         className,
       )}
     >
-      <span
+      <SwitchPrimitive.Thumb
         aria-hidden="true"
         className={clsx(
           "block size-3 rounded-full transition-transform duration-[var(--duration-base)] ease-standard motion-reduce:transition-none",
@@ -45,6 +48,6 @@ export function Switch({
           checked ? "translate-x-[16px] bg-on-brand" : "translate-x-[2px] bg-text-2",
         )}
       />
-    </button>
+    </SwitchPrimitive.Root>
   );
 }
