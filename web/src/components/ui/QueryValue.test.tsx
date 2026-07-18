@@ -4,9 +4,11 @@ import { QueryValue } from "./QueryValue";
 
 describe("QueryValue", () => {
   it("shows the delta chip and threshold tint", () => {
-    render(<QueryValue value="142 ms" deltaPct={-3.4} threshold="warn" />);
-    expect(screen.getByText("142 ms")).toHaveClass("text-warn");
-    expect(screen.getByText("-3.4%")).toBeInTheDocument();
+    const { container } = render(<QueryValue value="142 ms" deltaPct={-3.4} threshold="warn" />);
+    // Figma 70:537 — tint wash carries the threshold, the value stays neutral
+    expect(screen.getByText("142 ms")).toHaveClass("text-text");
+    expect(container.querySelector(".bg-warn\\/8")).not.toBeNull();
+    expect(screen.getByText("▼ 3.4%")).toHaveClass("text-warn");
   });
 
   it("renders the sparkline variant", () => {

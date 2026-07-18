@@ -20,7 +20,8 @@ export function QueryPill({ facet, value, negated = false, onRemove, className }
       className={clsx(
         "font-data inline-flex h-6 items-center gap-1 rounded-(--radius) border border-border",
         "bg-bg-elev px-1.5 text-[12px] text-text",
-        "transition-colors duration-[var(--duration-fast)] ease-standard hover:border-brand",
+        // hover lifts the hairline to text-2 (Figma 40:16)
+        "transition-colors duration-[var(--duration-fast)] ease-standard hover:border-text-2",
         className,
       )}
     >

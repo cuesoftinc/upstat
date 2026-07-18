@@ -2,6 +2,7 @@
 
 import { clsx } from "clsx";
 import type { UptimeDay } from "@/models";
+import { StatusPill, type StatusPillStatus } from "./StatusPill";
 import { Tooltip } from "./Tooltip";
 
 export interface UptimeCardProps {
@@ -10,8 +11,10 @@ export interface UptimeCardProps {
   days: UptimeDay[];
   /** 90-day uptime %, null when nodata. */
   uptimePct: number | null;
-  /** Latency sparkline values (recent response times, ms). */
-  sparkline?: number[];
+  /** p95 response time (ms) for the footer meta (Figma 49:164). */
+  p95Ms?: number;
+  /** Header status pill; derived from the latest day when omitted. */
+  status?: StatusPillStatus;
   className?: string;
 }
 
@@ -22,26 +25,33 @@ function barTint(day: UptimeDay): string {
   return "bg-crit";
 }
 
+function deriveStatus(days: UptimeDay[]): StatusPillStatus {
+  const latest = days[days.length - 1];
+  if (!latest || latest.uptime_pct === null) return "nodata";
+  if (latest.uptime_pct >= 99.9) return "ok";
+  if (latest.uptime_pct >= 98) return "warn";
+  return "crit";
+}
+
 /**
- * UptimeCard — the classic 90-day status strip (§3/§8.2). Bars fill on first
- * render with a 400ms stagger (MI-8); per-day tooltip detail.
+ * UptimeCard — the classic 90-day status strip (§3/§8.2, Figma 49:370):
+ * name + dot-only StatusPill header, 3×24 bars, mono uptime/p95 footer.
+ * Bars fill on first render with a 400ms stagger (MI-8); per-day tooltip.
  */
-export function UptimeCard({ name, days, uptimePct, sparkline, className }: UptimeCardProps) {
+export function UptimeCard({ name, days, uptimePct, p95Ms, status, className }: UptimeCardProps) {
   return (
     <div
       className={clsx(
-        "font-ui flex w-full max-w-xl flex-col gap-2 rounded-(--radius) border border-border bg-bg-elev p-3",
+        "font-ui flex w-full max-w-xl flex-col gap-2.5 rounded-(--radius) border border-border bg-bg-elev p-4",
         className,
       )}
     >
-      <div className="flex items-baseline justify-between gap-2">
+      <div className="flex items-center justify-between gap-2">
         <span className="truncate text-[13px] font-medium text-text">{name}</span>
-        <span className="font-data text-[13px] font-semibold tabular-nums text-text">
-          {uptimePct === null ? "—" : `${uptimePct.toFixed(3)}%`}
-        </span>
+        <StatusPill status={status ?? deriveStatus(days)} dotOnly />
       </div>
 
-      <div className="flex h-8 items-stretch gap-px" role="img" aria-label={`${name} 90-day uptime`}>
+      <div className="flex items-stretch gap-px" role="img" aria-label={`${name} 90-day uptime`}>
         {days.map((day, i) => (
           <Tooltip
             key={day.date}
@@ -56,7 +66,7 @@ export function UptimeCard({ name, days, uptimePct, sparkline, className }: Upti
               data-date={day.date}
               style={{ animationDelay: `${(i / days.length) * 400}ms` }}
               className={clsx(
-                "block h-8 w-1 origin-bottom rounded-[1px]",
+                "block h-6 w-[3px] origin-bottom rounded-[1px]",
                 barTint(day),
                 "animate-[bar-fill_var(--duration-entrance)_var(--ease-standard)_both] motion-reduce:animate-none",
               )}
@@ -65,32 +75,12 @@ export function UptimeCard({ name, days, uptimePct, sparkline, className }: Upti
         ))}
       </div>
 
-      {sparkline && sparkline.length > 1 && (
-        <svg
-          viewBox={`0 0 ${sparkline.length - 1} 24`}
-          preserveAspectRatio="none"
-          aria-label="latency sparkline"
-          className="h-6 w-full"
-          style={{ width: "100%", height: 24 }}
-        >
-          <polyline
-            fill="none"
-            stroke="var(--color-brand)"
-            strokeWidth={1}
-            vectorEffect="non-scaling-stroke"
-            points={sparklinePoints(sparkline)}
-          />
-        </svg>
-      )}
+      <div className="font-data flex items-center justify-between gap-2 text-[12px] tabular-nums">
+        <span className="text-text">
+          {uptimePct === null ? "— uptime" : `${uptimePct.toFixed(3)}% uptime`} · {days.length} days
+        </span>
+        {p95Ms !== undefined && <span className="text-text-2">p95 {p95Ms} ms</span>}
+      </div>
     </div>
   );
-}
-
-function sparklinePoints(values: number[]): string {
-  const max = Math.max(...values, 1);
-  const min = Math.min(...values);
-  const range = Math.max(max - min, 1);
-  return values
-    .map((v, i) => `${i},${24 - ((v - min) / range) * 20 - 2}`)
-    .join(" ");
 }

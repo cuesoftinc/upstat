@@ -42,6 +42,8 @@ export interface GoogleAuthButtonProps {
 /**
  * GoogleAuthButton — the product's single auth CTA (X-1; design.md §8.2b:
  * default / hover / loading). Same name in every CueLABS product.
+ * Google brand button colors are brand-mandated raw values (white /
+ * #1F1F1F / #D9D9D9 — Figma 92:1449), NOT token-bound, in both modes.
  */
 export function GoogleAuthButton({
   onClick,
@@ -56,24 +58,27 @@ export function GoogleAuthButton({
       disabled={disabled || loading}
       aria-busy={loading}
       className={clsx(
-        "font-ui inline-flex h-10 w-full items-center justify-center gap-[var(--space-3)]",
-        "rounded-(--radius) border border-border bg-bg-elev px-[var(--space-4)]",
-        "text-[14px] font-medium text-text",
+        "font-ui inline-flex h-9 w-full items-center justify-center gap-[var(--space-3)]",
+        // raw values: the token theme resets Tailwind's default palette,
+        // so bg-white does not exist — use arbitrary values
+        "rounded-(--radius) border border-[#D9D9D9] bg-[#FFFFFF] px-[var(--space-4)]",
+        "text-[14px] font-medium text-[#1F1F1F]",
         "transition-colors duration-[var(--duration-fast)] ease-standard",
-        "hover:border-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
-        "disabled:cursor-not-allowed disabled:opacity-60",
+        "hover:bg-[#F5F5F5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
+        "disabled:cursor-not-allowed",
+        !loading && "disabled:opacity-60", // loading is busy, not dimmed (Figma 92:1448)
         className,
       )}
     >
       {loading ? (
         <span
           aria-hidden="true"
-          className="inline-block size-[18px] animate-spin rounded-full border-2 border-border border-t-brand motion-reduce:animate-none"
+          className="inline-block size-4 animate-spin rounded-full border-2 border-[#D9D9D9] border-t-brand-deep motion-reduce:animate-none"
         />
       ) : (
         <GoogleGlyph />
       )}
-      <span>{loading ? "Connecting…" : "Continue with Google"}</span>
+      <span>{loading ? "Signing in…" : "Continue with Google"}</span>
     </button>
   );
 }

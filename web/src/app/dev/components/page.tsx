@@ -455,7 +455,7 @@ function GalleryAll() {
           <div className="flex w-72 flex-col gap-[var(--space-2)]">
             <Input placeholder="Monitor name" aria-label="Monitor name" />
             <Input mono defaultValue="service:checkout | p95()" aria-label="Query" />
-            <Input error defaultValue="not-a-url" aria-label="Target" />
+            <Input error errorMessage="Must be a valid HTTPS URL" defaultValue="not-a-url" aria-label="Target" />
             <Input disabled placeholder="Disabled" aria-label="Disabled input" />
           </div>
         </Cell>
@@ -665,7 +665,7 @@ function GalleryAll() {
           </div>
         </Cell>
         <Cell label="UptimeCard 90-day strip (outage + nodata gaps)" grow>
-          <UptimeCard name="upstat.cuesoft.io" days={DAYS_90} uptimePct={99.87} sparkline={SPARKLINE} />
+          <UptimeCard name="upstat.cuesoft.io" days={DAYS_90} uptimePct={99.87} p95Ms={96} />
         </Cell>
         <Cell label="AlertChannelCard webhook/email × health ×3">
           <div className="flex w-96 flex-col gap-[var(--space-2)]">
@@ -807,9 +807,9 @@ function GalleryAll() {
         </Cell>
         <Cell label="ServiceMapNode healthy / erroring / selected">
           <div className="flex gap-[var(--space-4)]">
-            <ServiceMapNode name="api-common" reqPerS={1204} errorRate={0.004} />
-            <ServiceMapNode name="checkout" reqPerS={311} errorRate={0.11} />
-            <ServiceMapNode name="worker" reqPerS={88} errorRate={0.01} selected />
+            <ServiceMapNode name="api-common" reqPerS={1204} errorRate={0.004} colorIndex={0} />
+            <ServiceMapNode name="checkout" reqPerS={311} errorRate={0.11} colorIndex={1} />
+            <ServiceMapNode name="worker" reqPerS={88} errorRate={0.01} colorIndex={2} selected />
           </div>
         </Cell>
       </Section>

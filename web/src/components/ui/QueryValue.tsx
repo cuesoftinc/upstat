@@ -1,7 +1,6 @@
 "use client";
 
 import { clsx } from "clsx";
-import { TrendingDown, TrendingUp } from "lucide-react";
 
 export type QueryValueThreshold = "none" | "ok" | "warn" | "crit";
 
@@ -13,12 +12,30 @@ export interface QueryValueProps {
   deltaPct?: number;
   /** Threshold tint (§8.2). */
   threshold?: QueryValueThreshold;
-  /** Sparkline values. */
+  /** Sparkline values (bound series/1, Figma 70:537). */
   sparkline?: number[];
   className?: string;
 }
 
-/** QueryValue — §8.2: big tabular value + delta chip · threshold tint · sparkline. */
+// 8% tint-bg card wash per threshold (Figma tint-bg, inset −1px).
+const TINT: Record<Exclude<QueryValueThreshold, "none">, string> = {
+  ok: "bg-ok/8",
+  warn: "bg-warn/8",
+  crit: "bg-crit/8",
+};
+
+const DELTA_TEXT: Record<Exclude<QueryValueThreshold, "none">, string> = {
+  ok: "text-ok",
+  warn: "text-warn",
+  crit: "text-crit",
+};
+
+/**
+ * QueryValue — §8.2 dashboard query-value widget body (Figma 70:537):
+ * bg-elev card + threshold tint wash, mono 28 value in text (tint carries
+ * the threshold; the value itself stays neutral), mono ▲/▼ delta,
+ * series/1 sparkline.
+ */
 export function QueryValue({
   value,
   label,
@@ -30,56 +47,52 @@ export function QueryValue({
   return (
     <div
       data-threshold={threshold}
-      className={clsx("font-ui flex flex-col items-start gap-1", className)}
+      className={clsx(
+        "font-ui relative flex w-fit min-w-44 flex-col items-start gap-1.5 overflow-hidden",
+        "rounded-(--radius) border border-border bg-bg-elev p-4",
+        className,
+      )}
     >
-      {label && <span className="text-[12px] text-text-2">{label}</span>}
-      <div className="flex items-baseline gap-2">
-        <span
-          className={clsx(
-            "font-data text-[28px] font-semibold tabular-nums leading-none",
-            threshold === "none" && "text-text",
-            threshold === "ok" && "text-ok",
-            threshold === "warn" && "text-warn",
-            threshold === "crit" && "text-crit",
-          )}
-        >
-          {value}
-        </span>
+      {threshold !== "none" && (
+        <span aria-hidden="true" className={clsx("absolute -inset-px rounded-(--radius)", TINT[threshold])} />
+      )}
+      {label && <span className="relative text-[12px] text-text-2">{label}</span>}
+      <div className="font-data relative flex items-center gap-2.5">
+        <span className="text-[28px] leading-none tabular-nums text-text">{value}</span>
         {deltaPct !== undefined && (
           <span
             className={clsx(
-              "inline-flex items-center gap-0.5 text-[12px] font-medium tabular-nums",
-              deltaPct >= 0 ? "text-ok" : "text-crit",
+              "text-[12px] tabular-nums",
+              threshold !== "none"
+                ? DELTA_TEXT[threshold]
+                : deltaPct >= 0
+                  ? "text-ok"
+                  : "text-crit",
             )}
           >
-            {deltaPct >= 0 ? (
-              <TrendingUp className="size-3" aria-hidden="true" />
-            ) : (
-              <TrendingDown className="size-3" aria-hidden="true" />
-            )}
-            {deltaPct >= 0 ? "+" : ""}
-            {deltaPct.toFixed(1)}%
+            {deltaPct >= 0 ? "▲" : "▼"} {Math.abs(deltaPct).toFixed(1)}%
           </span>
         )}
       </div>
       {sparkline && sparkline.length > 1 && (
         <svg
-          viewBox={`0 0 ${sparkline.length - 1} 20`}
+          viewBox={`0 0 ${sparkline.length - 1} 28`}
           preserveAspectRatio="none"
           aria-hidden="true"
-          style={{ width: 96, height: 20 }}
+          className="relative"
+          style={{ width: 200, height: 28 }}
         >
           <polyline
             fill="none"
-            stroke="var(--color-brand)"
-            strokeWidth={1}
+            stroke="var(--color-series-1)"
+            strokeWidth={1.5}
             vectorEffect="non-scaling-stroke"
             points={sparkline
               .map((v, i) => {
                 const max = Math.max(...sparkline, 1);
                 const min = Math.min(...sparkline);
                 const range = Math.max(max - min, 1);
-                return `${i},${20 - ((v - min) / range) * 16 - 2}`;
+                return `${i},${28 - ((v - min) / range) * 24 - 2}`;
               })
               .join(" ")}
           />

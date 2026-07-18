@@ -26,8 +26,10 @@ const COPY: Record<OverallStatus, string> = {
 
 /** StatusPageHeader — §8.2: overall ×4 + last-updated ts (public page, B7). */
 export function StatusPageHeader({ orgName, overall, lastUpdated, className }: StatusPageHeaderProps) {
+  // Figma 75:862: outages (partial + major) carry crit + x-circle;
+  // only degraded stays warn + triangle.
   const Icon =
-    overall === "operational" ? CheckCircle2 : overall === "major_outage" ? XCircle : AlertTriangle;
+    overall === "operational" ? CheckCircle2 : overall === "degraded" ? AlertTriangle : XCircle;
   return (
     <header
       data-overall={overall}
@@ -39,8 +41,8 @@ export function StatusPageHeader({ orgName, overall, lastUpdated, className }: S
           "flex items-center gap-2 rounded-(--radius) border p-3",
           overall === "operational" && "border-ok/40 bg-ok/10",
           overall === "degraded" && "border-warn/40 bg-warn/10",
-          overall === "partial_outage" && "border-warn/40 bg-warn/10",
-          overall === "major_outage" && "border-crit/40 bg-crit/10",
+          overall === "partial_outage" && "border-crit/40 bg-crit/10",
+          overall === "major_outage" && "border-crit bg-crit/15",
         )}
       >
         <Icon
@@ -48,8 +50,8 @@ export function StatusPageHeader({ orgName, overall, lastUpdated, className }: S
           className={clsx(
             "size-5",
             overall === "operational" && "text-ok",
-            (overall === "degraded" || overall === "partial_outage") && "text-warn",
-            overall === "major_outage" && "text-crit",
+            overall === "degraded" && "text-warn",
+            (overall === "partial_outage" || overall === "major_outage") && "text-crit",
           )}
         />
         <span className="text-[16px] font-semibold text-text">{COPY[overall]}</span>

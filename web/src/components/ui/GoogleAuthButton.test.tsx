@@ -19,7 +19,7 @@ describe("GoogleAuthButton", () => {
   it("shows the loading state and blocks interaction", async () => {
     const onClick = vi.fn();
     render(<GoogleAuthButton onClick={onClick} loading />);
-    const button = screen.getByRole("button", { name: /connecting/i });
+    const button = screen.getByRole("button", { name: /signing in/i });
     expect(button).toBeDisabled();
     expect(button).toHaveAttribute("aria-busy", "true");
     await userEvent.click(button).catch(() => undefined);

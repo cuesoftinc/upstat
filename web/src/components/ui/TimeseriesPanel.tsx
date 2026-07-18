@@ -38,6 +38,11 @@ function formatValue(v: number): string {
   return v % 1 === 0 ? String(v) : v.toFixed(1);
 }
 
+function formatTime(ts: string): string {
+  // hh:mm in UTC — bucketing renders UTC per X-10.
+  return ts.slice(11, 16);
+}
+
 /**
  * TimeseriesPanel — §3/§8.2: bespoke SVG line/area/bars, legend with
  * per-series toggle, synced crosshair (MI-2), loading (axis-first) and
@@ -129,7 +134,9 @@ export function TimeseriesPanel({
       </header>
 
       {loading ? (
-        <Skeleton kind="panel-axis" className={`h-[${plotH}px]`} />
+        // height via style — a template-built `h-[…]` class never reaches
+        // Tailwind's scanner, so it emitted no CSS
+        <Skeleton kind="panel-axis" style={{ height: plotH }} />
       ) : empty ? (
         <EmptyState
           pillar="metrics"
@@ -173,6 +180,28 @@ export function TimeseriesPanel({
               </g>
             );
           })}
+
+          {/* x-axis time labels (mono 11, §2 ramp — Figma 50:100) */}
+          {visible[0] &&
+            [0, 0.25, 0.5, 0.75, 1].map((t) => {
+              const pts = visible[0].points;
+              const idx = Math.round(t * (pts.length - 1));
+              const ts = pts[idx]?.ts;
+              if (!ts) return null;
+              return (
+                <text
+                  key={`x${t}`}
+                  x={PAD_L + t * innerW}
+                  y={plotH - 4}
+                  textAnchor={t === 0 ? "start" : t === 1 ? "end" : "middle"}
+                  fontSize={11}
+                  fill="var(--color-text-2)"
+                  className="font-data tabular-nums"
+                >
+                  {formatTime(ts)}
+                </text>
+              );
+            })}
 
           {/* series */}
           {visible.map((s, si) => {

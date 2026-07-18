@@ -1,7 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
-import { CheckCircle2, Info, XCircle, X } from "lucide-react";
+import { Bell, CheckCircle2, XCircle, X } from "lucide-react";
 
 export type ToastKind = "info" | "success" | "error";
 
@@ -12,8 +12,9 @@ export interface ToastProps {
   className?: string;
 }
 
-const ICONS: Record<ToastKind, typeof Info> = {
-  info: Info,
+// info carries the bell (Figma 38:21 icon/bell), not an info glyph.
+const ICONS: Record<ToastKind, typeof Bell> = {
+  info: Bell,
   success: CheckCircle2,
   error: XCircle,
 };
@@ -27,7 +28,8 @@ export function Toast({ kind = "info", message, onDismiss, className }: ToastPro
       data-kind={kind}
       className={clsx(
         "font-ui z-[var(--z-toast)] flex w-fit min-w-[240px] items-center gap-2 rounded-(--radius)",
-        "border border-border bg-bg-elev px-3 py-2 text-[13px] leading-[1.45] text-text shadow-lg",
+        "border border-border bg-bg-elev px-3 py-2.5 text-[13px] leading-[1.45] text-text",
+        "shadow-[0px_4px_16px_0px_rgba(0,0,0,0.4)]", // Figma 38:42 toast shadow
         className,
       )}
     >

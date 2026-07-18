@@ -5,15 +5,18 @@ import { clsx } from "clsx";
 export interface ServiceMapNodeProps {
   name: string;
   reqPerS: number;
-  /** Error rate 0..1 — drawn as the ring fill (§3 anatomy). */
+  /** Error rate 0..1 — drawn as the circular ring segment (§3 anatomy). */
   errorRate: number;
+  /** Series color index for the service (hexagon stroke, Figma 68:445). */
+  colorIndex?: number;
   selected?: boolean;
   onClick?: () => void;
   className?: string;
 }
 
-const SIZE = 112;
-const R = 44;
+const SIZE = 150;
+const RING_R = 64; // 128px circle (Figma)
+const HEX_R = 48; // 96px hexagon
 
 function hexPoints(cx: number, cy: number, r: number): string {
   return Array.from({ length: 6 }, (_, i) => {
@@ -22,21 +25,29 @@ function hexPoints(cx: number, cy: number, r: number): string {
   }).join(" ");
 }
 
+function formatReq(reqPerS: number): string {
+  return reqPerS >= 1000 ? `${(reqPerS / 1000).toFixed(1)}k` : reqPerS.toFixed(0);
+}
+
 /**
- * ServiceMapNode — §8.2: hexagon (name + req/s + error-% ring) ·
- * healthy / erroring / selected.
+ * ServiceMapNode — §8.2 (Figma 68:445): hexagon stroked in the service
+ * series color inside a circular border ring; ring segment = error %
+ * (crit when erroring, ok sliver otherwise); selected = brand outline +
+ * glow (brand at 45%).
  */
 export function ServiceMapNode({
   name,
   reqPerS,
   errorRate,
+  colorIndex = 0,
   selected = false,
   onClick,
   className,
 }: ServiceMapNodeProps) {
   const erroring = errorRate >= 0.05;
-  const ringLength = 6 * R; // hexagon perimeter approximation for dash math
-  const errorLen = Math.min(Math.max(errorRate, 0), 1) * ringLength;
+  const seriesColor = `var(--color-series-${(colorIndex % 8) + 1})`;
+  const circumference = 2 * Math.PI * RING_R;
+  const arcLen = Math.max(Math.min(errorRate, 1), 0.005) * circumference;
 
   return (
     <button
@@ -49,49 +60,71 @@ export function ServiceMapNode({
         className,
       )}
     >
-      <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} aria-hidden="true">
-        <polygon
-          points={hexPoints(SIZE / 2, SIZE / 2, R)}
-          fill="var(--color-bg-elev)"
-          stroke={selected ? "var(--color-brand)" : "var(--color-border)"}
-          strokeWidth={selected ? 2 : 1}
+      <svg
+        viewBox={`0 0 ${SIZE} ${SIZE}`}
+        style={{ width: SIZE, height: SIZE }}
+        aria-hidden="true"
+      >
+        {/* base ring — hairline circle (Figma stroke 4 border) */}
+        <circle
+          cx={SIZE / 2}
+          cy={SIZE / 2}
+          r={RING_R}
+          fill="none"
+          stroke="var(--color-border)"
+          strokeWidth={4}
         />
-        {/* error ring */}
-        <polygon
-          points={hexPoints(SIZE / 2, SIZE / 2, R)}
+        {/* error segment — starts at 12 o'clock */}
+        <circle
+          cx={SIZE / 2}
+          cy={SIZE / 2}
+          r={RING_R}
           fill="none"
           stroke={erroring ? "var(--color-crit)" : "var(--color-ok)"}
-          strokeWidth={2.5}
-          strokeDasharray={`${errorLen === 0 ? ringLength : errorLen} ${ringLength}`}
-          opacity={errorRate === 0 ? 0.35 : 1}
+          strokeWidth={4}
+          strokeLinecap="round"
+          strokeDasharray={`${arcLen} ${circumference}`}
+          transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}
+        />
+        {/* hexagon in the service series color; brand outline + glow when selected */}
+        <polygon
+          points={hexPoints(SIZE / 2, SIZE / 2, HEX_R)}
+          fill="var(--color-bg-elev)"
+          stroke={selected ? "var(--color-brand)" : seriesColor}
+          strokeWidth={selected ? 2.5 : 2}
+          style={
+            selected
+              ? { filter: "drop-shadow(0 0 8px rgba(0, 224, 158, 0.45))" } // brand glow — effect color not token-bindable (Figma note)
+              : undefined
+          }
         />
         <text
           x={SIZE / 2}
-          y={SIZE / 2 - 4}
+          y={SIZE / 2 - 8}
           textAnchor="middle"
           fontSize={12}
-          fontWeight={600}
+          fontWeight={500}
           fill="var(--color-text)"
         >
           {name.length > 12 ? `${name.slice(0, 11)}…` : name}
         </text>
         <text
           x={SIZE / 2}
-          y={SIZE / 2 + 12}
+          y={SIZE / 2 + 8}
           textAnchor="middle"
           fontSize={11}
           fill="var(--color-text-2)"
-          className="tabular-nums"
+          className="font-data tabular-nums"
         >
-          {reqPerS.toFixed(1)} req/s
+          {formatReq(reqPerS)} req/s
         </text>
         <text
           x={SIZE / 2}
-          y={SIZE / 2 + 26}
+          y={SIZE / 2 + 22}
           textAnchor="middle"
-          fontSize={11}
+          fontSize={10}
           fill={erroring ? "var(--color-crit)" : "var(--color-text-2)"}
-          className="tabular-nums"
+          className="font-data tabular-nums"
         >
           {(errorRate * 100).toFixed(1)}% err
         </text>
