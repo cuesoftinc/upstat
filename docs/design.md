@@ -227,7 +227,10 @@ MI-12); `download` / `upload` (dashboard JSON export/import); `mail` +
 links); `trending-up` / `trending-down` (QueryValue delta chips); `calendar`
 (TimePicker absolute range); `bell-off` (monitor mute, mute windows);
 `pencil` (widget/rule edit); `keyboard` (MI-17 cheatsheet affordance,
-optional). **Brand glyphs** — the Google 'G' for the X-1 auth CTA, the GitHub
+optional). **Added 2026-07-18** — the WidgetTypePicker tiles (§8.2b) add
+four glyphs, named per the naming standard below: `icon/table` (table
+widget), `icon/grid-3x3` (heatmap), `icon/share-2` (service map),
+`icon/type` (markdown). **Brand glyphs** — the Google 'G' for the X-1 auth CTA, the GitHub
 mark, Discord, Slack — are approved additions per the shared-foundations
 iconography rule (§2), **not Lucide**. All four stay on the approved list:
 Google 'G' and GitHub are built; Discord and Slack are in build now
@@ -273,7 +276,7 @@ never on screens. A screen frame must read as the shipped product would.
 | MonitorRow | status ×6 · muted toggle on/off |
 | IncidentBanner | sev1 / sev2 (persistent) · resolved (transient) |
 | SLOCard | healthy / burning (flame) / exhausted |
-| WidgetShell | view / edit (drag handle) / fullscreen |
+| WidgetShell | view / edit (drag handle) / fullscreen — **as built (2026-07-18):** the edit-state body is the real "Choose a visualization" picker strip (WidgetTypePicker `layout=row`, §8.2b), not placeholder art |
 | ServiceMapNode | healthy / erroring (ring %) / selected |
 | Alert forms | channel: webhook / email · unverified / verified / degraded |
 | AlertRuleCard | type: metric-threshold / log-pattern / trace-latency / slo-burn · mono query summary + threshold line (pages.md B "alert rules") |
@@ -308,7 +311,9 @@ Reconciliation (2026-07-17): ServiceCatalogRow, ErrorGroupRow, TraceMinimap,
 and CloudVsSelfHostTable remain **live contracts — in build now**, not
 deferred; likewise the Discord and Slack brand glyphs (§8.1). As-built
 annotations on individual rows below record where the shipped shape
-intentionally differs from the original row text.
+intentionally differs from the original row text. One copy-accuracy note
+spanning rows (2026-07-18): wherever the marketing components mention the
+project license, the copy reads **MIT**.
 
 | Component | Variants × states |
 | --- | --- |
@@ -318,7 +323,7 @@ intentionally differs from the original row text.
 | Modal / Sheet | modal sm/lg · right sheet · header + body slot + footer actions · z `sheet/modal 40` (§2 layers) |
 | CommandPalette / SearchOverlay | empty / results / no-results · result row: icon + label + kbd hint (`/` search, MI-17) |
 | **Primitives** | |
-| Select / DropdownMenu | trigger: default / open / disabled · menu item: default / hover / selected · type-ahead variant for long lists (IANA timezones per X-10) — **as built (2026-07-17):** trigger ×4 (closed / open / open-typeahead / disabled); menu-item states are baked into the open frame, not a separate item set |
+| Select / DropdownMenu | trigger: default / open / disabled · menu item: default / hover / selected · type-ahead variant for long lists (IANA timezones per X-10) — **as built (2026-07-17):** trigger ×4 (closed / open / open-typeahead / disabled); menu-item states are baked into the open frame, not a separate item set — **fixed (2026-07-18):** the master's inner row is set to FILL, so the chevron stays right-pinned at any instance width |
 | Switch (standalone) | on / off × default / hover / disabled — today baked into MonitorRow/SettingsRow only — hover states in build now (2026-07-17); the contract stands |
 | Checkbox (standalone) | checked / unchecked / indeterminate × default / disabled — facet checkboxes stay baked into FacetSidebar |
 | Tooltip | placement top/bottom · text-only / multi-metric rows (throughput · error · latency — service-map edges, uptime bars) |
@@ -327,6 +332,7 @@ intentionally differs from the original row text.
 | CountBadge / BufferedCountChip | bell unread dot+n / buffered "▼ n new" pill (MI-4) · idle / pulse-on-increment |
 | SevChip (standalone) | sev1 / sev2 / sev3 — extracted from IncidentBanner for timeline/composer/feed reuse |
 | GoogleAuthButton | default / hover / loading · Google 'G' glyph + "Continue with Google" — the product's single auth CTA (X-1); renamed from `GoogleSignInCTA` 2026-07-17 per the §8.1 naming standard (same name in every product) |
+| Skeleton | kind: line / value / panel-axis · shimmer sweep — static (no sweep) under `prefers-reduced-motion` per §5 — the Stage-4 loading-frame primitive (§8.1 three-frame rule); iteration-1 addition **[built 2026-07-18]** |
 | **Product rows & overlays** | |
 | APIKeyRow / PropertyKeyRow | kind: ingestion-token (per-pillar scope chips) / property-key (RUM) · active / rotation-grace (24h) / revoked · mono key + copy + rejection-counter cell |
 | MemberRow | avatar + name + email · role select: owner / admin / member · active / invited / disabled |
@@ -339,11 +345,14 @@ intentionally differs from the original row text.
 | ErrorGroupRow | fingerprint msg (mono) + count + sparkline + last-seen · new / ongoing / regressed |
 | ZoomStackChip | depth ×n label · default / hover (reset affordance) — MI-3 zoom breadcrumb; a QueryPill re-skin is acceptable |
 | TraceMinimap | default / span-service highlight (series color) — MI-7 |
+| WidgetTypeCell | state: default / selected · icon + label tile, one per widget type — iteration-1 addition **[built 2026-07-18]** |
+| WidgetTypePicker | layout: row (the in-shell "Choose a visualization" strip) / grid (create-flow modal overlay, pages.md B2) · 11 widget types (the pages.md B2 list) · composes WidgetTypeCell — iteration-1 addition **[built 2026-07-18]** |
 | **Marketing (Stage 5)** | |
-| MarketingNav + PillarDropdown | default / pillar-dropdown open (mini feature map ×8, reuses PillarCard) · GitHub star badge · Sign in + Try Cloud CTAs |
+| MarketingNav + PillarDropdown | default / pillar-dropdown open (mini feature map ×8, reuses PillarCard) · GitHub star badge · Sign in + Try Cloud CTAs — **as built (2026-07-18):** the GitHub badge is neutral — label "Star", no count (no invented figure; the pages.md A13 live star count is runtime behavior) |
 | PillarCard | pillar ×8 (icon + pillar color accent) · default / hover (lift + accent) |
 | CodeSnippet + Tabs | tab: Go / Python / Node / k8s (active/inactive) · copy: idle / copied-check · mono block on `bg-elev` — **as built (2026-07-17):** the tab axis is the variant set; copy idle/copied-check is handled via instance overrides, not a variant dimension |
-| CloudVsSelfHostTable | 2 plan columns × feature rows (check / dash) · per-column CTA footer |
+| CloudVsSelfHostTable | 2 plan columns × feature rows (check / dash) · per-column CTA footer — **as built (2026-07-18):** the row "Managed upgrades & backups" replaced an invented SLA figure |
+| FAQItem | state: expanded / collapsed · 720w accordion, single-open (pages.md A15 FAQ) — iteration-1 addition **[built 2026-07-18]** |
 
 ### 8.3 Design-prep needed from content
 
