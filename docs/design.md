@@ -270,13 +270,13 @@ never on screens. A screen frame must read as the shipped product would.
 | StatusPill | ok / warn / crit (breathing) / nodata / paused / pending · dot+label / dot-only — **[Decided 2026-07-16]** paused → `nodata` tint · pending → `text-2` |
 | TimePicker | preset selected ×6 / custom range open / live (pulsing dot) — built ×3; remaining preset cells covered via instance overrides **[Decided 2026-07-16]** |
 | QueryBar | empty / pills / autocomplete open / syntax-error (red underline + hint) |
-| TimeseriesPanel | line / area / bars · with/without legend · loading (axis-first) / empty (radar sweep MI-16) / crosshair active — built ×9; the full mode × legend × state matrix is covered via instance overrides **[Decided 2026-07-16]** |
+| TimeseriesPanel | line / area / bars · with/without legend · loading (axis-first) / empty (radar sweep MI-16) / crosshair active — built ×9; the full mode × legend × state matrix is covered via instance overrides **[Decided 2026-07-16]** — **as built (2026-07-18 QA loop):** the bar variants inset their plots clear of the axis labels (bars no longer overlap the axis text) |
 | UptimeCard | all-up / with-outage-bars / nodata-gaps · % footer |
 | LogLine | collapsed / expanded (JSON tree) / level ×5 tints — level chip mapping **[Decided 2026-07-16]**: INFO → `brand` · DEBUG → `text-2` · TRACE → `nodata` (ERROR/WARN keep `crit`/`warn`) |
 | MonitorRow | status ×6 · muted toggle on/off |
 | IncidentBanner | sev1 / sev2 (persistent) · resolved (transient) |
 | SLOCard | healthy / burning (flame) / exhausted |
-| WidgetShell | view / edit (drag handle) / fullscreen — **as built (2026-07-18):** the edit-state body is the real "Choose a visualization" picker strip (WidgetTypePicker `layout=row`, §8.2b), not placeholder art |
+| WidgetShell | view / edit (drag handle) / fullscreen — **as built (2026-07-18):** the edit-state body is the real "Choose a visualization" picker strip (WidgetTypePicker `layout=row`, §8.2b), not placeholder art — **as built (2026-07-18 QA loop):** the view-mode master carries a real chart body too (no placeholder in either state) |
 | ServiceMapNode | healthy / erroring (ring %) / selected |
 | Alert forms | channel: webhook / email · unverified / verified / degraded |
 | AlertRuleCard | type: metric-threshold / log-pattern / trace-latency / slo-burn · mono query summary + threshold line (pages.md B "alert rules") |
@@ -290,7 +290,7 @@ never on screens. A screen frame must read as the shipped product would.
 | StatusPageComponentRow | component name + StatusPill + 90-day bar strip + uptime % (UptimeCard technique, public view) |
 | IncidentHistoryEntry | phase: investigating / identified / monitoring / resolved · timestamped update list (status page history + incident timeline) |
 | SettingsRow | label + description + control slot: text / select / toggle · default / disabled (settings screens; org timezone IANA selector per X-10) |
-| EmptyState | per-pillar MI-16 (snippet + radar + docs link) ×4 minimum |
+| EmptyState | per-pillar MI-16 (snippet + radar + docs link) ×4 minimum — **as built (2026-07-18 QA loop):** the traces variant is widened to 660 so the single-line OTLP export snippet fits copy-paste-safe (no line continuation) |
 
 Remaining pages.md widget types compose existing sets inside `WidgetShell`
 (log stream = LogLine list · SLO = SLOCard · status = StatusPill grid ·
@@ -359,3 +359,42 @@ project license, the copy reads **MIT**.
 Synthetic telemetry series (realistic p50/p95 shapes, an outage window, a
 flapping window) for honest-looking panels; log fixture lines; the 90-day
 uptime strip data pattern.
+
+### 8.4 Prototype
+
+> The clickable prototype over the Stage-4/5 screens. Conventions
+> **[Decided 2026-07-18]**, wired and verified during the 2026-07-18 QA
+> loop; later screens wire the same way.
+
+**Flows — named starting points per page.**
+
+- **Dashboard page — flow "Login"**: login → onboarding (create-org →
+  send-your-first-data) → B1 Home → all pillars via the NavRail, plus the
+  create flows (dashboard, monitor, RUM property, declare-incident) and the
+  detail drill-ins (APM service detail, monitor detail, …).
+- **Home page — landing flow**: hero and nav CTAs wired **cross-page** to
+  the Dashboard "Login" flow (move-wire-restore, below); "Read more" links
+  are `SCROLL_TO` anchors within the page.
+- The **public status page is deliberately OUT of the in-app flow**: it is
+  a public URL surface (`status.upstat.cuesoft.io/{slug}`, pages.md B7)
+  with no in-app affordance by design — a separate entry point, not a dead
+  end.
+
+**Wiring conventions.**
+
+- Interactions are `ON_CLICK` → `NAVIGATE`.
+- Transitions: `DISSOLVE` ~150–200ms for nav/tab switches; `SMART_ANIMATE`
+  for pushes/backs (drill-in / drill-out pairs); `AFTER_TIMEOUT` for async
+  verification states (e.g. waiting-for-data resolving to populated).
+- Empty, loading, QA, and index frames stay **out** of the flow by design —
+  the prototype walks the populated product; the three-frame rule's (§8.1)
+  empty/loading frames are documentation states, not stops.
+
+**Reachability.** Verified by BFS over the reaction graph from each flow
+start: every wired frame reachable, no dead ends besides intended
+terminals (§1's "dead-end views are defects" extends to the prototype).
+
+**Cross-page links — move-wire-restore.** The Figma API rejects creating a
+cross-page `NAVIGATE` reaction directly, but reactions persist if the
+source frame is temporarily moved to the destination page, wired there,
+and moved back — the recorded technique behind the Home → Login CTAs.
