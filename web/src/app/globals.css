@@ -1,3 +1,64 @@
+/*
+ * Tailwind 4 entry — theme + utilities only, no preflight: the legacy
+ * styled-components routes (src/app/dashboard/*) stay live until W3 and must
+ * keep their current rendering. The existing `*` reset below covers new
+ * token-based components.
+ */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "../design/tokens.css";
+
+/*
+ * Map design tokens (src/design/tokens.css, design.md §2) into Tailwind
+ * utility namespaces. `inline` keeps Tailwind from re-emitting the vars —
+ * tokens.css stays the single source of truth (dark :root, light override).
+ */
+@theme inline {
+  /* colors → bg-*, text-*, border-*, fill-*, stroke-* utilities */
+  --color-*: initial;
+  --color-bg: var(--color-bg);
+  --color-bg-elev: var(--color-bg-elev);
+  --color-border: var(--color-border);
+  --color-text: var(--color-text);
+  --color-text-2: var(--color-text-2);
+  --color-brand: var(--color-brand);
+  --color-brand-deep: var(--color-brand-deep);
+  --color-on-brand: var(--color-on-brand);
+  --color-ok: var(--color-ok);
+  --color-warn: var(--color-warn);
+  --color-crit: var(--color-crit);
+  --color-nodata: var(--color-nodata);
+  --color-series-1: var(--color-series-1);
+  --color-series-2: var(--color-series-2);
+  --color-series-3: var(--color-series-3);
+  --color-series-4: var(--color-series-4);
+  --color-series-5: var(--color-series-5);
+  --color-series-6: var(--color-series-6);
+  --color-series-7: var(--color-series-7);
+  --color-series-8: var(--color-series-8);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* type — UI: Inter; data/query/code: JetBrains Mono (design.md §2) */
+  --font-ui: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-data: var(--font-jetbrains-mono), ui-monospace, "SF Mono", monospace;
+
+  /* radii — product radius is 4px across the board */
+  --radius-*: initial;
+  --radius: var(--radius);
+  --radius-full: 9999px;
+
+  /* motion */
+  --ease-standard: var(--ease-standard);
+  --ease-exit: var(--ease-exit);
+}
+
+/* ------------------------------------------------------------------ */
+/* Legacy global styles (pre-W0 app) — live until W3 retires the old   */
+/* dashboard routes; do not extend.                                    */
+/* ------------------------------------------------------------------ */
+
 * {
   box-sizing: border-box;
   padding: 0;
@@ -5,7 +66,7 @@
 }
 
 :root {
-  background: #16151C;
+  background: #16151C; /* legacy canvas — new routes paint bg-bg themselves */
   color: white;
   --rem: 16px;
 }

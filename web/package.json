@@ -6,13 +6,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@iconify/react": "^5",
     "@react-oauth/google": "^0.13.5",
     "@tanstack/react-query": "^5.101.2",
     "chart.js": "^4",
+    "clsx": "^2.1.1",
     "google-protobuf": "^3.21",
     "grpc-web": "^1.5",
     "js-cookie": "^3.0.8",
@@ -24,16 +29,23 @@
     "styled-components": "^6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/google-protobuf": "^3.15.12",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.3",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
+    "jsdom": "^29.1.1",
     "tailwindcss": "^4",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
   },
   "overrides": {
     "postcss": "^8.5.10"

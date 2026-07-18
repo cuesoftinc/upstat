@@ -1,0 +1,75 @@
+"use client";
+
+import { useCallback, useState } from "react";
+import {
+  logsRepo,
+  metricsRepo,
+  queryRepo,
+  tracesRepo,
+} from "@/models/repositories";
+import type { LogQueryPage, QueryRequest, QueryResult } from "@/models";
+import { useRequest } from "./use-request";
+
+/** Metrics controller — explorer query + catalog summary (pages.md B3). */
+export function useMetricsController() {
+  const summary = useRequest(() => metricsRepo.summary(), []);
+  const [result, setResult] = useState<QueryResult | null>(null);
+  const [running, setRunning] = useState(false);
+  const [queryError, setQueryError] = useState<string | null>(null);
+
+  const run = useCallback(async (req: QueryRequest) => {
+    setRunning(true);
+    setQueryError(null);
+    try {
+      setResult(await queryRepo.run(req));
+    } catch (e) {
+      setQueryError(e instanceof Error ? e.message : "query_failed");
+    } finally {
+      setRunning(false);
+    }
+  }, []);
+
+  return { summary, result, run, running, queryError };
+}
+
+/** Logs controller — query + cursor pagination + live tail (pages.md B4, MI-4). */
+export function useLogsController(params: { q?: string; from?: string; to?: string }) {
+  const state = useRequest<LogQueryPage>(
+    () => logsRepo.query({ ...params, limit: 100 }),
+    [params.q, params.from, params.to],
+  );
+  const [older, setOlder] = useState<LogQueryPage["events"]>([]);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const loadMore = useCallback(async () => {
+    const cursor = state.data?.next_cursor;
+    if (!cursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const page = await logsRepo.query({ ...params, cursor, limit: 100 });
+      setOlder((prev) => [...prev, ...page.events]);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [state.data?.next_cursor, loadingMore, params]);
+
+  const events = [...(state.data?.events ?? []), ...older];
+  return { ...state, events, loadMore, loadingMore };
+}
+
+/** Traces controller — explorer list + waterfall detail (pages.md B5). */
+export function useTracesController(params: { q?: string; from?: string; to?: string }) {
+  return useRequest(
+    () => tracesRepo.list({ ...params, limit: 50 }),
+    [params.q, params.from, params.to],
+  );
+}
+
+export function useTraceController(traceId: string) {
+  return useRequest(() => tracesRepo.get(traceId), [traceId]);
+}
+
+/** APM service list (pages.md B5). */
+export function useServicesController() {
+  return useRequest(() => tracesRepo.services(), []);
+}
