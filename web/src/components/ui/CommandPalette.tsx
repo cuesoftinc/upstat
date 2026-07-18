@@ -54,7 +54,7 @@ export function CommandPalette({ open, onClose, items, onSelect, className }: Co
     >
       <div
         role="dialog"
-        aria-label="Search"
+        aria-label="Command palette"
         onClick={(e) => e.stopPropagation()}
         className={clsx(
           "font-ui w-[560px] overflow-hidden rounded-(--radius) border border-border bg-bg-elev shadow-xl",
@@ -99,9 +99,11 @@ export function CommandPalette({ open, onClose, items, onSelect, className }: Co
           {results.map((item, i) => {
             const Icon = item.icon;
             return (
-              <li key={item.id} role="option" aria-selected={i === active}>
+              <li key={item.id} role="presentation">
                 <button
                   type="button"
+                  role="option"
+                  aria-selected={i === active}
                   onClick={() => {
                     onSelect?.(item);
                     onClose();

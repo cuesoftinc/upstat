@@ -105,7 +105,11 @@ export function TimeseriesPanel({
     onCursorChange?.(null);
   };
 
-  const empty = !loading && (series.length === 0 || n === 0);
+  // Empty = no data at all — hiding every series via the legend must NOT
+  // flip the panel into the MI-16 empty state (the legend stays operable).
+  const empty =
+    !loading &&
+    (series.length === 0 || series.every((s) => s.points.length === 0));
 
   return (
     <section

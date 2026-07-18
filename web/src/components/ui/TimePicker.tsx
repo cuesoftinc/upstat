@@ -35,7 +35,10 @@ export function TimePicker({ value, onChange, live = false, onLiveChange, classN
           key={preset}
           type="button"
           aria-pressed={value === preset}
-          onClick={() => onChange(preset)}
+          onClick={() => {
+            setCustomOpen(false);
+            onChange(preset);
+          }}
           className={clsx(
             "px-2 text-[12px] font-medium tabular-nums transition-colors duration-[var(--duration-fast)] ease-standard",
             value === preset
@@ -52,8 +55,12 @@ export function TimePicker({ value, onChange, live = false, onLiveChange, classN
           aria-pressed={value === "custom"}
           aria-label="Custom range"
           onClick={() => {
-            setCustomOpen((o) => !o);
+            // Always open the absolute-range panel; presets/Escape close it.
+            setCustomOpen(true);
             onChange("custom");
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setCustomOpen(false);
           }}
           className={clsx(
             "flex items-center gap-1 border-l border-border px-2 text-[12px] font-medium",
@@ -64,7 +71,7 @@ export function TimePicker({ value, onChange, live = false, onLiveChange, classN
           <Calendar aria-hidden="true" className="size-3.5" />
           custom
         </button>
-        {customOpen && value === "custom" && (
+        {customOpen && (
           <div
             role="dialog"
             aria-label="Absolute range"

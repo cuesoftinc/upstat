@@ -30,7 +30,7 @@ describe("QueryBar", () => {
       />,
     );
     await userEvent.click(screen.getByLabelText("Query"));
-    await userEvent.click(screen.getByRole("button", { name: /service: 7/ }));
+    await userEvent.click(screen.getByRole("button", { name: /service:\s*7/ }));
     expect(onPick).toHaveBeenCalledWith({ text: "service:", cardinality: 7 });
   });
 });

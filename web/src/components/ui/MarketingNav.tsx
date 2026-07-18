@@ -48,7 +48,12 @@ export function MarketingNav({ onSignIn, onTryCloud, starCount = null, className
         <button
           type="button"
           aria-expanded={dropdownOpen}
-          onClick={() => setDropdownOpen((o) => !o)}
+          // Open-only: hover already opened it — a toggle would close on the
+          // very click that follows the hover. Escape / mouse-leave close.
+          onClick={() => setDropdownOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setDropdownOpen(false);
+          }}
           className="flex items-center gap-1 rounded-(--radius) px-2 py-1.5 text-[13px] font-medium text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
         >
           Platform
