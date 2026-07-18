@@ -18,9 +18,10 @@ const RULE: AlertRule = {
 
 describe("AlertRuleCard", () => {
   it("shows the mono query + thresholds", () => {
-    render(<AlertRuleCard rule={RULE} />);
+    const { container } = render(<AlertRuleCard rule={RULE} />);
     expect(screen.getByText(RULE.query_string)).toBeInTheDocument();
-    expect(screen.getByText("1500")).toBeInTheDocument();
-    expect(screen.getByText("metric threshold")).toBeInTheDocument();
+    // Figma 69:520 threshold line: `warn > 800 · crit > 1500 · for 5m`
+    expect(screen.getByText(/warn > 800 · crit > 1500 · for 5m/)).toBeInTheDocument();
+    expect(container.querySelector("[data-signal='metric']")).not.toBeNull();
   });
 });

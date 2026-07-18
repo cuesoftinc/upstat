@@ -1,6 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
+import { XCircle } from "lucide-react";
 import type { Span } from "@/models";
 
 export interface SpanRowProps {
@@ -24,8 +25,9 @@ function formatNs(ns: number): string {
 }
 
 /**
- * SpanRow — §8.2: depth indent · service color (series/n) · status ok/error
- * · default/hover/selected; duration label pops on hover (MI-7).
+ * SpanRow — §8.2 (Figma 64:558): depth indent · series color tick + mono
+ * span name · error = 8% crit tint + x-circle + crit bar · selected =
+ * brand outline; duration label pops on hover (MI-7).
  */
 export function SpanRow({
   span,
@@ -39,6 +41,7 @@ export function SpanRow({
   className,
 }: SpanRowProps) {
   const color = `var(--color-series-${(colorIndex % 8) + 1})`;
+  const error = span.status === "error";
   return (
     <button
       type="button"
@@ -48,9 +51,10 @@ export function SpanRow({
       onMouseEnter={() => onHover?.(true)}
       onMouseLeave={() => onHover?.(false)}
       className={clsx(
-        "font-ui group flex h-7 w-full items-center gap-2 border-b border-border px-2 text-left",
+        "font-ui group flex h-7 w-full items-center gap-2 rounded-[3px] px-2 text-left",
         "transition-colors duration-[var(--duration-fast)] ease-standard",
-        selected ? "bg-bg-elev" : "hover:bg-bg-elev",
+        error && "bg-crit/8",
+        selected ? "ring-1 ring-inset ring-brand" : "hover:bg-bg-elev",
         className,
       )}
     >
@@ -58,28 +62,28 @@ export function SpanRow({
         className="flex w-56 shrink-0 items-center gap-1.5 truncate"
         style={{ paddingLeft: depth * 12 }}
       >
+        {error && <XCircle aria-label="error span" className="size-3 shrink-0 text-crit" />}
         <span
           aria-hidden="true"
-          className="size-2 shrink-0 rounded-[1px]"
+          className="h-3.5 w-[3px] shrink-0"
           style={{ background: color }}
         />
-        <span className="truncate text-[12px] text-text">{span.name}</span>
+        <span className="font-data truncate text-[12px] text-text">{span.name}</span>
       </span>
-      <span className="w-20 shrink-0 truncate text-[11px] text-text-2">{span.service}</span>
-      <span className="relative h-3 min-w-0 flex-1 rounded-[1px] bg-bg">
+      <span className="w-20 shrink-0 truncate text-[12px] text-text-2">{span.service}</span>
+      <span className="relative h-4 min-w-0 flex-1">
         <span
-          className={clsx("absolute inset-y-0 rounded-[1px]", span.status === "error" && "outline outline-1 outline-crit")}
+          className="absolute inset-y-[5px] rounded-[2px]"
           style={{
             left: `${offsetFrac * 100}%`,
             width: `${Math.max(widthFrac * 100, 0.5)}%`,
-            background: color,
+            background: error ? "var(--color-crit)" : color,
           }}
         />
       </span>
       <span
         className={clsx(
-          "font-data w-16 shrink-0 text-right text-[11px] tabular-nums",
-          span.status === "error" ? "text-crit" : "text-text-2",
+          "font-data w-16 shrink-0 text-right text-[11px] tabular-nums text-text-2",
           "transition-transform duration-[var(--duration-fast)] ease-standard group-hover:scale-105 motion-reduce:transition-none",
         )}
       >

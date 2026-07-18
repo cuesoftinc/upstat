@@ -19,7 +19,7 @@ export function SLOCard({ slo, className }: SLOCardProps) {
     <div
       data-state={slo.state}
       className={clsx(
-        "font-ui flex w-64 flex-col gap-2 rounded-(--radius) border border-border bg-bg-elev p-3",
+        "font-ui flex w-64 flex-col gap-2 rounded-(--radius) border border-border bg-bg-elev p-4",
         className,
       )}
     >
@@ -31,10 +31,13 @@ export function SLOCard({ slo, className }: SLOCardProps) {
       </div>
 
       <div className="flex items-baseline gap-2">
+        {/* Figma 48:95: Inter semibold 20, colored per state (ok/warn/crit) */}
         <span
           className={clsx(
-            "font-data text-[20px] font-semibold tabular-nums",
-            slo.state === "exhausted" ? "text-crit" : "text-text",
+            "text-[20px] font-semibold tabular-nums",
+            slo.state === "healthy" && "text-ok",
+            slo.state === "burning" && "text-warn",
+            slo.state === "exhausted" && "text-crit",
           )}
         >
           {slo.current.toFixed(2)}%
@@ -51,7 +54,7 @@ export function SLOCard({ slo, className }: SLOCardProps) {
         aria-valuenow={budget}
         aria-valuemin={0}
         aria-valuemax={100}
-        className="h-1.5 w-full overflow-hidden rounded-full bg-bg"
+        className="h-1.5 w-full overflow-hidden rounded-full bg-border"
       >
         <div
           style={{ width: `${budget}%` }}
@@ -64,10 +67,10 @@ export function SLOCard({ slo, className }: SLOCardProps) {
         />
       </div>
 
-      <div className="flex items-center justify-between text-[11px] tabular-nums text-text-2">
-        <span>{budget.toFixed(0)}% budget left</span>
-        <span>burn ×{slo.burn_rate.toFixed(1)}</span>
-      </div>
+      {/* single meta line (Figma 48:71) */}
+      <span className="text-[12px] tabular-nums text-text-2">
+        error budget {budget.toFixed(0)}% left · burn {slo.burn_rate.toFixed(1)}×
+      </span>
     </div>
   );
 }

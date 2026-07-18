@@ -20,13 +20,14 @@ export interface StatusPillProps {
   className?: string;
 }
 
+// Figma 39:51 — labels are the uppercase status names.
 const LABELS: Record<StatusPillStatus, string> = {
-  ok: "up",
-  warn: "degraded",
-  crit: "down",
-  nodata: "no data",
-  paused: "paused",
-  pending: "pending",
+  ok: "OK",
+  warn: "WARN",
+  crit: "CRIT",
+  nodata: "NO DATA",
+  paused: "PAUSED",
+  pending: "PENDING",
 };
 
 // Decided 2026-07-16: paused → nodata tint · pending → text-2.
@@ -48,16 +49,30 @@ const TEXT: Record<StatusPillStatus, string> = {
   pending: "text-text-2",
 };
 
+// 14% tint container in the status color (Figma tint-bg).
+const TINT: Record<StatusPillStatus, string> = {
+  ok: "bg-ok/14",
+  warn: "bg-warn/14",
+  crit: "bg-crit/14",
+  nodata: "bg-nodata/14",
+  paused: "bg-nodata/14",
+  pending: "bg-text-2/14",
+};
+
 /**
- * StatusPill — status semantics are sacred (§2). Breathing animation only
- * while crit (MI-8); disabled under prefers-reduced-motion (§5).
+ * StatusPill — status semantics are sacred (§2). 14% tint container +
+ * status-colored dot/label (Figma 39:51). Breathing animation only while
+ * crit (MI-8: dot scale 1→1.25→1, ~1.6s); disabled under
+ * prefers-reduced-motion (§5).
  */
 export function StatusPill({ status, dotOnly = false, label, className }: StatusPillProps) {
   return (
     <span
       data-status={status}
       className={clsx(
-        "font-ui inline-flex items-center gap-1.5 text-[12px] font-medium",
+        "font-ui inline-flex items-center gap-1.5 rounded-(--radius) text-[12px] font-medium",
+        dotOnly ? "p-[5px]" : "px-2 py-[3px]",
+        TINT[status],
         TEXT[status],
         className,
       )}
@@ -67,7 +82,8 @@ export function StatusPill({ status, dotOnly = false, label, className }: Status
         className={clsx(
           "inline-block size-2 rounded-full",
           DOT[status],
-          status === "crit" && "animate-pulse motion-reduce:animate-none",
+          status === "crit" &&
+            "animate-[breathe_1.6s_var(--ease-standard)_infinite] motion-reduce:animate-none",
         )}
       />
       {!dotOnly && <span>{label ?? LABELS[status]}</span>}

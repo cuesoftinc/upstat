@@ -5,14 +5,14 @@ import { StatusPill } from "./StatusPill";
 describe("StatusPill", () => {
   it("breathes only while crit (MI-8)", () => {
     const { container, rerender } = render(<StatusPill status="crit" />);
-    expect(container.querySelector(".animate-pulse")).not.toBeNull();
+    expect(container.querySelector("[class*='breathe']")).not.toBeNull();
     rerender(<StatusPill status="ok" />);
-    expect(container.querySelector(".animate-pulse")).toBeNull();
+    expect(container.querySelector("[class*='breathe']")).toBeNull();
   });
 
   it("keeps an accessible label in dot-only mode", () => {
     render(<StatusPill status="paused" dotOnly />);
-    expect(screen.getByText("paused")).toHaveClass("sr-only");
+    expect(screen.getByText("PAUSED")).toHaveClass("sr-only");
   });
 
   it("renders all six statuses", () => {

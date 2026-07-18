@@ -4,7 +4,7 @@
  * keep their current rendering. The existing `*` reset below covers new
  * token-based components.
  */
-@layer theme, base, components, utilities;
+@layer theme, base, legacy, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "../design/tokens.css";
@@ -54,8 +54,36 @@
   --ease-exit: var(--ease-exit);
 }
 
+/*
+ * Minimal control reset for the token component library. Tailwind preflight
+ * is off (legacy routes), so UA button chrome (ButtonFace background, 2px
+ * outset border, centered system text) leaked into every bg-less <button>
+ * row/chip. Layered `base` keeps this below utilities; legacy
+ * styled-components rules are unlayered and still win where they declare.
+ */
+@layer base {
+  button {
+    background-color: transparent;
+    border: 0 solid;
+    color: inherit;
+    font: inherit;
+    text-align: inherit;
+  }
+}
+
 /* Component-library keyframes (design.md §4 MIs; consumers pair these
    with motion-reduce fallbacks). */
+@keyframes breathe {
+  /* MI-8: crit dot breathes 1→1.25→1, ~1.6s loop */
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+}
+
 @keyframes bar-fill {
   from {
     transform: scaleY(0);
@@ -97,62 +125,70 @@
 /* ------------------------------------------------------------------ */
 /* Legacy global styles (pre-W0 app) — live until W3 retires the old   */
 /* dashboard routes; do not extend.                                    */
+/* Layered `legacy` (below components/utilities): previously these     */
+/* were unlayered and silently overrode every Tailwind utility         */
+/* (`* { padding: 0 }` nuked padding/margin utilities and              */
+/* `svg { width: 24px }` collapsed every class-sized chart). Legacy    */
+/* routes are styled-components-only                                   */
+/* (unlayered ⇒ still win over this layer), so their rendering is      */
+/* unchanged.                                                          */
 /* ------------------------------------------------------------------ */
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
+@layer legacy {
+  * {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
 
-:root {
-  background: #16151C; /* legacy canvas — new routes paint bg-bg themselves */
-  color: white;
-  --rem: 16px;
-}
+  :root {
+    background: #16151C; /* legacy canvas — new routes paint bg-bg themselves */
+    color: white;
+    --rem: 16px;
+  }
 
-body {
-  font-family: "Poppins", sans-serif;
-}
+  body {
+    font-family: "Poppins", sans-serif;
+  }
 
-main {
-  display: flex;
-  min-width: 100vw;
-}
+  main {
+    display: flex;
+    min-width: 100vw;
+  }
 
-.content {
+  .content {
+    width: 100%;
+    overflow: auto;
+  }
 
-  width: 100%;
-  overflow: auto;
-}
+  a {
+    color: inherit;
+    cursor: pointer;
+    text-decoration: none;
+  }
 
-a {
-  color: inherit;
-  cursor: pointer;
-  text-decoration: none;
-}
+  button { cursor: pointer;}
 
-button { cursor: pointer;}
+  svg {
+    width: 24px;
+    height: 24px;
+  }
 
-svg {
-  width: 24px;
-  height: 24px;
-}
+  .dummy-classname {
+    height: 80%;
+    display: grid;
+    place-content: center;
+    color: #fff;
+    height: 100%;
+    background: #16151C;
+  }
 
-.dummy-classname {
-  height: 80%;
-  display: grid;
-  place-content: center;
-  color: #fff;
-  height: 100%;
-  background: #16151C;
-}
+  .axis-bottom-text {
+    color: white;
+  }
 
-.axis-bottom-text {
-  color: white;
-}
-
-html, body {
-  overflow-x: hidden;
-  max-width: 100%;
+  html, body {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
 }
