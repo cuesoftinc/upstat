@@ -91,10 +91,10 @@ design-phase QA loops, design.md §8).
 
 | Stage | Scope | Closes when |
 | --- | --- | --- |
-| **W0 Foundations** | `tokens.css` (§3) + Tailwind mapping · Inter/JetBrains Mono via `next/font` + the §2 type ramp in the Tailwind theme · MVC skeleton (`models/`, `controllers/`, `components/ui/`) · `AuthProvider` interface + `TestModeAuthProvider` · new `/login` (single GoogleAuthButton screen) with the legacy login/signup pages quarantined per X-1 (§8) · mock server + seed dataset (§5–6) · Vitest + Playwright harnesses wired into CI build+test (UX-5) | tokens render both themes correctly vs the Style Guide page (dark default); TEST_MODE boots to a stubbed `/app` against the mock server; `/signup` gone from routing (flows/auth.md); CI green |
+| **W0 Foundations** | `tokens.css` (§3) + Tailwind mapping · Inter/JetBrains Mono via `next/font` + the §2 type ramp in the Tailwind theme · MVC skeleton (`models/`, `controllers/`, `components/ui/`) · `AuthProvider` interface + `TestModeAuthProvider` · new `/signin` (single GoogleAuthButton screen; the ONLY auth route per the route standard) with the legacy login/signup pages quarantined per X-1 (§8) · mock server + seed dataset (§5–6) · Vitest + Playwright harnesses wired into CI build+test (UX-5) | tokens render both themes correctly vs the Style Guide page (dark default); TEST_MODE boots to a stubbed `/dashboard` against the mock server; `/signup` gone from routing (flows/auth.md); CI green |
 | **W1 Components** | `components/ui/*` per the design.md §8.1 build order (Stage 1 atoms → Stage 2 molecules → Stage 3 panels/chrome) and the §8.2/§8.2b contract rows — the bespoke-SVG chart set included · MI specs MI-1…MI-18 · unit tests per component. The §8.2b Marketing (Stage 5) rows land at the top of W2 instead — they have no consumer before it | every built component passes QA vs its Figma component set (variants, states, both themes, motion specs) |
 | **W2 Home** | Marketing kit (§8.2b Stage-5 rows) · Part A screens (§4): A1–A10 + iteration rows A11–A16 · demo cards on §8.3 synthetic data (U0-3) · live GitHub star fetch at runtime (A1 badge + A13 — no static count, per the as-built MarketingNav note) · dogfood instrumentation: `page_view` per the api.md §3.4 registry row, env-gated until the events layer (Phase 1) is live; CTA-click events are registered in the §3.4 master registry **before** W2 instruments them (registry-first discipline, api.md §3.4a) | QA vs the Stage-5 Figma page; Playwright covers the landing flow (§8.4) incl. the cross-page CTA handoff into the app |
-| **W3 Dashboards** | Part B routes (§4) under the new `/app` IA: NavRail (12 pillars) + TopBar chrome · first-run onboarding (create-org → send-your-first-data, MI-16) · B1–B12 screens with their create flows (dashboard + widget picker, monitor type-picker → rule editor, RUM property, declare-incident modal) and drill-ins · public status page route · feature controllers per pillar · legacy dashboard quarantine on close (§8) | QA vs the Stage-4 Figma frames + §8.4 prototype flows; Playwright covers the §8.4 "Login" journey (§7); `/dashboard/*` + mock `/api/dashboard/*` quarantined |
+| **W3 Dashboards** | Part B routes (§4) under the `/dashboard` IA: NavRail (12 pillars) + TopBar chrome · first-run onboarding (create-org → send-your-first-data, MI-16) · B1–B12 screens with their create flows (dashboard + widget picker, monitor type-picker → rule editor, RUM property, declare-incident modal) and drill-ins · public status page route · feature controllers per pillar · legacy dashboard quarantine on close (§8) | QA vs the Stage-4 Figma frames + §8.4 prototype flows; Playwright covers the §8.4 "Login" journey (§7); remaining legacy component trees + mock `/api/dashboard/*` quarantined (the legacy `/dashboard/*` routes moved to `src/legacy` at W1, §8) |
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
@@ -133,29 +133,30 @@ values, latencies, counts — per the §2 `tnum` rule.
 
 ## 4. Route map — pages.md Part A/B → app routes
 
-The new IA mounts at **`/app`** **[Proposed]** — not the legacy
-`/dashboard` — so the existing dashboard tree stays live and untouched
-through W0–W2 (§8) with zero route collisions; W3 replaces the IA at `/app`
-and `/dashboard/*` quarantines. Rail order per pages.md Part B.
+The new IA mounts at **`/dashboard`** **[Directive 2026-07-18, route
+standard]** — `/` home · `/signin` the only auth route · all app surfaces
+under `/dashboard/<area>`, canonical across the CueLABS products. The
+legacy dashboard tree quarantined to `src/legacy/app/dashboard` at W1 to
+free the path (§8). Rail order per pages.md Part B.
 
 | pages.md | Route | Screen |
 | --- | --- | --- |
 | Part A (A1–A16) | `/` | Public home page |
-| flows/auth.md · design.md §8.1 Stage 4 | `/login` | Single auth screen — GoogleAuthButton + legal links (X-1; `/signup` retires, §8) |
-| B1 | `/app` | Home — org health: incidents banner (MI-14), triggered monitors, SLO burn (MI-15), watched dashboards |
-| B1 first-run | `/app/onboarding` | create-org (name + IANA timezone, X-10) → send-your-first-data (ingestion key + snippet + MI-16 waiting-for-data; resolves to `/app` on first datapoint) |
-| B2 | `/app/dashboards` · `/app/dashboards/{id}` | List (org-shared, favorites) · grid editor (MI-11/12); create flow = name → widget-picker overlay → edit mode |
-| B3 | `/app/metrics` · `/app/metrics/summary` | Metrics explorer (QueryBar + MI-2/3, save-to-dashboard) · metrics catalog/tag explorer |
-| B4 | `/app/logs` | Logs explorer — FacetSidebar + QueryBar + virtualized LogLine list + histogram (MI-4/5/6) |
-| B5 | `/app/traces` · `/app/traces/services/{service}` · `/app/traces/explorer` · `/app/traces/map` | Service list · service page (endpoints, latency distribution, deps) · trace explorer + TraceWaterfall/span drawer (MI-7) · service map |
-| B6 | `/app/rum` · `/app/rum/new` | RUM/analytics (pages, vitals, errors) · property create (key issuance + SDK snippet) |
-| B7 | `/app/uptime` · `/app/uptime/{id}` | Uptime checks (the absorbed monitor core) · per-monitor page (90d strip, response-time chart, incidents, insight panel) |
-| B7 public | `status.upstat.cuesoft.io/{slug}` → `/status/{slug}` | Public status page — host-based rewrite onto the same app **[Proposed]**; unauthenticated, deliberately outside `/app` (a separate entry point, design.md §8.4) |
-| B8 | `/app/monitors` · `/app/monitors/new` · `/app/monitors/{id}` | Monitors list + triggered feed (MI-14) · type picker → rule editor · detail with MI-9 test-replay frame |
-| B9 | `/app/incidents` · `/app/incidents/{id}` | Incident feed · timeline composer (MI-10); declare-incident is a modal, not a route |
-| B10 | `/app/slos` | SLO list + define (SLI source, target, window) |
-| B11 | `/app/services` | Service catalog (telemetry-presence, owner, repo/runbook) |
-| B12 | `/app/settings` + sub-screens `/app/settings/members` · `/app/settings/keys` · `/app/settings/properties` · `/app/settings/integrations` · `/app/settings/retention` · `/app/settings/org` | Org/members/roles · API keys & ingestion tokens · property keys · integrations · retention per signal · org profile (IANA timezone, X-10) |
+| flows/auth.md · design.md §8.1 Stage 4 | `/signin` | Single auth screen — GoogleAuthButton + legal links (X-1; `/signup` retires, §8; `/login` 308-redirects here) |
+| B1 | `/dashboard` | Home — org health: incidents banner (MI-14), triggered monitors, SLO burn (MI-15), watched dashboards |
+| B1 first-run | `/dashboard/onboarding` | create-org (name + IANA timezone, X-10) → send-your-first-data (ingestion key + snippet + MI-16 waiting-for-data; resolves to `/dashboard` on first datapoint) |
+| B2 | `/dashboard/dashboards` · `/dashboard/dashboards/{id}` | List (org-shared, favorites) · grid editor (MI-11/12); create flow = name → widget-picker overlay → edit mode |
+| B3 | `/dashboard/metrics` · `/dashboard/metrics/summary` | Metrics explorer (QueryBar + MI-2/3, save-to-dashboard) · metrics catalog/tag explorer |
+| B4 | `/dashboard/logs` | Logs explorer — FacetSidebar + QueryBar + virtualized LogLine list + histogram (MI-4/5/6) |
+| B5 | `/dashboard/traces` · `/dashboard/traces/services/{service}` · `/dashboard/traces/explorer` · `/dashboard/traces/map` | Service list · service page (endpoints, latency distribution, deps) · trace explorer + TraceWaterfall/span drawer (MI-7) · service map |
+| B6 | `/dashboard/rum` · `/dashboard/rum/new` | RUM/analytics (pages, vitals, errors) · property create (key issuance + SDK snippet) |
+| B7 | `/dashboard/uptime` · `/dashboard/uptime/{id}` | Uptime checks (the absorbed monitor core) · per-monitor page (90d strip, response-time chart, incidents, insight panel) |
+| B7 public | `status.upstat.cuesoft.io/{slug}` → `/status/{slug}` | Public status page — host-based rewrite onto the same app **[Proposed]**; unauthenticated, deliberately outside `/dashboard` (a separate entry point, design.md §8.4) |
+| B8 | `/dashboard/monitors` · `/dashboard/monitors/new` · `/dashboard/monitors/{id}` | Monitors list + triggered feed (MI-14) · type picker → rule editor · detail with MI-9 test-replay frame |
+| B9 | `/dashboard/incidents` · `/dashboard/incidents/{id}` | Incident feed · timeline composer (MI-10); declare-incident is a modal, not a route |
+| B10 | `/dashboard/slos` | SLO list + define (SLI source, target, window) |
+| B11 | `/dashboard/services` | Service catalog (telemetry-presence, owner, repo/runbook) |
+| B12 | `/dashboard/settings` + sub-screens `/dashboard/settings/members` · `/dashboard/settings/keys` · `/dashboard/settings/properties` · `/dashboard/settings/integrations` · `/dashboard/settings/retention` · `/dashboard/settings/org` | Org/members/roles · API keys & ingestion tokens · property keys · integrations · retention per signal · org profile (IANA timezone, X-10) |
 
 Part C (mobile on-call companion) has no web routes — later phase, out of
 W0–W3 (§8). Deep-linkable state rides the query string, not new routes:
@@ -169,7 +170,7 @@ query duality; MI-1 back/forward restore).
 on it:
 
 1. **Auth**: the `AuthProvider` resolves to `TestModeAuthProvider` —
-   GoogleAuthButton navigates straight to `/app` as the seeded test user
+   GoogleAuthButton navigates straight to `/dashboard` as the seeded test user
    (§6, owner of the seeded org), no Firebase SDK loaded, no popup. The
    interface is identical to the future `FirebaseAuthProvider` (X-1
    Google-only, bearer-token shape preserved), so backend integration swaps
@@ -277,20 +278,23 @@ each timed to the decision that obsoletes the code:
 
 1. **W0 — auth (X-1).** `src/app/login/` and `src/app/signup/` (the
    username/password screens) `git mv` → `src/legacy/` in the W0 PR;
-   the new `/login` (single GoogleAuthButton, §4) replaces them —
+   the new `/signin` (single GoogleAuthButton, §4; renamed from `/login` at W1 per the route standard, with a 308 redirect kept) replaces them —
    flows/auth.md: `/signup` retires, Google-only product-wide. Retirement
    PR after the W0 QA loop passes.
-2. **W3 — the dashboard IA (ANA-002).** The legacy `/dashboard/*` routes
-   (traffic, bounce, seo, pageloadtime, error, uptime, help, settings),
-   their component trees (`components/uptime`, `components/traffic`,
-   `components/pages`, `shared-layouts`, the styled-components
-   theme/registry), and the mock `/api/dashboard/*` route handlers
-   (api.md §1: scaffolding, not product surface) **stay live through
-   W0–W2** — they are the current product, and the new IA mounts at `/app`
-   (§4) precisely so they can. When W3 closes its QA loop, the whole tree
-   quarantines → `src/legacy/`, then retires in dedicated
-   `chore(web): retire legacy <area>` PRs; the styled-components and
-   chart-library dependencies drop with the retirement PRs.
+2. **W1/W3 — the dashboard IA (ANA-002).** The legacy `/dashboard/*` route
+   tree (traffic, bounce, seo, pageloadtime, error, uptime, help, settings)
+   plus the legacy `NavBar`/`MenuBar`/`ProtectedRoute` (they linked the
+   retired `/login` with the old auth context) quarantined →
+   `src/legacy/` **at W1** — the route standard mounts the new IA at
+   `/dashboard` (§4), so the legacy tree had to vacate the path early.
+   The remaining legacy component trees (`components/uptime`,
+   `components/traffic`, `components/pages`, `shared-layouts`, the
+   styled-components theme/registry — the live `/` home still renders
+   some) and the mock `/api/dashboard/*` route handlers (api.md §1:
+   scaffolding, not product surface) quarantine when W3 closes its QA
+   loop, then retire in dedicated `chore(web): retire legacy <area>` PRs;
+   the styled-components and chart-library dependencies drop with the
+   retirement PRs.
 3. **monitors-v2 (OBS-006) — the gRPC-Web client (X-8).** `src/proto/*`,
    `src/client.ts`, and the gRPC libs (`components/libs/grpc`) are
    monitor/user **control-plane code, not UI** — X-8 keeps the existing
@@ -313,7 +317,7 @@ policy — when that phase opens.
       code comment)
 - [ ] W0–W3 each closed by a Figma QA loop before merge; deviations landed
       in docs + the org SKILL.md
-- [ ] TEST_MODE boots to `/app` with the §6 seed rendering the
+- [ ] TEST_MODE boots to `/dashboard` with the §6 seed rendering the
       Figma-coherent narrative; no Firebase loaded; the empty-org path
       reaches onboarding + MI-16 states
 - [ ] Every mocked endpoint speaks the engineering.md envelope with catalog

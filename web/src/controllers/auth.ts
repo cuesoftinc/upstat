@@ -19,7 +19,7 @@ export function useAuthController() {
     setError(null);
     try {
       await getAuthProvider().signInWithGoogle();
-      router.push("/app");
+      router.push("/dashboard");
     } catch (e) {
       setError(e instanceof Error ? e.message : "sign_in_failed");
       setLoading(false);
@@ -28,7 +28,7 @@ export function useAuthController() {
 
   const signOut = useCallback(async () => {
     await getAuthProvider().signOut();
-    router.push("/login");
+    router.push("/signin");
   }, [router]);
 
   return { signInWithGoogle, signOut, loading, error };

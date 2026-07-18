@@ -169,7 +169,9 @@ export function parseQuery(q: string): ParsedQuery | { error: string } {
       }
       const facet = term.slice(0, idx);
       const value = term.slice(idx + 1).replace(/^"|"$/g, "");
-      const facetRoot = facet.split(".")[0].replace(/^@/, "@");
+      // Root segment before any dot — `metric.tags` roots to `metric`.
+      // (@-prefixed facets are allowed wholesale by the check below.)
+      const facetRoot = facet.split(".")[0];
       if (
         !KNOWN_FACETS.has(facet) &&
         !facet.startsWith("trace.") &&

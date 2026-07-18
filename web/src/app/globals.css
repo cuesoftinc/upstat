@@ -54,6 +54,46 @@
   --ease-exit: var(--ease-exit);
 }
 
+/* Component-library keyframes (design.md §4 MIs; consumers pair these
+   with motion-reduce fallbacks). */
+@keyframes bar-fill {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateY(-4px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes radar-sweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* Legacy global styles (pre-W0 app) — live until W3 retires the old   */
 /* dashboard routes; do not extend.                                    */

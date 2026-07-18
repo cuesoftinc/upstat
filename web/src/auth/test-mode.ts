@@ -11,7 +11,7 @@ const STORAGE_KEY = "upstat_test_session";
 /**
  * TEST_MODE auth (`NEXT_PUBLIC_TEST_MODE=1`): no Firebase, no network —
  * sign-in immediately establishes a deterministic session so Playwright and
- * local dev go straight from /login to the app.
+ * local dev go straight from /signin to /dashboard.
  */
 export class TestModeAuthProvider implements AuthProvider {
   async signInWithGoogle(): Promise<AuthUser> {

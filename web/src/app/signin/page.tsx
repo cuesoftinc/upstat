@@ -4,15 +4,16 @@ import { useAuthController } from "@/controllers/auth";
 import { GoogleAuthButton } from "@/components/ui/GoogleAuthButton";
 
 /**
- * /login — the single auth screen (X-1: Google sign-in only, product-wide;
- * flows/auth.md). One CTA, nothing else. /signup is retired.
+ * /signin — the single auth screen (X-1: Google sign-in only, product-wide;
+ * flows/auth.md; route standard: /signin is the only auth route). One CTA,
+ * nothing else. /signup is retired; /login 308-redirects here.
  */
-export default function LoginPage() {
+export default function SignInPage() {
   const { signInWithGoogle, loading, error } = useAuthController();
 
   return (
     <div
-      data-testid="login-screen"
+      data-testid="signin-screen"
       className="font-ui flex min-h-screen items-center justify-center bg-bg px-[var(--space-4)] text-text"
     >
       <main className="flex w-full max-w-[360px] flex-col gap-[var(--space-6)]">
