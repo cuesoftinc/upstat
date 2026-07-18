@@ -1,0 +1,87 @@
+/*
+ * Upstat design tokens — mirrors docs/design.md §2 exactly.
+ *
+ * DARK is the product default (`:root` carries the dark values — dashboards
+ * and marketing default dark per the existing landing); light mode is a
+ * manual override via `[data-theme="light"]`. There is deliberately no
+ * `prefers-color-scheme` auto-switch: the product is dark-primary and theme
+ * is an explicit user choice.
+ *
+ * No raw hex anywhere else in the app — components consume these variables
+ * (documented exceptions carry a code comment, e.g. destructive-fill labels
+ * stay raw #FFFFFF pending an `on-crit` token, design.md §2).
+ */
+
+:root {
+  /* ---- Color (dark — default theme) ---- */
+  --color-bg: #0e1113; /* canvas */
+  --color-bg-elev: #171b1e; /* panels, cells */
+  --color-border: #262c30; /* hairlines */
+  --color-text: #edeef2; /* primary */
+  --color-text-2: #9ba0ac; /* secondary */
+  --color-brand: #00e09e; /* nav, CTAs, focus */
+  --color-brand-deep: #00a991; /* hover/active brand states */
+  --color-on-brand: #0e1113; /* labels/knobs on brand fills ONLY — dark ink in both modes */
+  --color-ok: #3dcc70; /* up / passing */
+  --color-warn: #ffb020; /* degraded / warn thresholds */
+  --color-crit: #ff5c5c; /* down / alerting */
+  --color-nodata: #5c6270; /* no data / muted monitors */
+
+  /* ---- Series palette (8-step categorical; same both themes) ---- */
+  --color-series-1: #7c6cf0;
+  --color-series-2: #00b4d8;
+  --color-series-3: #f4a259;
+  --color-series-4: #e86a92;
+  --color-series-5: #43aa8b;
+  --color-series-6: #b5179e;
+  --color-series-7: #ffca3a;
+  --color-series-8: #4361ee;
+
+  /* ---- Spacing (4px base grid — no off-scale values) ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ---- Radii ---- */
+  --radius: 4px;
+
+  /* ---- Motion durations ---- */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --duration-entrance: 250ms;
+
+  /* ---- Motion easing ---- */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* ---- Z-index layers (nothing outside these six) ---- */
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-dropdown: 20;
+  --z-overlay: 30;
+  --z-modal: 40; /* sheet/modal */
+  --z-toast: 50;
+}
+
+/* Light mode — manual override only (dark-primary product rule). */
+[data-theme="light"] {
+  --color-bg: #ffffff;
+  --color-bg-elev: #f7f8fa;
+  --color-border: #e4e6eb;
+  --color-text: #1b1d22;
+  --color-text-2: #6b6f7b;
+  --color-brand: #00e09e;
+  --color-brand-deep: #00a991;
+  --color-on-brand: #0e1113; /* dark ink in BOTH modes [Decided 2026-07-16] */
+  --color-ok: #2e9950;
+  --color-warn: #c77d00;
+  --color-crit: #d32f2f;
+  --color-nodata: #9aa0aa;
+  /* series palette is identical in both themes (validated ≥3:1 on both bg values) */
+}

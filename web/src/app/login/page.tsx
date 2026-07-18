@@ -1,66 +1,43 @@
 "use client";
 
+import { useAuthController } from "@/controllers/auth";
+import { GoogleAuthButton } from "@/components/ui/GoogleAuthButton";
 
-import { useRef } from "react";
-import { ThemeProvider } from "styled-components";
-import { GoogleLogin } from "@react-oauth/google";
-import { darkTheme } from "@/components/libs/dashboard-theme";
-import { Icon } from "@iconify/react";
-import Image from "next/image";
-import women from "@/assets/images/women.png";
-import Notification from "@/components/ui/notification/Notification";
-import { useGoogleAuth } from "@/components/hooks/use-google-auth";
-import {
-    LoginContainer,
-    FormSection,
-    FormHeading,
-    GoogleBtn,
-    HiddenGoogleButtonWrapper,
-} from "./login.styles";
-
+/**
+ * /login — the single auth screen (X-1: Google sign-in only, product-wide;
+ * flows/auth.md). One CTA, nothing else. /signup is retired.
+ */
 export default function LoginPage() {
-    const { handleBackendAuthentication, handleAuthError, isLoading, error } = useGoogleAuth();
-    const hiddenButtonRef = useRef<HTMLDivElement>(null);
+  const { signInWithGoogle, loading, error } = useAuthController();
 
-    const triggerGoogleLogin = () => {
-        const realButton = hiddenButtonRef.current?.querySelector(
-            'div[role="button"]'
-        ) as HTMLElement | null;
-        realButton?.click();
-    };
+  return (
+    <div
+      data-testid="login-screen"
+      className="font-ui flex min-h-screen items-center justify-center bg-bg px-[var(--space-4)] text-text"
+    >
+      <main className="flex w-full max-w-[360px] flex-col gap-[var(--space-6)]">
+        <header className="flex flex-col gap-[var(--space-2)]">
+          <span
+            aria-hidden="true"
+            className="mb-[var(--space-2)] inline-flex size-8 items-center justify-center rounded-(--radius) bg-brand text-[15px] font-semibold text-on-brand"
+          >
+            U
+          </span>
+          <h1 className="text-[20px] font-semibold">Sign in to Upstat</h1>
+          <p className="text-[13px] leading-[1.45] text-text-2">
+            Continue with your Google account — it&apos;s the only sign-in
+            Upstat has.
+          </p>
+        </header>
 
-    return (
-        <ThemeProvider theme={darkTheme}>
-            <LoginContainer>
+        <GoogleAuthButton onClick={() => void signInWithGoogle()} loading={loading} />
 
-                <Image
-                    src={women}
-                    alt="women-talking"
-                    className="login-illustration"
-                    priority
-                />
-
-                <FormSection>
-                    <FormHeading>
-                        <h1>Log in to Upstat</h1>
-                        <p>Welcome back. Sign in or create an account to get started.</p>
-                        {error !== "" && <Notification msg={error} type="error" />}
-                    </FormHeading>
-
-                    <GoogleBtn disabled={isLoading} onClick={triggerGoogleLogin}>
-                        <Icon icon="flat-color-icons:google" />
-                        <span>{isLoading ? "Connecting..." : "Continue with Google"}</span>
-                    </GoogleBtn>
-
-                    <HiddenGoogleButtonWrapper ref={hiddenButtonRef}>
-                        <GoogleLogin
-                            onSuccess={handleBackendAuthentication}
-                            onError={handleAuthError}
-                        />
-                    </HiddenGoogleButtonWrapper>
-                </FormSection>
-
-            </LoginContainer>
-        </ThemeProvider>
-    );
+        {error && (
+          <p role="alert" className="text-[13px] leading-[1.45] text-crit">
+            Sign-in failed. Please try again.
+          </p>
+        )}
+      </main>
+    </div>
+  );
 }
