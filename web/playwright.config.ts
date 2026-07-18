@@ -24,7 +24,7 @@ export default defineConfig({
   ],
   webServer: {
     command: `npm run dev -- -p ${PORT} --hostname 127.0.0.1`,
-    url: `http://127.0.0.1:${PORT}/login`,
+    url: `http://127.0.0.1:${PORT}/signin`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {

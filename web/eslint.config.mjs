@@ -18,9 +18,10 @@ const eslintConfig = defineConfig([
     // Live legacy trees (pre-W0 app; W3 quarantine targets). They predate
     // CI and carry pre-existing lint errors — new-system code stays fully
     // linted, legacy is not retro-fixed (it gets replaced, not patched).
-    "src/app/dashboard/**",
+    // (The legacy /dashboard pages + NavBar/MenuBar/ProtectedRoute moved to
+    // src/legacy at W1 per the route standard; src/app/dashboard and
+    // src/app/page.tsx are new-system code and fully linted.)
     "src/app/api/dashboard/**",
-    "src/app/page.tsx",
     "src/app/not-found.tsx",
     "src/app/not-found.styles.ts",
     "src/client.ts",
