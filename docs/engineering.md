@@ -71,6 +71,9 @@ dispatch cooldown cache); `429 rate_limited` + `Retry-After` (cataloged §1).
 | E2E smoke (release tag) | signin → create monitor → down-simulation → alert → recover | against sandbox in release.yml; uses a controllable target service |
 | Privacy invariants | events pipeline | raw IP/UA absent from storage + logs (grep + storage-scan test) |
 
+Web implementation (MVC boundaries, TEST_MODE, mock server, Vitest/Playwright
+layers, legacy policy) follows [web-implementation.md](web-implementation.md).
+
 ## 5. Logging & observability (dogfooding rule)
 
 Ecosystem conventions (request-id line, ids not emails). **Never-log list**
