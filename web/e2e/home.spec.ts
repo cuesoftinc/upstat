@@ -292,6 +292,11 @@ test("mobile nav is a menu-button disclosure at 390w (SKILL.md mobile clause)", 
   }).toPass({ timeout: 15_000 });
   await expect(menuButton).toHaveAttribute("aria-expanded", "true");
 
+  // the panel never overflows the viewport (floating-layer collision sweep)
+  const panelBox = (await panel.boundingBox())!;
+  expect(panelBox.x).toBeGreaterThanOrEqual(0);
+  expect(panelBox.x + panelBox.width).toBeLessThanOrEqual(390);
+
   // every canonical link is reachable from the panel — no dead ends <md
   for (const [label, href] of [
     ["Features", "/#pillars"],

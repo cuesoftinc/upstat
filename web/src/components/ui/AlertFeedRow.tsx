@@ -88,7 +88,9 @@ function NotificationPanel({
       role="dialog"
       aria-label="Notifications"
       className={clsx(
-        "font-ui z-[var(--z-dropdown)] w-96 overflow-hidden rounded-(--radius) border border-border bg-bg-elev shadow-lg",
+        // max-w clamp: right-anchored near the viewport edge, the panel must
+        // never overflow the screen (review class 2026-07-19, expendit)
+        "font-ui z-[var(--z-dropdown)] w-96 max-w-[calc(100vw-16px)] overflow-hidden rounded-(--radius) border border-border bg-bg-elev shadow-lg",
         className,
       )}
     >
@@ -126,7 +128,7 @@ export function NotificationPopover({
     <Popover.Root open={open} onOpenChange={onOpenChange}>
       <Popover.Trigger asChild>{trigger}</Popover.Trigger>
       <Popover.Portal>
-        <Popover.Content side="bottom" align="end" sideOffset={4} asChild>
+        <Popover.Content side="bottom" align="end" sideOffset={4} collisionPadding={8} asChild>
           <NotificationPanel events={events} onEventClick={onEventClick} className={className} />
         </Popover.Content>
       </Popover.Portal>

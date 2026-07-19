@@ -75,7 +75,9 @@ export function TimePicker({ value, onChange, live = false, onLiveChange, classN
           <div
             role="dialog"
             aria-label="Absolute range"
-            className="absolute right-0 top-full z-[var(--z-dropdown)] mt-1 flex w-64 flex-col gap-2 rounded-(--radius) border border-border bg-bg-elev p-3 shadow-lg"
+            // max-w clamp: right-anchored in the TopBar — the panel must
+            // never overflow the screen (review class 2026-07-19, expendit)
+            className="absolute right-0 top-full z-[var(--z-dropdown)] mt-1 flex w-64 max-w-[calc(100vw-16px)] flex-col gap-2 rounded-(--radius) border border-border bg-bg-elev p-3 shadow-lg"
           >
             <label className="flex flex-col gap-1 text-[12px] text-text-2">
               From
