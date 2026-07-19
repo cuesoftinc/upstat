@@ -7,6 +7,8 @@ import {
   BarChart3,
   Bell,
   BookOpen,
+  ChevronsLeft,
+  ChevronsRight,
   Flame,
   Gauge,
   House,
@@ -16,7 +18,7 @@ import {
   Settings,
   Target,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export interface NavRailItemProps {
   icon: LucideIcon;
@@ -24,10 +26,24 @@ export interface NavRailItemProps {
   active?: boolean;
   href?: string;
   onClick?: () => void;
+  /** layout=expanded — icon + inline label row, no flyout (design.md §2
+   *  [Directive 2026-07-19] expandable rail). Default stays the 56px rail
+   *  behavior, so existing call sites are untouched. */
+  expanded?: boolean;
 }
 
-/** NavRailItem — §8.2b: default / hover (flyout label) / active (brand accent). */
-export function NavRailItem({ icon: Icon, label, active = false, onClick }: NavRailItemProps) {
+/**
+ * NavRailItem — §8.2b: default / hover (flyout label) / active (brand
+ * accent bar + brand icon, both layouts). `expanded` renders the 228px
+ * icon+label row ([Directive 2026-07-19]); collapsed keeps the flyout.
+ */
+export function NavRailItem({
+  icon: Icon,
+  label,
+  active = false,
+  onClick,
+  expanded = false,
+}: NavRailItemProps) {
   const [hover, setHover] = useState(false);
   return (
     <div className="relative">
@@ -39,16 +55,27 @@ export function NavRailItem({ icon: Icon, label, active = false, onClick }: NavR
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
         className={clsx(
-          "flex size-10 items-center justify-center rounded-(--radius)",
+          "relative flex h-10 items-center rounded-(--radius)",
+          expanded ? "w-full gap-3 px-2.5 text-left" : "size-10 justify-center",
           "transition-colors duration-[var(--duration-fast)] ease-standard",
           active
             ? "bg-brand/15 text-brand"
             : "text-text-2 hover:bg-bg-elev hover:text-text",
         )}
       >
-        <Icon className="size-5" strokeWidth={active ? 2.2 : 2} />
+        {/* active = brand accent bar + brand icon in both states (§2) */}
+        {active && (
+          <span
+            aria-hidden="true"
+            className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-brand"
+          />
+        )}
+        <Icon className="size-5 shrink-0" strokeWidth={active ? 2.2 : 2} />
+        {expanded && (
+          <span className="truncate text-[13px] font-medium">{label}</span>
+        )}
       </button>
-      {hover && (
+      {!expanded && hover && (
         <span
           role="tooltip"
           className={clsx(
@@ -80,38 +107,158 @@ export const NAV_PILLARS: { key: string; label: string; icon: LucideIcon }[] = [
   { key: "settings", label: "Settings", icon: Settings },
 ];
 
+/**
+ * Pillar section groups (design.md §2 Telemetry / Respond / Platform,
+ * [Directive 2026-07-19]) — B-order preserved; Home stays ungrouped at
+ * the top of the rail.
+ */
+export const NAV_SECTIONS: { title: string | null; keys: string[] }[] = [
+  { title: null, keys: ["home"] },
+  { title: "Telemetry", keys: ["dashboards", "metrics", "logs", "traces", "rum", "uptime"] },
+  { title: "Respond", keys: ["monitors", "incidents", "slos"] },
+  { title: "Platform", keys: ["catalog", "settings"] },
+];
+
+/** design.md §2: the persisted expansion choice. */
+const EXPANDED_STORAGE_KEY = "nav.rail.expanded";
+/** Expanded is the default at ≥1280px; collapsed below (design.md §2). */
+const EXPAND_DEFAULT_QUERY = "(min-width: 1280px)";
+
+/**
+ * Rail expansion state — persisted per user (localStorage), defaulting by
+ * viewport. Resolved after mount: SSR renders collapsed, so hydration
+ * stays deterministic.
+ */
+function useRailExpanded(): [boolean, () => void] {
+  const [expanded, setExpanded] = useState(false);
+
+  // Deferred a tick (use-request pattern): setState stays out of the
+  // synchronous effect body.
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      try {
+        const stored = window.localStorage.getItem(EXPANDED_STORAGE_KEY);
+        if (stored !== null) {
+          setExpanded(stored === "1");
+          return;
+        }
+      } catch {
+        /* storage unavailable (private mode) — fall through to viewport */
+      }
+      setExpanded(window.matchMedia(EXPAND_DEFAULT_QUERY).matches);
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, []);
+
+  const toggle = () => {
+    setExpanded((prev) => {
+      const next = !prev;
+      try {
+        window.localStorage.setItem(EXPANDED_STORAGE_KEY, next ? "1" : "0");
+      } catch {
+        /* non-persistent environments still toggle in-memory */
+      }
+      return next;
+    });
+  };
+
+  return [expanded, toggle];
+}
+
 export interface NavRailProps {
   activeKey: string;
   onNavigate?: (key: string) => void;
   className?: string;
 }
 
-/** NavRail — 56px icon rail with flyout labels (§2 layout; §8.2b chrome). */
+/**
+ * NavRail — product nav (design.md §2, [Directive 2026-07-19] expandable
+ * rail supersedes flyout-only): collapsed 56px icon rail ⇄ expanded 240px
+ * icon+label rows in Telemetry/Respond/Platform groups. Foot chevron
+ * toggles; the choice persists (`nav.rail.expanded`); expanded is the
+ * ≥1280px default.
+ */
 export function NavRail({ activeKey, onNavigate, className }: NavRailProps) {
+  const [expanded, toggleExpanded] = useRailExpanded();
+  const byKey = new Map(NAV_PILLARS.map((p) => [p.key, p]));
   return (
     <nav
       aria-label="Product navigation"
+      data-expanded={expanded}
       className={clsx(
-        "sticky top-0 z-[var(--z-sticky)] flex h-screen w-14 flex-col items-center gap-1",
+        "sticky top-0 z-[var(--z-sticky)] flex h-dvh flex-col gap-1",
         "border-r border-border bg-bg py-2",
+        "transition-[width] duration-[var(--duration-base)] ease-standard motion-reduce:transition-none",
+        expanded ? "w-60 items-stretch px-1.5" : "w-14 items-center",
         className,
       )}
     >
       <span
         aria-hidden="true"
-        className="font-ui mb-2 flex size-8 items-center justify-center rounded-(--radius) bg-brand text-[14px] font-semibold text-on-brand"
+        className={clsx(
+          "font-ui mb-2 flex h-8 items-center gap-2",
+          expanded ? "px-1" : "justify-center",
+        )}
       >
-        U
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-(--radius) bg-brand text-[14px] font-semibold text-on-brand">
+          U
+        </span>
+        {expanded && <span className="text-[14px] font-semibold text-text">upstat</span>}
       </span>
-      {NAV_PILLARS.map((pillar) => (
-        <NavRailItem
-          key={pillar.key}
-          icon={pillar.icon}
-          label={pillar.label}
-          active={pillar.key === activeKey}
-          onClick={() => onNavigate?.(pillar.key)}
-        />
+
+      {NAV_SECTIONS.map((section) => (
+        <div
+          key={section.title ?? "top"}
+          className={clsx("flex flex-col gap-1", expanded ? "items-stretch" : "items-center")}
+        >
+          {section.title ? (
+            expanded ? (
+              <span className="mt-3 px-2.5 pb-1 text-[11px] font-medium uppercase tracking-wide text-text-2">
+                {section.title}
+              </span>
+            ) : (
+              // collapsed keeps the grouping legible as hairline breaks
+              <span aria-hidden="true" className="my-1.5 h-px w-6 bg-border" />
+            )
+          ) : null}
+          {section.keys.map((key) => {
+            const pillar = byKey.get(key);
+            if (!pillar) return null;
+            return (
+              <NavRailItem
+                key={pillar.key}
+                icon={pillar.icon}
+                label={pillar.label}
+                active={pillar.key === activeKey}
+                expanded={expanded}
+                onClick={() => onNavigate?.(pillar.key)}
+              />
+            );
+          })}
+        </div>
       ))}
+
+      <button
+        type="button"
+        data-testid="rail-toggle"
+        aria-label={expanded ? "Collapse navigation" : "Expand navigation"}
+        aria-expanded={expanded}
+        onClick={toggleExpanded}
+        className={clsx(
+          "mt-auto flex h-9 items-center rounded-(--radius) text-text-2",
+          "transition-colors duration-[var(--duration-fast)] ease-standard hover:bg-bg-elev hover:text-text",
+          expanded ? "w-full gap-3 px-2.5" : "size-9 justify-center",
+        )}
+      >
+        {expanded ? (
+          <>
+            <ChevronsLeft aria-hidden="true" className="size-4.5 shrink-0" />
+            <span className="truncate text-[12px]">Collapse</span>
+          </>
+        ) : (
+          <ChevronsRight aria-hidden="true" className="size-4.5" />
+        )}
+      </button>
     </nav>
   );
 }
