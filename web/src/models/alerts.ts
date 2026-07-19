@@ -1,4 +1,4 @@
-import type { QueryAst } from "./query";
+import type { QueryAst, Series } from "./query";
 
 /** Alerting — data-model.md §5 MONITOR_RULE / §2 ALERT_CHANNEL; pages.md B8. */
 
@@ -45,6 +45,24 @@ export interface AlertRule {
   notify: AlertNotify;
   state: AlertRuleState;
   last_triggered_at: string | null;
+}
+
+/**
+ * MI-9 test replay — `POST /v1/rules/{id}/test` (and the uptime-monitor
+ * variant): the last 24h re-evaluated against the thresholds, returning
+ * trigger bands + would-have-fired markers for the ThresholdOverlay.
+ */
+export interface RuleTestResult {
+  query_string: string;
+  thresholds: AlertThresholds;
+  /** 24h replay series (first series is the evaluated one). */
+  series: Series[];
+  step: string;
+  /** Contiguous threshold breaches, band-tinted warn/crit. */
+  bands: { level: "warn" | "crit"; from: string; to: string }[];
+  /** Would-have-fired timestamps (crit-band starts, cooldown-degated). */
+  markers: string[];
+  would_have_fired: number;
 }
 
 export type AlertEventSev = "sev1" | "sev2" | "resolved";

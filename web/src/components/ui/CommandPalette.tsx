@@ -36,12 +36,18 @@ export function CommandPalette({ open, onClose, items, onSelect, className }: Co
     [items, query],
   );
 
-  useEffect(() => {
+  // reset on open transition — render-phase derive (no setState-in-effect)
+  const [wasOpen, setWasOpen] = useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
     if (open) {
       setQuery("");
       setActive(0);
-      inputRef.current?.focus();
     }
+  }
+
+  useEffect(() => {
+    if (open) inputRef.current?.focus();
   }, [open]);
 
   if (!open) return null;

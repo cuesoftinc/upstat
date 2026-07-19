@@ -1,10 +1,10 @@
 /*
- * Tailwind 4 entry — theme + utilities only, no preflight: the legacy
- * styled-components routes (src/app/dashboard/*) stay live until W3 and must
- * keep their current rendering. The existing `*` reset below covers new
- * token-based components.
+ * Tailwind 4 entry — theme + utilities only, no preflight (the base layer
+ * below carries the minimal reset the token components were built on).
+ * The W3 tranche quarantined the last styled-components routes, so the
+ * former `legacy` layer is gone — only token styles remain.
  */
-@layer theme, base, legacy, components, utilities;
+@layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "../design/tokens.css";
@@ -69,6 +69,25 @@
     font: inherit;
     text-align: inherit;
   }
+
+  /*
+   * The W3 semantic-HTML pass renders real lists (ul/ol) and definition
+   * lists everywhere rows repeat; with preflight off, UA markers/indent
+   * leaked in. Marker styling is opt-in per component (TopList's <ol>
+   * renders its own ranks).
+   */
+  ul,
+  ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  dl,
+  dt,
+  dd,
+  figure {
+    margin: 0;
+  }
 }
 
 /* Component-library keyframes (design.md §4 MIs; consumers pair these
@@ -123,43 +142,25 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* Legacy global styles (pre-W0 app) — live until W3 retires the old   */
-/* dashboard routes; do not extend.                                    */
-/* Layered `legacy` (below components/utilities): previously these     */
-/* were unlayered and silently overrode every Tailwind utility         */
-/* (`* { padding: 0 }` nuked padding/margin utilities and              */
-/* `svg { width: 24px }` collapsed every class-sized chart). Legacy    */
-/* routes are styled-components-only                                   */
-/* (unlayered ⇒ still win over this layer), so their rendering is      */
-/* unchanged.                                                          */
+/* Base reset — Tailwind preflight stays off (historical choice, W0);   */
+/* this is the minimal reset the token components were built against.   */
+/* The old `legacy` layer (Poppins body, raw-hex canvas, svg sizing,     */
+/* .dummy-classname) left with the W3 tranche — its routes live in       */
+/* src/legacy now, styled by their own styled-components.                */
 /* ------------------------------------------------------------------ */
 
-@layer legacy {
+@layer base {
   * {
     box-sizing: border-box;
     padding: 0;
     margin: 0;
   }
 
-  :root {
-    background: #16151C; /* legacy canvas — new routes paint bg-bg themselves */
-    color: white;
-    --rem: 16px;
-  }
-
   body {
-    font-family: "Poppins", sans-serif;
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
   }
-
-  /*
-   * The legacy app-shell rules (`main { display: flex; min-width: 100vw }`
-   * and `.content`) are GONE, not just layered: `min-width` beats
-   * `max-width` as a property conflict regardless of cascade layers, so the
-   * old `main` rule forced every live <main> (signin's 360px column,
-   * dashboard's 960px column) to viewport width. Nothing routed uses them —
-   * the legacy tree is quarantined in src/legacy (its own dashboard.css
-   * keeps an inert copy for W3 reference).
-   */
 
   a {
     color: inherit;
@@ -167,25 +168,7 @@
     text-decoration: none;
   }
 
-  button { cursor: pointer;}
-
-  svg {
-    width: 24px;
-    height: 24px;
-  }
-
-  .dummy-classname {
-    height: 80%;
-    display: grid;
-    place-content: center;
-    color: #fff;
-    height: 100%;
-    background: #16151C;
-  }
-
-  .axis-bottom-text {
-    color: white;
-  }
+  button { cursor: pointer; }
 
   html, body {
     overflow-x: hidden;

@@ -13,25 +13,34 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     // Quarantined legacy trees — excluded from build & routing per the
-    // legacy policy; retired in dedicated PRs later.
+    // legacy policy (web-implementation.md §8); retired in dedicated
+    // `chore(web): retire legacy <area>` PRs later.
     "src/legacy/**",
-    // Live legacy trees (pre-W0 app; W3 quarantine targets). They predate
-    // CI and carry pre-existing lint errors — new-system code stays fully
-    // linted, legacy is not retro-fixed (it gets replaced, not patched).
-    // (The legacy /dashboard pages + NavBar/MenuBar/ProtectedRoute moved to
-    // src/legacy at W1 per the route standard; src/app/dashboard and
-    // src/app/page.tsx are new-system code and fully linted.)
-    "src/app/api/dashboard/**",
-    "src/app/not-found.tsx",
-    "src/app/not-found.styles.ts",
+    // X-8 exception (§8 tranche 3): the gRPC-Web control-plane client
+    // stays in place until monitors-v2 — not UI, not retro-linted.
     "src/client.ts",
     "src/proto/**",
-    "src/data/**",
-    "src/types/**",
-    "src/components/**",
-    "!src/components/ui",
-    "!src/components/ui/*.tsx",
+    "src/components/libs/grpc/**",
   ]),
+  // W3 enforcement gate (paired with scripts/check-boundaries.mjs):
+  // src/legacy is quarantined — no live import may reach it.
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/legacy/**", "@/legacy/**"],
+              message:
+                "src/legacy is quarantined (web-implementation.md §8) — live code must not import it.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;

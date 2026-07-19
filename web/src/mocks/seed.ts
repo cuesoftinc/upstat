@@ -18,13 +18,14 @@ import type {
   MetricSummary,
   Monitor,
   Org,
+  SavedView,
   ServiceCatalogEntry,
   Slo,
   TimelineEntry,
   Trace,
   TraceSummary,
 } from "@/models";
-import { DAY, HOUR, MINUTE, iso, mulberry32, hashSeed } from "./util";
+import { DAY, HOUR, MINUTE, SECOND, iso, mulberry32, hashSeed, nextId } from "./util";
 import { SERVICES, type OutageWindow } from "./series";
 
 export const HERO_TRACE_ID = "9f86d081884c7d659a2feaa0c55ad015";
@@ -34,6 +35,15 @@ export interface MockDb {
   outage: OutageWindow;
   org: Org;
   onboarding: { org_created: boolean; has_data: boolean; ingest_key: string };
+  /**
+   * Fresh-org first-datapoint ETA (ms epoch) — the mock resolves the
+   * waiting-for-data state to populated on a timer, mirroring the
+   * prototype's AFTER_TIMEOUT convention (web-implementation.md §6).
+   * `null` on the primary seed (data was always flowing).
+   */
+  firstDataAtMs: number | null;
+  /** Public status-page slug (pages.md B7 — owner-chosen, unique). */
+  statusSlug: string | null;
   members: Member[];
   dashboards: Dashboard[];
   monitors: Monitor[];
@@ -45,8 +55,9 @@ export interface MockDb {
   slos: Slo[];
   catalog: ServiceCatalogEntry[];
   keys: ApiKey[];
+  views: SavedView[];
   metricCatalog: MetricSummary[];
-  heroTrace: Trace;
+  heroTrace: Trace | null;
   traceSummaries: TraceSummary[];
   errorGroups: ErrorGroup[];
 }
@@ -773,11 +784,34 @@ export function buildSeed(now: number): MockDb {
     },
   ];
 
+  // Saved views (MI-18) — one org-shared (avatar stack), one personal.
+  const views: SavedView[] = [
+    {
+      id: "view_checkout_errors",
+      name: "Checkout errors",
+      scope: "org",
+      surface: "logs",
+      query: "service:checkout level:ERROR",
+      shared_with: ["Kemi", "Tola"],
+      created_at: iso(now - 12 * DAY),
+    },
+    {
+      id: "view_ingest_latency",
+      name: "Ingest latency",
+      scope: "personal",
+      surface: "metrics",
+      query: "metric:http.request.duration_ms service:ingest-gw | p95()",
+      created_at: iso(now - 5 * DAY),
+    },
+  ];
+
   return {
     seededAt: now,
     outage,
     org,
     onboarding: { org_created: true, has_data: true, ingest_key: "uk_live_3f2a…c91d" },
+    firstDataAtMs: null,
+    statusSlug: "upstat",
     members,
     dashboards,
     monitors,
@@ -789,10 +823,81 @@ export function buildSeed(now: number): MockDb {
     slos,
     catalog,
     keys,
+    views,
     metricCatalog,
     heroTrace,
     traceSummaries,
     errorGroups,
+  };
+}
+
+/** Delay before a fresh org "receives" its first datapoint (AFTER_TIMEOUT). */
+export const FIRST_DATA_DELAY_MS = 6 * SECOND;
+
+/** What a fresh org's metrics catalog looks like once data starts flowing. */
+export function starterMetricCatalog(now: number): MetricSummary[] {
+  return [
+    { name: "http.request.duration_ms", type: "distribution", unit: "ms", cardinality: 24, ingestion_rate_per_s: 12, last_seen: iso(now), tags: ["service", "env"] },
+    { name: "http.requests_total", type: "count", cardinality: 16, ingestion_rate_per_s: 12, last_seen: iso(now), tags: ["service", "env", "status"] },
+    { name: "process.cpu.percent", type: "gauge", unit: "%", cardinality: 4, ingestion_rate_per_s: 2, last_seen: iso(now), tags: ["service", "host"] },
+  ];
+}
+
+/**
+ * Empty store for a freshly created org — the B1 first-run narrative:
+ * no entities anywhere, onboarding waiting for data (MI-16 radar), the
+ * telemetry endpoints gated until `firstDataAtMs` passes.
+ */
+export function buildEmptySeed(now: number, name: string, timezone: string): MockDb {
+  const org: Org = {
+    id: nextId("org"),
+    name,
+    timezone: timezone || "UTC",
+    created_at: iso(now),
+  };
+  const r = mulberry32(hashSeed(`ingest:${org.id}`));
+  const ingestKey = `uk_test_${Math.floor(r() * 0xffff)
+    .toString(16)
+    .padStart(4, "0")}…${Math.floor(r() * 0xffff)
+    .toString(16)
+    .padStart(4, "0")}`;
+  return {
+    seededAt: now,
+    // no incident narrative — a zeroed window keeps the generators calm
+    outage: { start: 0, end: 0, services: [] },
+    org,
+    onboarding: { org_created: true, has_data: false, ingest_key: ingestKey },
+    firstDataAtMs: now + FIRST_DATA_DELAY_MS,
+    statusSlug: null,
+    members: [
+      { id: "usr_ibukun", name: "Ibukun", email: "ibukun@cuesoft.io", role: "owner", status: "active" },
+    ],
+    dashboards: [],
+    monitors: [],
+    channels: [],
+    rules: [],
+    alertFeed: [],
+    incidents: [],
+    timelines: {},
+    slos: [],
+    catalog: [],
+    keys: [
+      {
+        id: nextId("key"),
+        kind: "ingestion_token",
+        name: `${name} ingest`,
+        scope: "all",
+        key_masked: ingestKey,
+        status: "active",
+        created_at: iso(now),
+        rejected_count: 0,
+      },
+    ],
+    views: [],
+    metricCatalog: [],
+    heroTrace: null,
+    traceSummaries: [],
+    errorGroups: [],
   };
 }
 

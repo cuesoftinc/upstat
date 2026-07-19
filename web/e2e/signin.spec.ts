@@ -23,8 +23,8 @@ test("signin → dashboard home via the single Google CTA", async ({ page }) => 
 
   const home = page.getByTestId("dashboard-home");
   await expect(home).toBeVisible();
-  // Seeded org narrative served by the mock server.
-  await expect(home.getByText("Upstat · Africa/Lagos")).toBeVisible();
+  // B1 org-health screen served from the seeded narrative.
+  await expect(home.getByRole("heading", { name: "Home — org health" })).toBeVisible();
 });
 
 test("/login permanently redirects to /signin (no 404 for old links)", async ({ request, baseURL }) => {

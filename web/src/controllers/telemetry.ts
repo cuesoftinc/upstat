@@ -9,6 +9,7 @@ import {
 } from "@/models/repositories";
 import type { LogQueryPage, QueryRequest, QueryResult } from "@/models";
 import { useRequest } from "./use-request";
+import { useTimeRange } from "./time-range";
 
 /** Metrics controller — explorer query + catalog summary (pages.md B3). */
 export function useMetricsController() {
@@ -57,6 +58,15 @@ export function useLogsController(params: { q?: string; from?: string; to?: stri
   return { ...state, events, loadMore, loadingMore };
 }
 
+/** One-shot query against the global time range (detail panels, tiles). */
+export function useQueryController(q: string) {
+  const time = useTimeRange();
+  return useRequest<QueryResult>(
+    () => queryRepo.run({ q, from: time.fromIso, to: time.toIso }),
+    [q, time.fromIso, time.toIso],
+  );
+}
+
 /** Traces controller — explorer list + waterfall detail (pages.md B5). */
 export function useTracesController(params: { q?: string; from?: string; to?: string }) {
   return useRequest(
@@ -66,7 +76,11 @@ export function useTracesController(params: { q?: string; from?: string; to?: st
 }
 
 export function useTraceController(traceId: string) {
-  return useRequest(() => tracesRepo.get(traceId), [traceId]);
+  return useRequest(
+    // no id yet → no fetch (the explorer renders the list only)
+    () => (traceId ? tracesRepo.get(traceId) : Promise.resolve(null)),
+    [traceId],
+  );
 }
 
 /** APM service list (pages.md B5). */

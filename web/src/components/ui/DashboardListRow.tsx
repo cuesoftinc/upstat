@@ -11,6 +11,8 @@ export interface DashboardListRowProps {
   onFavoriteChange?: (favorite: boolean) => void;
   /** Org-shared indicator (§8.2b). */
   shared?: boolean;
+  /** Secondary meta next to the name, e.g. `8 widgets` (Figma 126:323). */
+  meta?: string;
   onClick?: () => void;
   className?: string;
 }
@@ -22,6 +24,7 @@ export function DashboardListRow({
   favorite,
   onFavoriteChange,
   shared = false,
+  meta,
   onClick,
   className,
 }: DashboardListRowProps) {
@@ -51,6 +54,7 @@ export function DashboardListRow({
         {shared && (
           <Users aria-label="org-shared" className="size-3.5 shrink-0 text-text-2" />
         )}
+        {meta && <span className="shrink-0 text-[12px] text-text-2">{meta}</span>}
       </button>
       <span className="shrink-0 text-[12px] tabular-nums text-text-2">{updated}</span>
     </div>

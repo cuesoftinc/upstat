@@ -1,7 +1,7 @@
 import type { LogEvent } from "@/models";
 import { jsonError, jsonOk } from "@/mocks/http";
 import { generateLogs, logHistogram } from "@/mocks/series";
-import { getDb } from "@/mocks/store";
+import { getDb, telemetryReady } from "@/mocks/store";
 import { HOUR, SECOND, iso } from "@/mocks/util";
 
 /**
@@ -42,6 +42,10 @@ export async function GET(req: Request) {
   }
 
   const db = getDb();
+  // fresh org: silence until the first datapoint "arrives" (MI-16)
+  if (!telemetryReady(db)) {
+    return jsonOk({ events: [], histogram: [], facets: {} });
+  }
   const windowFrom = live ? now - 15 * SECOND : fromMs;
   const events: LogEvent[] = generateLogs(
     windowFrom,

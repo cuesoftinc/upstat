@@ -1,11 +1,13 @@
 import type { ServiceStats } from "@/models";
 import { jsonOk } from "@/mocks/http";
 import { SERVICES, metricValue } from "@/mocks/series";
-import { getDb } from "@/mocks/store";
+import { getDb, telemetryReady } from "@/mocks/store";
 
 /** GET /v1/services — APM service list (pages.md B5: req/s, p50/95/99, errors). */
 export async function GET() {
   const db = getDb();
+  // fresh org: no services until the first datapoint "arrives" (MI-16)
+  if (!telemetryReady(db)) return jsonOk([]);
   const now = Date.now();
   const list: ServiceStats[] = SERVICES.map((service) => {
     const reqPerS = metricValue("http.requests_total", "rate", service, now, db.outage);

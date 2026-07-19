@@ -18,11 +18,15 @@ import type {
   Org,
   QueryRequest,
   QueryResult,
+  RuleTestResult,
   RumSummary,
   RumVitals,
+  SavedView,
+  SavedViewSurface,
   ServiceCatalogEntry,
   ServiceStats,
   Slo,
+  StatusPage,
   TimelineEntry,
   Trace,
   TraceSummary,
@@ -32,10 +36,12 @@ import type {
 /** Org + onboarding (pages.md B1 first-run, B12 org profile). */
 export const orgsRepo = {
   current: () => http.get<Org>("/v1/orgs/current"),
+  list: () => http.get<Org[]>("/v1/orgs"),
   create: (input: { name: string; timezone: string }) =>
     http.post<Org>("/v1/orgs", input),
   update: (id: string, patch: Partial<Pick<Org, "name" | "timezone">>) =>
     http.patch<Org>(`/v1/orgs/${id}`, patch),
+  activate: (id: string) => http.post<Org>(`/v1/orgs/${id}/activate`),
   onboarding: () => http.get<OnboardingState>("/v1/onboarding"),
 };
 
@@ -104,6 +110,8 @@ export const monitorsRepo = {
     http.patch<Monitor>(`/v1/monitors/${id}`, patch),
   remove: (id: string) => http.delete(`/v1/monitors/${id}`),
   history: (id: string) => http.get<MonitorHistory>(`/v1/monitors/${id}/checks`),
+  /** MI-9: 24h response-time replay against timeout-derived thresholds. */
+  test: (id: string) => http.post<RuleTestResult>(`/v1/monitors/${id}/test`),
 };
 
 /** Alert channels + signal-generic rules (api.md §1a/§6; pages.md B8). */
@@ -111,6 +119,7 @@ export const alertsRepo = {
   channels: () => http.get<AlertChannel[]>("/v1/channels"),
   createChannel: (input: Pick<AlertChannel, "kind" | "target">) =>
     http.post<AlertChannel>("/v1/channels", input),
+  verifyChannel: (id: string) => http.post<AlertChannel>(`/v1/channels/${id}/verify`),
   removeChannel: (id: string) => http.delete(`/v1/channels/${id}`),
   rules: () => http.get<AlertRule[]>("/v1/rules"),
   createRule: (input: Omit<AlertRule, "id" | "org_id" | "state" | "last_triggered_at">) =>
@@ -118,7 +127,23 @@ export const alertsRepo = {
   updateRule: (id: string, patch: Partial<AlertRule>) =>
     http.patch<AlertRule>(`/v1/rules/${id}`, patch),
   removeRule: (id: string) => http.delete(`/v1/rules/${id}`),
+  /** MI-9: replay the last 24h against the rule's thresholds. */
+  testRule: (id: string) => http.post<RuleTestResult>(`/v1/rules/${id}/test`),
   feed: () => http.get<AlertEvent[]>("/v1/alerts/feed"),
+};
+
+/** Saved views (MI-18 — QueryBar morphs into a named chip). */
+export const viewsRepo = {
+  list: (surface?: SavedViewSurface) =>
+    http.get<SavedView[]>(`/v1/views${surface ? qs({ surface }) : ""}`),
+  create: (input: Pick<SavedView, "name" | "scope" | "surface" | "query">) =>
+    http.post<SavedView>("/v1/views", input),
+  remove: (id: string) => http.delete(`/v1/views/${id}`),
+};
+
+/** Public status page read (pages.md B7 — unauthenticated by design). */
+export const statusRepo = {
+  bySlug: (slug: string) => http.get<StatusPage>(`/v1/status/${slug}`),
 };
 
 /** Incidents + timeline (api.md §6; pages.md B9; MI-10). */

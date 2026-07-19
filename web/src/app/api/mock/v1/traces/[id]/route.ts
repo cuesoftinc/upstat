@@ -14,7 +14,7 @@ export async function GET(
 ) {
   const { id } = await params;
   const db = getDb();
-  if (id === db.heroTrace.trace_id) return jsonOk(db.heroTrace);
+  if (db.heroTrace && id === db.heroTrace.trace_id) return jsonOk(db.heroTrace);
 
   const summary = db.traceSummaries.find((t) => t.trace_id === id);
   if (!summary) return notFound("trace");
