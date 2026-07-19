@@ -65,7 +65,7 @@ indexes ranked by cardinality (design.md MI-13).
 | Explorers (logs/metrics/traces/RUM) | filters + optional aggregation |
 | Dashboard widgets | full query persisted in `WIDGET.query` |
 | Monitor rules | full query + thresholds evaluated on schedule |
-| `/v1/stats` (legacy events path) | sugar over `rum.*` count queries |
+| `/v1/stats` (the events/stats surface, api.md §3.3) | sugar over `rum.*` count queries |
 
 One internal query service parses the grammar into an AST, validates facets
 against the catalog/indexes, then compiles per store: ClickHouse SQL for

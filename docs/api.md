@@ -34,13 +34,10 @@
 
 ## 2. Target surface — monitors & alerts
 
-> **Superseded by U-5 (HTTP-only for new surfaces):** the gRPC `AlertService`
-> sketch below is retired — the alert surface is HTTP (`/v1/channels`,
-> `/v1/monitors/{id}/rules`, openapi.yaml), same semantics. Kept for audit.
-
-| Service / RPC | Purpose |
-| --- | --- |
-| ~~`AlertService.*` (gRPC)~~ | → HTTP per U-5; see flows/alert.md + openapi.yaml |
+The alert surface is HTTP (**U-5: HTTP-only for new surfaces**) —
+`POST /v1/channels`, `/v1/channels/{id}/verify`, `/v1/monitors/{id}/rules`
+per [flows/alert.md](flows/alert.md) and
+[openapi.yaml](api/openapi.yaml). No gRPC alert service exists.
 
 ## 3. Target surface — events & stats (M2/M3, the ecosystem "D2" contract) **[Proposed]**
 

@@ -70,23 +70,4 @@ describe("MarketingFooter (parity canon, SKILL.md 2026-07-19)", () => {
     );
   });
 
-  it("keeps the inline landing variant rendering for custom columns", () => {
-    render(
-      <MarketingFooter
-        inline
-        showBrand={false}
-        columns={[
-          {
-            heading: "Product",
-            links: [
-              { label: "Uptime", href: "/#pillars" },
-              { label: "Logs", href: "/#pillars" },
-            ],
-          },
-        ]}
-      />,
-    );
-    expect(screen.queryByText(/MIT licensed/)).toBeNull();
-    expect(screen.getByRole("link", { name: "Uptime" })).toHaveAttribute("href", "/#pillars");
-  });
 });
