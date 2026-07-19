@@ -201,7 +201,7 @@ const CATALOG_ENTRY: ServiceCatalogEntry = {
   id: "svc_checkout",
   name: "checkout",
   owner: "Sade",
-  links: { repo: "https://github.com/cuesoftinc/upstat", runbook: "https://docs.upstat.cuesoft.io/runbooks/checkout" },
+  links: { repo: "https://github.com/cuesoftinc/upstat", runbook: "https://cuesoft.gitbook.io/upstat" },
   environments: ["prod", "staging"],
   telemetry: { metrics: true, logs: true, traces: true, rum: false },
 };
