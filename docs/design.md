@@ -73,7 +73,8 @@ verified in both themes) — the one extra constraint the teal brand imposes.
   (`nav.rail.expanded` in localStorage). Default: expanded on desktop ≥1280px,
   collapsed below. Active item = brand accent bar + brand icon in both states.
   Top bar: org/env switcher · **global time picker** · search (`/`) ·
-  incidents bell.
+  theme toggle · incidents bell (**[Directive 2026-07-19]** the toggle joins
+  the utility cluster; see the parity canon below).
 - Views: filter bar (query pills) → visualization canvas → detail drawer
   (right, 480px) for point/line/span inspection.
 - Grid dashboards: 12-col draggable/resizable widgets (react-grid-layout
@@ -93,6 +94,28 @@ verified in both themes) — the one extra constraint the teal brand imposes.
   interior grids on the container: pillar grid 4×270px cols, how-it-works
   3×368px cols — both 24px gutters. All 15 sections re-audited to zero
   deviation.
+- Marketing nav, footer & theme parity **[Directive 2026-07-19]** (SKILL.md
+  "Marketing nav, footer & theme parity canon", ratified 2026-07-19): all
+  three products share ONE link inventory — same sections, counts and
+  destinations; upstat renders it in its own dark visual design.
+  - **Nav**: 4 text links Features · Dashboards (upstat product slot) · Docs
+    (GitBook root) · GitHub + ThemeToggle control + single **Sign in** CTA
+    (`/signin`). (Replaces Platform-dropdown/Community links, the GitHub star
+    badge and the Sign in + Try Cloud CTA pair; the pillar mini feature map
+    survives only as the dropdown-open preview under Features.)
+  - **Footer**: brand block (wordmark + tagline) + 4 pinned columns — Product
+    (Features · Try Cloud · Self Host · Dashboards) / Docs (Docs · Quickstart
+    · API reference · Self-host guide) / Community (GitHub · Discord ·
+    Roadmap · CueLABS) / Legal (Privacy · Terms · Status) — + legal bar
+    verbatim **"© Cuesoft Inc. 2026. Upstat. CueLABS™ Division. MIT
+    License."** with a language selector (English-only, ships ahead of i18n
+    by ratified decision) and a security-policy affordance (SECURITY.md).
+    Replaces the 3-column Product/Open source/Company footer.
+  - **Theme toggle everywhere**: marketing nav AND dashboard chrome (TopBar)
+    and settings; `data-theme` on `<html>`, persisted at localStorage
+    `upstat.theme`, falling back to dark (upstat's design default). Every
+    canonical href must return HTTP 200; Playwright asserts the inventory on
+    both surfaces.
 
 
 ### Shared foundations (ecosystem parity — identical across the three products)
@@ -338,7 +361,8 @@ project license, the copy reads **MIT**.
 | --- | --- |
 | **App chrome** | |
 | NavRail / NavRailItem | pillar icon ×12 · item: default / hover (flyout label) / active (brand accent) · rail chrome 56px: flyout-open / collapsed — **as built (2026-07-17):** NavRailItem is the variant set; NavRail ships as a single chrome component with rail states documented in its description — **[Directive 2026-07-19]:** rail is expandable; NavRail is now a variant set `state=collapsed` (56px) / `state=expanded` (240px icon+label rows, pillar section groups, foot chevron toggle, `upstat` wordmark); NavRailItem gains a `layout=rail/expanded` axis (expanded row 228px: default / hover raised bg / active accent bar); toggle persists per user, default expanded ≥1280px; exemplar `B1 — Home (rail expanded)` |
-| TopBar | org/env switcher closed/open · global TimePicker slot · search (`/`) field · bell: idle / unread-badge / flash (MI-14) — **as built (2026-07-17):** single chrome component, switcher/bell states documented in its description; bell badge states are CountBadge instances |
+| TopBar | org/env switcher closed/open · global TimePicker slot · search (`/`) field · bell: idle / unread-badge / flash (MI-14) — **as built (2026-07-17):** single chrome component, switcher/bell states documented in its description; bell badge states are CountBadge instances — **[Directive 2026-07-19]:** utility cluster now search · ThemeToggle · bell (theme parity canon); the master's flex spacer right-pins the cluster at any instance width |
+| ThemeToggle | theme: dark (moon) / light (sun) — lucide `icon/moon`/`icon/sun`, 26px hairline button, token-bound · lives on the marketing nav AND the TopBar utility cluster (parity canon) · persists at localStorage `upstat.theme`, default dark — **[Directive 2026-07-19]** |
 | Modal / Sheet | modal sm/lg · right sheet · header + body slot + footer actions · z `sheet/modal 40` (§2 layers) |
 | CommandPalette / SearchOverlay | empty / results / no-results · result row: icon + label + kbd hint (`/` search, MI-17) |
 | **Primitives** | |
@@ -367,7 +391,8 @@ project license, the copy reads **MIT**.
 | WidgetTypeCell | state: default / selected · icon + label tile, one per widget type — iteration-1 addition **[built 2026-07-18]** |
 | WidgetTypePicker | layout: row (the in-shell "Choose a visualization" strip) / grid (create-flow modal overlay, pages.md B2) · 11 widget types (the pages.md B2 list) · composes WidgetTypeCell — iteration-1 addition **[built 2026-07-18]** |
 | **Marketing (Stage 5)** | |
-| MarketingNav + PillarDropdown | default / pillar-dropdown open (mini feature map ×8, reuses PillarCard) · GitHub star badge · Sign in + Try Cloud CTAs — **as built (2026-07-18):** the GitHub badge is neutral — label "Star", no count (no invented figure; the pages.md A13 live star count is runtime behavior) |
+| MarketingNav + PillarDropdown | default / pillar-dropdown open (mini feature map ×8, reuses PillarCard) · GitHub star badge · Sign in + Try Cloud CTAs — **as built (2026-07-18):** the GitHub badge is neutral — label "Star", no count (no invented figure; the pages.md A13 live star count is runtime behavior) — **[Directive 2026-07-19]:** re-cut to the parity canon: 4 text links Features · Dashboards · Docs · GitHub + ThemeToggle + single Sign in CTA (star badge and Try Cloud dropped; the pillar mini feature map remains as the dropdown-open preview under Features) |
+| MarketingFooter | brand block (wordmark + tagline) + 4 pinned columns Product / Docs / Community / Legal (4·4·4·3 links, parity canon) + legal bar verbatim "© Cuesoft Inc. 2026. Upstat. CueLABS™ Division. MIT License." · language selector (English-only pre-i18n) · security-policy affordance — replaces the 3-column Product/Open source/Company footer (old footer parked on Deprecated) — **[Directive 2026-07-19]** |
 | PillarCard | pillar ×8 (icon + pillar color accent) · default / hover (lift + accent) |
 | CodeSnippet + Tabs | tab: Go / Python / Node / k8s (active/inactive) · copy: idle / copied-check · mono block on `bg-elev` — **as built (2026-07-17):** the tab axis is the variant set; copy idle/copied-check is handled via instance overrides, not a variant dimension |
 | CloudVsSelfHostTable | 2 plan columns × feature rows (check / dash) · per-column CTA footer — **as built (2026-07-18):** the row "Managed upgrades & backups" replaced an invented SLA figure |
