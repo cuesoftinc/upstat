@@ -18,12 +18,22 @@ export function rumBucketMs(rangeMs: number): number {
   return 5 * MINUTE;
 }
 
+/**
+ * Exact uniques for the UTC day containing `tMs` — the day-rollup value
+ * (analytics-math.md §2), independent of the presentation bucket width.
+ * Same recipe as a DAY-bucket series bucket, so day-aligned series agree.
+ */
+function utcDayUniques(tMs: number): number {
+  const dayStart = tMs - (tMs % DAY);
+  const r = mulberry32(hashSeed(`rum:${dayStart}`));
+  const count = Math.round(5200 * (0.7 + r() * 0.6));
+  return Math.round(count * (0.55 + r() * 0.15));
+}
+
 export function rumSummary(fromMs: number, toMs: number): RumSummary {
   const bucketMs = rumBucketMs(toMs - fromMs);
   const series: RumSummary["series"] = [];
   let pageViews = 0;
-  let uniquesSum = 0;
-  let bucketCount = 0;
 
   for (let t = fromMs; t < toMs; t += bucketMs) {
     const r = mulberry32(hashSeed(`rum:${t}`));
@@ -32,8 +42,16 @@ export function rumSummary(fromMs: number, toMs: number): RumSummary {
     const uniques = Math.round(count * (0.55 + r() * 0.15));
     series.push({ bucket: iso(t), count, uniques });
     pageViews += count;
-    uniquesSum += uniques;
-    bucketCount++;
+  }
+
+  // §4 honesty: "visitors · daily avg" averages EXACT per-UTC-day uniques.
+  // Averaging presentation buckets tied the stat to bucket width — the 5m
+  // buckets cut it ~12x while page views held steady (PR #156 review).
+  let dayUniquesSum = 0;
+  let dayCount = 0;
+  for (let d = fromMs - (fromMs % DAY); d < toMs; d += DAY) {
+    dayUniquesSum += utcDayUniques(d);
+    dayCount++;
   }
 
   const visits = Math.round(pageViews / 2.6);
@@ -44,7 +62,7 @@ export function rumSummary(fromMs: number, toMs: number): RumSummary {
     visits,
     bounce_rate: visits === 0 ? null : Math.round((bounceVisits / visits) * 1000) / 1000,
     avg_visit_seconds: visits - bounceVisits === 0 ? null : 184,
-    uniques_daily_avg: bucketCount === 0 ? 0 : Math.round(uniquesSum / bucketCount),
+    uniques_daily_avg: dayCount === 0 ? 0 : Math.round(dayUniquesSum / dayCount),
     uniques_additive: false,
     series,
     top_pages: TOP_PAGES.map((value, i) => ({

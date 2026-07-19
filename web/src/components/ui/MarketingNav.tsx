@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { clsx } from "clsx";
 import Link from "next/link";
-import { Zap } from "lucide-react";
+import { Menu, X, Zap } from "lucide-react";
 import { Button } from "./Button";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -30,8 +31,14 @@ export const NAV_LINKS = [
  * The bar (border/background) is full-bleed, but the ROW sits on the
  * marketing container (design.md §2: 1152px content at 1440, rails
  * x144/x1296).
+ *
+ * Mobile (SKILL.md mobile clause): below `md` the text links collapse into
+ * a menu-button disclosure (hamburger, `aria-expanded`) opening a panel
+ * with the same 4 links + ThemeToggle + Sign in — no canonical link may be
+ * unreachable at any viewport.
  */
 export function MarketingNav({ onSignIn, starCount = null, className }: MarketingNavProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
   return (
     <nav
       aria-label="Marketing"
@@ -77,11 +84,54 @@ export function MarketingNav({ onSignIn, starCount = null, className }: Marketin
 
         <div className="flex-1" />
 
-        <ThemeToggle />
-        <Button kind="brand" onClick={onSignIn}>
+        <ThemeToggle className="hidden md:block" />
+        <Button kind="brand" onClick={onSignIn} className="hidden md:inline-flex">
           Sign in
         </Button>
+
+        {/* mobile disclosure trigger — the panel below carries the links */}
+        <button
+          type="button"
+          aria-label="Menu"
+          aria-expanded={menuOpen}
+          aria-controls="marketing-menu"
+          onClick={() => setMenuOpen((open) => !open)}
+          className="rounded-(--radius) p-1.5 text-text-2 transition-colors duration-[var(--duration-fast)] ease-standard hover:bg-bg-elev hover:text-text md:hidden"
+        >
+          {menuOpen ? (
+            <X aria-hidden="true" className="size-4.5" />
+          ) : (
+            <Menu aria-hidden="true" className="size-4.5" />
+          )}
+        </button>
       </div>
+
+      {menuOpen && (
+        <div id="marketing-menu" className="border-t border-border px-6 pt-2 pb-4 md:hidden">
+          {NAV_LINKS.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              {...(link.external ? { target: "_blank", rel: "noreferrer" } : {})}
+              onClick={() => setMenuOpen(false)}
+              className="block py-2.5 text-[14px] font-medium text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
+            >
+              {link.label}
+              {link.label === "GitHub" && typeof starCount === "number" && (
+                <span className="ml-1.5 tabular-nums text-text">
+                  {starCount.toLocaleString()}
+                </span>
+              )}
+            </a>
+          ))}
+          <div className="mt-2 flex items-center justify-between border-t border-border pt-3">
+            <ThemeToggle />
+            <Button kind="brand" onClick={onSignIn}>
+              Sign in
+            </Button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

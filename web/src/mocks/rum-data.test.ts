@@ -23,3 +23,29 @@ describe("rum bucketing (B6)", () => {
     expect(rumSummary(NOW - HOUR, NOW)).toEqual(rumSummary(NOW - HOUR, NOW));
   });
 });
+
+describe("uniques_daily_avg (analytics-math.md §4, #156)", () => {
+  const DAY_START = Date.parse("2026-07-18T00:00:00Z");
+
+  it("is independent of the presentation bucket width", () => {
+    // a 1h view (5m buckets) and the full-day view (1h buckets) over the
+    // same UTC day must agree — averaging presentation buckets made the
+    // stat track bucket width (~12x drop when buckets went 1h → 5m)
+    const hour = rumSummary(NOW - HOUR, NOW);
+    const day = rumSummary(DAY_START, DAY_START + DAY);
+    expect(hour.uniques_daily_avg).toBe(day.uniques_daily_avg);
+
+    // and it is a day-scale figure, not a per-bucket mean
+    const bucketMean =
+      hour.series.reduce((s, b) => s + b.uniques, 0) / hour.series.length;
+    expect(hour.uniques_daily_avg).toBeGreaterThan(bucketMean * 12);
+  });
+
+  it("averages exact per-day uniques over multi-day ranges (never a sum)", () => {
+    const d1 = rumSummary(DAY_START - DAY, DAY_START).uniques_daily_avg;
+    const d2 = rumSummary(DAY_START, DAY_START + DAY).uniques_daily_avg;
+    const twoDays = rumSummary(DAY_START - DAY, DAY_START + DAY);
+    expect(twoDays.uniques_daily_avg).toBe(Math.round((d1 + d2) / 2));
+    expect(twoDays.uniques_additive).toBe(false);
+  });
+});

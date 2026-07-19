@@ -246,3 +246,44 @@ test("home is responsive at 375w (mobile)", async ({ page }) => {
   // the table-footer copy of the CTA is display:none at 375
   await expect(page.locator("tfoot").getByRole("button", { name: "Deploy with compose" })).toBeHidden();
 });
+
+test("mobile nav is a menu-button disclosure at 390w (SKILL.md mobile clause)", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+
+  const nav = page.getByRole("navigation", { name: "Marketing" });
+  const menuButton = nav.getByRole("button", { name: "Menu" });
+  const panel = nav.locator("#marketing-menu");
+
+  // closed by default; the trigger advertises its state
+  await expect(menuButton).toBeVisible();
+  await expect(menuButton).toHaveAttribute("aria-expanded", "false");
+  await expect(panel).toBeHidden();
+
+  // open — retry until React's handler is attached (dev hydrates slowly)
+  await expect(async () => {
+    await menuButton.click();
+    await expect(panel).toBeVisible({ timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
+  await expect(menuButton).toHaveAttribute("aria-expanded", "true");
+
+  // every canonical link is reachable from the panel — no dead ends <md
+  for (const [label, href] of [
+    ["Features", "/#pillars"],
+    ["Dashboards", "/dashboard"],
+    ["Docs", "https://cuesoft.gitbook.io/upstat"],
+    ["GitHub", "https://github.com/cuesoftinc/upstat"],
+  ] as const) {
+    const link = panel.getByRole("link", { name: label });
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute("href", href);
+  }
+
+  // the theme toggle works from inside the panel
+  await panel.getByTestId("theme-toggle").click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+
+  // and the Sign in CTA hands off into the app
+  await panel.getByRole("button", { name: "Sign in" }).click();
+  await page.waitForURL("**/signin");
+});

@@ -37,6 +37,16 @@ describe("parseQuery", () => {
     expect(parseQuery("service:web | nonsense((")).toHaveProperty("error");
   });
 
+  it("rejects EVERY additional pipe — one | segment max (grammar §1, #156)", () => {
+    // `a | rate() | nonsense` used to sail through on the first segment
+    // alone, silently ignoring the second pipe and trailing text
+    expect(parseQuery("service:web | rate() | nonsense")).toHaveProperty("error");
+    expect(parseQuery("service:web | rate() | sum()")).toHaveProperty("error");
+    expect(parseQuery("service:web | rate() |")).toHaveProperty("error");
+    // the single-pipe form still parses clean
+    expect(parseQuery("service:web | rate()")).not.toHaveProperty("error");
+  });
+
   it("accepts negation and free text", () => {
     const parsed = parseQuery("-level:debug timeout service:web");
     if ("error" in parsed) throw new Error(parsed.error);
@@ -87,6 +97,36 @@ describe("buildTimeseries", () => {
     if ("error" in parsed) throw new Error(parsed.error);
     const result = buildTimeseries(parsed, NOW - HOUR, NOW, OUTAGE);
     expect(result.series).toHaveLength(7);
+  });
+
+  it("consumes env — switching $env observably changes series, INC-42 stays prod-only (#156)", () => {
+    const q = (env: string) =>
+      parseQuery(`metric:http.errors_total service:checkout env:${env} | rate()`);
+    const prod = q("prod");
+    const staging = q("staging");
+    if ("error" in prod || "error" in staging) throw new Error("parse failed");
+    const rProd = buildTimeseries(prod, NOW - 6 * HOUR, NOW, OUTAGE);
+    const rStaging = buildTimeseries(staging, NOW - 6 * HOUR, NOW, OUTAGE);
+
+    // different data, tagged with the env it was filtered to
+    expect(rStaging.series[0].points).not.toEqual(rProd.series[0].points);
+    expect(rStaging.series[0].tags.env).toBe("staging");
+
+    // staging runs a deterministic fraction of prod traffic
+    const total = (r: typeof rProd) =>
+      r.series[0].points.reduce((s, p) => s + (p.value ?? 0), 0);
+    expect(total(rStaging)).toBeLessThan(total(rProd) * 0.6);
+
+    // the prod outage spike does not leak into staging
+    const mid = (OUTAGE.start + OUTAGE.end) / 2;
+    const avgWhere = (r: typeof rProd, pred: (t: number) => boolean) => {
+      const xs = r.series[0].points.filter((p) => pred(Date.parse(p.ts)));
+      return xs.reduce((s, p) => s + (p.value ?? 0), 0) / Math.max(xs.length, 1);
+    };
+    const during = (t: number) => Math.abs(t - mid) < 20 * MINUTE;
+    const before = (t: number) => t < OUTAGE.start - HOUR;
+    expect(avgWhere(rProd, during)).toBeGreaterThan(avgWhere(rProd, before) * 5);
+    expect(avgWhere(rStaging, during)).toBeLessThan(avgWhere(rStaging, before) * 2);
   });
 });
 
