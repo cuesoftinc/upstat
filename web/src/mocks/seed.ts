@@ -104,7 +104,8 @@ export function buildSeed(now: number): MockDb {
           query: null,
           query_string: "metric:http.request.duration_ms | p95() by service",
           viz_options: { display: "line" },
-          layout: { x: 0, y: 0, w: 8, h: 3 },
+          // h4: the 7-service legend needs the extra row to render unclipped
+          layout: { x: 0, y: 0, w: 8, h: 4 },
         },
         {
           id: "wid_reqs",
@@ -117,7 +118,7 @@ export function buildSeed(now: number): MockDb {
           // (system-QA finding 2026-07-19)
           query_string: "metric:http.requests_total service:$service | rate()",
           viz_options: { precision: 0, sparkline: true },
-          layout: { x: 8, y: 0, w: 4, h: 3 },
+          layout: { x: 8, y: 0, w: 4, h: 4 },
         },
         {
           id: "wid_err_rate",
@@ -129,7 +130,7 @@ export function buildSeed(now: number): MockDb {
           viz_options: { display: "area" },
           // second timeseries widget: makes the MI-2 cross-widget crosshair
           // sync observable on the seeded dashboard
-          layout: { x: 0, y: 6, w: 12, h: 2 },
+          layout: { x: 0, y: 7, w: 12, h: 2 },
         },
         {
           id: "wid_top",
@@ -139,7 +140,7 @@ export function buildSeed(now: number): MockDb {
           query: null,
           query_string: "metric:http.errors_total | sum() by service",
           viz_options: { limit: 5 },
-          layout: { x: 0, y: 3, w: 6, h: 3 },
+          layout: { x: 0, y: 4, w: 6, h: 3 },
         },
         {
           id: "wid_logs",
@@ -149,7 +150,7 @@ export function buildSeed(now: number): MockDb {
           query: null,
           query_string: "level:ERROR",
           viz_options: {},
-          layout: { x: 6, y: 3, w: 6, h: 3 },
+          layout: { x: 6, y: 4, w: 6, h: 3 },
         },
       ],
     },
@@ -424,10 +425,14 @@ export function buildSeed(now: number): MockDb {
       thresholds: { warn: 400, crit: 900, window: "10m" },
       notify: { channel_ids: ["ch_slack"], cooldown_minutes: 15, renotify_minutes: 0, mute_windows: [] },
       state: "ok",
-      last_triggered_at: null,
+      // fired + recovered 4d ago — matches the evt_5/evt_6 feed pair
+      last_triggered_at: iso(now - 4 * DAY),
     },
   ];
 
+  // every non-ok rule state has a matching feed event, and each rule's
+  // newest event matches its `last_triggered_at` (realism fix 2026-07-19:
+  // rule_slo_burn sat in `warn` with no feed entry)
   const alertFeed: AlertEvent[] = [
     {
       id: "evt_1",
@@ -445,6 +450,33 @@ export function buildSeed(now: number): MockDb {
       rule_id: "rule_error_logs",
       monitor_name: "Error log spike (checkout)",
       message: "132 ERROR lines in 5m (warn 50)",
+      unread: false,
+    },
+    {
+      id: "evt_4",
+      ts: iso(inc42Start + 12 * MINUTE),
+      sev: "sev2",
+      rule_id: "rule_slo_burn",
+      monitor_name: "Checkout SLO fast burn",
+      message: "burn rate 6.2x over warn 6x (window 2h)",
+      unread: false,
+    },
+    {
+      id: "evt_5",
+      ts: iso(now - 4 * DAY + 25 * MINUTE),
+      sev: "resolved",
+      rule_id: "rule_trace_latency",
+      monitor_name: "Ingest gateway trace latency",
+      message: "Recovered after 25m — p95 back under 400 ms",
+      unread: false,
+    },
+    {
+      id: "evt_6",
+      ts: iso(now - 4 * DAY),
+      sev: "sev2",
+      rule_id: "rule_trace_latency",
+      monitor_name: "Ingest gateway trace latency",
+      message: "p95 612 ms breached warn 400 ms (window 10m)",
       unread: false,
     },
     {
@@ -760,6 +792,9 @@ export function buildSeed(now: number): MockDb {
   }
   traceSummaries.sort((a, b) => (a.start < b.start ? 1 : -1));
 
+  // sparklines = 24 hourly buckets ending now; shapes cohere with state
+  // (new appeared 2h ago → bars in the last 2 buckets; regressed spiked in
+  // the INC-42 window ~2–3h ago → spike near bucket 21)
   const errorGroups: ErrorGroup[] = [
     {
       fingerprint: "fe4a9d21",
@@ -768,7 +803,7 @@ export function buildSeed(now: number): MockDb {
       first_seen: iso(now - 6 * DAY),
       last_seen: iso(now - 18 * MINUTE),
       state: "ongoing",
-      sparkline: sparklineFor("err:fe4a9d21", 24, 8),
+      sparkline: stateSparkline("err:fe4a9d21", "ongoing", 24, 8),
     },
     {
       fingerprint: "a10c33b7",
@@ -777,7 +812,7 @@ export function buildSeed(now: number): MockDb {
       first_seen: iso(now - 2 * HOUR),
       last_seen: iso(now - 4 * MINUTE),
       state: "new",
-      sparkline: sparklineFor("err:a10c33b7", 24, 5),
+      sparkline: stateSparkline("err:a10c33b7", "new", 24, 12, { firstSeenBucket: 22 }),
     },
     {
       fingerprint: "c88e01f2",
@@ -786,7 +821,7 @@ export function buildSeed(now: number): MockDb {
       first_seen: iso(now - 40 * DAY),
       last_seen: iso(inc42End),
       state: "regressed",
-      sparkline: sparklineFor("err:c88e01f2", 24, 26),
+      sparkline: stateSparkline("err:c88e01f2", "regressed", 24, 26, { spikeBucket: 21 }),
     },
     {
       fingerprint: "1d0b9ae4",
@@ -795,7 +830,7 @@ export function buildSeed(now: number): MockDb {
       first_seen: iso(now - 30 * DAY),
       last_seen: iso(now - 3 * HOUR),
       state: "ongoing",
-      sparkline: sparklineFor("err:1d0b9ae4", 24, 4),
+      sparkline: stateSparkline("err:1d0b9ae4", "ongoing", 24, 4),
     },
   ];
 
@@ -921,7 +956,37 @@ function heroTraceSummary(t: Trace): TraceSummary {
   return { trace_id, root_service, root_name, start, duration_ms, span_count, status };
 }
 
-function sparklineFor(key: string, buckets: number, scale: number): number[] {
+/**
+ * State-coherent error-group sparkline (24 hourly buckets, oldest→newest —
+ * realism fix 2026-07-19: pure noise contradicted the group states):
+ * - `new` — flat zero until the group's first_seen, then rising bars
+ * - `regressed` — low baseline with a spike in the buckets around the
+ *   INC-42 window (last_seen = inc42End)
+ * - `ongoing` — steady mid-level noise across the day
+ */
+function stateSparkline(
+  key: string,
+  state: ErrorGroup["state"],
+  buckets: number,
+  scale: number,
+  opts: { firstSeenBucket?: number; spikeBucket?: number } = {},
+): number[] {
   const r = mulberry32(hashSeed(key));
-  return Array.from({ length: buckets }, () => Math.round(r() * scale));
+  return Array.from({ length: buckets }, (_, i) => {
+    if (state === "new") {
+      const start = opts.firstSeenBucket ?? buckets - 3;
+      if (i < start) return 0;
+      return Math.max(1, Math.round(((i - start + 1) / (buckets - start)) * scale * (0.6 + r() * 0.6)));
+    }
+    if (state === "regressed") {
+      const spike = opts.spikeBucket ?? buckets - 3;
+      const dist = Math.abs(i - spike);
+      const base = Math.round(r() * scale * 0.15);
+      if (dist <= 1) return Math.round(scale * (0.7 + r() * 0.3));
+      if (dist === 2) return Math.round(scale * 0.35 * (0.7 + r() * 0.6));
+      return base;
+    }
+    // ongoing — steady band, never zero for long
+    return Math.max(1, Math.round(scale * (0.35 + r() * 0.45)));
+  });
 }

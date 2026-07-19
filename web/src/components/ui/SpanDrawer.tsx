@@ -2,7 +2,7 @@
 
 import { clsx } from "clsx";
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { LogEvent, Span } from "@/models";
 import { LogLine } from "./LogLine";
 
@@ -20,7 +20,24 @@ export interface SpanDrawerProps {
 export function SpanDrawer({ span, logs = [], onClose, className }: SpanDrawerProps) {
   const [tab, setTab] = useState<SpanDrawerTab>("tags");
 
+  // ESC closes the drawer in both renderings (inline panel and <lg sheet) —
+  // parity with Modal/Sheet dismissal (UX walk 2026-07-19)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
+    <>
+    {/* <lg sheet backdrop: scrim + tap-to-dismiss behind the fixed sheet */}
+    <div
+      role="presentation"
+      onClick={onClose}
+      className="fixed inset-0 z-[var(--z-overlay)] bg-bg/70 lg:hidden"
+    />
     <aside
       aria-label={`Span ${span.name}`}
       className={clsx(
@@ -106,5 +123,6 @@ export function SpanDrawer({ span, logs = [], onClose, className }: SpanDrawerPr
         )}
       </div>
     </aside>
+    </>
   );
 }

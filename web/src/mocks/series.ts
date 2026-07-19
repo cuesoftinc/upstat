@@ -84,6 +84,55 @@ function envScale(env: string | undefined): number {
   return 0.15 + unitFor(`env:${env}`) * 0.3; // staging-class envs ≈ 15–45%
 }
 
+/* ------------------------------------------------------------------ */
+/* Deploys                                                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Deterministic per-service release schedule — continuous delivery, one
+ * deploy per service every 6h at a stable per-service offset. Releases
+ * surface as staged LOG lines (started → canary → full → finished over
+ * ~2min) and as a short post-deploy latency/error blip on the service's
+ * metrics, so the log stream visibly correlates with metric shifts
+ * (realism directive 2026-07-19). Chart deploy MARKERS stay cut per
+ * pages.md B1 — no deploy-events API is implied.
+ */
+const DEPLOY_PERIOD = 6 * HOUR;
+const DEPLOY_BLIP_MS = 45 * MINUTE;
+const DEPLOY_STAGE_STEP_MS = 30 * SECOND;
+
+const DEPLOY_STAGES = [
+  (s: string, v: string) => `deploy started service=${s} version=${v} strategy=canary`,
+  (s: string, v: string) => `canary at 25% service=${s} version=${v} error_rate=nominal`,
+  (s: string, v: string) => `canary checks passed service=${s} version=${v}`,
+  (s: string, v: string) => `rollout 100% service=${s} version=${v}`,
+  (s: string, v: string) => `deploy finished service=${s} version=${v} duration=120s`,
+];
+
+export function lastDeploy(service: string, tMs: number): { at: number; version: string } {
+  const offset = Math.floor(unitFor(`deploy:${service}`) * DEPLOY_PERIOD);
+  const n = Math.floor((tMs - offset) / DEPLOY_PERIOD);
+  const at = offset + n * DEPLOY_PERIOD;
+  // monotonic-looking versions: patch bumps per deploy, minor weekly
+  return { at, version: `1.${14 + (Math.floor(n / 28) % 4)}.${((n % 28) + 28) % 28}` };
+}
+
+/** Rollout stage line for the second at `secMs`, or null outside windows. */
+function deployStageLine(service: string, secMs: number): string | null {
+  const { at, version } = lastDeploy(service, secMs + SECOND - 1);
+  const since = secMs - at;
+  if (since < 0 || since > DEPLOY_STAGE_STEP_MS * (DEPLOY_STAGES.length - 1)) return null;
+  if (since % DEPLOY_STAGE_STEP_MS >= SECOND) return null; // band's first second only
+  return DEPLOY_STAGES[Math.round(since / DEPLOY_STAGE_STEP_MS)](service, version);
+}
+
+/** 1 → just deployed, fading to 0 over the blip window (prod only). */
+function deployRamp(service: string, tMs: number): number {
+  const since = tMs - lastDeploy(service, tMs).at;
+  if (since < 0 || since >= DEPLOY_BLIP_MS) return 0;
+  return 1 - since / DEPLOY_BLIP_MS;
+}
+
 /**
  * Value generator for a (metric, fn, service) triple at a time bucket.
  * Shapes: duration metrics honor p50/p95/p99 ordering; count/rate metrics
@@ -108,12 +157,16 @@ export function metricValue(
     ? Math.min(1, (tMs - outage.start) / (5 * MINUTE), (outage.end - tMs) / (5 * MINUTE))
     : 0;
 
+  // post-deploy cold-cache blip (prod only, log-line correlated)
+  const dRamp = scale === 1 ? deployRamp(service, tMs) : 0;
+
   if (metric.includes("duration") || metric.includes("latency")) {
     const { p50, spread } = baseLatency(service);
     const quantile =
       fn === "p99" ? spread * 2.6 : fn === "p95" ? spread : fn === "p50" || fn === "avg" ? 1 : 1;
     let v = p50 * quantile * (0.9 + 0.2 * cycle) + noise(`${metric}:${fn}:${service}`, tMs, p50 * 0.08);
     if (ramp > 0) v *= 1 + 7 * ramp; // ~8x at peak (over the 1.5s crit line)
+    v *= 1 + 0.14 * dRamp;
     v *= 0.85 + 0.15 * scale; // lighter non-prod load runs a touch faster
     return Math.max(1, Math.round(v * 100) / 100);
   }
@@ -121,6 +174,7 @@ export function metricValue(
   if (metric.includes("error")) {
     let v = baseRate(service) * 0.004 * cycle + Math.abs(noise(`${metric}:${service}`, tMs, 0.2));
     if (ramp > 0) v = baseRate(service) * 0.1 * ramp; // ~25x error spike
+    v *= 1 + 1.2 * dRamp;
     v *= scale;
     return Math.round(v * 1000) / 1000;
   }
@@ -327,9 +381,32 @@ function levelFor(u: number, outageHit: boolean): LogLevel {
   return "TRACE";
 }
 
+/** Hero-trace correlation window (log ↔ trace ↔ span coherence). */
+export interface HeroTraceWindow {
+  id: string;
+  startMs: number;
+  durationMs: number;
+  services: string[];
+}
+
+/** Deterministic 32-hex trace id for a log line (plausible variety). */
+function traceIdHex(key: string): string {
+  let out = "";
+  for (let i = 0; i < 4; i++) {
+    out += (hashSeed(`${key}:${i}`) >>> 0).toString(16).padStart(8, "0");
+  }
+  return out;
+}
+
 /**
  * Deterministic log stream: ~3 lines/sec across services. `beforeMs`
- * exclusive upper bound; returns newest-first.
+ * exclusive upper bound; returns newest-first. Release events surface as
+ * "deploy finished" INFO lines at each service's deploy second; every
+ * line's `version` attr is the service's CURRENT version (bumps at the
+ * deploy, matching the metric blip). Trace ids are per-line deterministic
+ * hexes — only lines inside the hero-trace window on its services carry
+ * the hero trace id (the seeded 9f86d081… id previously rode ~30% of ALL
+ * lines; realism fix 2026-07-19).
  */
 export function generateLogs(
   fromMs: number,
@@ -338,28 +415,47 @@ export function generateLogs(
   filterService?: string,
   filterLevel?: string,
   limit = 100,
+  hero?: HeroTraceWindow,
 ): LogEvent[] {
   const events: LogEvent[] = [];
   const startSec = Math.floor(beforeMs / SECOND) - 1;
   const endSec = Math.floor(fromMs / SECOND);
   for (let sec = startSec; sec >= endSec && events.length < limit; sec--) {
+    const secMs = sec * SECOND;
+    // rollout stage lines landing in this second (usually none)
+    const rollouts = SERVICES.map((s) => ({
+      service: s as string,
+      line: deployStageLine(s, secMs),
+    })).filter((x): x is { service: string; line: string } => x.line !== null);
     const perSecond = 3;
     for (let slot = perSecond - 1; slot >= 0 && events.length < limit; slot--) {
       const key = `log:${sec}:${slot}`;
       const r = mulberry32(hashSeed(key));
       // slot-banded offsets keep newest-first ordering strict within a second
-      const tMs = sec * SECOND + slot * 300 + Math.floor(r() * 250);
+      const tMs = secMs + slot * 300 + Math.floor(r() * 250);
       const outageHit = tMs >= outage.start && tMs <= outage.end;
+      const rollout = slot === 0 ? rollouts[0] : undefined;
       // during the outage, bias lines toward the implicated services
-      const service =
-        outageHit && r() < 0.5
+      const service = rollout
+        ? rollout.service
+        : outageHit && r() < 0.5
           ? outage.services[Math.floor(r() * outage.services.length)]
           : SERVICES[Math.floor(r() * SERVICES.length)];
-      const level = levelFor(r(), outageHit && outage.services.includes(service));
+      const level = rollout
+        ? "INFO"
+        : levelFor(r(), outageHit && outage.services.includes(service));
       if (filterService && service !== filterService) continue;
       if (filterLevel && level !== filterLevel.toUpperCase()) continue;
+      const deploy = lastDeploy(service, tMs);
       const templates = LOG_TEMPLATES[level];
-      const message = templates[Math.floor(r() * templates.length)];
+      const message = rollout
+        ? rollout.line
+        : templates[Math.floor(r() * templates.length)];
+      const heroHit =
+        hero !== undefined &&
+        tMs >= hero.startMs - 1_500 &&
+        tMs <= hero.startMs + hero.durationMs + 1_500 &&
+        hero.services.includes(service);
       events.push({
         id: `log_${sec}_${slot}`,
         ts: iso(tMs),
@@ -369,10 +465,14 @@ export function generateLogs(
         message,
         attrs: {
           env: "prod",
-          version: "1.14.2",
+          version: deploy.version,
           ...(level === "ERROR" ? { "error.kind": "upstream" } : {}),
         },
-        ...(r() < 0.3 ? { trace_id: "9f86d081884c7d659a2feaa0c55ad015" } : {}),
+        ...(heroHit
+          ? { trace_id: hero.id }
+          : r() < 0.25
+            ? { trace_id: traceIdHex(key) }
+            : {}),
       });
     }
   }

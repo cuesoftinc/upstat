@@ -47,6 +47,16 @@ export async function GET(req: Request) {
     return jsonOk({ events: [], histogram: [], facets: {} });
   }
   const windowFrom = live ? now - 15 * SECOND : fromMs;
+  // hero-trace correlation window: only lines inside it (on its services)
+  // carry the hero trace id — log ↔ trace coherence (realism 2026-07-19)
+  const hero = db.heroTrace
+    ? {
+        id: db.heroTrace.trace_id,
+        startMs: Date.parse(db.heroTrace.start),
+        durationMs: db.heroTrace.duration_ms,
+        services: [...new Set(db.heroTrace.spans.map((s) => s.service))],
+      }
+    : undefined;
   const events: LogEvent[] = generateLogs(
     windowFrom,
     beforeMs,
@@ -54,6 +64,7 @@ export async function GET(req: Request) {
     service,
     level,
     limit,
+    hero,
   );
 
   const oldest = events[events.length - 1];

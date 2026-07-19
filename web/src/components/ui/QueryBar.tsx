@@ -107,11 +107,13 @@ export function QueryBar({
         />
       </div>
 
-      {syntaxError && (
-        <p role="alert" className="mt-1 text-[12px] text-crit">
-          {syntaxError}
-        </p>
-      )}
+      {/* always-mounted live region — screen readers announce role=alert
+          reliably only when the region pre-exists and its TEXT changes; a
+          conditionally-mounted node can be missed (QA 2026-07-19). Empty
+          <p> renders zero-height; mt-1 applies only with content. */}
+      <p role="alert" className={clsx("text-[12px] text-crit", syntaxError && "mt-1")}>
+        {syntaxError}
+      </p>
 
       {open && (
         <ul
