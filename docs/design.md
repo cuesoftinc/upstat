@@ -98,8 +98,9 @@ verified in both themes) — the one extra constraint the teal brand imposes.
   "Marketing nav, footer & theme parity canon", ratified 2026-07-19): all
   three products share ONE link inventory — same sections, counts and
   destinations; upstat renders it in its own dark visual design.
-  - **Nav** **[Revised 2026-07-19]**: 4 text links Features · Dashboards
-    (upstat product slot) · Docs (GitBook root) · GitHub — the GitHub item
+  - **Nav** **[Revised 2026-07-19]**: 4 text links Features · Platform
+    (upstat product slot — anchors to the landing pillar-grid section) ·
+    Docs (GitBook root) · GitHub — the GitHub item
     renders as a compact star badge (star glyph + neutral "Star" label; no
     count on canvas — the live star count is runtime behavior) — +
     ThemeToggle control + **"Sign in" text link** (`/signin`) + **"Try
@@ -107,7 +108,7 @@ verified in both themes) — the one extra constraint the teal brand imposes.
     mini feature map survives only as the dropdown-open preview under
     Features.)
   - **Footer**: brand block (wordmark + tagline) + 4 pinned columns — Product
-    (Features · Try Cloud · Self Host · Dashboards) / Docs (Docs · Quickstart
+    (Features · Try Cloud · Self Host · Platform) / Docs (Docs · Quickstart
     · API reference · Self-host guide) / Community (GitHub · Discord ·
     Roadmap · CueLABS™) / Legal (Privacy · Terms · Status) — + legal bar
     verbatim **"© Cuesoft Inc. 2026. Upstat. CueLABS™ Division. MIT
@@ -392,7 +393,7 @@ project license, the copy reads **MIT**.
 | WidgetTypeCell | state: default / selected · icon + label tile, one per widget type — iteration-1 addition **[built 2026-07-18]** |
 | WidgetTypePicker | layout: row (the in-shell "Choose a visualization" strip) / grid (create-flow modal overlay, pages.md B2) · 11 widget types (the pages.md B2 list) · composes WidgetTypeCell — iteration-1 addition **[built 2026-07-18]** |
 | **Marketing (Stage 5)** | |
-| MarketingNav + PillarDropdown | default / pillar-dropdown open (mini feature map ×8, reuses PillarCard) · 4 text links pinned to the parity canon: Features · Dashboards · Docs · GitHub — the GitHub item renders as a compact star badge (star glyph + neutral "Star" label — no count, no invented figure; the pages.md A13 live star count is runtime behavior) · ThemeToggle · "Sign in" text link (`/signin`) + "Try Cloud" brand CTA **[Revised 2026-07-19]** (the pillar mini feature map remains as the dropdown-open preview under Features) |
+| MarketingNav + PillarDropdown | default / pillar-dropdown open (mini feature map ×8, reuses PillarCard) · 4 text links pinned to the parity canon: Features · Platform (anchors to the landing pillar grid) · Docs · GitHub — the GitHub item renders as a compact star badge (star glyph + neutral "Star" label — no count, no invented figure; the pages.md A13 live star count is runtime behavior) · ThemeToggle · "Sign in" text link (`/signin`) + "Try Cloud" brand CTA **[Revised 2026-07-19]** (the pillar mini feature map remains as the dropdown-open preview under Features) |
 | MarketingFooter | brand block (wordmark + tagline) + 4 pinned columns Product / Docs / Community / Legal (4·4·4·3 links, parity canon) + legal bar verbatim "© Cuesoft Inc. 2026. Upstat. CueLABS™ Division. MIT License." · language selector (English-only pre-i18n) · security-policy affordance — **[Directive 2026-07-19]** |
 | PillarCard | pillar ×8 (icon + pillar color accent) · default / hover (lift + accent) |
 | CodeSnippet + Tabs | tab: Go / Python / Node / k8s (active/inactive) · copy: idle / copied-check · mono block on `bg-elev` — **as built (2026-07-17):** the tab axis is the variant set; copy idle/copied-check is handled via instance overrides, not a variant dimension |
