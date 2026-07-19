@@ -29,6 +29,14 @@ describe("parseQuery", () => {
     expect(parsed).toHaveProperty("error");
   });
 
+  it("rejects malformed pipes instead of silently succeeding (MI-13)", () => {
+    // split-on-every-pipe used to drop the garbage and parse clean, so the
+    // QueryBar's syntax-error state was unreachable (QA 2026-07-19)
+    expect(parseQuery("metric:http.requests_total ||| nonsense((")).toHaveProperty("error");
+    expect(parseQuery("service:web |")).toHaveProperty("error");
+    expect(parseQuery("service:web | nonsense((")).toHaveProperty("error");
+  });
+
   it("accepts negation and free text", () => {
     const parsed = parseQuery("-level:debug timeout service:web");
     if ("error" in parsed) throw new Error(parsed.error);

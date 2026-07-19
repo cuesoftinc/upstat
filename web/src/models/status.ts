@@ -19,6 +19,9 @@ export interface StatusPageComponent {
   /** 90-day strip (UptimeCard technique). */
   days: UptimeDay[];
   uptime_pct: number | null;
+  /** Latency figure from the owning check — the SAME source the uptime
+   *  pillar shows, so list/detail/status page agree (QA 2026-07-19). */
+  p95_ms: number | null;
 }
 
 export interface StatusPageIncident {

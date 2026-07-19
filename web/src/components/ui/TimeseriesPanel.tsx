@@ -63,6 +63,18 @@ function formatTime(ts: string): string {
 }
 
 /**
+ * Legend label — the DISTINGUISHING part of a series name. Grouped query
+ * names ("p95(http.request.duration_ms) service:api-common") all share the
+ * fn(metric) prefix; truncating from the right rendered eight identical
+ * legend entries (system-QA finding 2026-07-19). Prefer the tag suffix;
+ * the full name stays on the title tooltip.
+ */
+function legendLabel(name: string): string {
+  const idx = name.indexOf(") ");
+  return idx === -1 ? name : name.slice(idx + 2);
+}
+
+/**
  * TimeseriesPanel — §3/§8.2: bespoke SVG line/area/bars, legend with
  * per-series toggle, synced crosshair (MI-2), loading (axis-first) and
  * empty (radar MI-16) states. Bars inset clear of the axis labels
@@ -355,11 +367,16 @@ export function TimeseriesPanel({
       {!loading && !empty && cursorIndex !== null && (
         <div className="font-data flex flex-wrap gap-x-4 gap-y-0.5 text-[11px] tabular-nums text-text-2">
           {visible.map((s) => (
-            <span key={s.name} className="inline-flex items-center gap-1">
+            <span key={s.name} className="inline-flex items-center gap-1" title={s.name}>
               <span
                 className="size-1.5 rounded-full"
                 style={{ background: seriesColor(series.indexOf(s)) }}
               />
+              {/* MI-2 "per-series values" — a bare number row wasn't
+                  attributable to a series; carry the short label */}
+              {visible.length > 1 && (
+                <span className="max-w-32 truncate">{legendLabel(s.name)}</span>
+              )}
               {s.points[cursorIndex]?.value === null
                 ? "—"
                 : formatValue(s.points[cursorIndex]?.value ?? 0)}
@@ -383,13 +400,14 @@ export function TimeseriesPanel({
                   return next;
                 })
               }
+              title={s.name}
               className={clsx(
                 "inline-flex items-center gap-1.5 text-[11px] transition-opacity duration-[var(--duration-fast)]",
                 hidden.has(s.name) ? "opacity-40" : "opacity-100",
               )}
             >
               <span className="size-2 rounded-[1px]" style={{ background: seriesColor(i) }} />
-              <span className="font-data max-w-48 truncate text-text-2">{s.name}</span>
+              <span className="font-data max-w-48 truncate text-text-2">{legendLabel(s.name)}</span>
             </button>
           ))}
         </footer>

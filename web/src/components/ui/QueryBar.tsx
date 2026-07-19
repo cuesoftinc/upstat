@@ -48,7 +48,15 @@ export function QueryBar({
 }: QueryBarProps) {
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const open = focused && suggestions.length > 0 && text.length > 0;
+  // MI-13: suggestions match what's being typed (last whitespace-separated
+  // token), keeping the caller's cardinality ranking — an unfiltered list
+  // makes Tab complete something unrelated to the input. Display caps at 8
+  // AFTER filtering (a pre-filter cap hides valid matches).
+  const token = text.split(/\s+/).pop()?.toLowerCase() ?? "";
+  const matching = (
+    token ? suggestions.filter((s) => s.text.toLowerCase().includes(token)) : suggestions
+  ).slice(0, 8);
+  const open = focused && matching.length > 0 && text.length > 0;
 
   return (
     <div className={clsx("font-ui relative w-full", className)}>
@@ -83,9 +91,9 @@ export function QueryBar({
           onBlur={() => setFocused(false)}
           onKeyDown={(e) => {
             if (e.key === "Enter") onSubmit?.();
-            if (e.key === "Tab" && open && suggestions[0]) {
+            if (e.key === "Tab" && open && matching[0]) {
               e.preventDefault();
-              onPickSuggestion?.(suggestions[0]);
+              onPickSuggestion?.(matching[0]);
             }
           }}
           placeholder={pills.length === 0 ? placeholder : undefined}
@@ -111,7 +119,7 @@ export function QueryBar({
           aria-label="Query suggestions"
           className="absolute left-0 top-full z-[var(--z-dropdown)] mt-1 w-full rounded-(--radius) border border-border bg-bg-elev py-1 shadow-lg"
         >
-          {suggestions.map((s) => (
+          {matching.map((s) => (
             <li key={s.text}>
               <button
                 type="button"

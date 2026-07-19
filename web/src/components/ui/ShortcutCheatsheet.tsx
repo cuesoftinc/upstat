@@ -1,6 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
+import { useEffect } from "react";
 import { KbdChip } from "./KbdChip";
 
 export interface ShortcutEntry {
@@ -34,6 +35,17 @@ export function ShortcutCheatsheet({
   shortcuts = DEFAULT_SHORTCUTS,
   className,
 }: ShortcutCheatsheetProps) {
+  // ESC dismisses the overlay (MI-17 — the `?` sheet trapped keyboard
+  // users behind a click-only backdrop; system-QA finding 2026-07-19)
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose?.();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, onClose]);
+
   if (!open) return null;
   return (
     <div

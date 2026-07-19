@@ -41,4 +41,24 @@ describe("TimeseriesPanel", () => {
     rerender(<TimeseriesPanel title="t" series={SERIES} mode="area" />);
     expect(container.querySelector('[data-mode="area"]')).not.toBeNull();
   });
+
+  it("legend shows the distinguishing tag part of grouped names (QA 2026-07-19)", () => {
+    const grouped: Series[] = ["api-common", "web"].map((service) => ({
+      name: `p95(http.request.duration_ms) service:${service}`,
+      tags: { service },
+      points: SERIES[0].points,
+    }));
+    render(<TimeseriesPanel title="t" series={grouped} />);
+    // right-truncating the full names rendered N identical legend entries;
+    // the discriminating suffix is the label, the full name is the tooltip
+    const label = screen.getByText("service:api-common");
+    expect(label).toBeInTheDocument();
+    expect(label.closest("button")).toHaveAttribute(
+      "title",
+      "p95(http.request.duration_ms) service:api-common",
+    );
+    // ungrouped names still render in full
+    render(<TimeseriesPanel title="u" series={SERIES} />);
+    expect(screen.getByText("p95(http.request.duration_ms)")).toBeInTheDocument();
+  });
 });

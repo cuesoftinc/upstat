@@ -1,14 +1,25 @@
 /** RUM aggregates — deterministic, honoring analytics-math.md honesty rules. */
 
 import type { RumSummary, RumVitals } from "@/models";
-import { DAY, HOUR, hashSeed, iso, mulberry32, unitFor } from "./util";
+import { DAY, HOUR, MINUTE, hashSeed, iso, mulberry32, unitFor } from "./util";
 
 const TOP_PAGES = ["/", "/pricing", "/docs", "/blog/cookieless-analytics", "/changelog"];
 const REFERRERS = ["google.com", "github.com", "news.ycombinator.com", "x.com", "duckduckgo.com"];
 const COUNTRIES = ["NG", "US", "GB", "DE", "IN"];
 
+/**
+ * Bucket width by range. Short ranges get 5m buckets — day/hour-only
+ * bucketing rendered the default 1h view as ONE bar (and a one-column
+ * vitals heatmap) on /dashboard/rum (QA 2026-07-19).
+ */
+export function rumBucketMs(rangeMs: number): number {
+  if (rangeMs > 2 * DAY) return DAY;
+  if (rangeMs > 6 * HOUR) return HOUR;
+  return 5 * MINUTE;
+}
+
 export function rumSummary(fromMs: number, toMs: number): RumSummary {
-  const bucketMs = toMs - fromMs > 2 * DAY ? DAY : HOUR;
+  const bucketMs = rumBucketMs(toMs - fromMs);
   const series: RumSummary["series"] = [];
   let pageViews = 0;
   let uniquesSum = 0;
@@ -16,7 +27,7 @@ export function rumSummary(fromMs: number, toMs: number): RumSummary {
 
   for (let t = fromMs; t < toMs; t += bucketMs) {
     const r = mulberry32(hashSeed(`rum:${t}`));
-    const base = bucketMs === DAY ? 5200 : 240;
+    const base = bucketMs === DAY ? 5200 : bucketMs === HOUR ? 240 : 20;
     const count = Math.round(base * (0.7 + r() * 0.6));
     const uniques = Math.round(count * (0.55 + r() * 0.15));
     series.push({ bucket: iso(t), count, uniques });
@@ -57,7 +68,7 @@ export function rumSummary(fromMs: number, toMs: number): RumSummary {
 }
 
 export function rumVitals(fromMs: number, toMs: number): RumVitals {
-  const bucketMs = toMs - fromMs > 2 * DAY ? DAY : HOUR;
+  const bucketMs = rumBucketMs(toMs - fromMs);
   const series: RumVitals["series"] = [];
   for (let t = fromMs; t < toMs; t += bucketMs) {
     const u = unitFor(`vitals:${t}`);

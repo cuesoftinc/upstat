@@ -112,9 +112,24 @@ export function buildSeed(now: number): MockDb {
           type: "query_value",
           title: "Requests /s",
           query: null,
-          query_string: "metric:http.requests_total | rate()",
+          // $service: the template-var bar must govern at least the seeded
+          // widgets — an all-static seed made the picker a dead control
+          // (system-QA finding 2026-07-19)
+          query_string: "metric:http.requests_total service:$service | rate()",
           viz_options: { precision: 0, sparkline: true },
           layout: { x: 8, y: 0, w: 4, h: 3 },
+        },
+        {
+          id: "wid_err_rate",
+          dashboard_id: "dash_overview",
+          type: "timeseries",
+          title: "Error rate — $service",
+          query: null,
+          query_string: "metric:http.errors_total service:$service env:$env | rate()",
+          viz_options: { display: "area" },
+          // second timeseries widget: makes the MI-2 cross-widget crosshair
+          // sync observable on the seeded dashboard
+          layout: { x: 0, y: 6, w: 12, h: 2 },
         },
         {
           id: "wid_top",

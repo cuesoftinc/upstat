@@ -145,7 +145,15 @@ const FNS: QueryFn[] = ["count", "rate", "sum", "avg", "min", "max", "p50", "p95
  * per §3 "errors, not empty results".
  */
 export function parseQuery(q: string): ParsedQuery | { error: string } {
-  const [filterPart, aggPart] = q.split("|").map((s) => s.trim());
+  // One pipe max (grammar §1). Splitting on EVERY pipe silently dropped
+  // everything after the second one — `a ||| garbage((` parsed clean, so
+  // MI-13's syntax-error state could never surface (QA 2026-07-19).
+  const pipeIdx = q.indexOf("|");
+  const filterPart = (pipeIdx === -1 ? q : q.slice(0, pipeIdx)).trim();
+  const aggPart = pipeIdx === -1 ? "" : q.slice(pipeIdx + 1).trim();
+  if (pipeIdx !== -1 && (aggPart === "" || aggPart.startsWith("|"))) {
+    return { error: "aggregation expected after |" };
+  }
   const parsed: ParsedQuery = {
     metric: "http.requests_total",
     filters: {},

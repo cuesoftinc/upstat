@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { ShortcutCheatsheet } from "./ShortcutCheatsheet";
 
 describe("ShortcutCheatsheet", () => {
@@ -12,5 +13,12 @@ describe("ShortcutCheatsheet", () => {
   it("renders nothing when closed", () => {
     const { container } = render(<ShortcutCheatsheet open={false} />);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("closes on Escape (MI-17 — keyboard users aren't trapped)", async () => {
+    const onClose = vi.fn();
+    render(<ShortcutCheatsheet open onClose={onClose} />);
+    await userEvent.keyboard("{Escape}");
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

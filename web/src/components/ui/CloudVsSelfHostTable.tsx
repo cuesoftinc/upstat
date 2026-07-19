@@ -84,16 +84,19 @@ export function CloudVsSelfHostTable({
           </tr>
         ))}
       </tbody>
-      <tfoot>
+      {/* CTA footer rides the plan columns from sm up; below sm the section
+          composes its own grouped CTA block (the column-aligned buttons read
+          detached from their snippet at 390 — live-QA finding 2026-07-19). */}
+      <tfoot className="hidden sm:table-footer-group">
         <tr>
           <td className="p-3" />
           <td className="p-3 text-center">
-            <Button kind="brand" size="sm" onClick={onTryCloud}>
+            <Button kind="brand" size="sm" className="whitespace-nowrap" onClick={onTryCloud}>
               Try Cloud
             </Button>
           </td>
           <td className="p-3 text-center">
-            <Button kind="quiet" size="sm" onClick={onSelfHost}>
+            <Button kind="quiet" size="sm" className="whitespace-nowrap" onClick={onSelfHost}>
               {selfHostCta}
             </Button>
           </td>
