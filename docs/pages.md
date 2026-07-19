@@ -17,15 +17,15 @@ community-driven") remains the visual base, extended for the new pillars.
 
 | # | Section | Content | Interactions |
 | --- | --- | --- | --- |
-| A1 | Nav | logo · Platform (pillar dropdown) · Docs (GitBook) · Community · GitHub badge · Sign in · **Try Cloud** | pillar dropdown = mini feature map |
+| A1 | Nav | logo · Features (pillar-map dropdown) · Platform (anchors to the A3 pillar grid) · Docs (GitBook) · GitHub star badge (neutral "Star") · ThemeToggle · Sign in text link · **Try Cloud** CTA **[Revised 2026-07-19]** | Features dropdown = mini feature map |
 | A2 | Hero | H1 (from Figma pillars); dual CTA **Try Cloud** / **Self Host**; hero visual: live-looking dashboard with animated timeseries + synced crosshair demo | crosshair demo animates on an 8s loop |
 | A3 | Pillar grid | 8 cards: Uptime & Synthetics · Website Analytics/RUM · Metrics · Logs · APM/Traces · Dashboards · Alerting · Incidents & SLOs | hover lifts + pillar color accent |
 | A4 | Demo strip | **static demo cards** (synthetic data, U0-3) — the interactive embedded demo org is descoped to a post-Phase-3 enhancement **[Decided]** | — |
 | A5 | How ingestion works | OTLP/agent diagram: your services → OTel SDK/collector → Upstat | copyable snippet tabs (Go/Python/Node/k8s) |
 | A6 | Reliability showcase | Upstat's own public status page embedded (self-referential trust, PRD §5) | |
 | A7 | Open source | compose snippet, architecture diagram, GitHub/CONTRIBUTING | |
-| A8 | Community | public-status card (live uptime at status.upstat.cuesoft.io/upstat) · roadmap · CueLABS™ **[Revised 2026-07-19]** — community-CTA placement canon: GitHub/Discord moments live in exactly three spots — the nav star badge, the A13 developers pair (#upstat-lab copy), and the footer Community column | |
-| A9 | Cloud vs Self-host table | per-column CTAs · docs deep-link rows under the compose line — self-host guide (docs.upstat.cuesoft.io/self-host) + query grammar (docs.upstat.cuesoft.io/query-grammar) **[Revised 2026-07-19]** | |
+| A8 | Community | public-status card ("View live →" → https://status.cuesoft.io) · roadmap · CueLABS™ **[Revised 2026-07-19]** — community-CTA placement canon: GitHub/Discord moments live in exactly three spots — the nav star badge, the A13 developers pair (#upstat-lab copy), and the footer Community column | |
+| A9 | Cloud vs Self-host table | per-column CTAs · docs deep-link rows under the compose line — "Self-host guide" (→ cuesoft.gitbook.io/upstat/system/deployment) + "Query grammar" (→ cuesoft.gitbook.io/upstat/system/query-grammar); label copy with hyperlinks, no raw URL strings on canvas **[Revised 2026-07-19]** | |
 | A10 | Footer | standard + privacy (UPS-005) | |
 
 Iteration 1 additions **[Directive 2026-07-18]** — existing rows keep their
