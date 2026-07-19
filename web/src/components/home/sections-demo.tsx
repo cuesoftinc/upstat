@@ -83,6 +83,7 @@ export function DemoBandSection({
 
 export interface UseCasesSectionProps {
   series: Series[];
+  query: string;
   alertRule: AlertRule;
   incidentUpdate: IncidentHistoryUpdate;
   statusRow: StatusRowDemo;
@@ -116,6 +117,7 @@ function QuadCard({ title, body, readMoreHref }: QuadCopy) {
 
 export function UseCasesSection({
   series,
+  query,
   alertRule,
   incidentUpdate,
   statusRow,
@@ -133,14 +135,24 @@ export function UseCasesSection({
             body="11 widget types on one grid — timeseries, heatmaps, top lists, log streams, even markdown. Hover anywhere and every panel's crosshair lands on the same moment. Drag, resize, ship."
             readMoreHref="#demo"
           />
-          <TimeseriesPanel title="p95 latency — api-common" series={series} height={140} className="min-w-0" />
+          <TimeseriesPanel
+            title="p95 latency — api-common"
+            query={query}
+            series={series}
+            height={140}
+            className="min-w-0"
+          />
         </div>
 
         {/* 2 — alerting → incidents (visual left, copy right) */}
         <div className="grid items-center gap-10 md:grid-cols-2">
           <div className="min-w-0 flex flex-col gap-4 md:order-1">
             <AlertRuleCard rule={alertRule} />
-            <IncidentHistoryEntry updates={[incidentUpdate]} className="border-b-0 py-0" />
+            <IncidentHistoryEntry
+              updates={[incidentUpdate]}
+              variant="timeline"
+              className="border-b-0 py-0"
+            />
           </div>
           <div className="md:order-2">
             <QuadCard
@@ -163,13 +175,14 @@ export function UseCasesSection({
               overall="operational"
               lastUpdated={statusUpdatedAt}
               updatedFormat="relative"
+              updatedPlacement="banner"
             />
             <StatusPageComponentRow
               name={statusRow.name}
               status="ok"
               days={statusRow.days}
               uptimePct={statusRow.uptimePct}
-              className="border-b-0"
+              layout="inline"
             />
           </div>
         </div>
@@ -216,17 +229,23 @@ export interface StatusEmbedSectionProps {
 export function StatusEmbedSection({ rows, updatedAt }: StatusEmbedSectionProps) {
   return (
     <Section id="status" title="We run on it. Publicly.">
-      <div className="flex min-w-0 max-w-[800px] flex-col gap-4 rounded-(--radius) border border-border bg-bg-elev p-4">
-        <StatusPageHeader overall="operational" lastUpdated={updatedAt} updatedFormat="relative" />
-        <div className="flex flex-col">
-          {rows.map((row, i) => (
+      {/* 135:471: banner + free-standing bordered rows — no outer card */}
+      <div className="flex min-w-0 max-w-[800px] flex-col gap-4">
+        <StatusPageHeader
+          overall="operational"
+          lastUpdated={updatedAt}
+          updatedFormat="relative"
+          updatedPlacement="banner"
+        />
+        <div className="flex flex-col gap-3">
+          {rows.map((row) => (
             <StatusPageComponentRow
               key={row.name}
               name={row.name}
               status="ok"
               days={row.days}
               uptimePct={row.uptimePct}
-              className={i === rows.length - 1 ? "border-b-0" : undefined}
+              layout="inline"
             />
           ))}
         </div>

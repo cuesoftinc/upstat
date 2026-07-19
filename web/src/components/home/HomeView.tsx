@@ -72,6 +72,7 @@ export function HomeView() {
         />
         <UseCasesSection
           series={demo.latencySeries}
+          query={demo.latencyQuery}
           alertRule={demo.alertRule}
           incidentUpdate={demo.incidentUpdate}
           statusRow={demo.statusRows[0]}

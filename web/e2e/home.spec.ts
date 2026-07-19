@@ -122,10 +122,12 @@ test("home is responsive at 375w (mobile)", async ({ page }) => {
   await expect(
     page.getByRole("heading", { level: 1, name: /All your telemetry\./ }),
   ).toBeVisible();
-  // no horizontal overflow
-  const overflow = await page.evaluate(
-    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-  );
+  // no horizontal overflow — html AND body (unwrapped <pre> text overflows
+  // body.scrollWidth without moving documentElement.scrollWidth)
+  const overflow = await page.evaluate(() => {
+    const vw = document.documentElement.clientWidth;
+    return Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - vw;
+  });
   expect(overflow).toBeLessThanOrEqual(0);
   // pillar grid stacks and stays reachable
   await page.locator("#pillars").scrollIntoViewIfNeeded();

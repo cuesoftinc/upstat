@@ -124,14 +124,14 @@ export function TimeseriesPanel({
         className,
       )}
     >
-      <header className="flex items-center gap-2">
-        {/* shrink-0: the title never wraps under query-chip pressure —
-            the chip (min-w-0 truncate) gives way instead */}
-        <h3 className="shrink-0 text-[16px] font-semibold text-text">{title}</h3>
+      {/* stacked header — the master (Figma 50:100) and every landing v2
+          instance put the query chip on its own line under the title */}
+      <header className="flex flex-col items-start gap-2">
+        <h3 className="text-[16px] font-semibold text-text">{title}</h3>
         {query && (
-          // min-w-0 lets the chip's truncate actually shrink in narrow
-          // flex contexts (375w home hero); fixed-width panels unchanged
-          <code className="font-data min-w-0 truncate rounded-(--radius) border border-border bg-bg px-1.5 py-0.5 text-[11px] text-text-2">
+          // max-w-full + truncate: long queries clip inside the panel in
+          // narrow contexts (375w home hero); fixed-width panels unchanged
+          <code className="font-data max-w-full truncate rounded-(--radius) border border-border bg-bg px-1.5 py-0.5 text-[11px] text-text-2">
             {query}
           </code>
         )}

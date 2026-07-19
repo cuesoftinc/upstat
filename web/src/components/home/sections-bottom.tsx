@@ -206,7 +206,9 @@ export function DevelopersSection({ onGithub }: DevelopersSectionProps) {
 
         <div className="min-w-0 rounded-(--radius) border border-border bg-bg-elev p-4">
           <p className="font-data text-[12px] text-brand">label: good first issue</p>
-          <pre className="mt-3 font-data text-[13px] leading-[1.9] text-text-2">
+          {/* overflow-x-auto: pre text doesn't wrap — scroll inside the card
+              at 375w instead of widening the page (CodeSnippet convention) */}
+          <pre className="mt-3 overflow-x-auto font-data text-[13px] leading-[1.9] text-text-2">
             {GOOD_FIRST_ISSUES.join("\n")}
           </pre>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
-import { ChevronDown, Star } from "lucide-react";
+import { ChevronDown, Star, Zap } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./Button";
 import { MARKETING_PILLARS, PillarCard } from "./PillarCard";
@@ -31,14 +31,10 @@ export function MarketingNav({ onSignIn, onTryCloud, starCount = null, className
         className,
       )}
     >
+      {/* landing v2 brand mark (135:2): filled bolt glyph + lowercase wordmark */}
       <a href="/" className="flex items-center gap-2 text-[16px] font-semibold text-text">
-        <span
-          aria-hidden="true"
-          className="flex size-6 items-center justify-center rounded-(--radius) bg-brand text-[12px] font-semibold text-on-brand"
-        >
-          U
-        </span>
-        Upstat
+        <Zap aria-hidden="true" fill="currentColor" strokeWidth={0} className="size-5 text-brand" />
+        upstat
       </a>
 
       <div

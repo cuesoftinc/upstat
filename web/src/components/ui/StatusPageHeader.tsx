@@ -17,6 +17,9 @@ export interface StatusPageHeaderProps {
   lastUpdated: string;
   /** `relative` renders "Last updated 2m ago" (landing embed); default absolute UTC. */
   updatedFormat?: "absolute" | "relative";
+  /** `banner` puts the last-updated label inside the banner, right-aligned
+   *  (landing v2 embed, 135:471); default keeps it on its own line below. */
+  updatedPlacement?: "below" | "banner";
   className?: string;
 }
 
@@ -41,8 +44,17 @@ export function StatusPageHeader({
   overall,
   lastUpdated,
   updatedFormat = "absolute",
+  updatedPlacement = "below",
   className,
 }: StatusPageHeaderProps) {
+  const updatedLabel = (
+    <>
+      Last updated{" "}
+      {updatedFormat === "relative"
+        ? relativeLabel(lastUpdated)
+        : `${lastUpdated.replace("T", " ").slice(0, 19)} UTC`}
+    </>
+  );
   // Figma 75:862: outages (partial + major) carry crit + x-circle;
   // only degraded stays warn + triangle.
   const Icon =
@@ -72,13 +84,13 @@ export function StatusPageHeader({
           )}
         />
         <span className="text-[16px] font-semibold text-text">{COPY[overall]}</span>
+        {updatedPlacement === "banner" && (
+          <span className="ml-auto text-[12px] tabular-nums text-text-2">{updatedLabel}</span>
+        )}
       </div>
-      <p className="text-[12px] tabular-nums text-text-2">
-        Last updated{" "}
-        {updatedFormat === "relative"
-          ? relativeLabel(lastUpdated)
-          : `${lastUpdated.replace("T", " ").slice(0, 19)} UTC`}
-      </p>
+      {updatedPlacement === "below" && (
+        <p className="text-[12px] tabular-nums text-text-2">{updatedLabel}</p>
+      )}
     </header>
   );
 }
