@@ -177,7 +177,9 @@ export function WidgetBody({
       );
     }
     case "markdown": {
-      const text = (widget.viz_options.text as string) ?? "";
+      // typeof guard, not a cast: a non-string value would render as a
+      // React child and throw (defense in depth behind the import parser)
+      const text = typeof widget.viz_options.text === "string" ? widget.viz_options.text : "";
       return (
         <article className="whitespace-pre-wrap text-[13px] leading-[1.45] text-text-2">
           {text}

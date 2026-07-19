@@ -103,6 +103,14 @@ describe("portable dashboard JSON (pages.md B2; api.md §6)", () => {
     ).toThrow(/viz_options must be an object/);
   });
 
+  it("rejects non-string markdown text (PR 168 review round 3)", () => {
+    expect(() =>
+      parsePortableDashboard(
+        '{"version":1,"name":"x","widgets":[{"type":"markdown","viz_options":{"text":{}},"layout":{"x":0,"y":0,"w":4,"h":2}}]}',
+      ),
+    ).toThrow(/markdown viz_options.text must be a string/);
+  });
+
   it("defaults optional fields on import", () => {
     const parsed = parsePortableDashboard(
       '{"version":1,"name":"minimal","widgets":[{"type":"markdown","layout":{"x":0,"y":0,"w":4,"h":2}}]}',

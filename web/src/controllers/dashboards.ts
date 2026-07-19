@@ -83,6 +83,15 @@ export function parsePortableDashboard(text: string): PortableDashboard {
     ) {
       throw new Error("widget viz_options must be an object");
     }
+    // markdown renders viz_options.text as a React child — a non-string
+    // value would throw at render time (PR 168 review round 3)
+    if (
+      (w as Widget).type === "markdown" &&
+      w.viz_options?.text !== undefined &&
+      typeof w.viz_options.text !== "string"
+    ) {
+      throw new Error("markdown viz_options.text must be a string");
+    }
     const layout = (w as Widget).layout;
     // 12-col grid bounds (PR #168 review): integers, on-grid, in-range —
     // out-of-range spans render broken CSS grid placements
