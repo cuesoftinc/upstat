@@ -26,9 +26,14 @@ export function SLOCard({ slo, className }: SLOCardProps) {
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="truncate text-[13px] font-medium text-text">{slo.name}</span>
+        <span className="truncate text-[13px] font-medium text-text">
+          {slo.name}
+        </span>
         {slo.state === "burning" && (
-          <Flame aria-label="burn rate above threshold" className="size-4 shrink-0 text-warn" />
+          <Flame
+            aria-label="burn rate above threshold"
+            className="size-4 shrink-0 text-warn"
+          />
         )}
       </div>
 
@@ -71,7 +76,8 @@ export function SLOCard({ slo, className }: SLOCardProps) {
 
       {/* single meta line (Figma 48:71) */}
       <span className="text-[12px] tabular-nums text-text-2">
-        error budget {budget.toFixed(0)}% left · burn {slo.burn_rate.toFixed(1)}×
+        error budget {budget.toFixed(0)}% left · burn {slo.burn_rate.toFixed(1)}
+        ×
       </span>
     </div>
   );

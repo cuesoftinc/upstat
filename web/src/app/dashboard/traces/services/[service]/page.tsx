@@ -7,7 +7,11 @@ import { Heatmap } from "@/components/ui/Heatmap";
 import { ServiceMapNode } from "@/components/ui/ServiceMapNode";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { TimeseriesPanel } from "@/components/ui/TimeseriesPanel";
-import { useQueryController, useServicesController, useTracesController } from "@/controllers/telemetry";
+import {
+  useQueryController,
+  useServicesController,
+  useTracesController,
+} from "@/controllers/telemetry";
 import { serviceDependencies } from "@/controllers/service-map";
 import { seriesToHeatmap } from "@/controllers/widgets";
 import { useTimeRange } from "@/controllers/time-range";
@@ -24,7 +28,8 @@ export default function ServiceDetailPage() {
   const { service } = useParams<{ service: string }>();
   const time = useTimeRange();
   const services = useServicesController();
-  const stats = (services.data ?? []).find((s) => s.service === service) ?? null;
+  const stats =
+    (services.data ?? []).find((s) => s.service === service) ?? null;
 
   const latency = useQueryController(
     `metric:http.request.duration_ms service:${service} | p50(), p95(), p99()`,
@@ -36,7 +41,10 @@ export default function ServiceDetailPage() {
   });
 
   // endpoints: trace summaries grouped by root_name
-  const endpointMap = new Map<string, { count: number; total: number; errors: number }>();
+  const endpointMap = new Map<
+    string,
+    { count: number; total: number; errors: number }
+  >();
   for (const t of traces.data ?? []) {
     const e = endpointMap.get(t.root_name) ?? { count: 0, total: 0, errors: 0 };
     e.count += 1;
@@ -55,7 +63,9 @@ export default function ServiceDetailPage() {
 
   const ts = latency.data?.kind === "timeseries" ? latency.data : null;
   const deps = serviceDependencies(service);
-  const depStats = (services.data ?? []).filter((s) => deps.includes(s.service));
+  const depStats = (services.data ?? []).filter((s) =>
+    deps.includes(s.service),
+  );
 
   return (
     <div className="flex flex-col gap-5 px-6 py-5" data-testid="service-detail">
@@ -68,8 +78,11 @@ export default function ServiceDetailPage() {
         <h1 className="font-data mt-1 text-[24px] font-semibold">{service}</h1>
         {stats && (
           <p className="font-data mt-1 text-[13px] tabular-nums text-text-2">
-            {stats.req_per_s >= 1000 ? `${(stats.req_per_s / 1000).toFixed(1)}k` : Math.round(stats.req_per_s)}{" "}
-            req/s · p95 {fmtMs(stats.p95_ms)} · {(stats.error_rate * 100).toFixed(1)}% err · apdex{" "}
+            {stats.req_per_s >= 1000
+              ? `${(stats.req_per_s / 1000).toFixed(1)}k`
+              : Math.round(stats.req_per_s)}{" "}
+            req/s · p95 {fmtMs(stats.p95_ms)} ·{" "}
+            {(stats.error_rate * 100).toFixed(1)}% err · apdex{" "}
             {stats.apdex.toFixed(2)}
           </p>
         )}
@@ -90,44 +103,66 @@ export default function ServiceDetailPage() {
               ))}
             </div>
           ) : endpoints.length === 0 ? (
-            <p className="text-[13px] text-text-2">No traced endpoints in this range.</p>
+            <p className="text-[13px] text-text-2">
+              No traced endpoints in this range.
+            </p>
           ) : (
             // overflow-x-auto: the endpoints table scrolls inside the panel
             // on narrow viewports (390 support)
             <div className="overflow-x-auto">
-            <table className="w-full min-w-[420px] border-collapse text-[13px]">
-              <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wide text-text-2">
-                  <th scope="col" className="px-2 py-1.5 font-medium">Endpoint</th>
-                  <th scope="col" className="px-2 py-1.5 text-right font-medium">Req/s</th>
-                  <th scope="col" className="px-2 py-1.5 text-right font-medium">P95</th>
-                  <th scope="col" className="px-2 py-1.5 text-right font-medium">Err %</th>
-                </tr>
-              </thead>
-              <tbody>
-                {endpoints.map((e) => (
-                  <tr key={e.name} className="border-t border-border">
-                    <th scope="row" className="font-data px-2 py-2 text-left font-normal text-text">
-                      {e.name}
+              <table className="w-full min-w-[420px] border-collapse text-[13px]">
+                <thead>
+                  <tr className="text-left text-[11px] uppercase tracking-wide text-text-2">
+                    <th scope="col" className="px-2 py-1.5 font-medium">
+                      Endpoint
                     </th>
-                    <td className="font-data px-2 py-2 text-right tabular-nums text-text-2">
-                      {e.reqPerS}
-                    </td>
-                    <td className="font-data px-2 py-2 text-right tabular-nums text-text-2">
-                      {fmtMs(e.p95)}
-                    </td>
-                    <td
-                      className={clsx(
-                        "font-data px-2 py-2 text-right tabular-nums",
-                        e.errPct >= 1 ? "text-crit" : "text-text-2",
-                      )}
+                    <th
+                      scope="col"
+                      className="px-2 py-1.5 text-right font-medium"
                     >
-                      {e.errPct.toFixed(1)}%
-                    </td>
+                      Req/s
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-2 py-1.5 text-right font-medium"
+                    >
+                      P95
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-2 py-1.5 text-right font-medium"
+                    >
+                      Err %
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {endpoints.map((e) => (
+                    <tr key={e.name} className="border-t border-border">
+                      <th
+                        scope="row"
+                        className="font-data px-2 py-2 text-left font-normal text-text"
+                      >
+                        {e.name}
+                      </th>
+                      <td className="font-data px-2 py-2 text-right tabular-nums text-text-2">
+                        {e.reqPerS}
+                      </td>
+                      <td className="font-data px-2 py-2 text-right tabular-nums text-text-2">
+                        {fmtMs(e.p95)}
+                      </td>
+                      <td
+                        className={clsx(
+                          "font-data px-2 py-2 text-right tabular-nums",
+                          e.errPct >= 1 ? "text-crit" : "text-text-2",
+                        )}
+                      >
+                        {e.errPct.toFixed(1)}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </section>

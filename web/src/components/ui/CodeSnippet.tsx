@@ -69,11 +69,17 @@ export function CodeSnippet({ tabs, className }: CodeSnippetProps) {
           onClick={() => void copy()}
           className="px-3 text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
         >
-          {copied ? <Check className="size-4 text-ok" /> : <Copy className="size-4" />}
+          {copied ? (
+            <Check className="size-4 text-ok" />
+          ) : (
+            <Copy className="size-4" />
+          )}
         </button>
       </div>
       <pre className="overflow-x-auto p-4">
-        <code className="font-data text-[13px] leading-[1.6] text-text">{tabs[active].code}</code>
+        <code className="font-data text-[13px] leading-[1.6] text-text">
+          {tabs[active].code}
+        </code>
       </pre>
     </div>
   );

@@ -83,7 +83,11 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const theme = useSyncExternalStore(subscribe, readStoredTheme, getServerSnapshot);
+  const theme = useSyncExternalStore(
+    subscribe,
+    readStoredTheme,
+    getServerSnapshot,
+  );
 
   const setTheme = useCallback((next: Theme) => {
     applyTheme(next);
@@ -97,7 +101,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme]);
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  );
 }
 
 export function useTheme(): ThemeContextValue {

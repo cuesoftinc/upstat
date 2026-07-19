@@ -42,7 +42,9 @@ export function StatusPageComponentRow({
           className,
         )}
       >
-        <span className="w-24 truncate text-[13px] font-medium text-text">{name}</span>
+        <span className="w-24 truncate text-[13px] font-medium text-text">
+          {name}
+        </span>
         <StatusPill status={status} />
         {/* overflow-x-auto: the fixed-width bars scroll on narrow viewports */}
         <div
@@ -56,11 +58,17 @@ export function StatusPageComponentRow({
               content={[
                 {
                   label: day.date,
-                  value: day.uptime_pct === null ? "no data" : `${day.uptime_pct}%`,
+                  value:
+                    day.uptime_pct === null ? "no data" : `${day.uptime_pct}%`,
                 },
               ]}
             >
-              <span className={clsx("block h-4 w-[2px] rounded-[1px]", barTint(day))} />
+              <span
+                className={clsx(
+                  "block h-4 w-[2px] rounded-[1px]",
+                  barTint(day),
+                )}
+              />
             </Tooltip>
           ))}
         </div>
@@ -72,26 +80,43 @@ export function StatusPageComponentRow({
   }
 
   return (
-    <div className={clsx("font-ui flex flex-col gap-1.5 border-b border-border py-3", className)}>
+    <div
+      className={clsx(
+        "font-ui flex flex-col gap-1.5 border-b border-border py-3",
+        className,
+      )}
+    >
       <div className="flex items-center justify-between gap-2">
         <span className="text-[13px] font-medium text-text">{name}</span>
         <StatusPill status={status} />
       </div>
       {/* overflow-x-auto: 90 fixed-width bars scroll on narrow viewports */}
-      <div className="flex h-6 items-stretch gap-px overflow-x-auto" role="img" aria-label={`${name} 90-day uptime`}>
+      <div
+        className="flex h-6 items-stretch gap-px overflow-x-auto"
+        role="img"
+        aria-label={`${name} 90-day uptime`}
+      >
         {days.map((day) => (
           <Tooltip
             key={day.date}
             content={[
-              { label: day.date, value: day.uptime_pct === null ? "no data" : `${day.uptime_pct}%` },
+              {
+                label: day.date,
+                value:
+                  day.uptime_pct === null ? "no data" : `${day.uptime_pct}%`,
+              },
             ]}
           >
-            <span className={clsx("block h-6 w-1 rounded-[1px]", barTint(day))} />
+            <span
+              className={clsx("block h-6 w-1 rounded-[1px]", barTint(day))}
+            />
           </Tooltip>
         ))}
       </div>
       <span className="font-data text-[11px] tabular-nums text-text-2">
-        {uptimePct === null ? "no data" : `${uptimePct.toFixed(3)}% over 90 days`}
+        {uptimePct === null
+          ? "no data"
+          : `${uptimePct.toFixed(3)}% over 90 days`}
       </span>
     </div>
   );

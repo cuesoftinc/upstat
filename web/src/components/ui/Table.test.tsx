@@ -17,9 +17,7 @@ describe("Table", () => {
   });
 
   it("renders — for null cells", () => {
-    render(
-      <Table columns={[{ key: "a", label: "A" }]} rows={[{ a: null }]} />,
-    );
+    render(<Table columns={[{ key: "a", label: "A" }]} rows={[{ a: null }]} />);
     expect(screen.getByText("—")).toBeInTheDocument();
   });
 });

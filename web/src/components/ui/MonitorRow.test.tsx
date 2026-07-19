@@ -15,7 +15,9 @@ describe("MonitorRow", () => {
         onMutedChange={onMuted}
       />,
     );
-    await userEvent.click(screen.getByRole("switch", { name: "Mute Homepage" }));
+    await userEvent.click(
+      screen.getByRole("switch", { name: "Mute Homepage" }),
+    );
     expect(onMuted).toHaveBeenCalledWith(true);
   });
 

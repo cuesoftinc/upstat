@@ -54,7 +54,9 @@ export function Select({
   const filtered = useMemo(
     () =>
       typeahead && filter
-        ? options.filter((o) => o.label.toLowerCase().includes(filter.toLowerCase()))
+        ? options.filter((o) =>
+            o.label.toLowerCase().includes(filter.toLowerCase()),
+          )
         : options,
     [options, typeahead, filter],
   );
@@ -91,7 +93,9 @@ export function Select({
         if (!next) setFilter("");
       }}
     >
-      <div className={clsx("font-ui relative inline-block min-w-40", className)}>
+      <div
+        className={clsx("font-ui relative inline-block min-w-40", className)}
+      >
         <Popover.Trigger asChild>
           <button
             type="button"
@@ -164,12 +168,22 @@ export function Select({
                   className="font-ui h-8 w-full border-b border-border bg-transparent px-2 text-[13px] text-text placeholder:text-text-2 focus:outline-none"
                 />
               )}
-              <ul id={listboxId} role="listbox" className="max-h-56 overflow-y-auto py-1">
+              <ul
+                id={listboxId}
+                role="listbox"
+                className="max-h-56 overflow-y-auto py-1"
+              >
                 {filtered.length === 0 && (
-                  <li className="px-2 py-1.5 text-[13px] text-text-2">No matches</li>
+                  <li className="px-2 py-1.5 text-[13px] text-text-2">
+                    No matches
+                  </li>
                 )}
                 {filtered.map((option, i) => (
-                  <li key={option.value} role="option" aria-selected={option.value === value}>
+                  <li
+                    key={option.value}
+                    role="option"
+                    aria-selected={option.value === value}
+                  >
                     <button
                       type="button"
                       onClick={() => commit(option)}
@@ -182,7 +196,10 @@ export function Select({
                     >
                       <span className="truncate">{option.label}</span>
                       {option.value === value && (
-                        <Check aria-hidden="true" className="size-3.5 shrink-0 text-brand" />
+                        <Check
+                          aria-hidden="true"
+                          className="size-3.5 shrink-0 text-brand"
+                        />
                       )}
                     </button>
                   </li>

@@ -6,9 +6,13 @@ import { QueryPill } from "./QueryPill";
 describe("QueryPill", () => {
   it("renders facet:value and removes", async () => {
     const onRemove = vi.fn();
-    render(<QueryPill facet="service" value="api-common" onRemove={onRemove} />);
+    render(
+      <QueryPill facet="service" value="api-common" onRemove={onRemove} />,
+    );
     expect(screen.getByText("service:")).toBeInTheDocument();
-    await userEvent.click(screen.getByLabelText("Remove filter service:api-common"));
+    await userEvent.click(
+      screen.getByLabelText("Remove filter service:api-common"),
+    );
     expect(onRemove).toHaveBeenCalledOnce();
   });
 

@@ -19,7 +19,9 @@ const SLO: Slo = {
 describe("SLOCard", () => {
   it("renders the burning state with flame + meter (MI-15)", () => {
     render(<SLOCard slo={SLO} />);
-    expect(screen.getByLabelText("burn rate above threshold")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("burn rate above threshold"),
+    ).toBeInTheDocument();
     expect(screen.getByRole("meter")).toHaveAttribute("aria-valuenow", "11");
   });
 

@@ -59,10 +59,16 @@ export function DeclareIncidentModal({
     setDeclaring(true);
     setError(null);
     try {
-      const incident = await declare({ title: title.trim(), sev: Number(sev), commander });
+      const incident = await declare({
+        title: title.trim(),
+        sev: Number(sev),
+        commander,
+      });
       router.push(`/dashboard/incidents/${incident.id}`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not declare the incident.");
+      setError(
+        e instanceof Error ? e.message : "Could not declare the incident.",
+      );
       setDeclaring(false);
     }
   };
@@ -102,7 +108,10 @@ export function DeclareIncidentModal({
           <label className="flex flex-col gap-1 text-[13px]">
             <span className="text-text-2">Severity</span>
             <Select
-              options={["1", "2", "3", "4"].map((s) => ({ value: s, label: `SEV-${s}` }))}
+              options={["1", "2", "3", "4"].map((s) => ({
+                value: s,
+                label: `SEV-${s}`,
+              }))}
               value={sev}
               onValueChange={setSev}
               aria-label="Severity"

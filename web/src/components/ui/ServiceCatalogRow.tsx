@@ -11,7 +11,10 @@ export interface ServiceCatalogRowProps {
   className?: string;
 }
 
-const PILLARS: { key: keyof ServiceCatalogEntry["telemetry"]; label: string }[] = [
+const PILLARS: {
+  key: keyof ServiceCatalogEntry["telemetry"];
+  label: string;
+}[] = [
   { key: "metrics", label: "metrics" },
   { key: "logs", label: "logs" },
   { key: "traces", label: "traces" },
@@ -22,7 +25,11 @@ const PILLARS: { key: keyof ServiceCatalogEntry["telemetry"]; label: string }[] 
  * ServiceCatalogRow — §8.2b: telemetry presence dots per pillar
  * (present/absent ×4) · owner + repo/runbook links · default/hover.
  */
-export function ServiceCatalogRow({ entry, onClick, className }: ServiceCatalogRowProps) {
+export function ServiceCatalogRow({
+  entry,
+  onClick,
+  className,
+}: ServiceCatalogRowProps) {
   return (
     <div
       className={clsx(
@@ -31,12 +38,26 @@ export function ServiceCatalogRow({ entry, onClick, className }: ServiceCatalogR
         className,
       )}
     >
-      <button type="button" onClick={onClick} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-        <span className="font-data w-36 truncate text-[13px] text-text">{entry.name}</span>
-        <span className="w-20 truncate text-[12px] text-text-2">{entry.owner}</span>
-        <span className="flex items-center gap-1.5" aria-label="telemetry presence">
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex min-w-0 flex-1 items-center gap-3 text-left"
+      >
+        <span className="font-data w-36 truncate text-[13px] text-text">
+          {entry.name}
+        </span>
+        <span className="w-20 truncate text-[12px] text-text-2">
+          {entry.owner}
+        </span>
+        <span
+          className="flex items-center gap-1.5"
+          aria-label="telemetry presence"
+        >
           {PILLARS.map(({ key, label }) => (
-            <Tooltip key={key} content={`${label}: ${entry.telemetry[key] ? "present" : "absent"}`}>
+            <Tooltip
+              key={key}
+              content={`${label}: ${entry.telemetry[key] ? "present" : "absent"}`}
+            >
               <span
                 data-pillar={key}
                 data-present={entry.telemetry[key] || undefined}

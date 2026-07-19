@@ -38,7 +38,14 @@ function deriveStatus(days: UptimeDay[]): StatusPillStatus {
  * name + dot-only StatusPill header, 3×24 bars, mono uptime/p95 footer.
  * Bars fill on first render with a 400ms stagger (MI-8); per-day tooltip.
  */
-export function UptimeCard({ name, days, uptimePct, p95Ms, status, className }: UptimeCardProps) {
+export function UptimeCard({
+  name,
+  days,
+  uptimePct,
+  p95Ms,
+  status,
+  className,
+}: UptimeCardProps) {
   return (
     <div
       className={clsx(
@@ -47,18 +54,28 @@ export function UptimeCard({ name, days, uptimePct, p95Ms, status, className }: 
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="truncate text-[13px] font-medium text-text">{name}</span>
+        <span className="truncate text-[13px] font-medium text-text">
+          {name}
+        </span>
         <StatusPill status={status ?? deriveStatus(days)} dotOnly />
       </div>
 
       {/* overflow-x-auto: the 90 fixed-width bars scroll inside the card on
           narrow viewports (375w); desktop rendering is unchanged */}
-      <div className="flex items-stretch gap-px overflow-x-auto" role="img" aria-label={`${name} 90-day uptime`}>
+      <div
+        className="flex items-stretch gap-px overflow-x-auto"
+        role="img"
+        aria-label={`${name} 90-day uptime`}
+      >
         {days.map((day, i) => (
           <Tooltip
             key={day.date}
             content={[
-              { label: day.date, value: day.uptime_pct === null ? "no data" : `${day.uptime_pct}%` },
+              {
+                label: day.date,
+                value:
+                  day.uptime_pct === null ? "no data" : `${day.uptime_pct}%`,
+              },
               ...(day.down_minutes > 0
                 ? [{ label: "downtime", value: `${day.down_minutes}m` }]
                 : []),
@@ -79,9 +96,12 @@ export function UptimeCard({ name, days, uptimePct, p95Ms, status, className }: 
 
       <div className="font-data flex items-center justify-between gap-2 text-[12px] tabular-nums">
         <span className="text-text">
-          {uptimePct === null ? "— uptime" : `${uptimePct.toFixed(3)}% uptime`} · {days.length} days
+          {uptimePct === null ? "— uptime" : `${uptimePct.toFixed(3)}% uptime`}{" "}
+          · {days.length} days
         </span>
-        {p95Ms !== undefined && <span className="text-text-2">p95 {p95Ms} ms</span>}
+        {p95Ms !== undefined && (
+          <span className="text-text-2">p95 {p95Ms} ms</span>
+        )}
       </div>
     </div>
   );

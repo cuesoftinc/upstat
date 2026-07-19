@@ -53,14 +53,33 @@ export function IncidentHistoryEntry({
   className,
 }: IncidentHistoryEntryProps) {
   return (
-    <article className={clsx("font-ui flex flex-col gap-2 border-b border-border py-4", className)}>
-      {title && <h3 className="text-[14px] font-semibold text-text">{title}</h3>}
+    <article
+      className={clsx(
+        "font-ui flex flex-col gap-2 border-b border-border py-4",
+        className,
+      )}
+    >
+      {title && (
+        <h3 className="text-[14px] font-semibold text-text">{title}</h3>
+      )}
       <ol className="flex flex-col gap-2">
         {updates.map((update, i) =>
           variant === "timeline" ? (
-            <li key={`${update.ts}-${i}`} data-phase={update.phase} className="flex gap-3">
-              <span aria-hidden="true" className="flex flex-col items-center gap-1">
-                <span className={clsx("mt-1 size-2 shrink-0 rounded-full", PHASE_DOT[update.phase])} />
+            <li
+              key={`${update.ts}-${i}`}
+              data-phase={update.phase}
+              className="flex gap-3"
+            >
+              <span
+                aria-hidden="true"
+                className="flex flex-col items-center gap-1"
+              >
+                <span
+                  className={clsx(
+                    "mt-1 size-2 shrink-0 rounded-full",
+                    PHASE_DOT[update.phase],
+                  )}
+                />
                 <span className="w-px flex-1 bg-border" />
               </span>
               <div className="flex min-w-0 flex-col gap-1 pb-3">
@@ -78,11 +97,17 @@ export function IncidentHistoryEntry({
                     {update.author ? ` · ${update.author}` : ""}
                   </span>
                 </span>
-                <p className="text-[13px] leading-[1.45] text-text">{update.body}</p>
+                <p className="text-[13px] leading-[1.45] text-text">
+                  {update.body}
+                </p>
               </div>
             </li>
           ) : (
-            <li key={`${update.ts}-${i}`} data-phase={update.phase} className="flex gap-3">
+            <li
+              key={`${update.ts}-${i}`}
+              data-phase={update.phase}
+              className="flex gap-3"
+            >
               <span
                 className={clsx(
                   "w-24 shrink-0 text-[11px] font-semibold uppercase tracking-wide",
@@ -92,7 +117,9 @@ export function IncidentHistoryEntry({
                 {update.phase}
               </span>
               <div className="flex min-w-0 flex-col gap-0.5">
-                <p className="text-[13px] leading-[1.45] text-text">{update.body}</p>
+                <p className="text-[13px] leading-[1.45] text-text">
+                  {update.body}
+                </p>
                 <span className="text-[11px] tabular-nums text-text-2">
                   {update.ts.replace("T", " ").slice(0, 16)} UTC
                   {update.author ? ` · ${update.author}` : ""}

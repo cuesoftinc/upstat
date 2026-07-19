@@ -20,7 +20,9 @@ export function PageTabs({ tabs, label }: { tabs: PageTab[]; label: string }) {
           aria-current={tab.active ? "page" : undefined}
           className={clsx(
             "text-[13px] transition-colors duration-[var(--duration-fast)]",
-            tab.active ? "font-medium text-brand" : "text-text-2 hover:text-text",
+            tab.active
+              ? "font-medium text-brand"
+              : "text-text-2 hover:text-text",
           )}
         >
           {tab.label}

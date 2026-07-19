@@ -32,7 +32,10 @@ export default function SignInPage() {
           </p>
         </header>
 
-        <GoogleAuthButton onClick={() => void signInWithGoogle()} loading={loading} />
+        <GoogleAuthButton
+          onClick={() => void signInWithGoogle()}
+          loading={loading}
+        />
 
         {error && (
           <p role="alert" className="text-[13px] leading-[1.45] text-crit">

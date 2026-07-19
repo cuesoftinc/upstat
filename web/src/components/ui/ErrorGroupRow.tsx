@@ -16,7 +16,11 @@ const STATE_TINT: Record<ErrorGroup["state"], string> = {
 };
 
 /** ErrorGroupRow — §8.2b: fingerprint msg (mono) + count + sparkline + last-seen · new/ongoing/regressed. */
-export function ErrorGroupRow({ group, onClick, className }: ErrorGroupRowProps) {
+export function ErrorGroupRow({
+  group,
+  onClick,
+  className,
+}: ErrorGroupRowProps) {
   const max = Math.max(...group.sparkline, 1);
   return (
     <button

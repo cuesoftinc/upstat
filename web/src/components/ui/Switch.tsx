@@ -45,7 +45,9 @@ export function Switch({
         className={clsx(
           "block size-3 rounded-full transition-transform duration-[var(--duration-base)] ease-standard motion-reduce:transition-none",
           // knob on brand fill uses on-brand ink (§2)
-          checked ? "translate-x-[16px] bg-on-brand" : "translate-x-[2px] bg-text-2",
+          checked
+            ? "translate-x-[16px] bg-on-brand"
+            : "translate-x-[2px] bg-text-2",
         )}
       />
     </SwitchPrimitive.Root>

@@ -15,7 +15,9 @@ describe("TopBar", () => {
     renderBar({ orgName: "Upstat", unreadCount: 3 });
     expect(screen.getByText("Upstat")).toBeInTheDocument();
     expect(screen.getByText("Search…")).toBeInTheDocument();
-    expect(screen.getByLabelText("Notifications (3 unread)")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Notifications (3 unread)"),
+    ).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
   });
 

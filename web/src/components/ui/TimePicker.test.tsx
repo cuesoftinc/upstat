@@ -7,7 +7,14 @@ describe("TimePicker", () => {
   it("selects presets and toggles live", async () => {
     const onChange = vi.fn();
     const onLive = vi.fn();
-    render(<TimePicker value="1h" onChange={onChange} live={false} onLiveChange={onLive} />);
+    render(
+      <TimePicker
+        value="1h"
+        onChange={onChange}
+        live={false}
+        onLiveChange={onLive}
+      />,
+    );
     await userEvent.click(screen.getByRole("button", { name: "4h" }));
     expect(onChange).toHaveBeenCalledWith("4h");
     await userEvent.click(screen.getByRole("button", { name: /live/ }));
@@ -21,6 +28,8 @@ describe("TimePicker", () => {
     expect(onChange).toHaveBeenCalledWith("custom");
     rerender(<TimePicker value="custom" onChange={onChange} />);
     await userEvent.click(screen.getByRole("button", { name: "Custom range" }));
-    expect(screen.getByRole("dialog", { name: "Absolute range" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog", { name: "Absolute range" }),
+    ).toBeInTheDocument();
   });
 });

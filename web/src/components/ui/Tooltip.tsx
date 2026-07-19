@@ -23,9 +23,18 @@ export interface TooltipProps {
  * shift pad 8 → sideOffset/collisionPadding) and ARIA ride
  * @radix-ui/react-tooltip; the bubble chrome is the W1 Figma-QA'd markup.
  */
-export function Tooltip({ content, placement = "top", children, className }: TooltipProps) {
+export function Tooltip({
+  content,
+  placement = "top",
+  children,
+  className,
+}: TooltipProps) {
   return (
-    <TooltipPrimitive.Provider delayDuration={0} skipDelayDuration={0} disableHoverableContent>
+    <TooltipPrimitive.Provider
+      delayDuration={0}
+      skipDelayDuration={0}
+      disableHoverableContent
+    >
       <TooltipPrimitive.Root>
         {/* wrapper spans preserved from the hand-rolled version — the W1
             layout (e.g. UptimeCard bar strips) depends on them */}
@@ -54,9 +63,14 @@ export function Tooltip({ content, placement = "top", children, className }: Too
                 ) : (
                   <span className="flex flex-col gap-0.5">
                     {content.map((row) => (
-                      <span key={row.label} className="flex items-center justify-between gap-4">
+                      <span
+                        key={row.label}
+                        className="flex items-center justify-between gap-4"
+                      >
                         <span className="text-text-2">{row.label}</span>
-                        <span className="font-data tabular-nums">{row.value}</span>
+                        <span className="font-data tabular-nums">
+                          {row.value}
+                        </span>
                       </span>
                     ))}
                   </span>

@@ -232,7 +232,10 @@ export interface StatusEmbedSectionProps {
   updatedAt: string;
 }
 
-export function StatusEmbedSection({ rows, updatedAt }: StatusEmbedSectionProps) {
+export function StatusEmbedSection({
+  rows,
+  updatedAt,
+}: StatusEmbedSectionProps) {
   return (
     <Section id="status" title="We run on it. Publicly.">
       {/* 135:471: banner + free-standing bordered rows — no outer card */}

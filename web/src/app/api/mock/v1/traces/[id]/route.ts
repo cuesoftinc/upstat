@@ -21,7 +21,14 @@ export async function GET(
 
   const r = mulberry32(hashSeed(`spans:${id}`));
   const startMs = Date.parse(summary.start);
-  const ops = ["db.query", "cache.get", "http.request", "serialize", "auth.check", "queue.publish"];
+  const ops = [
+    "db.query",
+    "cache.get",
+    "http.request",
+    "serialize",
+    "auth.check",
+    "queue.publish",
+  ];
   const spans: Span[] = [
     {
       trace_id: id,
@@ -46,7 +53,10 @@ export async function GET(
       name: ops[Math.floor(r() * ops.length)],
       start: iso(startMs + offset),
       duration_ns: Math.round(dur * 1e6),
-      status: summary.status === "error" && i === summary.span_count - 1 ? "error" : "ok",
+      status:
+        summary.status === "error" && i === summary.span_count - 1
+          ? "error"
+          : "ok",
       attrs: {},
     });
     offset += dur * 0.8;

@@ -12,7 +12,13 @@ export interface WidgetTypeCellProps {
 }
 
 /** WidgetTypeCell — §8.2b iteration-1: icon + label tile · default/selected. */
-export function WidgetTypeCell({ icon: Icon, label, selected = false, onClick, className }: WidgetTypeCellProps) {
+export function WidgetTypeCell({
+  icon: Icon,
+  label,
+  selected = false,
+  onClick,
+  className,
+}: WidgetTypeCellProps) {
   return (
     <button
       type="button"

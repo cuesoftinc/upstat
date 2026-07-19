@@ -14,7 +14,9 @@ export function jsonError(
 }
 
 export function jsonOk<T>(body: T, status = 200): NextResponse {
-  return NextResponse.json(body as unknown as Record<string, unknown>, { status });
+  return NextResponse.json(body as unknown as Record<string, unknown>, {
+    status,
+  });
 }
 
 export function notFound(what = "resource"): NextResponse {

@@ -4,7 +4,11 @@
  * `/status/{slug}` immediately (pages.md B9 status-page linkage).
  */
 
-import type { StatusPage, StatusPageIncident, StatusPageOverall } from "@/models";
+import type {
+  StatusPage,
+  StatusPageIncident,
+  StatusPageOverall,
+} from "@/models";
 import type { MockDb } from "./seed";
 import { monitorHistory } from "./uptime-data";
 import { iso } from "./util";
@@ -19,7 +23,11 @@ function overallFor(db: MockDb): StatusPageOverall {
   return "operational";
 }
 
-export function buildStatusPage(db: MockDb, slug: string, now = Date.now()): StatusPage {
+export function buildStatusPage(
+  db: MockDb,
+  slug: string,
+  now = Date.now(),
+): StatusPage {
   // Public components = the active, unmuted checks (paused stays internal).
   const components = db.monitors
     .filter((m) => m.active && !m.muted)

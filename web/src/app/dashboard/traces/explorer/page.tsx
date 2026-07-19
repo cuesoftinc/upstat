@@ -7,7 +7,11 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { QueryBar } from "@/components/ui/QueryBar";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { TraceWaterfall } from "@/components/ui/TraceWaterfall";
-import { initialQueryFromUrl, joinQuery, useQueryPills } from "@/controllers/explorer";
+import {
+  initialQueryFromUrl,
+  joinQuery,
+  useQueryPills,
+} from "@/controllers/explorer";
 import {
   useTraceController,
   useTraceLogsController,
@@ -46,7 +50,9 @@ export default function TraceExplorerPage() {
 
   // guard the stale-data window while the detail request is in flight
   const selected =
-    selectedId && trace.data && trace.data.trace_id === selectedId ? trace.data : null;
+    selectedId && trace.data && trace.data.trace_id === selectedId
+      ? trace.data
+      : null;
   // logs-in-span (pages.md B5): correlated lines for the drawer's logs tab
   const traceLogs = useTraceLogsController(selected);
 
@@ -61,7 +67,12 @@ export default function TraceExplorerPage() {
         pills={queryState.pills}
         onRemovePill={(i) => {
           queryState.removePill(i);
-          setActiveQuery(joinQuery(queryState.pills.filter((_, idx) => idx !== i), queryState.text));
+          setActiveQuery(
+            joinQuery(
+              queryState.pills.filter((_, idx) => idx !== i),
+              queryState.text,
+            ),
+          );
         }}
         text={queryState.text}
         onTextChange={queryState.setText}
@@ -70,7 +81,10 @@ export default function TraceExplorerPage() {
       />
 
       {/* trace list */}
-      <section aria-label="Traces" className="rounded-(--radius) border border-border bg-bg-elev">
+      <section
+        aria-label="Traces"
+        className="rounded-(--radius) border border-border bg-bg-elev"
+      >
         {traces.loading ? (
           <div className="flex flex-col gap-2 p-3">
             {Array.from({ length: 6 }, (_, i) => (
@@ -82,7 +96,10 @@ export default function TraceExplorerPage() {
         ) : (
           // overflow-x-auto: the fixed-column result rows scroll inside the
           // panel on narrow viewports (390 support)
-          <ul aria-label="Trace results" className="max-h-72 overflow-y-auto overflow-x-auto">
+          <ul
+            aria-label="Trace results"
+            className="max-h-72 overflow-y-auto overflow-x-auto"
+          >
             {(traces.data ?? []).map((t) => (
               <li key={t.trace_id} className="min-w-max">
                 <button
@@ -103,8 +120,12 @@ export default function TraceExplorerPage() {
                       t.status === "error" ? "bg-crit" : "bg-ok",
                     )}
                   />
-                  <span className="font-data w-64 truncate text-[13px] text-text">{t.root_name}</span>
-                  <span className="w-28 truncate text-[12px] text-text-2">{t.root_service}</span>
+                  <span className="font-data w-64 truncate text-[13px] text-text">
+                    {t.root_name}
+                  </span>
+                  <span className="w-28 truncate text-[12px] text-text-2">
+                    {t.root_service}
+                  </span>
                   <span className="font-data w-20 text-right text-[12px] tabular-nums text-text-2">
                     {fmtMs(t.duration_ms)}
                   </span>
@@ -133,7 +154,9 @@ export default function TraceExplorerPage() {
           ) : (
             <>
               <header className="mb-2 flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-[16px] font-semibold">Trace — {selected.root_name}</h2>
+                <h2 className="text-[16px] font-semibold">
+                  Trace — {selected.root_name}
+                </h2>
                 <Link
                   href={`/dashboard/traces/map?service=${selected.root_service}`}
                   className="text-[12px] text-brand hover:underline"
@@ -147,11 +170,14 @@ export default function TraceExplorerPage() {
                   (PR 168 review round 2) */}
               <TraceWaterfall
                 trace={selected}
-                logs={(traceLogs.data ?? []).filter((l) => l.trace_id === selected.trace_id)}
+                logs={(traceLogs.data ?? []).filter(
+                  (l) => l.trace_id === selected.trace_id,
+                )}
               />
               <p className="font-data mt-2 text-[11px] tabular-nums text-text-2">
-                trace_id {selected.trace_id.slice(0, 16)} · {selected.span_count} spans ·{" "}
-                {fmtMs(selected.duration_ms)} total
+                trace_id {selected.trace_id.slice(0, 16)} ·{" "}
+                {selected.span_count} spans · {fmtMs(selected.duration_ms)}{" "}
+                total
               </p>
             </>
           )}

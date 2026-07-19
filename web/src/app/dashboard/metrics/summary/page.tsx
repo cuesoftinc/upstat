@@ -19,22 +19,34 @@ export default function MetricsSummaryPage() {
     metric: m.name,
     type: m.type,
     cardinality: `${m.cardinality.toLocaleString("en-US")} series`,
-    ingest: m.ingestion_rate_per_s >= 1000 ? `${(m.ingestion_rate_per_s / 1000).toFixed(1)}k` : `${m.ingestion_rate_per_s}`,
+    ingest:
+      m.ingestion_rate_per_s >= 1000
+        ? `${(m.ingestion_rate_per_s / 1000).toFixed(1)}k`
+        : `${m.ingestion_rate_per_s}`,
     last_seen: `${ageLabel(m.last_seen)} ago`,
   }));
 
   const active =
-    (summary.data ?? []).find((m) => m.name === selected) ?? (summary.data ?? [])[0] ?? null;
+    (summary.data ?? []).find((m) => m.name === selected) ??
+    (summary.data ?? [])[0] ??
+    null;
 
   return (
-    <div className="flex flex-col gap-4 px-6 py-5" data-testid="metrics-summary">
+    <div
+      className="flex flex-col gap-4 px-6 py-5"
+      data-testid="metrics-summary"
+    >
       <header className="flex items-center gap-6">
         <h1 className="text-[20px] font-semibold">Metrics — summary</h1>
         <PageTabs
           label="Metrics views"
           tabs={[
             { label: "Explorer", href: "/dashboard/metrics" },
-            { label: "Summary", href: "/dashboard/metrics/summary", active: true },
+            {
+              label: "Summary",
+              href: "/dashboard/metrics/summary",
+              active: true,
+            },
           ]}
         />
       </header>
@@ -53,8 +65,8 @@ export default function MetricsSummaryPage() {
             </div>
           ) : rows.length === 0 ? (
             <p className="p-4 text-[13px] text-text-2">
-              No metrics yet — point an OTLP exporter at Upstat and the
-              catalog fills in.
+              No metrics yet — point an OTLP exporter at Upstat and the catalog
+              fills in.
             </p>
           ) : (
             <Table
@@ -83,25 +95,31 @@ export default function MetricsSummaryPage() {
             <>
               <dl className="flex flex-col gap-2">
                 {active.tags.map((tag, i) => (
-                  <div key={tag} className="flex items-center justify-between gap-2">
+                  <div
+                    key={tag}
+                    className="flex items-center justify-between gap-2"
+                  >
                     <dt>
                       <code className="font-data rounded-full border border-border bg-bg px-2 py-0.5 text-[12px] text-text">
                         {tag}
                       </code>
                     </dt>
                     <dd className="m-0 text-[12px] tabular-nums text-text-2">
-                      {Math.max(2, Math.round(active.cardinality / (i + 2)))} values
+                      {Math.max(2, Math.round(active.cardinality / (i + 2)))}{" "}
+                      values
                     </dd>
                   </div>
                 ))}
               </dl>
               <p className="mt-4 text-[12px] leading-[1.45] text-text-2">
-                Highest-cardinality tag: {active.tags[0]} — consider dropping
-                it from rollups.
+                Highest-cardinality tag: {active.tags[0]} — consider dropping it
+                from rollups.
               </p>
             </>
           ) : (
-            <p className="text-[13px] text-text-2">Select a metric to explore its tags.</p>
+            <p className="text-[13px] text-text-2">
+              Select a metric to explore its tags.
+            </p>
           )}
         </aside>
       </div>

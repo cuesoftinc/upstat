@@ -7,10 +7,7 @@ export type IncidentSev = 1 | 2 | 3 | 4;
  * (IncidentHistoryEntry: investigating / identified / monitoring / resolved).
  */
 export type IncidentPhase =
-  | "investigating"
-  | "identified"
-  | "monitoring"
-  | "resolved";
+  "investigating" | "identified" | "monitoring" | "resolved";
 
 export interface IncidentRoles {
   commander: string;

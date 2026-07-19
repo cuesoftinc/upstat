@@ -6,6 +6,10 @@ import { DashboardShell } from "./shell";
  * NavRail + TopBar chrome, the global time provider (MI-1/MI-3) and the
  * MI-17 keyboard map.
  */
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return <DashboardShell>{children}</DashboardShell>;
 }

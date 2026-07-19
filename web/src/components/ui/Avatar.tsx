@@ -45,7 +45,13 @@ export function Avatar({ name, size = 24, src, className }: AvatarProps) {
     >
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element -- avatar URLs are external/user content
-        <img src={src} alt={name} width={size} height={size} className="size-full object-cover" />
+        <img
+          src={src}
+          alt={name}
+          width={size}
+          height={size}
+          className="size-full object-cover"
+        />
       ) : (
         initials
       )}
@@ -62,7 +68,12 @@ export interface AvatarStackProps {
 }
 
 /** AvatarStack — ×2–5 + “+n” overflow (§8.2b). */
-export function AvatarStack({ names, size = 20, max = 5, className }: AvatarStackProps) {
+export function AvatarStack({
+  names,
+  size = 20,
+  max = 5,
+  className,
+}: AvatarStackProps) {
   const visible = names.slice(0, max);
   const overflow = names.length - visible.length;
   return (

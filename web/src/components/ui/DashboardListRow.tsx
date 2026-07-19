@@ -49,14 +49,27 @@ export function DashboardListRow({
       >
         <Star className="size-4" fill={favorite ? "currentColor" : "none"} />
       </button>
-      <button type="button" onClick={onClick} className="flex min-w-0 flex-1 items-center gap-2 text-left">
-        <span className="truncate text-[13px] font-medium text-text">{name}</span>
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex min-w-0 flex-1 items-center gap-2 text-left"
+      >
+        <span className="truncate text-[13px] font-medium text-text">
+          {name}
+        </span>
         {shared && (
-          <Users aria-label="org-shared" className="size-3.5 shrink-0 text-text-2" />
+          <Users
+            aria-label="org-shared"
+            className="size-3.5 shrink-0 text-text-2"
+          />
         )}
-        {meta && <span className="shrink-0 text-[12px] text-text-2">{meta}</span>}
+        {meta && (
+          <span className="shrink-0 text-[12px] text-text-2">{meta}</span>
+        )}
       </button>
-      <span className="shrink-0 text-[12px] tabular-nums text-text-2">{updated}</span>
+      <span className="shrink-0 text-[12px] tabular-nums text-text-2">
+        {updated}
+      </span>
     </div>
   );
 }

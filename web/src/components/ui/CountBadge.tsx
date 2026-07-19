@@ -11,7 +11,11 @@ export interface CountBadgeProps {
 }
 
 /** CountBadge — bell unread dot+n (§8.2b). */
-export function CountBadge({ count, pulse = false, className }: CountBadgeProps) {
+export function CountBadge({
+  count,
+  pulse = false,
+  className,
+}: CountBadgeProps) {
   if (count <= 0) return null;
   return (
     <span
@@ -38,7 +42,11 @@ export interface BufferedCountChipProps {
  * BufferedCountChip — the "▼ n new" pill (MI-4, §8.2b). Outlined brand +
  * 12% brand tint, mono label (Figma 94:1556) — not a solid brand fill.
  */
-export function BufferedCountChip({ count, onClick, className }: BufferedCountChipProps) {
+export function BufferedCountChip({
+  count,
+  onClick,
+  className,
+}: BufferedCountChipProps) {
   return (
     <button
       type="button"

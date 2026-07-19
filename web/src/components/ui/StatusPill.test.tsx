@@ -16,9 +16,18 @@ describe("StatusPill", () => {
   });
 
   it("renders all six statuses", () => {
-    for (const status of ["ok", "warn", "crit", "nodata", "paused", "pending"] as const) {
+    for (const status of [
+      "ok",
+      "warn",
+      "crit",
+      "nodata",
+      "paused",
+      "pending",
+    ] as const) {
       const { container, unmount } = render(<StatusPill status={status} />);
-      expect(container.querySelector(`[data-status="${status}"]`)).not.toBeNull();
+      expect(
+        container.querySelector(`[data-status="${status}"]`),
+      ).not.toBeNull();
       unmount();
     }
   });

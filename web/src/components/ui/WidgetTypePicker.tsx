@@ -19,7 +19,11 @@ import type { WidgetType } from "@/models";
 import { WidgetTypeCell } from "./WidgetTypeCell";
 
 /** The pages.md B2 widget-type list (11 types) with §8.1 glyphs. */
-export const WIDGET_TYPES: { type: WidgetType; label: string; icon: LucideIcon }[] = [
+export const WIDGET_TYPES: {
+  type: WidgetType;
+  label: string;
+  icon: LucideIcon;
+}[] = [
   { type: "timeseries", label: "Timeseries", icon: TrendingUp },
   { type: "query_value", label: "Query value", icon: Hash },
   { type: "toplist", label: "Top list", icon: LayoutList },

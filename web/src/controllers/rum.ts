@@ -7,11 +7,18 @@ import { useRequest } from "./use-request";
 
 /** RUM controller — summary, vitals, error groups (pages.md B6). */
 export function useRumController(range: { from?: string; to?: string } = {}) {
-  const summary = useRequest(() => rumRepo.summary(range), [range.from, range.to]);
-  const vitals = useRequest(() => rumRepo.vitals(range), [range.from, range.to]);
+  const summary = useRequest(
+    () => rumRepo.summary(range),
+    [range.from, range.to],
+  );
+  const vitals = useRequest(
+    () => rumRepo.vitals(range),
+    [range.from, range.to],
+  );
   const errors = useRequest(() => rumRepo.errors(), []);
   const properties = useRequest(
-    async () => (await keysRepo.list()).filter((k) => k.kind === "property_key"),
+    async () =>
+      (await keysRepo.list()).filter((k) => k.kind === "property_key"),
     [],
   );
   return { summary, vitals, errors, properties };
@@ -44,7 +51,9 @@ export function useRumPropertyController() {
       setVerified(false);
       return key;
     } catch (e) {
-      setError(e instanceof Error ? e.message : "could not create the property");
+      setError(
+        e instanceof Error ? e.message : "could not create the property",
+      );
       return null;
     } finally {
       setCreating(false);

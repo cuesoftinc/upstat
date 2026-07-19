@@ -24,7 +24,11 @@ export const NAV_LINKS = [
   { label: "Features", href: "/#features", external: false },
   { label: "Platform", href: "/#pillars", external: false },
   { label: "Docs", href: "https://cuesoft.gitbook.io/upstat", external: true },
-  { label: "GitHub", href: "https://github.com/cuesoftinc/upstat", external: true },
+  {
+    label: "GitHub",
+    href: "https://github.com/cuesoftinc/upstat",
+    external: true,
+  },
 ] as const;
 
 /**
@@ -57,7 +61,9 @@ function StarBadge({
       <Star aria-hidden="true" className="size-3.5" />
       Star
       {typeof starCount === "number" && (
-        <span className="tabular-nums text-text">{starCount.toLocaleString()}</span>
+        <span className="tabular-nums text-text">
+          {starCount.toLocaleString()}
+        </span>
       )}
     </a>
   );
@@ -123,7 +129,9 @@ export function MarketingNav({
             <a
               key={link.label}
               href={link.href}
-              {...(link.external ? { target: "_blank", rel: "noreferrer" } : {})}
+              {...(link.external
+                ? { target: "_blank", rel: "noreferrer" }
+                : {})}
               className="hidden text-[13px] font-medium text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text md:block"
             >
               {link.label}
@@ -176,7 +184,10 @@ export function MarketingNav({
       </div>
 
       {menuOpen && (
-        <div id="marketing-menu" className="border-t border-border px-6 pt-2 pb-4 md:hidden">
+        <div
+          id="marketing-menu"
+          className="border-t border-border px-6 pt-2 pb-4 md:hidden"
+        >
           {NAV_LINKS.map((link) =>
             link.label === "GitHub" ? (
               <StarBadge
@@ -189,7 +200,9 @@ export function MarketingNav({
               <a
                 key={link.label}
                 href={link.href}
-                {...(link.external ? { target: "_blank", rel: "noreferrer" } : {})}
+                {...(link.external
+                  ? { target: "_blank", rel: "noreferrer" }
+                  : {})}
                 onClick={() => setMenuOpen(false)}
                 className="block py-2.5 text-[14px] font-medium text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
               >

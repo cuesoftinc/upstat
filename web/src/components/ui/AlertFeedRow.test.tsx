@@ -22,7 +22,9 @@ describe("AlertFeedRow", () => {
   });
 
   it("renders the resolved tint calm (decided 2026-07-17)", () => {
-    render(<AlertFeedRow event={{ ...EVENT, sev: "resolved", unread: false }} />);
+    render(
+      <AlertFeedRow event={{ ...EVENT, sev: "resolved", unread: false }} />,
+    );
     const row = screen.getByRole("button");
     expect(row).toHaveAttribute("data-sev", "resolved");
     expect(row).not.toHaveAttribute("data-unread");
@@ -32,7 +34,9 @@ describe("AlertFeedRow", () => {
 describe("NotificationPopover", () => {
   it("shows the empty state", () => {
     render(<NotificationPopover events={[]} />);
-    expect(screen.getByText("Nothing triggered. Calm seas.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nothing triggered. Calm seas."),
+    ).toBeInTheDocument();
   });
 
   it("lists feed rows when events exist", () => {

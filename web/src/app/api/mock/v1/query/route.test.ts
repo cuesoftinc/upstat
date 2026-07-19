@@ -30,7 +30,11 @@ describe("POST /v1/query", () => {
 
   it("rejects unknown facets with invalid_query", async () => {
     const res = await POST(
-      queryReq({ q: "sevrice:web", from: "2026-07-18T06:00:00Z", to: "2026-07-18T12:00:00Z" }),
+      queryReq({
+        q: "sevrice:web",
+        from: "2026-07-18T06:00:00Z",
+        to: "2026-07-18T12:00:00Z",
+      }),
     );
     expect(res.status).toBe(422);
     const body = await res.json();
@@ -39,7 +43,11 @@ describe("POST /v1/query", () => {
 
   it("rejects >92d ranges with range_too_large", async () => {
     const res = await POST(
-      queryReq({ q: "service:web", from: "2026-01-01T00:00:00Z", to: "2026-07-18T12:00:00Z" }),
+      queryReq({
+        q: "service:web",
+        from: "2026-01-01T00:00:00Z",
+        to: "2026-07-18T12:00:00Z",
+      }),
     );
     expect(res.status).toBe(422);
     const body = await res.json();

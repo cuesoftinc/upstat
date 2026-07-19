@@ -7,7 +7,10 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { useFirstDataPoll, useOnboardingController } from "@/controllers/onboarding";
+import {
+  useFirstDataPoll,
+  useOnboardingController,
+} from "@/controllers/onboarding";
 
 const FALLBACK_TIMEZONES = [
   "UTC",
@@ -34,14 +37,21 @@ function timezoneOptions(): { value: string; label: string }[] {
  * resolves to /dashboard on the first datapoint.
  */
 export default function OnboardingPage() {
-  const { data: onboarding, loading, createOrg, creating, reload } = useOnboardingController();
+  const {
+    data: onboarding,
+    loading,
+    createOrg,
+    creating,
+    reload,
+  } = useOnboardingController();
   const [name, setName] = useState("");
   const [timezone, setTimezone] = useState<string | null>("UTC");
   const [error, setError] = useState<string | null>(null);
   const options = useMemo(() => timezoneOptions(), []);
 
   // Step 2 while the active org waits for data; step 1 otherwise.
-  const waiting = !!onboarding && onboarding.org_created && !onboarding.has_data;
+  const waiting =
+    !!onboarding && onboarding.org_created && !onboarding.has_data;
   const hasData = useFirstDataPoll(waiting);
 
   // first datapoint landed — the radar pings and B1 takes over (full
@@ -57,16 +67,26 @@ export default function OnboardingPage() {
       await createOrg(name.trim(), timezone ?? "UTC");
       await reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "could not create the organization");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "could not create the organization",
+      );
     }
   };
 
   return (
-    <div data-testid="onboarding" className="mx-auto flex w-full max-w-[560px] flex-col gap-6 px-6 py-10">
+    <div
+      data-testid="onboarding"
+      className="mx-auto flex w-full max-w-[560px] flex-col gap-6 px-6 py-10"
+    >
       {loading && !onboarding ? (
         <Skeleton kind="panel-axis" style={{ height: 200 }} />
       ) : waiting ? (
-        <section aria-labelledby="first-data-heading" className="flex flex-col gap-4">
+        <section
+          aria-labelledby="first-data-heading"
+          className="flex flex-col gap-4"
+        >
           <header>
             <h1 id="first-data-heading" className="text-[20px] font-semibold">
               Send your first data
@@ -80,7 +100,10 @@ export default function OnboardingPage() {
 
           <dl className="flex items-center gap-3 rounded-(--radius) border border-border bg-bg-elev px-3 py-2">
             <dt className="text-[12px] text-text-2">Ingestion key</dt>
-            <dd className="font-data m-0 text-[12px] text-text" data-testid="ingest-key">
+            <dd
+              className="font-data m-0 text-[12px] text-text"
+              data-testid="ingest-key"
+            >
               {onboarding?.ingest_key}
             </dd>
           </dl>
@@ -105,7 +128,10 @@ export default function OnboardingPage() {
           <EmptyState pillar="metrics" waiting />
         </section>
       ) : (
-        <section aria-labelledby="create-org-heading" className="flex flex-col gap-4">
+        <section
+          aria-labelledby="create-org-heading"
+          className="flex flex-col gap-4"
+        >
           <header>
             <h1 id="create-org-heading" className="text-[20px] font-semibold">
               Create your organization
@@ -145,7 +171,11 @@ export default function OnboardingPage() {
               </p>
             )}
 
-            <Button type="submit" disabled={creating || name.trim().length === 0} data-testid="create-org">
+            <Button
+              type="submit"
+              disabled={creating || name.trim().length === 0}
+              data-testid="create-org"
+            >
               {creating ? "Creating…" : "Create organization"}
             </Button>
           </form>

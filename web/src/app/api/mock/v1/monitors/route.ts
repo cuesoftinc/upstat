@@ -21,7 +21,11 @@ export async function POST(req: Request) {
   const interval = body.interval_seconds ?? 60;
   const timeout = body.timeout_seconds ?? 10;
   if (timeout >= interval) {
-    return jsonError(422, "timeout_gte_interval", "timeout must be below the check interval");
+    return jsonError(
+      422,
+      "timeout_gte_interval",
+      "timeout must be below the check interval",
+    );
   }
   const monitor: Monitor = {
     id: nextId("mon"),

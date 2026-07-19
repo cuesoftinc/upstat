@@ -23,9 +23,14 @@ export default function DashboardHomePage() {
       <h1 className="text-[20px] font-semibold">Home — org health</h1>
 
       {/* stat tiles */}
-      <section aria-label="Org health stats" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section
+        aria-label="Org health stats"
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      >
         {tiles.loading || !tiles.data
-          ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} kind="value" />)
+          ? Array.from({ length: 4 }, (_, i) => (
+              <Skeleton key={i} kind="value" />
+            ))
           : tiles.data.map((tile) => (
               <QueryValue
                 key={tile.label}

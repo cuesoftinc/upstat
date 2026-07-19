@@ -11,7 +11,11 @@ export function useSettingsController() {
   const members = useRequest(() => membersRepo.list(), []);
 
   const createKey = useCallback(
-    async (input: { kind: ApiKey["kind"]; name: string; scope: ApiKey["scope"] }) => {
+    async (input: {
+      kind: ApiKey["kind"];
+      name: string;
+      scope: ApiKey["scope"];
+    }) => {
       const created = await keysRepo.create(input);
       await keys.reload();
       return created; // carries the one-time secret
@@ -52,5 +56,13 @@ export function useSettingsController() {
     [members],
   );
 
-  return { keys, members, createKey, rotateKey, revokeKey, inviteMember, setMemberRole };
+  return {
+    keys,
+    members,
+    createKey,
+    rotateKey,
+    revokeKey,
+    inviteMember,
+    setMemberRole,
+  };
 }

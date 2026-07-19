@@ -10,7 +10,10 @@ import { SavedViewChip } from "@/components/ui/SavedViewChip";
 import { Select } from "@/components/ui/Select";
 import { TimeseriesPanel } from "@/components/ui/TimeseriesPanel";
 import { useMetricsExplorerController } from "@/controllers/explorer";
-import { useMetricsController, useServicesController } from "@/controllers/telemetry";
+import {
+  useMetricsController,
+  useServicesController,
+} from "@/controllers/telemetry";
 import { useDashboardsController } from "@/controllers/dashboards";
 import { PageTabs } from "../page-tabs";
 
@@ -64,10 +67,14 @@ export default function MetricsExplorerPage() {
     .map((p) => p.value);
 
   const metricName =
-    ctrl.queryState.pills.find((p) => p.facet === "metric")?.value ?? "http.requests_total";
+    ctrl.queryState.pills.find((p) => p.facet === "metric")?.value ??
+    "http.requests_total";
 
   return (
-    <div className="flex min-h-full flex-col gap-4 px-6 py-5" data-testid="metrics-explorer">
+    <div
+      className="flex min-h-full flex-col gap-4 px-6 py-5"
+      data-testid="metrics-explorer"
+    >
       <header className="flex flex-wrap items-center gap-x-6 gap-y-2">
         <h1 className="text-[20px] font-semibold">Metrics</h1>
         <PageTabs
@@ -78,10 +85,18 @@ export default function MetricsExplorerPage() {
           ]}
         />
         <div className="ml-auto flex items-center gap-2">
-          <Button kind="quiet" onClick={() => setViewOpen(true)} data-testid="save-view">
+          <Button
+            kind="quiet"
+            onClick={() => setViewOpen(true)}
+            data-testid="save-view"
+          >
             Save view
           </Button>
-          <Button kind="quiet" onClick={() => setSaveOpen(true)} data-testid="save-to-dashboard">
+          <Button
+            kind="quiet"
+            onClick={() => setSaveOpen(true)}
+            data-testid="save-to-dashboard"
+          >
             Save to dashboard
           </Button>
         </div>
@@ -89,7 +104,10 @@ export default function MetricsExplorerPage() {
 
       {/* saved views morph the QueryBar into named chips (MI-18) */}
       {(ctrl.views.data ?? []).length > 0 && (
-        <ul aria-label="Saved views" className="flex flex-wrap items-center gap-2">
+        <ul
+          aria-label="Saved views"
+          className="flex flex-wrap items-center gap-2"
+        >
           {(ctrl.views.data ?? []).map((view) => (
             <li key={view.id}>
               <SavedViewChip
@@ -138,7 +156,9 @@ export default function MetricsExplorerPage() {
               { value: "prod", count: 12400 },
               { value: "staging", count: 1900 },
             ]}
-            selected={ctrl.queryState.pills.filter((p) => p.facet === "env").map((p) => p.value)}
+            selected={ctrl.queryState.pills
+              .filter((p) => p.facet === "env")
+              .map((p) => p.value)}
             onToggle={(value) => ctrl.pivot("env", value)}
             defaultExpanded={false}
           />
@@ -146,7 +166,11 @@ export default function MetricsExplorerPage() {
 
         <section aria-label="Query result" className="min-w-0 flex-1">
           <TimeseriesPanel
-            title={ctrl.queryState.text.includes("p95") ? `p95 latency — ${metricName}` : metricName}
+            title={
+              ctrl.queryState.text.includes("p95")
+                ? `p95 latency — ${metricName}`
+                : metricName
+            }
             query={ctrl.activeQuery}
             series={ts?.series ?? []}
             loading={ctrl.running}
@@ -190,7 +214,10 @@ export default function MetricsExplorerPage() {
           <label className="flex flex-col gap-1 text-[13px]">
             <span className="text-text-2">Dashboard</span>
             <Select
-              options={(dashboards.data ?? []).map((d) => ({ value: d.id, label: d.name }))}
+              options={(dashboards.data ?? []).map((d) => ({
+                value: d.id,
+                label: d.name,
+              }))}
               value={saveDashboard}
               onValueChange={setSaveDashboard}
               placeholder="Choose a dashboard"
@@ -199,7 +226,10 @@ export default function MetricsExplorerPage() {
           </label>
           <label className="flex flex-col gap-1 text-[13px]">
             <span className="text-text-2">Widget title</span>
-            <Input value={saveTitle} onChange={(e) => setSaveTitle(e.target.value)} />
+            <Input
+              value={saveTitle}
+              onChange={(e) => setSaveTitle(e.target.value)}
+            />
           </label>
         </div>
       </Modal>

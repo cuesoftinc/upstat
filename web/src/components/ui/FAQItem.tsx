@@ -19,7 +19,13 @@ export interface FAQItemProps {
  * question Inter Medium 14 + chevron (right collapsed / up expanded),
  * answer 13/text-2.
  */
-export function FAQItem({ question, answer, expanded, onToggle, className }: FAQItemProps) {
+export function FAQItem({
+  question,
+  answer,
+  expanded,
+  onToggle,
+  className,
+}: FAQItemProps) {
   return (
     <div
       data-expanded={expanded}
@@ -40,9 +46,15 @@ export function FAQItem({ question, answer, expanded, onToggle, className }: FAQ
       >
         <span className="text-[14px] font-medium text-text">{question}</span>
         {expanded ? (
-          <ChevronDown aria-hidden="true" className="size-4 shrink-0 rotate-180 text-text-2" />
+          <ChevronDown
+            aria-hidden="true"
+            className="size-4 shrink-0 rotate-180 text-text-2"
+          />
         ) : (
-          <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-text-2" />
+          <ChevronRight
+            aria-hidden="true"
+            className="size-4 shrink-0 text-text-2"
+          />
         )}
       </button>
       {expanded && (

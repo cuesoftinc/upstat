@@ -16,10 +16,7 @@ import { TEST_MODE, http } from "./repositories/client";
 
 /** Registered upstat browser events (api.md §3.4). */
 export type UpstatEvent =
-  | "page_view"
-  | "try_cloud_click"
-  | "self_host_click"
-  | "github_click";
+  "page_view" | "try_cloud_click" | "self_host_click" | "github_click";
 
 /** §3.1 closed browser-dim vocabulary (client-suppliable subset). */
 export interface EventDims {
@@ -40,7 +37,8 @@ export function createTracker(options?: {
   transport?: AnalyticsTransport;
 }): Tracker {
   const enabled =
-    options?.enabled ?? (!TEST_MODE && process.env.NEXT_PUBLIC_ANALYTICS === "1");
+    options?.enabled ??
+    (!TEST_MODE && process.env.NEXT_PUBLIC_ANALYTICS === "1");
   const transport: AnalyticsTransport =
     options?.transport ?? ((events) => http.post("/v1/events", { events }));
 

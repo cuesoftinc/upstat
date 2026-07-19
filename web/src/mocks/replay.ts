@@ -4,8 +4,18 @@
  * would-have-fired markers, cooldown-degated.
  */
 
-import type { AlertRule, AlertThresholds, Monitor, RuleTestResult } from "@/models";
-import { buildTimeseries, parseQuery, type OutageWindow, type ParsedQuery } from "./series";
+import type {
+  AlertRule,
+  AlertThresholds,
+  Monitor,
+  RuleTestResult,
+} from "@/models";
+import {
+  buildTimeseries,
+  parseQuery,
+  type OutageWindow,
+  type ParsedQuery,
+} from "./series";
 import { HOUR, MINUTE, iso } from "./util";
 
 const REPLAY_STEP_MS = 5 * MINUTE;
@@ -75,7 +85,13 @@ export function replayRule(
   const parsed = parseQuery(rule.query_string);
   if ("error" in parsed) return parsed;
   return {
-    ...evaluate(parsed, rule.thresholds, rule.notify.cooldown_minutes, outage, now),
+    ...evaluate(
+      parsed,
+      rule.thresholds,
+      rule.notify.cooldown_minutes,
+      outage,
+      now,
+    ),
     query_string: rule.query_string,
   };
 }
@@ -102,7 +118,11 @@ export function replayMonitor(
     metric: "http.request.duration_ms",
     // checkout's target maps onto the seeded outage service so the seeded
     // narrative (INC-42) shows a band on the checkout monitor's replay
-    filters: { service: monitor.name.toLowerCase().includes("checkout") ? "checkout" : "web" },
+    filters: {
+      service: monitor.name.toLowerCase().includes("checkout")
+        ? "checkout"
+        : "web",
+    },
     negations: {},
     text: [],
     agg: [{ fn: "p95" }],

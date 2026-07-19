@@ -41,9 +41,13 @@ const TRACE: Trace = {
 describe("TraceWaterfall", () => {
   it("renders span rows and opens the drawer on click", async () => {
     render(<TraceWaterfall trace={TRACE} />);
-    const rows = screen.getAllByRole("button", { name: /clickhouse.insert|POST \/v1\/events/ });
+    const rows = screen.getAllByRole("button", {
+      name: /clickhouse.insert|POST \/v1\/events/,
+    });
     expect(rows.length).toBeGreaterThanOrEqual(2);
-    await userEvent.click(screen.getByRole("button", { name: /clickhouse.insert/ }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /clickhouse.insert/ }),
+    );
     expect(screen.getByRole("tab", { name: "tags" })).toBeInTheDocument();
   });
 });

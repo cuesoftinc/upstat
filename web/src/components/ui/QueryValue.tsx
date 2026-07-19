@@ -56,11 +56,21 @@ export function QueryValue({
       )}
     >
       {threshold !== "none" && (
-        <span aria-hidden="true" className={clsx("absolute -inset-px rounded-(--radius)", TINT[threshold])} />
+        <span
+          aria-hidden="true"
+          className={clsx(
+            "absolute -inset-px rounded-(--radius)",
+            TINT[threshold],
+          )}
+        />
       )}
-      {label && <span className="relative text-[12px] text-text-2">{label}</span>}
+      {label && (
+        <span className="relative text-[12px] text-text-2">{label}</span>
+      )}
       <div className="font-data relative flex items-center gap-2.5">
-        <span className="text-[28px] leading-none tabular-nums text-text">{value}</span>
+        <span className="text-[28px] leading-none tabular-nums text-text">
+          {value}
+        </span>
         {deltaPct !== undefined && (
           <span
             className={clsx(

@@ -16,16 +16,26 @@ describe("MemberRow", () => {
       />,
     );
     expect(screen.getByText("kemi@cuesoft.io")).toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Role for Kemi" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("combobox", { name: "Role for Kemi" }),
+    ).toBeInTheDocument();
   });
 
   it("badges invited members and locks the owner role", () => {
     render(
       <MemberRow
-        member={{ id: "u", name: "Sade", email: "sade@cuesoft.io", role: "owner", status: "invited" }}
+        member={{
+          id: "u",
+          name: "Sade",
+          email: "sade@cuesoft.io",
+          role: "owner",
+          status: "invited",
+        }}
       />,
     );
     expect(screen.getByText("invited")).toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Role for Sade" })).toBeDisabled();
+    expect(
+      screen.getByRole("combobox", { name: "Role for Sade" }),
+    ).toBeDisabled();
   });
 });

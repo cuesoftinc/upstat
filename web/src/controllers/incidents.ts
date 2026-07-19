@@ -30,7 +30,12 @@ export function useIncidentController(id: string) {
   const [postError, setPostError] = useState<string | null>(null);
 
   const postUpdate = useCallback(
-    async (entry: { phase?: IncidentPhase; sev?: number; body: string; author: string }) => {
+    async (entry: {
+      phase?: IncidentPhase;
+      sev?: number;
+      body: string;
+      author: string;
+    }) => {
       const pending: TimelineEntry = {
         id: `pending_${Date.now()}`,
         incident_id: id,
@@ -47,7 +52,11 @@ export function useIncidentController(id: string) {
         if (entry.sev && entry.sev !== incident.data?.sev) {
           await incidentsRepo.update(id, { sev: entry.sev as Incident["sev"] });
         }
-        await incidentsRepo.postUpdate(id, { phase: entry.phase, body: entry.body, author: entry.author });
+        await incidentsRepo.postUpdate(id, {
+          phase: entry.phase,
+          body: entry.body,
+          author: entry.author,
+        });
         await Promise.all([incident.reload(), timeline.reload()]);
       } catch (e) {
         // rollback the optimistic entry (MI-10)

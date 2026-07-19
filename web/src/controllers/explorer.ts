@@ -34,13 +34,20 @@ export function splitQuery(q: string): { pills: QueryFilter[]; text: string } {
     const term = negated ? raw.slice(1) : raw;
     const idx = term.indexOf(":");
     if (idx > 0) {
-      pills.push({ facet: term.slice(0, idx), value: term.slice(idx + 1), negated });
+      pills.push({
+        facet: term.slice(0, idx),
+        value: term.slice(idx + 1),
+        negated,
+      });
     } else {
       rest.push(raw);
     }
   }
   const tail = aggParts.length > 0 ? `| ${aggParts.join("|").trim()}` : "";
-  return { pills, text: [rest.join(" "), tail].filter(Boolean).join(" ").trim() };
+  return {
+    pills,
+    text: [rest.join(" "), tail].filter(Boolean).join(" ").trim(),
+  };
 }
 
 /** Rebuild the query string from pills + remainder (URL/API form). */
@@ -109,7 +116,11 @@ function writeQueryParam(q: string, defaultQuery: string) {
   if (q && q !== defaultQuery) params.set("q", q);
   else params.delete("q");
   const qs = params.toString();
-  window.history.replaceState(null, "", `${window.location.pathname}${qs ? `?${qs}` : ""}`);
+  window.history.replaceState(
+    null,
+    "",
+    `${window.location.pathname}${qs ? `?${qs}` : ""}`,
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -121,7 +132,11 @@ export function useSavedViews(surface: SavedViewSurface) {
   const [saving, setSaving] = useState(false);
 
   const save = useCallback(
-    async (name: string, query: string, scope: SavedView["scope"] = "personal") => {
+    async (
+      name: string,
+      query: string,
+      scope: SavedView["scope"] = "personal",
+    ) => {
       setSaving(true);
       try {
         const view = await viewsRepo.create({ name, scope, surface, query });
@@ -154,7 +169,9 @@ export const DEFAULT_METRICS_QUERY =
 
 export function useMetricsExplorerController() {
   const time = useTimeRange();
-  const [defaultQuery] = useState(() => initialQueryFromUrl(DEFAULT_METRICS_QUERY));
+  const [defaultQuery] = useState(() =>
+    initialQueryFromUrl(DEFAULT_METRICS_QUERY),
+  );
   const queryState = useQueryPills(defaultQuery);
   const [result, setResult] = useState<QueryResult | null>(null);
   const [running, setRunning] = useState(false);
@@ -191,7 +208,10 @@ export function useMetricsExplorerController() {
   // Deferred a tick (use-request pattern): keeps setState out of the
   // synchronous effect body, no cascading renders.
   useEffect(() => {
-    const t = window.setTimeout(() => void runQuery(activeQuery, time.fromIso, time.toIso), 0);
+    const t = window.setTimeout(
+      () => void runQuery(activeQuery, time.fromIso, time.toIso),
+      0,
+    );
     return () => window.clearTimeout(t);
   }, [activeQuery, time.fromIso, time.toIso, runQuery]);
 

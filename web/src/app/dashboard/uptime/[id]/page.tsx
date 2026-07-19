@@ -10,7 +10,10 @@ import { StatusPill } from "@/components/ui/StatusPill";
 import { TimeseriesPanel } from "@/components/ui/TimeseriesPanel";
 import { UptimeCard } from "@/components/ui/UptimeCard";
 import type { Series } from "@/models";
-import { monitorPillStatus, useMonitorController } from "@/controllers/monitors";
+import {
+  monitorPillStatus,
+  useMonitorController,
+} from "@/controllers/monitors";
 import { useIncidentsController } from "@/controllers/incidents";
 import { ReplayPanel } from "../../replay-panel";
 
@@ -21,7 +24,8 @@ import { ReplayPanel } from "../../replay-panel";
  */
 export default function MonitorDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { monitor, history, testResult, testing, runTest } = useMonitorController(id);
+  const { monitor, history, testResult, testing, runTest } =
+    useMonitorController(id);
   const incidents = useIncidentsController();
 
   const m = monitor.data;
@@ -33,14 +37,22 @@ export default function MonitorDetailPage() {
       {
         name: "response_ms",
         tags: {},
-        points: checks.map((c) => ({ ts: c.checked_at, value: c.response_time_ms })),
+        points: checks.map((c) => ({
+          ts: c.checked_at,
+          value: c.response_time_ms,
+        })),
       },
     ];
   }, [h?.recent_checks]);
 
   // incidents implicated on this check's service neighborhood
   const related = (incidents.data ?? []).filter(
-    (i) => m && (i.title.toLowerCase().includes((m.name.split(" ")[0] ?? "").toLowerCase()) || i.services.length > 0),
+    (i) =>
+      m &&
+      (i.title
+        .toLowerCase()
+        .includes((m.name.split(" ")[0] ?? "").toLowerCase()) ||
+        i.services.length > 0),
   );
 
   if (monitor.loading || !m) {
@@ -66,8 +78,8 @@ export default function MonitorDetailPage() {
           <StatusPill status={monitorPillStatus(m.status)} />
         </div>
         <p className="font-data mt-1 text-[13px] text-text-2">
-          {m.type.toUpperCase()} · {m.target} · every {m.interval_seconds}s · timeout{" "}
-          {m.timeout_seconds}s
+          {m.type.toUpperCase()} · {m.target} · every {m.interval_seconds}s ·
+          timeout {m.timeout_seconds}s
         </p>
       </header>
 
@@ -94,28 +106,43 @@ export default function MonitorDetailPage() {
             withLegend={false}
           />
 
-          <section aria-labelledby="replay-heading" className="flex flex-col gap-3">
+          <section
+            aria-labelledby="replay-heading"
+            className="flex flex-col gap-3"
+          >
             <header className="flex items-center justify-between">
               <h2 id="replay-heading" className="text-[16px] font-semibold">
                 Test check — 24h replay
               </h2>
-              <Button kind="quiet" onClick={() => void runTest()} disabled={testing} data-testid="run-monitor-test">
+              <Button
+                kind="quiet"
+                onClick={() => void runTest()}
+                disabled={testing}
+                data-testid="run-monitor-test"
+              >
                 {testing ? "Replaying…" : "Test check"}
               </Button>
             </header>
-            {testResult && <ReplayPanel result={testResult} title={`replay — ${m.name}`} />}
+            {testResult && (
+              <ReplayPanel result={testResult} title={`replay — ${m.name}`} />
+            )}
           </section>
         </div>
 
         <div className="flex flex-col gap-5">
           <section aria-labelledby="incidents-heading">
-            <h2 id="incidents-heading" className="mb-2 text-[16px] font-semibold">
+            <h2
+              id="incidents-heading"
+              className="mb-2 text-[16px] font-semibold"
+            >
               Incidents on this check
             </h2>
             {incidents.loading ? (
               <Skeleton kind="line" />
             ) : related.length === 0 ? (
-              <p className="text-[13px] text-text-2">No incidents involving this check.</p>
+              <p className="text-[13px] text-text-2">
+                No incidents involving this check.
+              </p>
             ) : (
               related.slice(0, 2).map((incident) => (
                 <IncidentHistoryEntry
@@ -147,9 +174,9 @@ export default function MonitorDetailPage() {
             <p className="text-[13px] leading-[1.45] text-text-2">
               Response time has drifted +18% over the last 7 days (p95{" "}
               {m.last_response_time_ms ?? 96} ms →{" "}
-              {Math.round((m.last_response_time_ms ?? 96) * 1.18)} ms), correlated with rising
-              payload sizes. At this trend the {m.timeout_seconds * 100} ms budget is at risk
-              within ~3 weeks.
+              {Math.round((m.last_response_time_ms ?? 96) * 1.18)} ms),
+              correlated with rising payload sizes. At this trend the{" "}
+              {m.timeout_seconds * 100} ms budget is at risk within ~3 weeks.
             </p>
             <Link
               href="/dashboard/monitors/new?signal=trace"

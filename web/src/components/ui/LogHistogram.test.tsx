@@ -14,7 +14,9 @@ describe("LogHistogram", () => {
         ]}
       />,
     );
-    expect(screen.getByRole("img", { name: "log volume histogram" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: "log volume histogram" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("18 lines")).toBeInTheDocument();
   });
 });

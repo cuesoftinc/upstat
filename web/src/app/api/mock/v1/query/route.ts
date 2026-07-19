@@ -11,17 +11,30 @@ const MAX_RANGE_DAYS = 92;
  * Unknown facets error (`invalid_query`), never silent-empty (grammar §3).
  */
 export async function POST(req: Request) {
-  const body = await readJson<{ q?: string; from?: string; to?: string; step?: string }>(req);
+  const body = await readJson<{
+    q?: string;
+    from?: string;
+    to?: string;
+    step?: string;
+  }>(req);
   if (!body?.q || !body.from || !body.to) {
     return jsonError(422, "bad_shape", "q, from and to are required");
   }
   const fromMs = Date.parse(body.from);
   const toMs = Date.parse(body.to);
   if (Number.isNaN(fromMs) || Number.isNaN(toMs) || toMs <= fromMs) {
-    return jsonError(422, "ts_out_of_range", "from/to must be a valid RFC3339 range");
+    return jsonError(
+      422,
+      "ts_out_of_range",
+      "from/to must be a valid RFC3339 range",
+    );
   }
   if (toMs - fromMs > MAX_RANGE_DAYS * DAY) {
-    return jsonError(422, "range_too_large", `max range is ${MAX_RANGE_DAYS} days`);
+    return jsonError(
+      422,
+      "range_too_large",
+      `max range is ${MAX_RANGE_DAYS} days`,
+    );
   }
 
   const parsed = parseQuery(body.q);

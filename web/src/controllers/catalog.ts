@@ -56,16 +56,40 @@ export function useCatalogPageController() {
   const detail = useRequest(async () => {
     if (!selected) return null;
     const [reqs, p95, errs] = await Promise.all([
-      queryRepo.run({ q: `metric:http.requests_total service:${selected.name} | rate()`, from: time.fromIso, to: time.toIso }),
-      queryRepo.run({ q: `metric:http.request.duration_ms service:${selected.name} | p95()`, from: time.fromIso, to: time.toIso }),
-      queryRepo.run({ q: `metric:http.errors_total service:${selected.name} | rate()`, from: time.fromIso, to: time.toIso }),
+      queryRepo.run({
+        q: `metric:http.requests_total service:${selected.name} | rate()`,
+        from: time.fromIso,
+        to: time.toIso,
+      }),
+      queryRepo.run({
+        q: `metric:http.request.duration_ms service:${selected.name} | p95()`,
+        from: time.fromIso,
+        to: time.toIso,
+      }),
+      queryRepo.run({
+        q: `metric:http.errors_total service:${selected.name} | rate()`,
+        from: time.fromIso,
+        to: time.toIso,
+      }),
     ]);
     const spark = (r: typeof reqs) =>
-      r.kind === "timeseries" ? (r.series[0]?.points ?? []).map((p) => p.value ?? 0).slice(-24) : [];
+      r.kind === "timeseries"
+        ? (r.series[0]?.points ?? []).map((p) => p.value ?? 0).slice(-24)
+        : [];
     return { reqs: spark(reqs), p95: spark(p95), errs: spark(errs) };
   }, [selected?.name, time.fromIso, time.toIso]);
 
-  const stats = (services.data ?? []).find((s) => s.service === selected?.name) ?? null;
+  const stats =
+    (services.data ?? []).find((s) => s.service === selected?.name) ?? null;
 
-  return { catalog, entries, search, setSearch, selected, select: setSelectedId, detail, stats };
+  return {
+    catalog,
+    entries,
+    search,
+    setSearch,
+    selected,
+    select: setSelectedId,
+    detail,
+    stats,
+  };
 }

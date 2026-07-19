@@ -17,7 +17,13 @@ describe("Modal", () => {
 
   it("renders the sheet variant with footer actions", () => {
     render(
-      <Modal open onClose={() => undefined} title="Span" variant="sheet" footer={<button>Save</button>}>
+      <Modal
+        open
+        onClose={() => undefined}
+        title="Span"
+        variant="sheet"
+        footer={<button>Save</button>}
+      >
         body
       </Modal>,
     );

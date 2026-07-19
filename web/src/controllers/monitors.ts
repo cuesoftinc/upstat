@@ -28,7 +28,9 @@ export function useMonitorsController() {
   const state = useRequest(() => monitorsRepo.list(), []);
 
   const create = useCallback(
-    async (input: Pick<Monitor, "name" | "target" | "type"> & Partial<Monitor>) => {
+    async (
+      input: Pick<Monitor, "name" | "target" | "type"> & Partial<Monitor>,
+    ) => {
       const monitor = await monitorsRepo.create(input);
       await state.reload();
       return monitor;
@@ -62,13 +64,10 @@ export function useUptimeCardsController(monitors: Monitor[] | null) {
     .slice(0, 3)
     .map((m) => m.id)
     .join(",");
-  return useRequest(
-    async () => {
-      if (!ids) return [];
-      return Promise.all(ids.split(",").map((id) => monitorsRepo.history(id)));
-    },
-    [ids],
-  );
+  return useRequest(async () => {
+    if (!ids) return [];
+    return Promise.all(ids.split(",").map((id) => monitorsRepo.history(id)));
+  }, [ids]);
 }
 
 /** Per-monitor detail: check history + 90-day strip + MI-9 test replay. */

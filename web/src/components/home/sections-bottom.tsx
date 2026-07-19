@@ -5,7 +5,14 @@
  * (A13), community (A8), FAQ (A15), final CTA band (A16).
  */
 
-import { Activity, BookOpen, Check, ExternalLink, FileText, FlaskConical } from "lucide-react";
+import {
+  Activity,
+  BookOpen,
+  Check,
+  ExternalLink,
+  FileText,
+  FlaskConical,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
@@ -49,8 +56,14 @@ export function SelfHostSection({ onSelfHostDocs }: SelfHostSectionProps) {
           </p>
           <ul className="flex flex-col gap-3">
             {SELF_HOST_CHECKLIST.map((line) => (
-              <li key={line} className="flex items-start gap-2.5 text-[13px] leading-normal text-text">
-                <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-ok" />
+              <li
+                key={line}
+                className="flex items-start gap-2.5 text-[13px] leading-normal text-text"
+              >
+                <Check
+                  aria-hidden="true"
+                  className="mt-0.5 size-4 shrink-0 text-ok"
+                />
                 {line}
               </li>
             ))}
@@ -77,7 +90,10 @@ export function SelfHostSection({ onSelfHostDocs }: SelfHostSectionProps) {
               ))}
             </pre>
           </div>
-          <div className="flex flex-wrap items-center gap-2" aria-label="Self-host architecture">
+          <div
+            className="flex flex-wrap items-center gap-2"
+            aria-label="Self-host architecture"
+          >
             {ARCHITECTURE_FLOW.map((stage, i) => (
               <span key={stage} className="flex items-center gap-2">
                 {i > 0 && (
@@ -106,7 +122,10 @@ export interface CloudSelfHostSectionProps {
   onSelfHost: () => void;
 }
 
-export function CloudSelfHostSection({ onTryCloud, onSelfHost }: CloudSelfHostSectionProps) {
+export function CloudSelfHostSection({
+  onTryCloud,
+  onSelfHost,
+}: CloudSelfHostSectionProps) {
   return (
     <Section title="Cloud when you want it. Yours when you need it.">
       {/* gap-6 below lg: the stacked table → CTA → snippet must read as one
@@ -124,11 +143,22 @@ export function CloudSelfHostSection({ onTryCloud, onSelfHost }: CloudSelfHostSe
         {/* <sm: the table's column-aligned CTA footer is hidden — the pair
             renders here instead, directly above the compose snippet the
             self-host CTA refers to */}
-        <div className="flex items-center gap-3 sm:hidden" aria-label="Cloud or self-host">
-          <Button kind="brand" className="flex-1 whitespace-nowrap" onClick={onTryCloud}>
+        <div
+          className="flex items-center gap-3 sm:hidden"
+          aria-label="Cloud or self-host"
+        >
+          <Button
+            kind="brand"
+            className="flex-1 whitespace-nowrap"
+            onClick={onTryCloud}
+          >
             Try Cloud
           </Button>
-          <Button kind="quiet" className="flex-1 whitespace-nowrap" onClick={onSelfHost}>
+          <Button
+            kind="quiet"
+            className="flex-1 whitespace-nowrap"
+            onClick={onSelfHost}
+          >
             Deploy with compose
           </Button>
         </div>
@@ -136,8 +166,12 @@ export function CloudSelfHostSection({ onTryCloud, onSelfHost }: CloudSelfHostSe
           {/* flex-wrap of two nowrap runs: at 390 the comment wraps as a
               whole line instead of mid-comment (CodeSnippet convention) */}
           <code className="font-data flex flex-wrap gap-x-2 text-[13px]">
-            <span className="whitespace-nowrap text-brand">docker compose up -d</span>
-            <span className="whitespace-nowrap text-text-2"># the whole platform, one file</span>
+            <span className="whitespace-nowrap text-brand">
+              docker compose up -d
+            </span>
+            <span className="whitespace-nowrap text-text-2">
+              # the whole platform, one file
+            </span>
           </code>
           {/* CTA-dedupe canon (2026-07-19): GitHub/Discord conversion lives in
               the nav badge, A13 and the footer — this section carries
@@ -146,7 +180,10 @@ export function CloudSelfHostSection({ onTryCloud, onSelfHost }: CloudSelfHostSe
             href={QUERY_GRAMMAR_DOCS_URL}
             className="flex items-center gap-2.5 text-[13px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
           >
-            <BookOpen aria-hidden="true" className="size-6 shrink-0 text-text" />
+            <BookOpen
+              aria-hidden="true"
+              className="size-6 shrink-0 text-text"
+            />
             Query grammar — the one grammar across logs, metrics and traces
           </a>
           <Link
@@ -219,7 +256,9 @@ export function DevelopersSection({ onGithub }: DevelopersSectionProps) {
         </div>
 
         <div className="min-w-0 rounded-(--radius) border border-border bg-bg-elev p-4">
-          <p className="font-data text-[12px] text-brand">label: good first issue</p>
+          <p className="font-data text-[12px] text-brand">
+            label: good first issue
+          </p>
           {/* overflow-x-auto: pre text doesn't wrap — scroll inside the card
               at 375w instead of widening the page (CodeSnippet convention) */}
           <pre className="mt-3 overflow-x-auto font-data text-[13px] leading-[1.9] text-text-2">
@@ -245,16 +284,22 @@ export function CommunitySection() {
           href={CUELABS_URL}
           className="flex items-start gap-4 rounded-(--radius) border border-border bg-bg-elev p-4 transition-colors duration-[var(--duration-base)] hover:border-text-2"
         >
-          <FlaskConical aria-hidden="true" className="mt-1 size-7 shrink-0 text-brand" />
+          <FlaskConical
+            aria-hidden="true"
+            className="mt-1 size-7 shrink-0 text-brand"
+          />
           <span className="flex min-w-0 flex-1 flex-col gap-1">
             <span className="text-[14px] font-semibold text-text">
               CueLABS™ — more open-source software from Cuesoft
             </span>
             <span className="text-[13px] text-text-2">
-              The division upstat ships from — see what else is built in the open.
+              The division upstat ships from — see what else is built in the
+              open.
             </span>
           </span>
-          <span className="shrink-0 text-[13px] font-medium text-brand">Explore →</span>
+          <span className="shrink-0 text-[13px] font-medium text-brand">
+            Explore →
+          </span>
         </a>
         <div className="flex flex-col gap-4 lg:pt-2">
           <a
@@ -308,9 +353,15 @@ export interface FinalCtaSectionProps {
   onSelfHost: () => void;
 }
 
-export function FinalCtaSection({ onTryCloud, onSelfHost }: FinalCtaSectionProps) {
+export function FinalCtaSection({
+  onTryCloud,
+  onSelfHost,
+}: FinalCtaSectionProps) {
   return (
-    <section aria-label="Get started" className="border-y border-border bg-bg-elev">
+    <section
+      aria-label="Get started"
+      className="border-y border-border bg-bg-elev"
+    >
       <div className="mx-auto flex max-w-[1200px] flex-col items-center gap-4 px-6 py-14 text-center">
         <h2 className="text-[26px] font-semibold text-text md:text-[32px]">
           OTLP in. Answers out.

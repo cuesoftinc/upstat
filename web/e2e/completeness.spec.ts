@@ -41,7 +41,9 @@ test("dashboards: import a portable JSON definition → lands on the new dashboa
   await page.getByTestId("import-json").fill(PORTABLE);
   await page.getByTestId("confirm-import").click();
   await page.waitForURL("**/dashboard/dashboards/dash*");
-  await expect(page.getByRole("heading", { name: "Imported — golden signals" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Imported — golden signals" }),
+  ).toBeVisible();
   await expect(page.getByText("p95 latency (imported)")).toBeVisible();
   // the imported definition carries its template vars
   await expect(page.getByRole("combobox", { name: "$env" })).toBeVisible();
@@ -49,7 +51,9 @@ test("dashboards: import a portable JSON definition → lands on the new dashboa
   await expect(page.getByTestId("export-dashboard")).toBeVisible();
 });
 
-test("dashboards: malformed import errors readably, nothing created", async ({ page }) => {
+test("dashboards: malformed import errors readably, nothing created", async ({
+  page,
+}) => {
   await page.goto("/dashboard/dashboards");
   await page.getByTestId("import-dashboard").click();
   await page.getByTestId("import-json").fill('{"version": 3}');
@@ -72,13 +76,17 @@ test("traces: the hero span's logs-in-span tab carries correlated lines (B5)", a
   await page.goto("/dashboard/traces/explorer");
   // the hero trace is the seeded POST /v1/events run; selecting it fires
   // the correlated-logs fetch — wait for it before reading tab counts
-  const logsLanded = page.waitForResponse((r) => r.url().includes("/api/mock/v1/logs"));
+  const logsLanded = page.waitForResponse((r) =>
+    r.url().includes("/api/mock/v1/logs"),
+  );
   await page.getByTestId(/^trace-9f86d081/).click();
   await expect(page.getByTestId("trace-waterfall")).toBeVisible();
   await logsLanded;
   // walk the spans until one's window holds correlated lines (which span
   // catches them depends on the deterministic-but-seed-relative stream)
-  const spanRows = page.getByRole("list", { name: "Trace spans" }).getByRole("button");
+  const spanRows = page
+    .getByRole("list", { name: "Trace spans" })
+    .getByRole("button");
   const drawer = page.locator('aside[aria-label^="Span "]');
   const count = await spanRows.count();
   let found = false;
@@ -92,10 +100,14 @@ test("traces: the hero span's logs-in-span tab carries correlated lines (B5)", a
   await drawer.getByRole("tab", { name: /logs/ }).click();
   await expect(drawer.getByText("No logs within this span.")).toHaveCount(0);
   // correlated line(s) render as LogLine rows (level chip + mono message)
-  await expect(drawer.getByText(/INFO|DEBUG|WARN|ERROR|TRACE/).first()).toBeVisible();
+  await expect(
+    drawer.getByText(/INFO|DEBUG|WARN|ERROR|TRACE/).first(),
+  ).toBeVisible();
 });
 
-test("monitors: an active alert row opens declare-incident prefilled (B9)", async ({ page }) => {
+test("monitors: an active alert row opens declare-incident prefilled (B9)", async ({
+  page,
+}) => {
   await page.goto("/dashboard/monitors");
   await page
     .getByRole("list", { name: "Triggered feed" })
@@ -105,7 +117,9 @@ test("monitors: an active alert row opens declare-incident prefilled (B9)", asyn
   const modal = page.getByRole("dialog", { name: "Declare incident" });
   await expect(modal).toBeVisible();
   // prefilled from the alert (sev1 checkout p95 breach is the newest row)
-  await expect(modal.getByTestId("incident-title")).toHaveValue(/Checkout p95 latency/);
+  await expect(modal.getByTestId("incident-title")).toHaveValue(
+    /Checkout p95 latency/,
+  );
   await modal.getByRole("combobox", { name: "Commander" }).click();
   await page.getByRole("option", { name: "Kemi" }).click();
   await modal.getByTestId("confirm-declare").click();
@@ -113,7 +127,9 @@ test("monitors: an active alert row opens declare-incident prefilled (B9)", asyn
   await expect(page.getByText(/Checkout p95 latency/).first()).toBeVisible();
 });
 
-test("nav: Features and Platform anchor different landing sections", async ({ page }) => {
+test("nav: Features and Platform anchor different landing sections", async ({
+  page,
+}) => {
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Marketing" });
   await expect(nav.getByRole("link", { name: "Features" })).toHaveAttribute(
@@ -129,11 +145,15 @@ test("nav: Features and Platform anchor different landing sections", async ({ pa
   await expect(page.locator("#pillars")).toHaveCount(1);
 });
 
-test("logs: j/k walk the log lines with focus; Enter expands (§5)", async ({ page }) => {
+test("logs: j/k walk the log lines with focus; Enter expands (§5)", async ({
+  page,
+}) => {
   await page.goto("/dashboard/logs");
   // live tail is off by default (?live=1 enables it) — the row window is
   // the static base query, so focus targets stay stable
-  const lines = page.getByRole("list", { name: "Log lines" }).locator("button[aria-expanded]");
+  const lines = page
+    .getByRole("list", { name: "Log lines" })
+    .locator("button[aria-expanded]");
   await expect(lines.first()).toBeVisible({ timeout: 15_000 });
   await page.getByRole("heading", { name: "Logs" }).click(); // ensure no input has focus
   await page.keyboard.press("j");

@@ -14,15 +14,28 @@ describe("FacetGroup", () => {
         onToggle={onToggle}
       />,
     );
-    await userEvent.click(screen.getByRole("checkbox", { name: "service: web" }));
+    await userEvent.click(
+      screen.getByRole("checkbox", { name: "service: web" }),
+    );
     expect(onToggle).toHaveBeenCalledWith("web");
     await userEvent.click(screen.getByRole("button", { name: /service/i }));
     expect(screen.queryByText("web")).toBeNull();
   });
 
   it("shows top-N then expands to all", async () => {
-    const values = Array.from({ length: 8 }, (_, i) => ({ value: `svc-${i}`, count: i }));
-    render(<FacetGroup name="service" values={values} selected={[]} onToggle={() => undefined} topN={3} />);
+    const values = Array.from({ length: 8 }, (_, i) => ({
+      value: `svc-${i}`,
+      count: i,
+    }));
+    render(
+      <FacetGroup
+        name="service"
+        values={values}
+        selected={[]}
+        onToggle={() => undefined}
+        topN={3}
+      />,
+    );
     expect(screen.queryByText("svc-5")).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: "Show all 8" }));
     expect(screen.getByText("svc-5")).toBeInTheDocument();

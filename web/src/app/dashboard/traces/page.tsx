@@ -50,51 +50,87 @@ export default function ApmServicesPage() {
           </div>
         ) : (services.data ?? []).length === 0 ? (
           <p className="p-4 text-[13px] text-text-2">
-            No services yet — traces populate this list the moment spans
-            arrive.
+            No services yet — traces populate this list the moment spans arrive.
           </p>
         ) : (
           // overflow-x-auto: the seven-column stats table scrolls inside the
           // panel on narrow viewports (390 support)
           <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] border-collapse text-[13px]">
-            <thead>
-              <tr className="text-left text-[11px] uppercase tracking-wide text-text-2">
-                <th scope="col" className="px-2 py-2 font-medium">Service</th>
-                <th scope="col" className="px-2 py-2 text-right font-medium">Req/s</th>
-                <th scope="col" className="px-2 py-2 text-right font-medium">P50</th>
-                <th scope="col" className="px-2 py-2 text-right font-medium">P95</th>
-                <th scope="col" className="px-2 py-2 text-right font-medium">P99</th>
-                <th scope="col" className="px-2 py-2 text-right font-medium">Err %</th>
-                <th scope="col" className="px-2 py-2 text-right font-medium">Apdex</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(services.data ?? []).map((s) => (
-                <tr
-                  key={s.service}
-                  onClick={() => router.push(`/dashboard/traces/services/${s.service}`)}
-                  className="cursor-pointer border-t border-border transition-colors duration-[var(--duration-fast)] hover:bg-bg"
-                >
-                  <th scope="row" className="px-2 py-2.5 text-left font-normal">
-                    <span className="font-data text-text">{s.service}</span>
+            <table className="w-full min-w-[560px] border-collapse text-[13px]">
+              <thead>
+                <tr className="text-left text-[11px] uppercase tracking-wide text-text-2">
+                  <th scope="col" className="px-2 py-2 font-medium">
+                    Service
                   </th>
-                  <td className="font-data px-2 py-2.5 text-right tabular-nums text-text-2">
-                    {s.req_per_s >= 1000 ? `${(s.req_per_s / 1000).toFixed(1)}k` : Math.round(s.req_per_s)}
-                  </td>
-                  <td className="font-data px-2 py-2.5 text-right tabular-nums text-text-2">{ms(s.p50_ms)}</td>
-                  <td className="font-data px-2 py-2.5 text-right tabular-nums text-text-2">{ms(s.p95_ms)}</td>
-                  <td className="font-data px-2 py-2.5 text-right tabular-nums text-text-2">{ms(s.p99_ms)}</td>
-                  <td className={clsx("font-data px-2 py-2.5 text-right tabular-nums", errTint(s.error_rate))}>
-                    {(s.error_rate * 100).toFixed(1)}%
-                  </td>
-                  <td className={clsx("font-data px-2 py-2.5 text-right tabular-nums", apdexTint(s.apdex))}>
-                    {s.apdex.toFixed(2)}
-                  </td>
+                  <th scope="col" className="px-2 py-2 text-right font-medium">
+                    Req/s
+                  </th>
+                  <th scope="col" className="px-2 py-2 text-right font-medium">
+                    P50
+                  </th>
+                  <th scope="col" className="px-2 py-2 text-right font-medium">
+                    P95
+                  </th>
+                  <th scope="col" className="px-2 py-2 text-right font-medium">
+                    P99
+                  </th>
+                  <th scope="col" className="px-2 py-2 text-right font-medium">
+                    Err %
+                  </th>
+                  <th scope="col" className="px-2 py-2 text-right font-medium">
+                    Apdex
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {(services.data ?? []).map((s) => (
+                  <tr
+                    key={s.service}
+                    onClick={() =>
+                      router.push(`/dashboard/traces/services/${s.service}`)
+                    }
+                    className="cursor-pointer border-t border-border transition-colors duration-[var(--duration-fast)] hover:bg-bg"
+                  >
+                    <th
+                      scope="row"
+                      className="px-2 py-2.5 text-left font-normal"
+                    >
+                      <span className="font-data text-text">{s.service}</span>
+                    </th>
+                    <td className="font-data px-2 py-2.5 text-right tabular-nums text-text-2">
+                      {s.req_per_s >= 1000
+                        ? `${(s.req_per_s / 1000).toFixed(1)}k`
+                        : Math.round(s.req_per_s)}
+                    </td>
+                    <td className="font-data px-2 py-2.5 text-right tabular-nums text-text-2">
+                      {ms(s.p50_ms)}
+                    </td>
+                    <td className="font-data px-2 py-2.5 text-right tabular-nums text-text-2">
+                      {ms(s.p95_ms)}
+                    </td>
+                    <td className="font-data px-2 py-2.5 text-right tabular-nums text-text-2">
+                      {ms(s.p99_ms)}
+                    </td>
+                    <td
+                      className={clsx(
+                        "font-data px-2 py-2.5 text-right tabular-nums",
+                        errTint(s.error_rate),
+                      )}
+                    >
+                      {(s.error_rate * 100).toFixed(1)}%
+                    </td>
+                    <td
+                      className={clsx(
+                        "font-data px-2 py-2.5 text-right tabular-nums",
+                        apdexTint(s.apdex),
+                      )}
+                    >
+                      {s.apdex.toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </section>

@@ -25,7 +25,16 @@ import type {
   Trace,
   TraceSummary,
 } from "@/models";
-import { DAY, HOUR, MINUTE, SECOND, iso, mulberry32, hashSeed, nextId } from "./util";
+import {
+  DAY,
+  HOUR,
+  MINUTE,
+  SECOND,
+  iso,
+  mulberry32,
+  hashSeed,
+  nextId,
+} from "./util";
 import { SERVICES, type OutageWindow } from "./series";
 
 export const HERO_TRACE_ID = "9f86d081884c7d659a2feaa0c55ad015";
@@ -80,10 +89,34 @@ export function buildSeed(now: number): MockDb {
   };
 
   const members: Member[] = [
-    { id: "usr_ibukun", name: "Ibukun", email: "ibukun@cuesoft.io", role: "owner", status: "active" },
-    { id: "usr_kemi", name: "Kemi", email: "kemi@cuesoft.io", role: "admin", status: "active" },
-    { id: "usr_tola", name: "Tola", email: "tola@cuesoft.io", role: "member", status: "active" },
-    { id: "usr_sade", name: "Sade", email: "sade@cuesoft.io", role: "member", status: "invited" },
+    {
+      id: "usr_ibukun",
+      name: "Ibukun",
+      email: "ibukun@cuesoft.io",
+      role: "owner",
+      status: "active",
+    },
+    {
+      id: "usr_kemi",
+      name: "Kemi",
+      email: "kemi@cuesoft.io",
+      role: "admin",
+      status: "active",
+    },
+    {
+      id: "usr_tola",
+      name: "Tola",
+      email: "tola@cuesoft.io",
+      role: "member",
+      status: "active",
+    },
+    {
+      id: "usr_sade",
+      name: "Sade",
+      email: "sade@cuesoft.io",
+      role: "member",
+      status: "invited",
+    },
   ];
 
   const dashboards: Dashboard[] = [
@@ -126,7 +159,8 @@ export function buildSeed(now: number): MockDb {
           type: "timeseries",
           title: "Error rate — $service",
           query: null,
-          query_string: "metric:http.errors_total service:$service env:$env | rate()",
+          query_string:
+            "metric:http.errors_total service:$service env:$env | rate()",
           viz_options: { display: "area" },
           // second timeseries widget: makes the MI-2 cross-widget crosshair
           // sync observable on the seeded dashboard
@@ -179,7 +213,8 @@ export function buildSeed(now: number): MockDb {
           type: "timeseries",
           title: "checkout p95",
           query: null,
-          query_string: "metric:http.request.duration_ms service:checkout | p95()",
+          query_string:
+            "metric:http.request.duration_ms service:checkout | p95()",
           viz_options: { display: "area" },
           layout: { x: 6, y: 0, w: 6, h: 3 },
         },
@@ -318,9 +353,27 @@ export function buildSeed(now: number): MockDb {
   ];
 
   const channels: AlertChannel[] = [
-    { id: "ch_email", kind: "email", target: "ops@cuesoft.io", health: "verified", created_at: iso(now - 100 * DAY) },
-    { id: "ch_slack", kind: "webhook", target: "https://hooks.slack.com/services/T0UPSTAT/B0ALERTS/xxxx", health: "verified", created_at: iso(now - 90 * DAY) },
-    { id: "ch_pager", kind: "webhook", target: "https://ops.cuesoft.io/hooks/upstat", health: "unverified", created_at: iso(now - 2 * DAY) },
+    {
+      id: "ch_email",
+      kind: "email",
+      target: "ops@cuesoft.io",
+      health: "verified",
+      created_at: iso(now - 100 * DAY),
+    },
+    {
+      id: "ch_slack",
+      kind: "webhook",
+      target: "https://hooks.slack.com/services/T0UPSTAT/B0ALERTS/xxxx",
+      health: "verified",
+      created_at: iso(now - 90 * DAY),
+    },
+    {
+      id: "ch_pager",
+      kind: "webhook",
+      target: "https://ops.cuesoft.io/hooks/upstat",
+      health: "unverified",
+      created_at: iso(now - 2 * DAY),
+    },
   ];
 
   const rules: AlertRule[] = [
@@ -343,7 +396,12 @@ export function buildSeed(now: number): MockDb {
       },
       query_string: "metric:http.request.duration_ms service:checkout | p95()",
       thresholds: { warn: 800, crit: 1500, window: "5m" },
-      notify: { channel_ids: ["ch_email", "ch_slack"], cooldown_minutes: 10, renotify_minutes: 30, mute_windows: [] },
+      notify: {
+        channel_ids: ["ch_email", "ch_slack"],
+        cooldown_minutes: 10,
+        renotify_minutes: 30,
+        mute_windows: [],
+      },
       state: "alert",
       last_triggered_at: iso(inc42Start),
     },
@@ -366,7 +424,12 @@ export function buildSeed(now: number): MockDb {
       },
       query_string: "service:checkout level:ERROR | count()",
       thresholds: { warn: 50, crit: 100, window: "5m" },
-      notify: { channel_ids: ["ch_slack"], cooldown_minutes: 10, renotify_minutes: 0, mute_windows: [] },
+      notify: {
+        channel_ids: ["ch_slack"],
+        cooldown_minutes: 10,
+        renotify_minutes: 0,
+        mute_windows: [],
+      },
       state: "warn",
       last_triggered_at: iso(inc42Start + 4 * MINUTE),
     },
@@ -377,13 +440,21 @@ export function buildSeed(now: number): MockDb {
       signal: "uptime",
       query: {
         v: 1,
-        filters: { op: "and", terms: [{ facet: "check", cmp: "eq", value: "homepage" }] },
+        filters: {
+          op: "and",
+          terms: [{ facet: "check", cmp: "eq", value: "homepage" }],
+        },
         agg: [{ fn: "rate" }],
         step: "auto",
       },
       query_string: "check:homepage | rate()",
       thresholds: { warn: null, crit: 1, window: "3 checks" },
-      notify: { channel_ids: ["ch_email", "ch_slack"], cooldown_minutes: 5, renotify_minutes: 15, mute_windows: [] },
+      notify: {
+        channel_ids: ["ch_email", "ch_slack"],
+        cooldown_minutes: 5,
+        renotify_minutes: 15,
+        mute_windows: [],
+      },
       state: "ok",
       last_triggered_at: iso(now - 23 * DAY),
     },
@@ -394,13 +465,21 @@ export function buildSeed(now: number): MockDb {
       signal: "slo_burn",
       query: {
         v: 1,
-        filters: { op: "and", terms: [{ facet: "service", cmp: "eq", value: "checkout" }] },
+        filters: {
+          op: "and",
+          terms: [{ facet: "service", cmp: "eq", value: "checkout" }],
+        },
         agg: [{ fn: "rate" }],
         step: "auto",
       },
       query_string: "slo:checkout-latency | burn_rate()",
       thresholds: { warn: 6, crit: 14.4, window: "2h" },
-      notify: { channel_ids: ["ch_email"], cooldown_minutes: 60, renotify_minutes: 0, mute_windows: [] },
+      notify: {
+        channel_ids: ["ch_email"],
+        cooldown_minutes: 60,
+        renotify_minutes: 0,
+        mute_windows: [],
+      },
       state: "warn",
       last_triggered_at: iso(inc42Start + 12 * MINUTE),
     },
@@ -421,9 +500,15 @@ export function buildSeed(now: number): MockDb {
         agg: [{ fn: "p95", field: "trace.duration_ms" }],
         step: "auto",
       },
-      query_string: "service:ingest-gw trace.duration_ms:>250 | p95(trace.duration_ms)",
+      query_string:
+        "service:ingest-gw trace.duration_ms:>250 | p95(trace.duration_ms)",
       thresholds: { warn: 400, crit: 900, window: "10m" },
-      notify: { channel_ids: ["ch_slack"], cooldown_minutes: 15, renotify_minutes: 0, mute_windows: [] },
+      notify: {
+        channel_ids: ["ch_slack"],
+        cooldown_minutes: 15,
+        renotify_minutes: 0,
+        mute_windows: [],
+      },
       state: "ok",
       // fired + recovered 4d ago — matches the evt_5/evt_6 feed pair
       last_triggered_at: iso(now - 4 * DAY),
@@ -669,14 +754,74 @@ export function buildSeed(now: number): MockDb {
   ];
 
   const metricCatalog: MetricSummary[] = [
-    { name: "http.request.duration_ms", type: "distribution", unit: "ms", cardinality: 1240, ingestion_rate_per_s: 3400, last_seen: iso(now - 5_000), tags: ["service", "env", "path", "status"] },
-    { name: "http.requests_total", type: "count", cardinality: 860, ingestion_rate_per_s: 3400, last_seen: iso(now - 5_000), tags: ["service", "env", "path", "status"] },
-    { name: "http.errors_total", type: "count", cardinality: 412, ingestion_rate_per_s: 60, last_seen: iso(now - 9_000), tags: ["service", "env", "status"] },
-    { name: "process.cpu.percent", type: "gauge", unit: "%", cardinality: 42, ingestion_rate_per_s: 14, last_seen: iso(now - 10_000), tags: ["service", "host"] },
-    { name: "process.memory.rss_bytes", type: "gauge", unit: "bytes", cardinality: 42, ingestion_rate_per_s: 14, last_seen: iso(now - 10_000), tags: ["service", "host"] },
-    { name: "clickhouse.insert.duration_ms", type: "distribution", unit: "ms", cardinality: 96, ingestion_rate_per_s: 210, last_seen: iso(now - 4_000), tags: ["table", "host"] },
-    { name: "ingest.events.accepted_total", type: "count", cardinality: 28, ingestion_rate_per_s: 950, last_seen: iso(now - 3_000), tags: ["property", "signal"] },
-    { name: "queue.depth", type: "gauge", cardinality: 18, ingestion_rate_per_s: 7, last_seen: iso(now - 6_000), tags: ["service", "queue"] },
+    {
+      name: "http.request.duration_ms",
+      type: "distribution",
+      unit: "ms",
+      cardinality: 1240,
+      ingestion_rate_per_s: 3400,
+      last_seen: iso(now - 5_000),
+      tags: ["service", "env", "path", "status"],
+    },
+    {
+      name: "http.requests_total",
+      type: "count",
+      cardinality: 860,
+      ingestion_rate_per_s: 3400,
+      last_seen: iso(now - 5_000),
+      tags: ["service", "env", "path", "status"],
+    },
+    {
+      name: "http.errors_total",
+      type: "count",
+      cardinality: 412,
+      ingestion_rate_per_s: 60,
+      last_seen: iso(now - 9_000),
+      tags: ["service", "env", "status"],
+    },
+    {
+      name: "process.cpu.percent",
+      type: "gauge",
+      unit: "%",
+      cardinality: 42,
+      ingestion_rate_per_s: 14,
+      last_seen: iso(now - 10_000),
+      tags: ["service", "host"],
+    },
+    {
+      name: "process.memory.rss_bytes",
+      type: "gauge",
+      unit: "bytes",
+      cardinality: 42,
+      ingestion_rate_per_s: 14,
+      last_seen: iso(now - 10_000),
+      tags: ["service", "host"],
+    },
+    {
+      name: "clickhouse.insert.duration_ms",
+      type: "distribution",
+      unit: "ms",
+      cardinality: 96,
+      ingestion_rate_per_s: 210,
+      last_seen: iso(now - 4_000),
+      tags: ["table", "host"],
+    },
+    {
+      name: "ingest.events.accepted_total",
+      type: "count",
+      cardinality: 28,
+      ingestion_rate_per_s: 950,
+      last_seen: iso(now - 3_000),
+      tags: ["property", "signal"],
+    },
+    {
+      name: "queue.depth",
+      type: "gauge",
+      cardinality: 18,
+      ingestion_rate_per_s: 7,
+      last_seen: iso(now - 6_000),
+      tags: ["service", "queue"],
+    },
   ];
 
   // The hero trace: POST /v1/events through the ingest path — 6 spans.
@@ -699,7 +844,12 @@ export function buildSeed(now: number): MockDb {
         start: iso(traceStart),
         duration_ns: 48_200_000,
         status: "ok",
-        attrs: { "http.method": "POST", "http.route": "/v1/events", "http.status_code": "202", batch_size: "48" },
+        attrs: {
+          "http.method": "POST",
+          "http.route": "/v1/events",
+          "http.status_code": "202",
+          batch_size: "48",
+        },
       },
       {
         trace_id: HERO_TRACE_ID,
@@ -710,7 +860,10 @@ export function buildSeed(now: number): MockDb {
         start: iso(traceStart + 1),
         duration_ns: 2_900_000,
         status: "ok",
-        attrs: { property: "pk_live_9b41…77e2", origin: "https://upstat.cuesoft.io" },
+        attrs: {
+          property: "pk_live_9b41…77e2",
+          origin: "https://upstat.cuesoft.io",
+        },
       },
       {
         trace_id: HERO_TRACE_ID,
@@ -785,7 +938,8 @@ export function buildSeed(now: number): MockDb {
       root_service: service,
       root_name: name,
       start: iso(start),
-      duration_ms: Math.round((err ? 900 + r() * 2500 : 20 + r() * 400) * 10) / 10,
+      duration_ms:
+        Math.round((err ? 900 + r() * 2500 : 20 + r() * 400) * 10) / 10,
       span_count: 3 + Math.floor(r() * 9),
       status: err ? "error" : "ok",
     });
@@ -812,7 +966,9 @@ export function buildSeed(now: number): MockDb {
       first_seen: iso(now - 2 * HOUR),
       last_seen: iso(now - 4 * MINUTE),
       state: "new",
-      sparkline: stateSparkline("err:a10c33b7", "new", 24, 12, { firstSeenBucket: 22 }),
+      sparkline: stateSparkline("err:a10c33b7", "new", 24, 12, {
+        firstSeenBucket: 22,
+      }),
     },
     {
       fingerprint: "c88e01f2",
@@ -821,7 +977,9 @@ export function buildSeed(now: number): MockDb {
       first_seen: iso(now - 40 * DAY),
       last_seen: iso(inc42End),
       state: "regressed",
-      sparkline: stateSparkline("err:c88e01f2", "regressed", 24, 26, { spikeBucket: 21 }),
+      sparkline: stateSparkline("err:c88e01f2", "regressed", 24, 26, {
+        spikeBucket: 21,
+      }),
     },
     {
       fingerprint: "1d0b9ae4",
@@ -859,7 +1017,11 @@ export function buildSeed(now: number): MockDb {
     seededAt: now,
     outage,
     org,
-    onboarding: { org_created: true, has_data: true, ingest_key: "uk_live_3f2a…c91d" },
+    onboarding: {
+      org_created: true,
+      has_data: true,
+      ingest_key: "uk_live_3f2a…c91d",
+    },
     firstDataAtMs: null,
     statusSlug: "upstat",
     members,
@@ -887,9 +1049,32 @@ export const FIRST_DATA_DELAY_MS = 6 * SECOND;
 /** What a fresh org's metrics catalog looks like once data starts flowing. */
 export function starterMetricCatalog(now: number): MetricSummary[] {
   return [
-    { name: "http.request.duration_ms", type: "distribution", unit: "ms", cardinality: 24, ingestion_rate_per_s: 12, last_seen: iso(now), tags: ["service", "env"] },
-    { name: "http.requests_total", type: "count", cardinality: 16, ingestion_rate_per_s: 12, last_seen: iso(now), tags: ["service", "env", "status"] },
-    { name: "process.cpu.percent", type: "gauge", unit: "%", cardinality: 4, ingestion_rate_per_s: 2, last_seen: iso(now), tags: ["service", "host"] },
+    {
+      name: "http.request.duration_ms",
+      type: "distribution",
+      unit: "ms",
+      cardinality: 24,
+      ingestion_rate_per_s: 12,
+      last_seen: iso(now),
+      tags: ["service", "env"],
+    },
+    {
+      name: "http.requests_total",
+      type: "count",
+      cardinality: 16,
+      ingestion_rate_per_s: 12,
+      last_seen: iso(now),
+      tags: ["service", "env", "status"],
+    },
+    {
+      name: "process.cpu.percent",
+      type: "gauge",
+      unit: "%",
+      cardinality: 4,
+      ingestion_rate_per_s: 2,
+      last_seen: iso(now),
+      tags: ["service", "host"],
+    },
   ];
 }
 
@@ -898,7 +1083,11 @@ export function starterMetricCatalog(now: number): MetricSummary[] {
  * no entities anywhere, onboarding waiting for data (MI-16 radar), the
  * telemetry endpoints gated until `firstDataAtMs` passes.
  */
-export function buildEmptySeed(now: number, name: string, timezone: string): MockDb {
+export function buildEmptySeed(
+  now: number,
+  name: string,
+  timezone: string,
+): MockDb {
   const org: Org = {
     id: nextId("org"),
     name,
@@ -920,7 +1109,13 @@ export function buildEmptySeed(now: number, name: string, timezone: string): Moc
     firstDataAtMs: now + FIRST_DATA_DELAY_MS,
     statusSlug: null,
     members: [
-      { id: "usr_ibukun", name: "Ibukun", email: "ibukun@cuesoft.io", role: "owner", status: "active" },
+      {
+        id: "usr_ibukun",
+        name: "Ibukun",
+        email: "ibukun@cuesoft.io",
+        role: "owner",
+        status: "active",
+      },
     ],
     dashboards: [],
     monitors: [],
@@ -952,8 +1147,24 @@ export function buildEmptySeed(now: number, name: string, timezone: string): Moc
 }
 
 function heroTraceSummary(t: Trace): TraceSummary {
-  const { trace_id, root_service, root_name, start, duration_ms, span_count, status } = t;
-  return { trace_id, root_service, root_name, start, duration_ms, span_count, status };
+  const {
+    trace_id,
+    root_service,
+    root_name,
+    start,
+    duration_ms,
+    span_count,
+    status,
+  } = t;
+  return {
+    trace_id,
+    root_service,
+    root_name,
+    start,
+    duration_ms,
+    span_count,
+    status,
+  };
 }
 
 /**
@@ -976,7 +1187,12 @@ function stateSparkline(
     if (state === "new") {
       const start = opts.firstSeenBucket ?? buckets - 3;
       if (i < start) return 0;
-      return Math.max(1, Math.round(((i - start + 1) / (buckets - start)) * scale * (0.6 + r() * 0.6)));
+      return Math.max(
+        1,
+        Math.round(
+          ((i - start + 1) / (buckets - start)) * scale * (0.6 + r() * 0.6),
+        ),
+      );
     }
     if (state === "regressed") {
       const spike = opts.spikeBucket ?? buckets - 3;

@@ -14,7 +14,10 @@ import { ServiceMapNode } from "@/components/ui/ServiceMapNode";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { Table } from "@/components/ui/Table";
-import { TimeseriesPanel, type TimeseriesMode } from "@/components/ui/TimeseriesPanel";
+import {
+  TimeseriesPanel,
+  type TimeseriesMode,
+} from "@/components/ui/TimeseriesPanel";
 import { TopList } from "@/components/ui/TopList";
 import type { Series, Widget } from "@/models";
 import { monitorPillStatus } from "@/controllers/monitors";
@@ -81,7 +84,9 @@ export function WidgetBody({
       if (loading) return <Skeleton kind="value" />;
       const series = ts?.series[0];
       const v = lastValue(series);
-      const sparkline = (series?.points ?? []).map((p) => p.value ?? 0).slice(-24);
+      const sparkline = (series?.points ?? [])
+        .map((p) => p.value ?? 0)
+        .slice(-24);
       const precision = (widget.viz_options.precision as number) ?? 0;
       return (
         // no label — WidgetShell's header already carries the widget title;
@@ -97,7 +102,10 @@ export function WidgetBody({
       if (loading) return <TopList entries={[]} loading />;
       const limit = (widget.viz_options.limit as number) ?? 5;
       const entries = (ts?.series ?? [])
-        .map((s) => ({ label: shortName(s), value: Math.round(lastValue(s) * 100) / 100 }))
+        .map((s) => ({
+          label: shortName(s),
+          value: Math.round(lastValue(s) * 100) / 100,
+        }))
         .sort((a, b) => b.value - a.value)
         .slice(0, limit);
       return <TopList entries={entries} />;
@@ -121,18 +129,22 @@ export function WidgetBody({
     case "heatmap": {
       if (loading) return <Skeleton kind="panel-axis" style={{ height }} />;
       const grid = seriesToHeatmap(ts?.series[0]);
-      return <Heatmap columns={grid.columns} rows={grid.rows} values={grid.values} />;
+      return (
+        <Heatmap columns={grid.columns} rows={grid.rows} values={grid.values} />
+      );
     }
     case "logstream": {
       const events = data.logs?.data?.events ?? [];
       if (data.logs?.loading) return <Skeleton kind="line" />;
       return (
         <ul aria-label={widget.title} className="flex flex-col overflow-hidden">
-          {events.slice(0, Math.max(3, Math.floor(height / 28))).map((event) => (
-            <li key={event.id}>
-              <LogLine event={event} />
-            </li>
-          ))}
+          {events
+            .slice(0, Math.max(3, Math.floor(height / 28)))
+            .map((event) => (
+              <li key={event.id}>
+                <LogLine event={event} />
+              </li>
+            ))}
         </ul>
       );
     }
@@ -141,7 +153,8 @@ export function WidgetBody({
       const wanted = widget.viz_options.slo_id as string | undefined;
       const slo = slos.find((s) => s.id === wanted) ?? slos[0];
       if (data.slos?.loading) return <Skeleton kind="value" />;
-      if (!slo) return <p className="text-[13px] text-text-2">No SLOs defined.</p>;
+      if (!slo)
+        return <p className="text-[13px] text-text-2">No SLOs defined.</p>;
       return <SLOCard slo={slo} className="border-0 bg-transparent p-0" />;
     }
     case "status": {
@@ -162,7 +175,10 @@ export function WidgetBody({
       const services = data.services?.data ?? [];
       if (data.services?.loading) return <Skeleton kind="line" />;
       return (
-        <ul aria-label={widget.title} className="flex flex-wrap items-center gap-3">
+        <ul
+          aria-label={widget.title}
+          className="flex flex-wrap items-center gap-3"
+        >
           {services.slice(0, 6).map((s, i) => (
             <li key={s.service}>
               <ServiceMapNode
@@ -179,7 +195,10 @@ export function WidgetBody({
     case "markdown": {
       // typeof guard, not a cast: a non-string value would render as a
       // React child and throw (defense in depth behind the import parser)
-      const text = typeof widget.viz_options.text === "string" ? widget.viz_options.text : "";
+      const text =
+        typeof widget.viz_options.text === "string"
+          ? widget.viz_options.text
+          : "";
       return (
         <article className="whitespace-pre-wrap text-[13px] leading-[1.45] text-text-2">
           {text}

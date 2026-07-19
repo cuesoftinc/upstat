@@ -23,7 +23,10 @@ export default function IncidentsPage() {
     <div data-testid="incidents" className="flex flex-col gap-6 px-6 py-5">
       <header className="flex items-center justify-between">
         <h1 className="text-[20px] font-semibold">Incidents</h1>
-        <Button onClick={() => setDeclareOpen(true)} data-testid="declare-incident">
+        <Button
+          onClick={() => setDeclareOpen(true)}
+          data-testid="declare-incident"
+        >
           Declare incident
         </Button>
       </header>
@@ -48,7 +51,9 @@ export default function IncidentsPage() {
             <li key={incident.id}>
               <button
                 type="button"
-                onClick={() => router.push(`/dashboard/incidents/${incident.id}`)}
+                onClick={() =>
+                  router.push(`/dashboard/incidents/${incident.id}`)
+                }
                 data-testid={`incident-${incident.key}`}
                 className="flex w-full items-center gap-3 border-b border-border px-3 py-3 text-left transition-colors duration-[var(--duration-fast)] hover:bg-bg-elev"
               >
@@ -66,7 +71,9 @@ export default function IncidentsPage() {
                   {incident.status}
                 </span>
                 <span className="w-24 shrink-0 text-right text-[12px] tabular-nums text-text-2">
-                  {incident.status === "resolved" ? "resolved" : `open ${ageLabel(incident.started_at)}`}
+                  {incident.status === "resolved"
+                    ? "resolved"
+                    : `open ${ageLabel(incident.started_at)}`}
                 </span>
               </button>
             </li>
@@ -74,7 +81,10 @@ export default function IncidentsPage() {
         </ul>
       )}
 
-      <DeclareIncidentModal open={declareOpen} onClose={() => setDeclareOpen(false)} />
+      <DeclareIncidentModal
+        open={declareOpen}
+        onClose={() => setDeclareOpen(false)}
+      />
     </div>
   );
 }

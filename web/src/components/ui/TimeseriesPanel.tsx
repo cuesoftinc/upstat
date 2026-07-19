@@ -193,7 +193,9 @@ export function TimeseriesPanel({
           instance put the query chip on its own line under the title */}
       {chrome && (
         <header className="flex flex-col items-start gap-2">
-          <TitleTag className="text-[16px] font-semibold text-text">{title}</TitleTag>
+          <TitleTag className="text-[16px] font-semibold text-text">
+            {title}
+          </TitleTag>
           {query && (
             // max-w-full + truncate: long queries clip inside the panel in
             // narrow contexts (375w home hero); fixed-width panels unchanged
@@ -367,7 +369,11 @@ export function TimeseriesPanel({
       {!loading && !empty && cursorIndex !== null && (
         <div className="font-data flex flex-wrap gap-x-4 gap-y-0.5 text-[11px] tabular-nums text-text-2">
           {visible.map((s) => (
-            <span key={s.name} className="inline-flex items-center gap-1" title={s.name}>
+            <span
+              key={s.name}
+              className="inline-flex items-center gap-1"
+              title={s.name}
+            >
               <span
                 className="size-1.5 rounded-full"
                 style={{ background: seriesColor(series.indexOf(s)) }}
@@ -406,8 +412,13 @@ export function TimeseriesPanel({
                 hidden.has(s.name) ? "opacity-40" : "opacity-100",
               )}
             >
-              <span className="size-2 rounded-[1px]" style={{ background: seriesColor(i) }} />
-              <span className="font-data max-w-48 truncate text-text-2">{legendLabel(s.name)}</span>
+              <span
+                className="size-2 rounded-[1px]"
+                style={{ background: seriesColor(i) }}
+              />
+              <span className="font-data max-w-48 truncate text-text-2">
+                {legendLabel(s.name)}
+              </span>
             </button>
           ))}
         </footer>

@@ -63,7 +63,9 @@ export const http = {
 };
 
 /** Build a query string from defined params only. */
-export function qs(params: Record<string, string | number | undefined>): string {
+export function qs(
+  params: Record<string, string | number | undefined>,
+): string {
   const search = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") search.set(k, String(v));

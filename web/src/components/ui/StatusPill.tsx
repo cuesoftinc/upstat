@@ -4,12 +4,7 @@ import { clsx } from "clsx";
 
 /** §8.2: ok / warn / crit (breathing) / nodata / paused / pending. */
 export type StatusPillStatus =
-  | "ok"
-  | "warn"
-  | "crit"
-  | "nodata"
-  | "paused"
-  | "pending";
+  "ok" | "warn" | "crit" | "nodata" | "paused" | "pending";
 
 export interface StatusPillProps {
   status: StatusPillStatus;
@@ -65,7 +60,12 @@ const TINT: Record<StatusPillStatus, string> = {
  * crit (MI-8: dot scale 1→1.25→1, ~1.6s); disabled under
  * prefers-reduced-motion (§5).
  */
-export function StatusPill({ status, dotOnly = false, label, className }: StatusPillProps) {
+export function StatusPill({
+  status,
+  dotOnly = false,
+  label,
+  className,
+}: StatusPillProps) {
   return (
     <span
       data-status={status}

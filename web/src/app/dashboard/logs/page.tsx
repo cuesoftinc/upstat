@@ -46,18 +46,27 @@ export default function LogsPage() {
   const resume = () => {
     ctrl.resume();
     requestAnimationFrame(() => {
-      listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
+      listRef.current?.scrollTo({
+        top: listRef.current.scrollHeight,
+        behavior: "smooth",
+      });
     });
   };
 
   const empty = !ctrl.base.loading && ascending.length === 0;
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4 px-6 py-5" data-testid="logs-explorer">
+    <div
+      className="flex h-full min-h-0 flex-col gap-4 px-6 py-5"
+      data-testid="logs-explorer"
+    >
       <h1 className="text-[20px] font-semibold">Logs</h1>
 
       {(ctrl.views.data ?? []).length > 0 && (
-        <ul aria-label="Saved views" className="flex flex-wrap items-center gap-2">
+        <ul
+          aria-label="Saved views"
+          className="flex flex-wrap items-center gap-2"
+        >
           {(ctrl.views.data ?? []).map((view) => (
             <li key={view.id}>
               <SavedViewChip
@@ -82,7 +91,10 @@ export default function LogsPage() {
       {/* facets stack above the stream below lg (390 support) */}
       <div className="flex min-h-0 flex-1 flex-col gap-5 lg:flex-row">
         {/* FacetSidebar (MI-6) */}
-        <aside aria-label="Facets" className="w-full shrink-0 lg:w-52 lg:overflow-y-auto">
+        <aside
+          aria-label="Facets"
+          className="w-full shrink-0 lg:w-52 lg:overflow-y-auto"
+        >
           {(["service", "level", "host"] as const).map((facet) => (
             <FacetGroup
               key={facet}
@@ -96,7 +108,10 @@ export default function LogsPage() {
           ))}
         </aside>
 
-        <section aria-label="Log stream" className="flex min-w-0 flex-1 flex-col gap-3">
+        <section
+          aria-label="Log stream"
+          className="flex min-w-0 flex-1 flex-col gap-3"
+        >
           <header className="flex flex-wrap items-start gap-4">
             <div className="w-96 min-w-0 max-w-full rounded-(--radius) border border-border bg-bg-elev p-3">
               {/* LogHistogram renders its own totals header (events · error · warn) */}
@@ -111,12 +126,19 @@ export default function LogsPage() {
                 data-testid="paused-pill"
                 className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-border bg-bg-elev px-2.5 py-1 text-[12px] text-text-2"
               >
-                <span aria-hidden="true" className="size-1.5 rounded-full bg-nodata" />
+                <span
+                  aria-hidden="true"
+                  className="size-1.5 rounded-full bg-nodata"
+                />
                 PAUSED
               </span>
             )}
             {ctrl.live && ctrl.bufferedCount > 0 && (
-              <BufferedCountChip count={ctrl.bufferedCount} onClick={resume} className="mt-1" />
+              <BufferedCountChip
+                count={ctrl.bufferedCount}
+                onClick={resume}
+                className="mt-1"
+              />
             )}
           </header>
 

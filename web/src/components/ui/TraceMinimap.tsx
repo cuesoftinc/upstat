@@ -21,7 +21,10 @@ export function TraceMinimap({
   highlightService = null,
   className,
 }: TraceMinimapProps) {
-  const services = useMemo(() => [...new Set(spans.map((s) => s.service))], [spans]);
+  const services = useMemo(
+    () => [...new Set(spans.map((s) => s.service))],
+    [spans],
+  );
   const start = Date.parse(startTs);
   const total = Math.max(durationMs, 0.001);
 

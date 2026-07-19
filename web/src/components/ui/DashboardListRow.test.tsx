@@ -15,7 +15,9 @@ describe("DashboardListRow", () => {
         shared
       />,
     );
-    await userEvent.click(screen.getByRole("switch", { name: "Favorite Service overview" }));
+    await userEvent.click(
+      screen.getByRole("switch", { name: "Favorite Service overview" }),
+    );
     expect(onFav).toHaveBeenCalledWith(true);
     expect(screen.getByLabelText("org-shared")).toBeInTheDocument();
   });

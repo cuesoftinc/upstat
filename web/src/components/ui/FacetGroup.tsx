@@ -70,8 +70,12 @@ export function FacetGroup({
                 onClick={() => onToggle(facet.value)}
                 className="flex flex-1 items-center justify-between gap-2 text-left"
               >
-                <span className="truncate text-[13px] text-text">{facet.value}</span>
-                <span className="text-[11px] tabular-nums text-text-2">{facet.count}</span>
+                <span className="truncate text-[13px] text-text">
+                  {facet.value}
+                </span>
+                <span className="text-[11px] tabular-nums text-text-2">
+                  {facet.count}
+                </span>
               </button>
             </li>
           ))}

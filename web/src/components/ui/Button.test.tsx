@@ -10,7 +10,10 @@ describe("Button", () => {
     rerender(<Button kind="quiet">Save</Button>);
     expect(screen.getByRole("button")).toHaveAttribute("data-kind", "quiet");
     rerender(<Button kind="destructive">Delete</Button>);
-    expect(screen.getByRole("button")).toHaveAttribute("data-kind", "destructive");
+    expect(screen.getByRole("button")).toHaveAttribute(
+      "data-kind",
+      "destructive",
+    );
   });
 
   it("blocks clicks when disabled", async () => {

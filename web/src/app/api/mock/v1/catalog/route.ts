@@ -22,7 +22,12 @@ export async function POST(req: Request) {
     owner: body.owner ?? "",
     links: body.links ?? {},
     environments: body.environments ?? [],
-    telemetry: body.telemetry ?? { metrics: false, logs: false, traces: false, rum: false },
+    telemetry: body.telemetry ?? {
+      metrics: false,
+      logs: false,
+      traces: false,
+      rum: false,
+    },
   };
   db.catalog.push(entry);
   return jsonOk(entry, 201);

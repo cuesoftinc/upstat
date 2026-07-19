@@ -62,15 +62,24 @@ export function SpanRow({
         className="flex w-56 shrink-0 items-center gap-1.5 truncate"
         style={{ paddingLeft: depth * 12 }}
       >
-        {error && <XCircle aria-label="error span" className="size-3 shrink-0 text-crit" />}
+        {error && (
+          <XCircle
+            aria-label="error span"
+            className="size-3 shrink-0 text-crit"
+          />
+        )}
         <span
           aria-hidden="true"
           className="h-3.5 w-[3px] shrink-0"
           style={{ background: color }}
         />
-        <span className="font-data truncate text-[12px] text-text">{span.name}</span>
+        <span className="font-data truncate text-[12px] text-text">
+          {span.name}
+        </span>
       </span>
-      <span className="w-20 shrink-0 truncate text-[12px] text-text-2">{span.service}</span>
+      <span className="w-20 shrink-0 truncate text-[12px] text-text-2">
+        {span.service}
+      </span>
       <span className="relative h-4 min-w-0 flex-1">
         <span
           className="absolute inset-y-[5px] rounded-[2px]"

@@ -15,7 +15,10 @@ describe("QueryBar", () => {
     );
     expect(screen.getByText("service:")).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent("unknown facet");
-    expect(screen.getByLabelText("Query")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByLabelText("Query")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
   });
 
   it("opens autocomplete and picks a suggestion", async () => {
@@ -55,6 +58,9 @@ describe("QueryBar", () => {
     expect(screen.queryByText("service:clickhouse")).toBeNull();
     expect(screen.getByText("metric:http.errors_total")).toBeInTheDocument();
     await userEvent.keyboard("{Tab}");
-    expect(onPick).toHaveBeenCalledWith({ text: "metric:http.errors_total", cardinality: 412 });
+    expect(onPick).toHaveBeenCalledWith({
+      text: "metric:http.errors_total",
+      cardinality: 412,
+    });
   });
 });

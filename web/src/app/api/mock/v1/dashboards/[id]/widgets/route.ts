@@ -12,7 +12,8 @@ export async function POST(
   const dashboard = getDb().dashboards.find((d) => d.id === id);
   if (!dashboard) return notFound("dashboard");
   const body = await readJson<Omit<Widget, "id" | "dashboard_id">>(req);
-  if (!body?.type) return jsonError(422, "bad_shape", "widget type is required");
+  if (!body?.type)
+    return jsonError(422, "bad_shape", "widget type is required");
   const widget: Widget = {
     id: nextId("wid"),
     dashboard_id: id,

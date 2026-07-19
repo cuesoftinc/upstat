@@ -49,8 +49,12 @@ export function IncidentBanner({
       ) : (
         <SevChip sev={sev} />
       )}
-      <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-text">{title}</span>
-      <span className="shrink-0 text-[12px] tabular-nums text-text-2">{age}</span>
+      <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-text">
+        {title}
+      </span>
+      <span className="shrink-0 text-[12px] tabular-nums text-text-2">
+        {age}
+      </span>
       <AvatarStack names={responders} size={20} />
     </button>
   );

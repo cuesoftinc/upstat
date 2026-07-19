@@ -34,8 +34,7 @@ export default function RumPage() {
 
   const s = summary.data;
   const v = vitals.data;
-  const activeProperty =
-    property ?? (properties.data ?? [])[0]?.id ?? null;
+  const activeProperty = property ?? (properties.data ?? [])[0]?.id ?? null;
   const propertyName =
     (properties.data ?? []).find((p) => p.id === activeProperty)?.name ?? "—";
 
@@ -63,7 +62,11 @@ export default function RumPage() {
         return Math.max(0, 8 - dist * 3 + ((c * 5 + r * 3) % 3));
       }),
     );
-    return { columns: buckets.map((b) => b.bucket.slice(11, 16)), rows, values };
+    return {
+      columns: buckets.map((b) => b.bucket.slice(11, 16)),
+      rows,
+      values,
+    };
   }, [v?.series]);
 
   const noData = !summary.loading && (s?.page_views ?? 0) === 0;
@@ -73,7 +76,10 @@ export default function RumPage() {
       <header className="flex flex-wrap items-center gap-4">
         <h1 className="text-[20px] font-semibold">RUM — web analytics</h1>
         <Select
-          options={(properties.data ?? []).map((p) => ({ value: p.id, label: p.name }))}
+          options={(properties.data ?? []).map((p) => ({
+            value: p.id,
+            label: p.name,
+          }))}
           value={activeProperty}
           onValueChange={setProperty}
           placeholder="No properties"
@@ -94,19 +100,70 @@ export default function RumPage() {
       ) : (
         <>
           {/* stat tiles */}
-          <section aria-label="Traffic and vitals" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
+          <section
+            aria-label="Traffic and vitals"
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6"
+          >
             {summary.loading || vitals.loading ? (
-              Array.from({ length: 6 }, (_, i) => <Skeleton key={i} kind="value" />)
+              Array.from({ length: 6 }, (_, i) => (
+                <Skeleton key={i} kind="value" />
+              ))
             ) : (
               <>
                 {/* analytics-math §4 exact-label rule: multi-day uniques are
                     "daily-average uniques" — the label must carry "unique" */}
-                <QueryValue label="unique visitors · daily avg" value={fmtK(s?.uniques_daily_avg ?? 0)} deltaPct={6} threshold="none" sparkline={uniquesSpark} className="rounded-(--radius) border border-border bg-bg-elev p-4" />
-                <QueryValue label="pageviews" value={fmtK(s?.page_views ?? 0)} deltaPct={3} threshold="ok" sparkline={viewsSpark} className="rounded-(--radius) border border-border bg-bg-elev p-4" />
-                <QueryValue label="bounce rate" value={s?.bounce_rate === null || s?.bounce_rate === undefined ? "—" : `${Math.round(s.bounce_rate * 100)}%`} deltaPct={4} threshold="warn" sparkline={viewsSpark.map((x) => x % 17)} className="rounded-(--radius) border border-border bg-bg-elev p-4" />
-                <QueryValue label="p75 LCP" value={`${((v?.lcp_ms.p75 ?? 0) / 1000).toFixed(1)} s`} deltaPct={18} threshold="crit" sparkline={lcpSpark} className="rounded-(--radius) border border-border bg-bg-elev p-4" />
-                <QueryValue label="CLS · p75" value={(v?.cls.p75 ?? 0).toFixed(2)} deltaPct={-1} threshold="ok" sparkline={clsSpark} className="rounded-(--radius) border border-border bg-bg-elev p-4" />
-                <QueryValue label="INP · p75" value={`${Math.round(v?.inp_ms.p75 ?? 0)} ms`} deltaPct={12} threshold="crit" sparkline={inpSpark} className="rounded-(--radius) border border-border bg-bg-elev p-4" />
+                <QueryValue
+                  label="unique visitors · daily avg"
+                  value={fmtK(s?.uniques_daily_avg ?? 0)}
+                  deltaPct={6}
+                  threshold="none"
+                  sparkline={uniquesSpark}
+                  className="rounded-(--radius) border border-border bg-bg-elev p-4"
+                />
+                <QueryValue
+                  label="pageviews"
+                  value={fmtK(s?.page_views ?? 0)}
+                  deltaPct={3}
+                  threshold="ok"
+                  sparkline={viewsSpark}
+                  className="rounded-(--radius) border border-border bg-bg-elev p-4"
+                />
+                <QueryValue
+                  label="bounce rate"
+                  value={
+                    s?.bounce_rate === null || s?.bounce_rate === undefined
+                      ? "—"
+                      : `${Math.round(s.bounce_rate * 100)}%`
+                  }
+                  deltaPct={4}
+                  threshold="warn"
+                  sparkline={viewsSpark.map((x) => x % 17)}
+                  className="rounded-(--radius) border border-border bg-bg-elev p-4"
+                />
+                <QueryValue
+                  label="p75 LCP"
+                  value={`${((v?.lcp_ms.p75 ?? 0) / 1000).toFixed(1)} s`}
+                  deltaPct={18}
+                  threshold="crit"
+                  sparkline={lcpSpark}
+                  className="rounded-(--radius) border border-border bg-bg-elev p-4"
+                />
+                <QueryValue
+                  label="CLS · p75"
+                  value={(v?.cls.p75 ?? 0).toFixed(2)}
+                  deltaPct={-1}
+                  threshold="ok"
+                  sparkline={clsSpark}
+                  className="rounded-(--radius) border border-border bg-bg-elev p-4"
+                />
+                <QueryValue
+                  label="INP · p75"
+                  value={`${Math.round(v?.inp_ms.p75 ?? 0)} ms`}
+                  deltaPct={12}
+                  threshold="crit"
+                  sparkline={inpSpark}
+                  className="rounded-(--radius) border border-border bg-bg-elev p-4"
+                />
               </>
             )}
           </section>
@@ -122,18 +179,42 @@ export default function RumPage() {
               onZoomRange={time.zoomBy}
               onZoomReset={time.resetZoom}
             />
-            <section aria-labelledby="top-pages-heading" className="rounded-(--radius) border border-border bg-bg-elev p-4">
-              <h2 id="top-pages-heading" className="mb-3 text-[13px] text-text-2">Top pages</h2>
+            <section
+              aria-labelledby="top-pages-heading"
+              className="rounded-(--radius) border border-border bg-bg-elev p-4"
+            >
+              <h2
+                id="top-pages-heading"
+                className="mb-3 text-[13px] text-text-2"
+              >
+                Top pages
+              </h2>
               <TopList
                 loading={summary.loading}
-                entries={(s?.top_pages ?? []).map((p) => ({ label: p.value, value: p.count, display: fmtK(p.count) }))}
+                entries={(s?.top_pages ?? []).map((p) => ({
+                  label: p.value,
+                  value: p.count,
+                  display: fmtK(p.count),
+                }))}
               />
             </section>
-            <section aria-labelledby="top-referrers-heading" className="rounded-(--radius) border border-border bg-bg-elev p-4">
-              <h2 id="top-referrers-heading" className="mb-3 text-[13px] text-text-2">Top referrers</h2>
+            <section
+              aria-labelledby="top-referrers-heading"
+              className="rounded-(--radius) border border-border bg-bg-elev p-4"
+            >
+              <h2
+                id="top-referrers-heading"
+                className="mb-3 text-[13px] text-text-2"
+              >
+                Top referrers
+              </h2>
               <TopList
                 loading={summary.loading}
-                entries={(s?.top_referrers ?? []).map((p) => ({ label: p.value, value: p.count, display: fmtK(p.count) }))}
+                entries={(s?.top_referrers ?? []).map((p) => ({
+                  label: p.value,
+                  value: p.count,
+                  display: fmtK(p.count),
+                }))}
               />
             </section>
           </div>
@@ -141,42 +222,75 @@ export default function RumPage() {
           {/* B6: devices + geo breakdowns (pages.md "top pages/referrers/
               devices/geo" — the last two were generated but unrendered) */}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <section aria-labelledby="devices-heading" className="rounded-(--radius) border border-border bg-bg-elev p-4">
-              <h2 id="devices-heading" className="mb-3 text-[13px] text-text-2">Devices</h2>
+            <section
+              aria-labelledby="devices-heading"
+              className="rounded-(--radius) border border-border bg-bg-elev p-4"
+            >
+              <h2 id="devices-heading" className="mb-3 text-[13px] text-text-2">
+                Devices
+              </h2>
               <TopList
                 loading={summary.loading}
-                entries={(s?.devices ?? []).map((d) => ({ label: d.value, value: d.count, display: fmtK(d.count) }))}
+                entries={(s?.devices ?? []).map((d) => ({
+                  label: d.value,
+                  value: d.count,
+                  display: fmtK(d.count),
+                }))}
               />
             </section>
-            <section aria-labelledby="countries-heading" className="rounded-(--radius) border border-border bg-bg-elev p-4">
-              <h2 id="countries-heading" className="mb-3 text-[13px] text-text-2">Countries</h2>
+            <section
+              aria-labelledby="countries-heading"
+              className="rounded-(--radius) border border-border bg-bg-elev p-4"
+            >
+              <h2
+                id="countries-heading"
+                className="mb-3 text-[13px] text-text-2"
+              >
+                Countries
+              </h2>
               <TopList
                 loading={summary.loading}
-                entries={(s?.countries ?? []).map((c) => ({ label: c.value, value: c.count, display: fmtK(c.count) }))}
+                entries={(s?.countries ?? []).map((c) => ({
+                  label: c.value,
+                  value: c.count,
+                  display: fmtK(c.count),
+                }))}
               />
             </section>
           </div>
 
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-            <section aria-labelledby="vitals-heading" className="rounded-(--radius) border border-border bg-bg-elev p-4">
+            <section
+              aria-labelledby="vitals-heading"
+              className="rounded-(--radius) border border-border bg-bg-elev p-4"
+            >
               <h2 id="vitals-heading" className="mb-3 text-[13px] text-text-2">
                 Web vitals — LCP distribution
               </h2>
               {vitals.loading ? (
                 <Skeleton kind="panel-axis" style={{ height: 140 }} />
               ) : (
-                <Heatmap columns={lcpGrid.columns} rows={lcpGrid.rows} values={lcpGrid.values} />
+                <Heatmap
+                  columns={lcpGrid.columns}
+                  rows={lcpGrid.rows}
+                  values={lcpGrid.values}
+                />
               )}
             </section>
 
             <section aria-labelledby="errors-heading">
-              <h2 id="errors-heading" className="mb-3 text-[16px] font-semibold">
+              <h2
+                id="errors-heading"
+                className="mb-3 text-[16px] font-semibold"
+              >
                 Error tracking
               </h2>
               {errors.loading ? (
                 <Skeleton kind="line" />
               ) : (errors.data ?? []).length === 0 ? (
-                <p className="text-[13px] text-text-2">No JS errors captured. Nice.</p>
+                <p className="text-[13px] text-text-2">
+                  No JS errors captured. Nice.
+                </p>
               ) : (
                 <ul aria-label="Error groups">
                   {(errors.data ?? []).map((group) => (

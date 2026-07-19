@@ -12,9 +12,18 @@ describe("CommandPalette", () => {
   it("filters, selects, and closes", async () => {
     const onSelect = vi.fn();
     const onClose = vi.fn();
-    render(<CommandPalette open onClose={onClose} items={ITEMS} onSelect={onSelect} />);
+    render(
+      <CommandPalette
+        open
+        onClose={onClose}
+        items={ITEMS}
+        onSelect={onSelect}
+      />,
+    );
     await userEvent.type(screen.getByLabelText("Search"), "checkout");
-    await userEvent.click(screen.getByRole("option", { name: /Checkout health/ }));
+    await userEvent.click(
+      screen.getByRole("option", { name: /Checkout health/ }),
+    );
     expect(onSelect).toHaveBeenCalledWith(ITEMS[1]);
     expect(onClose).toHaveBeenCalled();
   });

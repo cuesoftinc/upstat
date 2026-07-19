@@ -13,7 +13,11 @@ export async function POST(
   const channel = getDb().channels.find((c) => c.id === id);
   if (!channel) return notFound("channel");
   if (channel.health === "degraded") {
-    return jsonError(422, "verification_expired", "verification window expired — recreate the channel");
+    return jsonError(
+      422,
+      "verification_expired",
+      "verification window expired — recreate the channel",
+    );
   }
   channel.health = "verified";
   return jsonOk(channel);

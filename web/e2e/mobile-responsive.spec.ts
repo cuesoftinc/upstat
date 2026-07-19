@@ -73,13 +73,19 @@ function auditOverflow(): OverflowReport {
   };
   const main = document.querySelector("main");
   if (main && main.scrollWidth > main.clientWidth + 1) {
-    out.mainPan = { scrollWidth: main.scrollWidth, clientWidth: main.clientWidth };
+    out.mainPan = {
+      scrollWidth: main.scrollWidth,
+      clientWidth: main.clientWidth,
+    };
   }
   const hasHScrollAncestor = (el: Element): boolean => {
     let node = el.parentElement;
     while (node && node !== document.body) {
       const style = getComputedStyle(node);
-      if ((style.overflowX === "auto" || style.overflowX === "scroll") && node.tagName !== "MAIN") {
+      if (
+        (style.overflowX === "auto" || style.overflowX === "scroll") &&
+        node.tagName !== "MAIN"
+      ) {
         return true;
       }
       node = node.parentElement;
@@ -93,7 +99,9 @@ function auditOverflow(): OverflowReport {
       let part = node.tagName.toLowerCase();
       if (node.id) part += `#${node.id}`;
       else if (typeof node.className === "string" && node.className) {
-        part += "." + node.className.split(/\s+/).filter(Boolean).slice(0, 3).join(".");
+        part +=
+          "." +
+          node.className.split(/\s+/).filter(Boolean).slice(0, 3).join(".");
       }
       parts.unshift(part);
       node = node.parentElement;
@@ -124,13 +132,18 @@ async function open(page: Page, route: string) {
 
 async function assertNoOverflow(page: Page, route: string) {
   const report = await page.evaluate(auditOverflow);
-  expect(report.htmlScrollWidth, `${route}: document must not side-scroll`).toBeLessThanOrEqual(
-    report.vw,
-  );
-  expect(report.bodyScrollWidth, `${route}: body must not side-scroll`).toBeLessThanOrEqual(
-    report.vw,
-  );
-  expect(report.mainPan, `${route}: <main> must not pan horizontally`).toBeNull();
+  expect(
+    report.htmlScrollWidth,
+    `${route}: document must not side-scroll`,
+  ).toBeLessThanOrEqual(report.vw);
+  expect(
+    report.bodyScrollWidth,
+    `${route}: body must not side-scroll`,
+  ).toBeLessThanOrEqual(report.vw);
+  expect(
+    report.mainPan,
+    `${route}: <main> must not pan horizontally`,
+  ).toBeNull();
   expect(
     report.offenders,
     `${route}: wide elements must live inside horizontal-scroll containers`,
@@ -147,7 +160,12 @@ function slug(route: string): string {
   return route === "/" ? "home" : route.slice(1).replace(/\//g, "-");
 }
 
-async function shoot(page: Page, testInfo: TestInfo, route: string, theme: "dark" | "light") {
+async function shoot(
+  page: Page,
+  testInfo: TestInfo,
+  route: string,
+  theme: "dark" | "light",
+) {
   await page.screenshot({
     path: testInfo.outputPath(`${slug(route)}--${theme}.png`),
     fullPage: !route.startsWith("/dashboard"),
@@ -167,7 +185,9 @@ test.describe("390 — every route fits the mobile viewport", () => {
 
   test("light theme sweep + screenshots", async ({ page }, testInfo) => {
     test.setTimeout(240_000);
-    await page.addInitScript(() => window.localStorage.setItem("upstat.theme", "light"));
+    await page.addInitScript(() =>
+      window.localStorage.setItem("upstat.theme", "light"),
+    );
     await page.setViewportSize(MOBILE);
     for (const route of ROUTES) {
       await open(page, route);
@@ -194,9 +214,13 @@ test.describe("expanded rail — dashboard content reflows", () => {
   const DASH_ROUTES = ROUTES.filter((r) => r.startsWith("/dashboard"));
 
   for (const width of [1280, 1440]) {
-    test(`${width} sweep with the rail expanded`, async ({ page }, testInfo) => {
+    test(`${width} sweep with the rail expanded`, async ({
+      page,
+    }, testInfo) => {
       test.setTimeout(240_000);
-      await page.addInitScript(() => window.localStorage.setItem("nav.rail.expanded", "1"));
+      await page.addInitScript(() =>
+        window.localStorage.setItem("nav.rail.expanded", "1"),
+      );
       await page.setViewportSize({ width, height: 900 });
       for (const route of DASH_ROUTES) {
         await open(page, route);
@@ -206,7 +230,10 @@ test.describe("expanded rail — dashboard content reflows", () => {
         await assertNoOverflow(page, `${route} @${width} rail-expanded`);
       }
       // densest layouts, both rail states, for the visual record
-      for (const route of ["/dashboard/dashboards/dash_overview", "/dashboard/logs"]) {
+      for (const route of [
+        "/dashboard/dashboards/dash_overview",
+        "/dashboard/logs",
+      ]) {
         await open(page, route);
         await page.screenshot({
           path: testInfo.outputPath(`${slug(route)}--${width}-expanded.png`),
@@ -224,12 +251,17 @@ test.describe("expanded rail — dashboard content reflows", () => {
   }
 });
 
-test("390 — span drawer opens as a full-width sheet inside the viewport", async ({ page }) => {
+test("390 — span drawer opens as a full-width sheet inside the viewport", async ({
+  page,
+}) => {
   await page.setViewportSize(MOBILE);
   await open(page, "/dashboard/traces/explorer");
   await page.locator('[data-testid^="trace-"]').first().click();
   await expect(page.getByTestId("trace-waterfall")).toBeVisible();
-  const spanRow = page.getByRole("list", { name: "Trace spans" }).getByRole("button").first();
+  const spanRow = page
+    .getByRole("list", { name: "Trace spans" })
+    .getByRole("button")
+    .first();
   await spanRow.scrollIntoViewIfNeeded();
   await spanRow.click();
   const drawer = page.locator('aside[aria-label^="Span "]');
@@ -243,7 +275,9 @@ test("390 — span drawer opens as a full-width sheet inside the viewport", asyn
   await expect(drawer).toBeHidden();
 });
 
-test("390 — the 12-col dashboard grid stacks; the widget editor fits", async ({ page }) => {
+test("390 — the 12-col dashboard grid stacks; the widget editor fits", async ({
+  page,
+}) => {
   await page.setViewportSize(MOBILE);
   await open(page, "/dashboard/dashboards/dash_overview?edit=1");
   // stacked: every widget starts on the same left edge
@@ -253,7 +287,9 @@ test("390 — the 12-col dashboard grid stacks; the widget editor fits", async (
     ),
   );
   expect(lefts.length).toBeGreaterThan(1);
-  expect(new Set(lefts).size, "widgets must stack single-column at 390").toBe(1);
+  expect(new Set(lefts).size, "widgets must stack single-column at 390").toBe(
+    1,
+  );
   // the lg widget-editor modal clamps to the viewport
   await page.getByTestId("add-widget").click();
   const modal = page.getByRole("dialog");
@@ -261,13 +297,21 @@ test("390 — the 12-col dashboard grid stacks; the widget editor fits", async (
   const box = (await modal.boundingBox())!;
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(MOBILE.width);
-  await assertNoOverflow(page, "/dashboard/dashboards/dash_overview (editor open)");
+  await assertNoOverflow(
+    page,
+    "/dashboard/dashboards/dash_overview (editor open)",
+  );
 });
 
-test("390 — expanding a log line keeps the document inside the viewport", async ({ page }) => {
+test("390 — expanding a log line keeps the document inside the viewport", async ({
+  page,
+}) => {
   await page.setViewportSize(MOBILE);
   await open(page, "/dashboard/logs");
-  const line = page.getByRole("list", { name: "Log lines" }).locator("li button").first();
+  const line = page
+    .getByRole("list", { name: "Log lines" })
+    .locator("li button")
+    .first();
   await expect(line).toBeVisible({ timeout: 15_000 }); // live tail flushes in batches
   await line.scrollIntoViewIfNeeded();
   await line.click();

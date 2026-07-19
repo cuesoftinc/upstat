@@ -9,7 +9,16 @@ describe("StatusPageComponentRow", () => {
       uptime_pct: 100,
       down_minutes: 0,
     }));
-    render(<StatusPageComponentRow name="API" status="ok" days={days} uptimePct={99.99} />);
-    expect(screen.getByRole("img", { name: "API 90-day uptime" }).children).toHaveLength(90);
+    render(
+      <StatusPageComponentRow
+        name="API"
+        status="ok"
+        days={days}
+        uptimePct={99.99}
+      />,
+    );
+    expect(
+      screen.getByRole("img", { name: "API 90-day uptime" }).children,
+    ).toHaveLength(90);
   });
 });

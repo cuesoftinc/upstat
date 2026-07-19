@@ -7,9 +7,11 @@ import { useState } from "react";
 export type EmptyStatePillar = "metrics" | "logs" | "traces" | "rum" | "uptime";
 
 const SNIPPETS: Record<EmptyStatePillar, string> = {
-  metrics: "export OTEL_EXPORTER_OTLP_ENDPOINT=https://ingest.upstat.cuesoft.io:4318",
+  metrics:
+    "export OTEL_EXPORTER_OTLP_ENDPOINT=https://ingest.upstat.cuesoft.io:4318",
   logs: "export OTEL_LOGS_EXPORTER=otlp OTEL_EXPORTER_OTLP_ENDPOINT=https://ingest.upstat.cuesoft.io:4318",
-  traces: "export OTEL_TRACES_EXPORTER=otlp OTEL_EXPORTER_OTLP_ENDPOINT=https://ingest.upstat.cuesoft.io:4318",
+  traces:
+    "export OTEL_TRACES_EXPORTER=otlp OTEL_EXPORTER_OTLP_ENDPOINT=https://ingest.upstat.cuesoft.io:4318",
   rum: '<script defer src="https://upstat.cuesoft.io/upstat.js" data-property="pk_live_…"></script>',
   uptime: "Create your first check — Monitors → New monitor",
 };
@@ -80,7 +82,10 @@ export function EmptyState({
           />
         )}
         {!waiting && (
-          <Check className="absolute inset-0 m-auto size-5 text-ok" aria-hidden="true" />
+          <Check
+            className="absolute inset-0 m-auto size-5 text-ok"
+            aria-hidden="true"
+          />
         )}
       </span>
 
@@ -100,7 +105,11 @@ export function EmptyState({
               onClick={() => void copy()}
               className="text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
             >
-              {copied ? <Check className="size-3.5 text-ok" /> : <Copy className="size-3.5" />}
+              {copied ? (
+                <Check className="size-3.5 text-ok" />
+              ) : (
+                <Copy className="size-3.5" />
+              )}
             </button>
           </div>
           <a

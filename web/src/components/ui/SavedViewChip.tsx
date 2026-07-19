@@ -14,7 +14,13 @@ export interface SavedViewChipProps {
 }
 
 /** SavedViewChip — §8.2b: personal / org-shared (avatar stack) · default/active. */
-export function SavedViewChip({ name, sharedWith, active = false, onClick, className }: SavedViewChipProps) {
+export function SavedViewChip({
+  name,
+  sharedWith,
+  active = false,
+  onClick,
+  className,
+}: SavedViewChipProps) {
   return (
     <button
       type="button"
@@ -31,7 +37,9 @@ export function SavedViewChip({ name, sharedWith, active = false, onClick, class
     >
       <Bookmark aria-hidden="true" className="size-3" />
       <span className="truncate">{name}</span>
-      {sharedWith && sharedWith.length > 0 && <AvatarStack names={sharedWith} size={20} max={3} />}
+      {sharedWith && sharedWith.length > 0 && (
+        <AvatarStack names={sharedWith} size={20} max={3} />
+      )}
     </button>
   );
 }

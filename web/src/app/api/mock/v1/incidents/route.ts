@@ -10,7 +10,11 @@ export async function GET() {
 
 /** POST /v1/incidents — declare (modal: sev, title, commander). */
 export async function POST(req: Request) {
-  const body = await readJson<{ title?: string; sev?: number; commander?: string }>(req);
+  const body = await readJson<{
+    title?: string;
+    sev?: number;
+    commander?: string;
+  }>(req);
   if (!body?.title || !body.sev || !body.commander) {
     return jsonError(422, "bad_shape", "title, sev and commander are required");
   }

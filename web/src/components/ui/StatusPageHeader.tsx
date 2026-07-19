@@ -4,10 +4,7 @@ import { clsx } from "clsx";
 import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 
 export type OverallStatus =
-  | "operational"
-  | "degraded"
-  | "partial_outage"
-  | "major_outage";
+  "operational" | "degraded" | "partial_outage" | "major_outage";
 
 export interface StatusPageHeaderProps {
   /** Org heading — omitted in embeds (the landing v2 status embed, 135:471). */
@@ -58,13 +55,21 @@ export function StatusPageHeader({
   // Figma 75:862: outages (partial + major) carry crit + x-circle;
   // only degraded stays warn + triangle.
   const Icon =
-    overall === "operational" ? CheckCircle2 : overall === "degraded" ? AlertTriangle : XCircle;
+    overall === "operational"
+      ? CheckCircle2
+      : overall === "degraded"
+        ? AlertTriangle
+        : XCircle;
   return (
     <header
       data-overall={overall}
       className={clsx("font-ui flex flex-col gap-3", className)}
     >
-      {orgName && <h1 className="text-[20px] font-semibold text-text">{orgName} status</h1>}
+      {orgName && (
+        <h1 className="text-[20px] font-semibold text-text">
+          {orgName} status
+        </h1>
+      )}
       <div
         className={clsx(
           "flex items-center gap-2 rounded-(--radius) border p-3",
@@ -80,12 +85,17 @@ export function StatusPageHeader({
             "size-5",
             overall === "operational" && "text-ok",
             overall === "degraded" && "text-warn",
-            (overall === "partial_outage" || overall === "major_outage") && "text-crit",
+            (overall === "partial_outage" || overall === "major_outage") &&
+              "text-crit",
           )}
         />
-        <span className="text-[16px] font-semibold text-text">{COPY[overall]}</span>
+        <span className="text-[16px] font-semibold text-text">
+          {COPY[overall]}
+        </span>
         {updatedPlacement === "banner" && (
-          <span className="ml-auto text-[12px] tabular-nums text-text-2">{updatedLabel}</span>
+          <span className="ml-auto text-[12px] tabular-nums text-text-2">
+            {updatedLabel}
+          </span>
         )}
       </div>
       {updatedPlacement === "below" && (

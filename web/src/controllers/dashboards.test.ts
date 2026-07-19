@@ -43,18 +43,24 @@ describe("portable dashboard JSON (pages.md B2; api.md §6)", () => {
 
   it("rejects malformed input with readable messages", () => {
     expect(() => parsePortableDashboard("nope")).toThrow(/not valid JSON/);
-    expect(() => parsePortableDashboard('{"version":2,"name":"x","widgets":[]}')).toThrow(
-      /unsupported version/,
+    expect(() =>
+      parsePortableDashboard('{"version":2,"name":"x","widgets":[]}'),
+    ).toThrow(/unsupported version/);
+    expect(() => parsePortableDashboard('{"version":1,"widgets":[]}')).toThrow(
+      /name/,
     );
-    expect(() => parsePortableDashboard('{"version":1,"widgets":[]}')).toThrow(/name/);
-    expect(() => parsePortableDashboard('{"version":1,"name":"x"}')).toThrow(/widgets/);
+    expect(() => parsePortableDashboard('{"version":1,"name":"x"}')).toThrow(
+      /widgets/,
+    );
     expect(() =>
       parsePortableDashboard(
         '{"version":1,"name":"x","widgets":[{"type":"nonsense","layout":{"x":0,"y":0,"w":1,"h":1}}]}',
       ),
     ).toThrow(/unknown widget type/);
     expect(() =>
-      parsePortableDashboard('{"version":1,"name":"x","widgets":[{"type":"timeseries"}]}'),
+      parsePortableDashboard(
+        '{"version":1,"name":"x","widgets":[{"type":"timeseries"}]}',
+      ),
     ).toThrow(/layout/);
   });
 

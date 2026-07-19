@@ -3,8 +3,20 @@
 import type { RumSummary, RumVitals } from "@/models";
 import { DAY, HOUR, MINUTE, hashSeed, iso, mulberry32, unitFor } from "./util";
 
-const TOP_PAGES = ["/", "/pricing", "/docs", "/blog/cookieless-analytics", "/changelog"];
-const REFERRERS = ["google.com", "github.com", "news.ycombinator.com", "x.com", "duckduckgo.com"];
+const TOP_PAGES = [
+  "/",
+  "/pricing",
+  "/docs",
+  "/blog/cookieless-analytics",
+  "/changelog",
+];
+const REFERRERS = [
+  "google.com",
+  "github.com",
+  "news.ycombinator.com",
+  "x.com",
+  "duckduckgo.com",
+];
 const COUNTRIES = ["NG", "US", "GB", "DE", "IN"];
 
 /**
@@ -60,9 +72,11 @@ export function rumSummary(fromMs: number, toMs: number): RumSummary {
   return {
     page_views: pageViews,
     visits,
-    bounce_rate: visits === 0 ? null : Math.round((bounceVisits / visits) * 1000) / 1000,
+    bounce_rate:
+      visits === 0 ? null : Math.round((bounceVisits / visits) * 1000) / 1000,
     avg_visit_seconds: visits - bounceVisits === 0 ? null : 184,
-    uniques_daily_avg: dayCount === 0 ? 0 : Math.round(dayUniquesSum / dayCount),
+    uniques_daily_avg:
+      dayCount === 0 ? 0 : Math.round(dayUniquesSum / dayCount),
     uniques_additive: false,
     series,
     top_pages: TOP_PAGES.map((value, i) => ({

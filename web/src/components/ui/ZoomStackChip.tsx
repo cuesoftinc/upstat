@@ -13,7 +13,12 @@ export interface ZoomStackChipProps {
 }
 
 /** ZoomStackChip — MI-3 zoom breadcrumb (§8.2b; a QueryPill re-skin). */
-export function ZoomStackChip({ depth, label, onReset, className }: ZoomStackChipProps) {
+export function ZoomStackChip({
+  depth,
+  label,
+  onReset,
+  className,
+}: ZoomStackChipProps) {
   return (
     <span
       className={clsx(

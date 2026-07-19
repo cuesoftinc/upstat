@@ -52,7 +52,10 @@ export default function MonitorsPage() {
     <div className="flex flex-col gap-5 px-6 py-5" data-testid="monitors-page">
       <header className="flex items-center justify-between">
         <h1 className="text-[20px] font-semibold">Monitors</h1>
-        <Button onClick={() => router.push("/dashboard/monitors/new")} data-testid="new-monitor">
+        <Button
+          onClick={() => router.push("/dashboard/monitors/new")}
+          data-testid="new-monitor"
+        >
           New monitor
         </Button>
       </header>
@@ -77,7 +80,9 @@ export default function MonitorsPage() {
                     <AlertRuleCard
                       rule={rule}
                       onClick={() => setSelectedId(rule.id)}
-                      className={selected?.id === rule.id ? "border-brand" : undefined}
+                      className={
+                        selected?.id === rule.id ? "border-brand" : undefined
+                      }
                     />
                   </li>
                 ))}
@@ -86,7 +91,10 @@ export default function MonitorsPage() {
           </section>
 
           <section aria-labelledby="channels-heading">
-            <h2 id="channels-heading" className="mb-3 text-[16px] font-semibold">
+            <h2
+              id="channels-heading"
+              className="mb-3 text-[16px] font-semibold"
+            >
               Notification channels
             </h2>
             {ctrl.channels.loading ? (
@@ -111,13 +119,18 @@ export default function MonitorsPage() {
           </section>
 
           <section aria-labelledby="triggered-heading">
-            <h2 id="triggered-heading" className="mb-3 text-[16px] font-semibold">
+            <h2
+              id="triggered-heading"
+              className="mb-3 text-[16px] font-semibold"
+            >
               Triggered
             </h2>
             {ctrl.feed.loading ? (
               <Skeleton kind="line" />
             ) : (ctrl.feed.data ?? []).length === 0 ? (
-              <p className="text-[13px] text-text-2">Quiet — nothing has triggered.</p>
+              <p className="text-[13px] text-text-2">
+                Quiet — nothing has triggered.
+              </p>
             ) : (
               <ul aria-label="Triggered feed">
                 {(ctrl.feed.data ?? []).map((event) => (
@@ -127,7 +140,9 @@ export default function MonitorsPage() {
                     <AlertFeedRow
                       event={event}
                       onClick={
-                        event.sev === "resolved" ? undefined : () => setDeclareFrom(event)
+                        event.sev === "resolved"
+                          ? undefined
+                          : () => setDeclareFrom(event)
                       }
                     />
                   </li>
@@ -143,7 +158,10 @@ export default function MonitorsPage() {
         >
           {selected ? (
             <>
-              <h2 id="editor-heading" className="mb-4 text-[16px] font-semibold">
+              <h2
+                id="editor-heading"
+                className="mb-4 text-[16px] font-semibold"
+              >
                 Edit rule — {selected.name}
               </h2>
               <RuleEditor
@@ -159,7 +177,10 @@ export default function MonitorsPage() {
               />
               {testResult && (
                 <div className="mt-5" data-testid="rule-replay">
-                  <ReplayPanel result={testResult} title={`replay — ${selected.name}`} />
+                  <ReplayPanel
+                    result={testResult}
+                    title={`replay — ${selected.name}`}
+                  />
                 </div>
               )}
             </>
@@ -172,7 +193,11 @@ export default function MonitorsPage() {
       <DeclareIncidentModal
         open={declareFrom !== null}
         onClose={() => setDeclareFrom(null)}
-        initialTitle={declareFrom ? `${declareFrom.monitor_name} — ${declareFrom.message}` : ""}
+        initialTitle={
+          declareFrom
+            ? `${declareFrom.monitor_name} — ${declareFrom.message}`
+            : ""
+        }
         initialSev={declareFrom?.sev === "sev1" ? "1" : "2"}
       />
     </div>

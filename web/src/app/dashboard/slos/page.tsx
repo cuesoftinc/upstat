@@ -29,8 +29,14 @@ export default function SlosPage() {
   const sourceOptions = [
     ...(monitors.data ?? [])
       .filter((m) => m.active)
-      .map((m) => ({ value: `check:${m.name}`, label: `uptime check: ${m.name}` })),
-    { value: "metric_ratio:good/total", label: "metric ratio: good ÷ total events" },
+      .map((m) => ({
+        value: `check:${m.name}`,
+        label: `uptime check: ${m.name}`,
+      })),
+    {
+      value: "metric_ratio:good/total",
+      label: "metric ratio: good ÷ total events",
+    },
     { value: "latency:p95<800ms", label: "latency: p95 under threshold" },
   ];
 
@@ -88,8 +94,8 @@ export default function SlosPage() {
           aria-label="No SLOs"
           className="rounded-(--radius) border border-border bg-bg-elev p-6 text-[13px] leading-[1.45] text-text-2"
         >
-          No SLOs yet — define one below; burn-rate monitors are one click
-          away once it exists.
+          No SLOs yet — define one below; burn-rate monitors are one click away
+          once it exists.
         </section>
       ) : (
         <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -139,7 +145,10 @@ export default function SlosPage() {
             <label className="flex flex-col gap-1 text-[13px]">
               <span className="text-text-2">Window</span>
               <Select
-                options={WINDOWS.map((w) => ({ value: w, label: `${w} rolling` }))}
+                options={WINDOWS.map((w) => ({
+                  value: w,
+                  label: `${w} rolling`,
+                }))}
                 value={window_}
                 onValueChange={setWindow}
                 aria-label="Window"
@@ -151,7 +160,11 @@ export default function SlosPage() {
                   {error}
                 </p>
               )}
-              <Button type="submit" disabled={creating} data-testid="create-slo">
+              <Button
+                type="submit"
+                disabled={creating}
+                data-testid="create-slo"
+              >
                 {creating ? "Creating…" : "Create SLO"}
               </Button>
             </div>

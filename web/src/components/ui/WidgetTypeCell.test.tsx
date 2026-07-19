@@ -15,6 +15,9 @@ describe("WidgetTypeCell", () => {
     await userEvent.click(tile);
     expect(onClick).toHaveBeenCalledOnce();
     rerender(<WidgetTypeCell icon={Table2} label="Table" selected />);
-    expect(screen.getByRole("button", { name: "Table" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Table" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 });
