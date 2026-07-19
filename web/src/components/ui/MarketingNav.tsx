@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { clsx } from "clsx";
 import Link from "next/link";
-import { Menu, Star, X, Zap } from "lucide-react";
+import { ChevronDown, Menu, Star, X, Zap } from "lucide-react";
 import { Button } from "./Button";
+import { MARKETING_PILLARS, pillarAccent } from "./PillarCard";
 import { ThemeToggle } from "./ThemeToggle";
 
 export interface MarketingNavProps {
@@ -69,10 +70,151 @@ function StarBadge({
   );
 }
 
+/** Hover-close grace so the pointer can cross the 8px gap to the panel. */
+const DROPDOWN_CLOSE_DELAY_MS = 150;
+
+/**
+ * FeaturesDropdown — the A1 pillar-map dropdown (Figma 98:1709,
+ * MarketingNav `state=dropdown-open`): the desktop Features item keeps its
+ * canonical `/#features` link (the parity-canon inventory is unchanged —
+ * adjudicated 2026-07-20) and gains a disclosure chevron opening the mini
+ * feature map ×8 — two 4-row columns of series-accent pillar icons +
+ * 13px labels, reusing the PillarCard construction (MARKETING_PILLARS +
+ * pillarAccent + the Figma short labels). Hover or chevron-click opens;
+ * Escape closes and restores focus to the chevron; focus leaving the
+ * cluster closes it. Rows deep-link each pillar's card on the landing
+ * grid (`/#pillar-n`). The mobile panel keeps the plain Features link.
+ */
+function FeaturesDropdown({ href }: { href: string }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const closeTimer = useRef<number | null>(null);
+
+  const cancelClose = () => {
+    if (closeTimer.current !== null) {
+      window.clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimer.current = window.setTimeout(
+      () => setOpen(false),
+      DROPDOWN_CLOSE_DELAY_MS,
+    );
+  };
+  // clear any pending close on unmount
+  useEffect(
+    () => () => {
+      if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
+    },
+    [],
+  );
+
+  return (
+    <div
+      ref={rootRef}
+      data-testid="features-nav-item"
+      className="relative hidden items-center gap-1 self-stretch md:flex"
+      onMouseEnter={() => {
+        cancelClose();
+        setOpen(true);
+      }}
+      onMouseLeave={scheduleClose}
+      onKeyDown={(e) => {
+        if (e.key === "Escape" && open) {
+          setOpen(false);
+          triggerRef.current?.focus();
+        }
+      }}
+      onBlur={(e) => {
+        // focus left the cluster (link, chevron and panel are all inside)
+        if (!rootRef.current?.contains(e.relatedTarget as Node)) {
+          setOpen(false);
+        }
+      }}
+    >
+      <a
+        href={href}
+        onClick={() => setOpen(false)}
+        className={clsx(
+          "text-[13px] font-medium transition-colors duration-[var(--duration-fast)]",
+          open ? "text-brand" : "text-text-2 hover:text-text",
+        )}
+      >
+        Features
+      </a>
+      <button
+        type="button"
+        ref={triggerRef}
+        aria-label="Features pillar map"
+        aria-expanded={open}
+        {...(open ? { "aria-controls": "features-dropdown" } : {})}
+        onClick={() => setOpen((o) => !o)}
+        className={clsx(
+          "rounded-(--radius) p-0.5 transition-colors duration-[var(--duration-fast)]",
+          open ? "text-brand" : "text-text-2 hover:text-text",
+        )}
+      >
+        <ChevronDown
+          aria-hidden="true"
+          className={clsx(
+            "size-3 transition-transform duration-[var(--duration-fast)] ease-standard motion-reduce:transition-none",
+            open && "rotate-180",
+          )}
+        />
+      </button>
+
+      {open && (
+        <div
+          id="features-dropdown"
+          data-testid="features-dropdown"
+          onMouseEnter={cancelClose}
+          onMouseLeave={scheduleClose}
+          // pt-2 = the 8px visual gap carried as bridge padding, so the
+          // pointer never crosses a dead zone between trigger and panel
+          className="absolute left-0 top-full z-[var(--z-dropdown)] pt-2"
+        >
+          {/* shadow color: documented raw-color exception (effect/shadow
+              colors, design.md §7) — Figma 98:1657 drop shadow */}
+          <div className="flex gap-6 rounded-(--radius) border border-border bg-bg-elev p-5 shadow-[0_12px_32px_rgba(0,0,0,0.5)]">
+            {[MARKETING_PILLARS.slice(0, 4), MARKETING_PILLARS.slice(4)].map(
+              (column, ci) => (
+                <ul key={ci} className="flex flex-col gap-2.5">
+                  {column.map(({ pillar, icon: Icon, title, shortTitle }) => (
+                    <li key={pillar}>
+                      <a
+                        href={`/#pillar-${pillar}`}
+                        data-pillar={pillar}
+                        onClick={() => setOpen(false)}
+                        className="flex items-center gap-2.5 whitespace-nowrap text-[13px] font-medium text-text transition-colors duration-[var(--duration-fast)] hover:text-brand"
+                      >
+                        <Icon
+                          aria-hidden="true"
+                          className="size-4 shrink-0"
+                          style={{ color: pillarAccent(pillar) }}
+                        />
+                        {shortTitle ?? title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              ),
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /**
  * MarketingNav — nav-parity canon (SKILL.md 2026-07-19, revised same day):
  * logo · Features · Platform · Docs · GitHub star badge · ThemeToggle ·
- * Sign in text link · Try Cloud primary CTA (both → /signin).
+ * Sign in text link · Try Cloud primary CTA (both → /signin). Features
+ * additionally discloses the A1 pillar mini feature map on desktop
+ * (FeaturesDropdown above — hover or chevron click; Escape closes).
  *
  * The bar (border/background) is full-bleed, but the ROW sits on the
  * marketing container (design.md §2: 1152px content at 1440, rails
@@ -125,6 +267,10 @@ export function MarketingNav({
               starCount={starCount}
               className="hidden h-7 rounded-(--radius) border border-border px-2 text-[12px] hover:border-text-2 hover:text-text md:flex"
             />
+          ) : link.label === "Features" ? (
+            // A1: Features keeps its canonical /#features anchor and gains
+            // the pillar-map dropdown disclosure (desktop only)
+            <FeaturesDropdown key={link.label} href={link.href} />
           ) : (
             <a
               key={link.label}

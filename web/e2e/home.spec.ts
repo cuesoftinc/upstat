@@ -375,6 +375,58 @@ test("enabled controls carry the pointer cursor (Directive 2026-07-19)", async (
   );
 });
 
+test("A1 Features pillar-map dropdown — hover/click open, Escape, deep links", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const nav = page.getByRole("navigation", { name: "Marketing" });
+  const chevron = nav.getByRole("button", { name: "Features pillar map" });
+  const panel = nav.getByTestId("features-dropdown");
+
+  // closed by default; the canonical Features link is untouched
+  await expect(chevron).toHaveAttribute("aria-expanded", "false");
+  await expect(panel).toBeHidden();
+  await expect(nav.getByRole("link", { name: "Features" })).toHaveAttribute(
+    "href",
+    "/#features",
+  );
+
+  // hover opens the mini feature map ×8 (retry while React hydrates)
+  await expect(async () => {
+    await nav.getByTestId("features-nav-item").hover();
+    await expect(panel).toBeVisible({ timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
+  await expect(panel.getByRole("link")).toHaveCount(8);
+  // Figma dropdown-open copy: pillar 2 renders the shortened label
+  await expect(
+    panel.getByRole("link", { name: "Analytics / RUM" }),
+  ).toBeVisible();
+
+  // the panel stays fully inside the viewport (floating-layer canon)
+  const box = (await panel.boundingBox())!;
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(1280);
+
+  // pointer away → closes after the grace delay
+  await page.mouse.move(640, 400);
+  await expect(panel).toBeHidden();
+
+  // chevron click-toggles; Escape closes and restores trigger focus
+  await chevron.click();
+  await expect(panel).toBeVisible();
+  await expect(chevron).toHaveAttribute("aria-expanded", "true");
+  await page.keyboard.press("Escape");
+  await expect(panel).toBeHidden();
+  await expect(chevron).toBeFocused();
+
+  // a pillar row deep-links its card on the landing grid and closes
+  await chevron.click();
+  await panel.getByRole("link", { name: "Logs" }).click();
+  await expect(panel).toBeHidden();
+  await expect(page).toHaveURL(/#pillar-4$/);
+  await expect(page.locator("#pillar-4")).toBeInViewport();
+});
+
 test("mobile nav is a menu-button disclosure at 390w (SKILL.md mobile clause)", async ({
   page,
 }) => {
