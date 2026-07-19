@@ -84,7 +84,7 @@ design.md §8.1.
 - Explorer: FacetSidebar (service, level, host, custom) + QueryBar + LogLine
   list (virtualized) + histogram header (MI-6); live tail (MI-4); expand
   pivots (MI-5).
-- Patterns view: auto-grouped similar lines with counts **[Later]**.
+- Patterns view **[Designed 2026-07-20]**: the Patterns tab clusters similar lines into templates — LogPatternRow (expand chevron · count · 7-bucket trend sparkline · template with `<placeholders>` · dominant level), expanding to sample LogLine rows; shares the explorer's QueryBar/facets/histogram chrome (Figma `B4 — Logs (patterns)`).
 - Retention/indexing settings per source; archive-to-object-storage
   **[Later]**.
 
@@ -103,6 +103,11 @@ design.md §8.1.
   grouped by fingerprint).
 - Website-traffic analytics live in this pillar — B6 is the product's
   analytics surface (ANA-002).
+- Analytics drill-down (U6-2) **[Designed 2026-07-20]**: per-property page —
+  funnel row (FunnelStageCard ×3: page views → sessions → conversions, demo
+  framing) · weekly-cohort retention grid (reuses the Heatmap construction;
+  cohort axes land in code) · top pages / top referrers (TopList
+  construction) (Figma `B6 — RUM analytics (drill-down, U6-2)`).
 - Property create **[Directive 2026-07-18]**: RUM property-create screen
   (site/domain → property key issuance + browser-SDK snippet; keys managed
   in B12).
@@ -114,13 +119,13 @@ design.md §8.1.
   both until migration completes within the release). B7 reads the unified
   view.
 - Monitors (existing CRUD) → "Uptime checks" within Synthetics: HTTP checks
-  (existing), multi-step API checks **[Later]**, browser checks **[Later]**.
+  (existing), multi-step API checks and browser checks **[Designed 2026-07-20]**: builder = step list (HTTP request / assertion / wait — SyntheticStepRow: add/reorder/delete) + browser-check panel (start URL · viewport Select · screenshot-on-failure toggle); run view = per-step pass/fail timeline (StepResultRow: StatusPill + duration bar) + failure screenshot (Figma `B7 — Synthetics check builder` / `B7 — Synthetic check run`).
 - UptimeCards + per-monitor page: check history, response-time chart,
   incidents, insight panel (existing ML insight surfaces here).
 - Public status pages: URL scheme **[Decided]** `status.upstat.cuesoft.io/{slug}`
   (owner-chosen slug, unique; never raw owner ids in URLs); upstat's own page
   = slug `upstat` (U0-5 config = create the slugged page over the existing
-  `GetStatusPage` data). Builder (logo, components, subscribe) **[Later]**.
+  `GetStatusPage` data). Builder **[Designed 2026-07-20]**: branding (page name · slug) + component list (StatusPageBuilderRow: rename/reorder, map to monitors via Select) + public-URL preview row — output is the existing /status/{slug} construction (Figma `B7 — Status page builder`); logo upload + subscribe remain **[Later]**.
 
 ### B8 Monitors (alerting on any signal)
 - Monitor types: uptime state (exists conceptually), metric threshold,
@@ -156,7 +161,7 @@ design.md §8.1.
 ### B12 Settings
 - Org/members/roles; **API keys & ingestion tokens** (per-pillar scopes);
   property keys (RUM); integrations (webhooks, Slack); retention per signal;
-  usage metering per pillar **[Proposed]**; privacy/data controls.
+  usage metering per pillar **[Designed 2026-07-20]** (UsageMeterRow: pillar + unit · MTD value · bar vs trailing-3-month peak · plan column reads "Self-host: unlimited · Cloud: announced at GA" per the accuracy canon — Figma `B12 — Settings (usage metering)`); privacy/data controls.
 - **Organization profile**: name, **timezone (IANA)** — all report rendering
   and time-bucketing (dashboards, uptime day boundaries, rollup display,
   scheduled reports) resolve in the org timezone; storage stays UTC
