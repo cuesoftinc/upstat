@@ -59,7 +59,10 @@ test("home renders every Part A section", async ({ page }) => {
   await expect(
     page.getByText("Go gRPC services · Next.js + React/TS · ClickHouse · OpenTelemetry"),
   ).toBeVisible();
-  await expect(page.getByText("CueLABS™ Discord — #upstat-lab")).toBeVisible();
+  // CTA-dedupe canon: the one GitHub+Discord pair lives in A13; A8 carries
+  // the CueLABS™ card + docs links
+  await expect(page.getByText("Discord — #upstat-lab on the CueLABS™ server")).toBeVisible();
+  await expect(page.getByText("CueLABS™ — more open source from Cuesoft")).toBeVisible();
 
   // A15 FAQ · A16 CTA band · A10 footer
   await expect(page.getByText("Questions, answered.")).toBeVisible();
@@ -82,7 +85,7 @@ test("nav + footer carry the canonical parity links (SKILL.md canon)", async ({ 
   const nav = page.getByRole("navigation", { name: "Marketing" });
   for (const [label, href] of [
     ["Features", "/#pillars"],
-    ["Dashboards", "/dashboard"],
+    ["Platform", "/#pillars"],
     ["Docs", "https://cuesoft.gitbook.io/upstat"],
     // the GitHub item renders as the star badge (canon revision 2026-07-19)
     ["Star cuesoftinc/upstat on GitHub", "https://github.com/cuesoftinc/upstat"],
@@ -101,7 +104,7 @@ test("nav + footer carry the canonical parity links (SKILL.md canon)", async ({ 
         ["Features", "/#pillars"],
         ["Try Cloud", "/signin"],
         ["Self Host", "/#self-host"],
-        ["Dashboards", "/dashboard"],
+        ["Platform", "/#pillars"],
       ],
     ],
     [
@@ -309,7 +312,7 @@ test("mobile nav is a menu-button disclosure at 390w (SKILL.md mobile clause)", 
   // every canonical link is reachable from the panel — no dead ends <md
   for (const [label, href] of [
     ["Features", "/#pillars"],
-    ["Dashboards", "/dashboard"],
+    ["Platform", "/#pillars"],
     ["Docs", "https://cuesoft.gitbook.io/upstat"],
     // the GitHub item renders as the star badge (canon revision 2026-07-19)
     ["Star cuesoftinc/upstat on GitHub", "https://github.com/cuesoftinc/upstat"],

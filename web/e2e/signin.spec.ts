@@ -27,19 +27,12 @@ test("signin → dashboard home via the single Google CTA", async ({ page }) => 
   await expect(home.getByRole("heading", { name: "Home — org health" })).toBeVisible();
 });
 
-test("/login permanently redirects to /signin (no 404 for old links)", async ({ request, baseURL }) => {
-  const response = await request.get("/login", { maxRedirects: 0 });
-  expect(response.status()).toBe(308);
-  // Regression (live bug): behind the App Hosting proxy an absolute Location
-  // built from request.url pointed at https://0.0.0.0:8080/signin. The
-  // Location must be host-independent — relative, or absolute on the host
-  // the client actually requested.
-  const location = response.headers()["location"];
-  if (location.startsWith("/")) {
-    expect(location).toBe("/signin");
-  } else {
-    expect(location).toBe(new URL("/signin", baseURL).toString());
-  }
+test("/login 404s on the branded page (redirect stub removed 2026-07-19)", async ({ page }) => {
+  // user decision: the /login → /signin stub is gone — /signin is the only
+  // auth route; stale links land on the branded not-found page
+  const response = await page.goto("/login");
+  expect(response!.status()).toBe(404);
+  await expect(page.getByRole("heading", { name: /This page doesn/ })).toBeVisible();
 });
 
 test("signin column stays constrained at desktop width", async ({ page }) => {

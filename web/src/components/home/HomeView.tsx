@@ -79,11 +79,7 @@ export function HomeView() {
         />
         <StatusEmbedSection rows={demo.statusRows} updatedAt={demo.statusUpdatedAt} />
         <SelfHostSection onSelfHostDocs={onSelfHostDocs} />
-        <CloudSelfHostSection
-          onTryCloud={onTryCloud}
-          onSelfHost={onSelfHost}
-          onGithub={onGithub}
-        />
+        <CloudSelfHostSection onTryCloud={onTryCloud} onSelfHost={onSelfHost} />
         <DevelopersSection onGithub={onGithub} />
         <CommunitySection />
         <FaqSection />

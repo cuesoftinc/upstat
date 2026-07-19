@@ -13,9 +13,9 @@ const renderNav = (props: Parameters<typeof MarketingNav>[0] = {}) =>
 describe("MarketingNav (parity canon, SKILL.md 2026-07-19, revised same day)", () => {
   it("renders the four canonical links with the ratified hrefs", () => {
     renderNav();
-    expect(NAV_LINKS.map((l) => l.label)).toEqual(["Features", "Dashboards", "Docs", "GitHub"]);
+    expect(NAV_LINKS.map((l) => l.label)).toEqual(["Features", "Platform", "Docs", "GitHub"]);
     expect(screen.getByRole("link", { name: "Features" })).toHaveAttribute("href", "/#pillars");
-    expect(screen.getByRole("link", { name: "Dashboards" })).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByRole("link", { name: "Platform" })).toHaveAttribute("href", "/#pillars");
     expect(screen.getByRole("link", { name: "Docs" })).toHaveAttribute(
       "href",
       "https://cuesoft.gitbook.io/upstat",
