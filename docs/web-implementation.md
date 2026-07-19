@@ -326,11 +326,11 @@ MarketingFooter's unused `inline` variant axis removed (no consumer; the
 footer renders the one canonical stacked shape). The docs now describe
 only the current system (api.md §2 states the HTTP alert surface without
 the struck-through gRPC sketch; stale nav enumerations corrected).
-`package.json` scripts already carry the ecosystem-canonical names
-(`dev/build/start/lint/typecheck/test/test:watch/test:e2e/
-check:boundaries`); remaining cross-repo config divergence (vitest plugin
-pattern, playwright port-isolation vars, lint composition) is catalogued
-for the parity pass rather than changed unilaterally.
+`package.json` scripts carry the org-canonical names and compositions
+(`dev/build/start/lint/lint:fix/typecheck/test/test:watch/test:e2e/
+check:boundaries`); the web tooling (boundary gate, prettier config,
+vitest/playwright/tsconfig shapes, `PW_PORT` port isolation) is converged
+with apparule and expendit.
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
