@@ -310,9 +310,7 @@ document side-scroll and no element outside a scroll container, both
 widths, rail expanded); below `md` rail expansion renders as a 240px
 **overlay drawer** over a scrim — content keeps full width, the persisted
 desktop state does not apply (mobile boots collapsed), scrim/Escape/item
-selection dismiss (`e2e/navrail.spec.ts`). Known spec gap deliberately
-deferred: the A1 Features pillar-map dropdown (pending adjudication
-against the 4-text-links parity canon).
+selection dismiss (`e2e/navrail.spec.ts`).
 
 **Code-quality pass as-built (2026-07-19).** The documented dead-dependency
 prune landed: `styled-components` (+ its `next.config.ts` compiler flag),
@@ -331,6 +329,36 @@ the struck-through gRPC sketch; stale nav enumerations corrected).
 check:boundaries`); the web tooling (boundary gate, prettier config,
 vitest/playwright/tsconfig shapes, `PW_PORT` port isolation) is converged
 with apparule and expendit.
+
+**Wave A as-built (2026-07-20) — A1 dropdown · §5 colorblind mode · §5
+data-table toggle.** (1) **A1 Features pillar-map dropdown** — built per
+the Figma MarketingNav `state=dropdown-open` variant (set 98:1710),
+adjudicated as a supplement to the 4-text-links canon (inventory
+unchanged): the desktop Features item keeps `/#features` and gains a
+disclosure chevron (`FeaturesDropdown` in `MarketingNav.tsx`) opening the
+mini feature map ×8 — two 4-row columns reusing the PillarCard
+construction (`MARKETING_PILLARS` + `pillarAccent` + Figma short labels),
+rows deep-linking `/#pillar-n` (PillarCard grew an anchor `id` +
+`scroll-mt`); hover opens with a 150ms close grace bridging the 8px gap,
+chevron click toggles, Escape closes restoring trigger focus, focus-out
+closes; the mobile panel keeps the plain link (`e2e/home.spec.ts`).
+(2) **§5 colorblind mode** — `web/src/design/ColorVisionProvider.tsx`
+mirrors the ThemeProvider contract (localStorage `upstat.colorvision`,
+`data-colorvision` on `<html>`, pre-paint init script; safe without a
+provider so leaf charts render alone); Settings → Appearance gains the
+"Color vision" Switch; pattern rendering per the design.md §5 as-built
+note (TimeseriesPanel dashes + bar hatch defs, TopList/LogHistogram
+stripe overlays via the shared `patternFillStyle`, dot-only StatusPill
+glyphs). (3) **§5 chart data-table toggle** — shared
+`ChartTableToggle`/`ChartDataTable` (`components/ui/ChartTable.tsx`, not
+a Figma set: an accessibility behavior rendering the §8.2 Table in a
+scroll-bounded container) wired on TimeseriesPanel (header control with
+chrome; floating corner control on bare widget plots), Heatmap,
+LogHistogram and UptimeCard; hidden in loading/empty states; hidden
+legend series stay hidden in the table. Both §5 features are covered by
+`e2e/chart-accessibility.spec.ts` (toggle persistence across reload,
+dashed strokes + pill glyphs on the seeded narrative, widget table
+flip).
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the

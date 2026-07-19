@@ -119,8 +119,9 @@ verified in both themes) — the one extra constraint the teal brand imposes.
     count on canvas — the live star count is runtime behavior) — +
     ThemeToggle control + **"Sign in" text link** (`/signin`) + **"Try
     Cloud"** brand CTA. (No Platform-dropdown/Community links; the pillar
-    mini feature map survives only as the dropdown-open preview under
-    Features.)
+    mini feature map ships as the Features dropdown — the MarketingNav
+    `state=dropdown-open` variant, as built 2026-07-20; the canonical link
+    inventory is unchanged.)
   - **Footer**: brand block (wordmark + tagline) + 4 pinned columns — Product
     (Features · Try Cloud · Self Host · Platform) / Docs (Docs · Quickstart
     · API reference · Self-host guide) / Community (GitHub · Discord ·
@@ -198,11 +199,26 @@ ecosystem change, PR'd to all three design.md files together.
 ## 5. Accessibility & motion
 
 - Status never color-only: pills carry labels/icons; charts offer pattern
-  fills in colorblind mode.
+  fills in colorblind mode — **as built (2026-07-20):** Settings →
+  Appearance "Color vision" toggle, persisted like the theme contract
+  (localStorage `upstat.colorvision`, `data-colorvision` on `<html>`,
+  pre-paint init script; `ColorVisionProvider`); in patterns mode
+  TimeseriesPanel strokes take per-series dash arrays and bar fills
+  per-series hatch pattern defs (legend swatches mirror the mark),
+  TopList bars and LogHistogram level stacks take stripe overlays
+  (shared `patternFillStyle`, per-index angle/pitch), and the dot-only
+  StatusPill — the one color-only chip — swaps its dot for a per-status
+  glyph (labeled pills/SevChips already carry text; the Heatmap's
+  single-hue intensity ramp is not hue-encoded and is unchanged).
 - `prefers-reduced-motion`: no pulses/sweeps; state changes are instant
   crossfades; live tail unaffected (data, not decoration).
 - All charts expose data-table toggle; log lines fully keyboard-navigable
-  (j/k, enter expands).
+  (j/k, enter expands) — **as built (2026-07-20):** shared
+  ChartTableToggle + ChartDataTable affordance ("View as table",
+  `aria-pressed`, the §8.2 Table construction in a scroll-bounded
+  container) on TimeseriesPanel (header control; floating corner control
+  on bare widget plots), Heatmap, LogHistogram and UptimeCard; TopList
+  already renders as a text list (rank · label · value).
 - Contrast ≥4.5:1 both themes including series-on-dark validation.
 
 ## 6. Platform parity map
@@ -407,7 +423,7 @@ project license, the copy reads **MIT**.
 | WidgetTypeCell | state: default / selected · icon + label tile, one per widget type — iteration-1 addition **[built 2026-07-18]** |
 | WidgetTypePicker | layout: row (the in-shell "Choose a visualization" strip) / grid (create-flow modal overlay, pages.md B2) · 11 widget types (the pages.md B2 list) · composes WidgetTypeCell — iteration-1 addition **[built 2026-07-18]** |
 | **Marketing (Stage 5)** | |
-| MarketingNav + PillarDropdown | default / pillar-dropdown open (mini feature map ×8, reuses PillarCard) · 4 text links pinned to the parity canon: Features · Platform (anchors to the landing pillar grid) · Docs · GitHub — the GitHub item renders as a compact star badge (star glyph + neutral "Star" label — no count, no invented figure; the pages.md A13 live star count is runtime behavior) · ThemeToggle · "Sign in" text link (`/signin`) + "Try Cloud" brand CTA **[Revised 2026-07-19]** (the pillar mini feature map remains as the dropdown-open preview under Features) |
+| MarketingNav + PillarDropdown | default / pillar-dropdown open (mini feature map ×8, reuses PillarCard) · 4 text links pinned to the parity canon: Features · Platform (anchors to the landing pillar grid) · Docs · GitHub — the GitHub item renders as a compact star badge (star glyph + neutral "Star" label — no count, no invented figure; the pages.md A13 live star count is runtime behavior) · ThemeToggle · "Sign in" text link (`/signin`) + "Try Cloud" brand CTA **[Revised 2026-07-19]** — **as built (2026-07-20):** the dropdown ships as `FeaturesDropdown` (hover/chevron-click disclosure, Escape/focus-out close, rows deep-link `/#pillar-n`); the Features link keeps `/#features` |
 | MarketingFooter | brand block (wordmark + tagline) + 4 pinned columns Product / Docs / Community / Legal (4·4·4·3 links, parity canon) + legal bar verbatim "© Cuesoft Inc. 2026. Upstat. CueLABS™ Division. MIT License." · language selector (English-only pre-i18n) · security-policy affordance — **[Directive 2026-07-19]** |
 | PillarCard | pillar ×8 (icon + pillar color accent) · default / hover (lift + accent) |
 | CodeSnippet + Tabs | tab: Go / Python / Node / k8s (active/inactive) · copy: idle / copied-check · mono block on `bg-elev` — **as built (2026-07-17):** the tab axis is the variant set; copy idle/copied-check is handled via instance overrides, not a variant dimension |
