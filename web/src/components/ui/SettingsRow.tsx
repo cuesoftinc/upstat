@@ -29,7 +29,12 @@ export function SettingsRow({ label, description, control, disabled = false, cla
           <span className="text-[12px] leading-[1.45] text-text-2">{description}</span>
         )}
       </div>
-      <div className="shrink-0">{control}</div>
+      {/* inert gates the WHOLE slot: a disabled composite must disable its
+          embedded controls too, not just dim them (review class 2026-07-19 —
+          apparule's disabled Chip left its ✕ live). */}
+      <div className="shrink-0" inert={disabled || undefined}>
+        {control}
+      </div>
     </div>
   );
 }

@@ -305,6 +305,12 @@ test("mobile nav is a menu-button disclosure at 390w (SKILL.md mobile clause)", 
     await expect(link).toHaveAttribute("href", href);
   }
 
+  // the panel GitHub item is the SAME star badge as desktop — glyph +
+  // "Star" (+ live count when one arrives; neutral in TEST_MODE)
+  const panelBadge = panel.getByRole("link", { name: "Star cuesoftinc/upstat on GitHub" });
+  await expect(panelBadge).toHaveText(/^Star$/);
+  await expect(panelBadge.locator("svg")).toBeVisible();
+
   // the theme toggle works from inside the panel
   await panel.getByTestId("theme-toggle").click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
