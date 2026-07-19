@@ -104,7 +104,9 @@ export default function DashboardViewPage() {
             : {
                 ...d.origin,
                 w: Math.max(2, Math.min(COLS - d.origin.x, d.origin.w + dCol)),
-                h: Math.max(1, d.origin.h + dRow),
+                // 1..24 — matches the portable-JSON import bound, so any
+                // editable layout stays exportable→importable (PR 168 r4)
+                h: Math.min(24, Math.max(1, d.origin.h + dRow)),
               };
         return { ...d, preview };
       });

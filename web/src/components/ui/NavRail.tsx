@@ -18,7 +18,8 @@ import {
   Settings,
   Target,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { useEffect, useState } from "react";
 import { useMediaQuery } from "@/controllers/use-media-query";
 
 export interface NavRailItemProps {
@@ -282,42 +283,19 @@ export function NavRail({ activeKey, onNavigate, className }: NavRailProps) {
   const [expanded, toggleExpanded] = useRailExpanded();
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const drawerRef = useRef<HTMLElement>(null);
-  const railRef = useRef<HTMLElement>(null);
 
   // the inline rail never expands below md — the drawer takes over
   const inlineExpanded = expanded && !isMobile;
   const open = isMobile && drawerOpen;
 
-  // every dismissal path returns focus to the foot toggle (PR #168
-  // review — only Escape restored it before)
-  const closeDrawer = () => {
-    setDrawerOpen(false);
-    railRef.current?.querySelector<HTMLElement>("[data-testid=rail-toggle]")?.focus();
-  };
-
-  // Escape closes the drawer; focus moves in on open
-  useEffect(() => {
-    if (!open) return;
-    drawerRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeDrawer();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-    // closeDrawer is stable in behavior (setState + ref read)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
   const select = (key: string) => {
-    closeDrawer();
+    setDrawerOpen(false);
     onNavigate?.(key);
   };
 
   return (
     <>
       <nav
-        ref={railRef}
         aria-label="Product navigation"
         data-expanded={inlineExpanded}
         className={clsx(
@@ -338,19 +316,19 @@ export function NavRail({ activeKey, onNavigate, className }: NavRailProps) {
         />
       </nav>
 
-      {open && (
-        <>
-          {/* scrim — tap closes; content keeps full width beneath */}
-          <div
-            role="presentation"
+      {/* Radix Dialog (PR 168 review round 4): modal semantics give the
+          drawer a real focus trap + inert background; Escape and
+          overlay-tap dismissal and focus restoration to the toggle come
+          with the primitive (the headless-behavior allowance, §1). */}
+      <Dialog.Root open={open} onOpenChange={(next) => !next && setDrawerOpen(false)}>
+        <Dialog.Portal>
+          <Dialog.Overlay
             data-testid="rail-scrim"
-            onClick={closeDrawer}
             className="fixed inset-0 z-[var(--z-overlay)] bg-bg/70 md:hidden"
           />
-          <nav
-            ref={drawerRef}
-            tabIndex={-1}
+          <Dialog.Content
             aria-label="Product navigation drawer"
+            aria-describedby={undefined}
             data-testid="rail-drawer"
             className={clsx(
               "fixed inset-y-0 left-0 z-[var(--z-modal)] flex w-60 flex-col gap-1 outline-none",
@@ -358,6 +336,7 @@ export function NavRail({ activeKey, onNavigate, className }: NavRailProps) {
               "animate-[slide-in_var(--duration-entrance)_var(--ease-standard)] motion-reduce:animate-none",
             )}
           >
+            <Dialog.Title className="sr-only">Product navigation</Dialog.Title>
             <RailBody
               expanded
               activeKey={activeKey}
@@ -365,11 +344,11 @@ export function NavRail({ activeKey, onNavigate, className }: NavRailProps) {
               footLabel="Close navigation"
               footTestId="rail-drawer-close"
               footExpanded
-              onToggle={closeDrawer}
+              onToggle={() => setDrawerOpen(false)}
             />
-          </nav>
-        </>
-      )}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </>
   );
 }
