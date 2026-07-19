@@ -18,6 +18,7 @@ import type {
   MetricSummary,
   Monitor,
   Org,
+  Postmortem,
   SavedView,
   ServiceCatalogEntry,
   Slo,
@@ -61,6 +62,8 @@ export interface MockDb {
   alertFeed: AlertEvent[];
   incidents: Incident[];
   timelines: Record<string, TimelineEntry[]>;
+  /** B9 postmortems by incident id (backs `postmortem_key`). */
+  postmortems: Record<string, Postmortem>;
   slos: Slo[];
   catalog: ServiceCatalogEntry[];
   keys: ApiKey[];
@@ -651,6 +654,33 @@ export function buildSeed(now: number): MockDb {
     ],
   };
 
+  // INC-41's attached postmortem (its `postmortem_key` above) — the B9
+  // template shape: sections + the timeline frozen at composition time.
+  const postmortems: Record<string, Postmortem> = {
+    inc_41: {
+      incident_id: "inc_41",
+      title: "INC-41 — Homepage brief outage — CDN config rollout",
+      author: "Kemi",
+      created_at: iso(now - 23 * DAY + 2 * HOUR),
+      updated_at: iso(now - 23 * DAY + 2 * HOUR),
+      impact:
+        "Homepage served 522s through the CDN for 22 minutes. The public status page showed a partial outage on web; no data loss and no other service was affected. Uptime checks recorded the full window as down-minutes.",
+      root_cause:
+        "A CDN configuration rollout switched the origin-shield route to a decommissioned origin pool. The rollout's health check validated against the old pool, so the canary passed while live traffic 522'd.",
+      action_items: [
+        "Gate CDN config rollouts on origin-pool liveness, not the legacy health check",
+        "Alert on edge 5xx rate independently of origin checks",
+        "Write down the CDN rollback runbook used ad hoc during the incident",
+      ],
+      timeline: (timelines.inc_41 ?? []).map((entry) => ({
+        ts: entry.ts,
+        phase: entry.phase,
+        author: entry.author,
+        body: entry.body,
+      })),
+    },
+  };
+
   const slos: Slo[] = [
     {
       id: "slo_api",
@@ -1032,6 +1062,7 @@ export function buildSeed(now: number): MockDb {
     alertFeed,
     incidents,
     timelines,
+    postmortems,
     slos,
     catalog,
     keys,
@@ -1124,6 +1155,7 @@ export function buildEmptySeed(
     alertFeed: [],
     incidents: [],
     timelines: {},
+    postmortems: {},
     slos: [],
     catalog: [],
     keys: [

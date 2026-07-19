@@ -8,6 +8,7 @@ import { SevChip, type Sev } from "@/components/ui/SevChip";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Toast } from "@/components/ui/Toast";
 import { useIncidentController } from "@/controllers/incidents";
+import { PostmortemSection } from "./postmortem-section";
 
 /**
  * B9 incident timeline (Figma 131:2901) — MI-10 composer with slash
@@ -16,8 +17,17 @@ import { useIncidentController } from "@/controllers/incidents";
  */
 export default function IncidentDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { incident, entries, postUpdate, posting, postError } =
-    useIncidentController(id);
+  const {
+    incident,
+    entries,
+    postUpdate,
+    posting,
+    postError,
+    postmortem,
+    savePostmortem,
+    savingPostmortem,
+    postmortemError,
+  } = useIncidentController(id);
 
   if (incident.loading || !incident.data) {
     return (
@@ -80,6 +90,19 @@ export default function IncidentDetailPage() {
           />
         )}
       </section>
+
+      {/* B9: postmortem template on resolve — renders only once resolved
+          (or when a composed doc already exists) */}
+      {!postmortem.loading && (
+        <PostmortemSection
+          incident={inc}
+          postmortem={postmortem.data}
+          entries={entries}
+          onSave={savePostmortem}
+          saving={savingPostmortem}
+          error={postmortemError}
+        />
+      )}
     </div>
   );
 }

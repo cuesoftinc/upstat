@@ -39,3 +39,35 @@ export interface TimelineEntry {
   phase: IncidentPhase;
   body: string;
 }
+
+/** One frozen timeline event inside a postmortem (id-less snapshot). */
+export interface PostmortemTimelineEvent {
+  ts: string;
+  phase: IncidentPhase;
+  author: string;
+  body: string;
+}
+
+/**
+ * B9 postmortem — the on-resolve template: impact / root-cause / action
+ * sections composed by the responder, plus the incident timeline frozen
+ * at composition time (auto-filled server-side from the timeline entries).
+ * Saving one sets the incident's `postmortem_key`.
+ */
+export interface Postmortem {
+  incident_id: string;
+  title: string;
+  author: string;
+  created_at: string;
+  updated_at: string;
+  impact: string;
+  root_cause: string;
+  action_items: string[];
+  timeline: PostmortemTimelineEvent[];
+}
+
+/** Client-composed postmortem fields (the mock freezes the timeline). */
+export type PostmortemInput = Pick<
+  Postmortem,
+  "author" | "impact" | "root_cause" | "action_items"
+>;
