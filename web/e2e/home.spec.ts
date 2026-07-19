@@ -231,6 +231,15 @@ test("Self Host CTA scrolls to the self-host section (A14)", async ({ page }) =>
   await page.goto("/");
   await page.getByRole("button", { name: "Self Host" }).first().click();
   await expect(page.locator("#self-host")).toBeInViewport();
+  // the section's guide link points at the REAL GitBook deployment guide —
+  // docs.upstat.cuesoft.io was NXDOMAIN (user-reported dead link 2026-07-19)
+  await expect(
+    page.locator("#self-host").getByRole("link", { name: /Self-host guide/ }),
+  ).toHaveAttribute("href", "https://cuesoft.gitbook.io/upstat/system/deployment");
+  // A6: the status link is the in-app public status page, not an invented host
+  await expect(
+    page.locator("#status").getByRole("link", { name: /our own public status page/ }),
+  ).toHaveAttribute("href", "/status/upstat");
 });
 
 test("home is responsive at 375w (mobile)", async ({ page }) => {
@@ -291,6 +300,11 @@ test("mobile nav is a menu-button disclosure at 390w (SKILL.md mobile clause)", 
     await expect(panel).toBeVisible({ timeout: 1_000 });
   }).toPass({ timeout: 15_000 });
   await expect(menuButton).toHaveAttribute("aria-expanded", "true");
+
+  // the panel never overflows the viewport (floating-layer collision sweep)
+  const panelBox = (await panel.boundingBox())!;
+  expect(panelBox.x).toBeGreaterThanOrEqual(0);
+  expect(panelBox.x + panelBox.width).toBeLessThanOrEqual(390);
 
   // every canonical link is reachable from the panel — no dead ends <md
   for (const [label, href] of [

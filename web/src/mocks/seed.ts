@@ -299,7 +299,7 @@ export function buildSeed(now: number): MockDb {
     {
       id: "mon_docs",
       name: "Docs",
-      target: "https://docs.upstat.cuesoft.io",
+      target: "https://cuesoft.gitbook.io/upstat",
       type: "website",
       active: true,
       status: "pending",
@@ -581,7 +581,7 @@ export function buildSeed(now: number): MockDb {
     links: {
       repo: `https://github.com/cuesoftinc/upstat`,
       ...(name === "checkout" || name === "ingest-gw"
-        ? { runbook: `https://docs.upstat.cuesoft.io/runbooks/${name}` }
+        ? { runbook: "https://cuesoft.gitbook.io/upstat" }
         : {}),
     },
     environments: name === "status-page" ? ["prod"] : ["prod", "staging"],

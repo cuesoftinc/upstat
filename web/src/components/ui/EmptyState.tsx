@@ -32,7 +32,7 @@ export interface EmptyStateProps {
  */
 export function EmptyState({
   pillar,
-  docsHref = "https://docs.upstat.cuesoft.io",
+  docsHref = "https://cuesoft.gitbook.io/upstat",
   waiting = true,
   compact = false,
   className,

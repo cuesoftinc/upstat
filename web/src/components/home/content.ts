@@ -121,7 +121,10 @@ export const ARCHITECTURE_FLOW = [
 export const GITHUB_URL = "https://github.com/cuesoftinc/upstat";
 // canonical invite (SKILL.md parity canon 2026-07-19, verified live)
 export const DISCORD_URL = "https://discord.gg/CDfZxxrxbb";
-export const DOCS_URL = "https://docs.upstat.cuesoft.io";
+// real GitBook destinations (docs.upstat.cuesoft.io was NXDOMAIN —
+// user-reported dead link 2026-07-19; canon hrefs, verified 200)
+export const DOCS_URL = "https://cuesoft.gitbook.io/upstat";
+export const SELF_HOST_DOCS_URL = "https://cuesoft.gitbook.io/upstat/system/deployment";
 
 // A10 footer columns/copyright: superseded by the canonical parity footer
 // (SKILL.md 2026-07-19) — MarketingFooter now owns the column set + legal bar.

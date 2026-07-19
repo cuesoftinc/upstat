@@ -130,7 +130,7 @@ export default function LogsPage() {
                 ))}
               </div>
             ) : empty ? (
-              <EmptyState pillar="logs" waiting={ctrl.live} docsHref="https://docs.upstat.cuesoft.io" />
+              <EmptyState pillar="logs" waiting={ctrl.live} />
             ) : (
               <ul aria-label="Log lines">
                 {ascending.map((event) => (

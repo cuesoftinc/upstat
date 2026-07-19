@@ -92,6 +92,7 @@ export function IncidentComposer({ onSubmit, posting = false, className }: Incid
             side="top"
             align="start"
             sideOffset={4}
+            collisionPadding={8}
             onOpenAutoFocus={(e) => e.preventDefault()}
             asChild
           >

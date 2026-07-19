@@ -102,7 +102,7 @@ export default function OnboardingPage() {
             ]}
           />
 
-          <EmptyState pillar="metrics" waiting docsHref="https://docs.upstat.cuesoft.io" />
+          <EmptyState pillar="metrics" waiting />
         </section>
       ) : (
         <section aria-labelledby="create-org-heading" className="flex flex-col gap-4">

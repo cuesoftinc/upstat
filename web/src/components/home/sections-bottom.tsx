@@ -15,7 +15,7 @@ import {
   ARCHITECTURE_FLOW,
   COMPOSE_OUTPUT,
   DISCORD_URL,
-  DOCS_URL,
+  SELF_HOST_DOCS_URL,
   FAQ_ITEMS,
   GITHUB_URL,
   GOOD_FIRST_ISSUES,
@@ -52,11 +52,11 @@ export function SelfHostSection({ onSelfHostDocs }: SelfHostSectionProps) {
             ))}
           </ul>
           <a
-            href={`${DOCS_URL}/self-host`}
+            href={SELF_HOST_DOCS_URL}
             onClick={onSelfHostDocs}
             className="text-[13px] font-medium text-brand transition-colors duration-[var(--duration-fast)] hover:text-brand-deep"
           >
-            Self-host docs: docs.upstat.cuesoft.io/self-host →
+            Self-host guide: cuesoft.gitbook.io/upstat/system/deployment →
           </a>
         </div>
 

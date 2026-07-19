@@ -130,6 +130,7 @@ export function Select({
             side="bottom"
             align="start"
             sideOffset={4}
+            collisionPadding={8}
             onOpenAutoFocus={(e) => {
               // non-typeahead keeps focus on the trigger (W1 keyboard model);
               // typeahead focuses the filter field, as before

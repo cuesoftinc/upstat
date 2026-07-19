@@ -45,7 +45,7 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
     // A6 status embed
     expect(screen.getByText("We run on it. Publicly.")).toBeInTheDocument();
     expect(
-      screen.getByText(/status\.upstat\.cuesoft\.io\/upstat — our own public status page/),
+      screen.getByText(/\/status\/upstat — our own public status page/),
     ).toBeInTheDocument();
     // A14 self-host + A9 table
     expect(screen.getByText("Self-host — own your telemetry.")).toBeInTheDocument();

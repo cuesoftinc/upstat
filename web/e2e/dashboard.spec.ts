@@ -62,6 +62,40 @@ test("semantic landmarks: one main, nav rail, banner, single h1", async ({ page 
   await expect(page.getByRole("list", { name: "Dashboards" }).first()).toBeVisible();
 });
 
+test("right-anchored TopBar layers stay inside the viewport (review class 2026-07-19)", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signIn(page);
+
+  const withinViewport = async (dialog: ReturnType<typeof page.locator>, width: number) => {
+    const box = (await dialog.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(width);
+  };
+
+  // 1440 = canonical dashboard width; 1024 = narrowest QA'd chrome width
+  // (navrail collapse threshold) — the squeeze case for anchored-right layers
+  for (const width of [1440, 1024]) {
+    await page.setViewportSize({ width, height: 900 });
+
+    // global TimePicker: the anchored-right custom-range popover
+    await page.getByRole("banner").getByRole("button", { name: "Custom range" }).click();
+    const customRange = page.getByRole("dialog", { name: "Absolute range" });
+    await expect(customRange).toBeVisible();
+    await withinViewport(customRange, width);
+    await page.keyboard.press("Escape");
+    await expect(customRange).toBeHidden();
+
+    // notifications bell popover (anchored right-2)
+    await page.getByRole("banner").getByRole("button", { name: /Notifications/ }).click();
+    const notifications = page.getByRole("dialog", { name: "Notifications" });
+    await expect(notifications).toBeVisible();
+    await withinViewport(notifications, width);
+    await page.getByRole("banner").getByRole("button", { name: /Notifications/ }).click();
+    await expect(notifications).toBeHidden();
+  }
+});
+
 test("full journey: onboarding → B1 → dashboards → explorer → logs → trace → monitor → incident → status page", async ({ page }) => {
   test.setTimeout(300_000); // dev-mode route compiles dominate; generous budget
   // dev-persistent mock store: names must be unique per run (reused server)

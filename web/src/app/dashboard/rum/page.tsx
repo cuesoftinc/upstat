@@ -90,7 +90,7 @@ export default function RumPage() {
       </header>
 
       {noData ? (
-        <EmptyState pillar="rum" docsHref="https://docs.upstat.cuesoft.io" />
+        <EmptyState pillar="rum" />
       ) : (
         <>
           {/* stat tiles */}
