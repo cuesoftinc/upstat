@@ -19,6 +19,11 @@ export interface TimePickerProps {
 /**
  * TimePicker — §3/§8.2: presets ×5 + custom + live toggle. Global and
  * URL-synced at screen level (MI-1); this component owns the control UI.
+ *
+ * Mobile (<md, 390 support): the ~285px preset row overflowed the TopBar —
+ * presets and the live toggle collapse away, leaving the calendar icon
+ * button, and the absolute-range dialog becomes a fixed full-width sheet
+ * under the bar so it can never leave the viewport.
  */
 export function TimePicker({ value, onChange, live = false, onLiveChange, className }: TimePickerProps) {
   const [customOpen, setCustomOpen] = useState(false);
@@ -40,7 +45,7 @@ export function TimePicker({ value, onChange, live = false, onLiveChange, classN
             onChange(preset);
           }}
           className={clsx(
-            "px-2 text-[12px] font-medium tabular-nums transition-colors duration-[var(--duration-fast)] ease-standard",
+            "hidden px-2 text-[12px] font-medium tabular-nums transition-colors duration-[var(--duration-fast)] ease-standard md:block",
             value === preset
               ? "bg-bg-elev text-brand"
               : "text-text-2 hover:text-text",
@@ -63,21 +68,22 @@ export function TimePicker({ value, onChange, live = false, onLiveChange, classN
             if (e.key === "Escape") setCustomOpen(false);
           }}
           className={clsx(
-            "flex items-center gap-1 border-l border-border px-2 text-[12px] font-medium",
+            "flex items-center gap-1 px-2 text-[12px] font-medium md:border-l md:border-border",
             "transition-colors duration-[var(--duration-fast)] ease-standard",
             value === "custom" ? "bg-bg-elev text-brand" : "text-text-2 hover:text-text",
           )}
         >
           <Calendar aria-hidden="true" className="size-3.5" />
-          custom
+          <span className="hidden md:inline">custom</span>
         </button>
         {customOpen && (
           <div
             role="dialog"
             aria-label="Absolute range"
-            // max-w clamp: right-anchored in the TopBar — the panel must
-            // never overflow the screen (review class 2026-07-19, expendit)
-            className="absolute right-0 top-full z-[var(--z-dropdown)] mt-1 flex w-64 max-w-[calc(100vw-16px)] flex-col gap-2 rounded-(--radius) border border-border bg-bg-elev p-3 shadow-lg"
+            // never leaves the viewport (review class 2026-07-19, expendit):
+            // <md a fixed full-width sheet under the bar; md+ right-anchored
+            // to the control with the max-w clamp
+            className="fixed inset-x-2 top-14 z-[var(--z-dropdown)] flex flex-col gap-2 rounded-(--radius) border border-border bg-bg-elev p-3 shadow-lg md:absolute md:inset-x-auto md:right-0 md:top-full md:mt-1 md:w-64 md:max-w-[calc(100vw-16px)]"
           >
             <label className="flex flex-col gap-1 text-[12px] text-text-2">
               From
@@ -102,7 +108,7 @@ export function TimePicker({ value, onChange, live = false, onLiveChange, classN
           aria-pressed={live}
           onClick={() => onLiveChange(!live)}
           className={clsx(
-            "flex items-center gap-1.5 border-l border-border px-2 text-[12px] font-medium",
+            "hidden items-center gap-1.5 border-l border-border px-2 text-[12px] font-medium md:flex",
             "transition-colors duration-[var(--duration-fast)] ease-standard",
             live ? "text-brand" : "text-text-2 hover:text-text",
           )}
