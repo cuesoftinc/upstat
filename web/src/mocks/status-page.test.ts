@@ -20,6 +20,16 @@ describe("buildStatusPage (B7 public read)", () => {
     expect(homepage?.uptime_pct).toBeGreaterThan(99);
   });
 
+  it("publishes the pillar's latency figure, not its own (accuracy QA 2026-07-19)", () => {
+    const db = buildSeed(NOW);
+    const page = buildStatusPage(db, "upstat", NOW);
+    for (const component of page.components) {
+      const monitor = db.monitors.find((m) => m.name === component.name);
+      // same source as /dashboard/uptime cards — the page hardcoded 96ms
+      expect(component.p95_ms).toBe(monitor?.last_response_time_ms ?? null);
+    }
+  });
+
   it("reflects a freshly declared sev1 immediately (B9 linkage)", () => {
     const db = buildSeed(NOW);
     db.incidents.unshift({

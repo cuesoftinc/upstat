@@ -155,6 +155,31 @@ test("full journey: onboarding → B1 → dashboards → explorer → logs → t
       timeout: 10_000,
     })
     .toBeGreaterThan(tailCount);
+  // MI-4: scrolling up pauses the tail (PAUSED pill + buffered count). The
+  // list is a real overflow container (h-dvh app frame — QA 2026-07-19);
+  // a body-scrolled page could never trigger the pause.
+  // The tail starts from a small live window and grows a few lines per
+  // poll — wait until it actually overflows its container.
+  await expect
+    .poll(
+      () =>
+        page
+          .getByTestId("log-list")
+          .evaluate((el) => el.scrollHeight - el.clientHeight),
+      { timeout: 60_000 },
+    )
+    .toBeGreaterThan(200);
+  await page.getByTestId("log-list").evaluate((el) => {
+    el.scrollTop = 0; // unambiguously away from the bottom
+    el.dispatchEvent(new Event("scroll"));
+  });
+  await expect(page.getByTestId("paused-pill")).toBeVisible({ timeout: 5_000 });
+  // buffered chip appears as batches queue (dev polls every ~2s; allow a
+  // few slow cycles), click-to-resume catches up
+  const buffered = page.getByRole("button", { name: /\d+ new/ });
+  await expect(buffered).toBeVisible({ timeout: 30_000 });
+  await buffered.click();
+  await expect(page.getByTestId("paused-pill")).toBeHidden({ timeout: 5_000 });
   await liveToggle.click(); // off again
 
   /* ---- B5 traces: explorer → waterfall → span drawer → map (MI-7) ---- */

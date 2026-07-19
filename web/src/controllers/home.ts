@@ -195,10 +195,24 @@ export function buildHomeDemoData(now: number): HomeDemoData {
   };
 }
 
+/**
+ * Pinned demo epoch for the FIRST render. The home page is statically
+ * prerendered at build time — seeding the demo with `Date.now()` bakes
+ * build-time chart axis labels into the HTML, and hydration (a different
+ * 5m bucket) then throws React #418 (text mismatch). First render is
+ * deterministic on both sides; a post-mount effect rebuilds with real now.
+ */
+const DEMO_EPOCH_MS = Date.parse("2026-07-18T09:00:00Z");
+
 export function useHomeDemoData(): HomeDemoData {
-  // lazy initializer: Date.now() runs once per mount (5m-snapped inside
-  // the builder, so SSR + hydration land in the same bucket)
-  const [data] = useState(() => buildHomeDemoData(Date.now()));
+  const [data, setData] = useState(() => buildHomeDemoData(DEMO_EPOCH_MS));
+  // real clock after hydration — "Last updated 2m ago" stays honest.
+  // Deferred a tick (use-request pattern): setState stays out of the
+  // synchronous effect body.
+  useEffect(() => {
+    const t = window.setTimeout(() => setData(buildHomeDemoData(Date.now())), 0);
+    return () => window.clearTimeout(t);
+  }, []);
   return data;
 }
 

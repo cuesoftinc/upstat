@@ -1,6 +1,6 @@
 # Upstat — Web Implementation Standard
 
-> How `web/` gets rebuilt: the **CueLABS Web Implementation Standard**
+> How `web/` gets rebuilt: the **CueLABS™ Web Implementation Standard**
 > (ratified 2026-07-18, org-wide **[Directive]**) carried in full, plus the
 > Upstat-specific addendum — stage plan, token mapping, route map, TEST_MODE
 > contract, mock server, test strategy, legacy quarantine plan. Markers as in
@@ -140,6 +140,58 @@ TEST_MODE. `Select` moved to the ARIA 1.2 combobox pattern and
 serialized against the shared mock store, reset to a clean seed via
 `/v1/reset` at the start of the run for hermetic e2e.
 
+**System-QA as-built (2026-07-19).** Full-system pass over the TEST_MODE
+prod build (all journeys + MI spot-checks at 1440/390). Fixes landed:
+the app frame is now viewport-bounded (`h-dvh`, was `min-h-screen`) so
+`<main>` is the real scroll container — this is what makes MI-4's
+scroll-up pause + buffered-count reachable (the logs list previously grew
+the body and never overflowed); the home page's demo data seeds from a
+pinned epoch on first render and rebuilds with the real clock post-mount
+(static prerender + hydration text-mismatch, React #418); mock
+`parseQuery` rejects malformed pipes so MI-13's syntax-error state is
+reachable; QueryBar autocomplete filters to the typed token before Tab
+completion (MI-13); the `?` cheatsheet closes on ESC (MI-17); the status
+page publishes the check's own latency figure (`p95_ms` on the status
+component read model — it hardcoded 96 ms and disagreed with
+`/dashboard/uptime`); RUM buckets at 5m for short ranges (the 1h default
+rendered as a single bar + one-column vitals heatmap); the seeded
+dashboard wires `$service`/`$env` into widget queries and carries a
+second timeseries widget so the template-var bar governs something real
+and MI-2 cross-widget crosshair sync is observable; TimeseriesPanel
+legends label grouped series by their distinguishing tag suffix (full
+name on the title tooltip).
+
+**Expandable NavRail as-built (2026-07-19, [Directive] design.md §2).**
+Collapsed 56px icon rail (hover flyouts) ⇄ expanded 240px icon+label rows
+under the Telemetry/Respond/Platform section groups (B-order preserved;
+Home ungrouped at top). Foot chevron toggles (`aria-expanded`, focusable);
+the choice persists as `nav.rail.expanded` in localStorage; default is
+expanded ≥1280px, collapsed below, resolved after mount so SSR stays
+deterministic (server renders collapsed). NavRailItem gains an `expanded`
+prop (default false — existing call sites untouched); active items carry
+the brand accent bar + brand icon in both states. Content reflows via
+flex (`<main>` is `flex-1`); every pillar screen verified at both rail
+widths, `e2e/navrail.spec.ts` covers toggle + persistence + viewport
+defaults.
+
+**Nav/footer parity + theme toggle as-built (2026-07-19, SKILL.md
+"Marketing nav, footer & theme parity canon").** MarketingNav converged to
+the canonical shape — Features(/#pillars) · Dashboards(/dashboard) ·
+Docs(GitBook root) · GitHub(repo) + ThemeToggle + Sign in CTA; the pillar
+dropdown and standalone star badge retired (the runtime star count now
+rides the GitHub link, still never static). MarketingFooter owns the
+canonical column set (Product / Docs / Community / Legal, ratified URLs)
+plus the legal bar: verbatim "© Cuesoft Inc. 2026. Upstat. CueLABS™
+Division. MIT License." with linked marks, an English-only language
+selector (real control, no i18n yet — ratified) and the SECURITY.md
+affordance. Theme: apparule's ThemeProvider contract ported to
+`web/src/design/ThemeProvider.tsx` — `data-theme` on `<html>`,
+localStorage key `upstat.theme`, default = the design default (dark,
+attribute-less) when unset, pre-paint init script in the root layout;
+ThemeToggle lives in the marketing nav, the dashboard TopBar utility area
+and Settings ("Appearance"). Playwright asserts the canonical hrefs and
+the toggle flip/persist on home and dashboard.
+
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the
@@ -179,7 +231,7 @@ values, latencies, counts — per the §2 `tnum` rule.
 
 The new IA mounts at **`/dashboard`** **[Directive 2026-07-18, route
 standard]** — `/` home · `/signin` the only auth route · all app surfaces
-under `/dashboard/<area>`, canonical across the CueLABS products. The
+under `/dashboard/<area>`, canonical across the CueLABS™ products. The
 legacy dashboard tree quarantined to `src/legacy/app/dashboard` at W1 to
 free the path (§8). Rail order per pages.md Part B.
 

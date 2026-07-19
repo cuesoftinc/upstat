@@ -110,7 +110,9 @@ export function CloudSelfHostSection({
 }: CloudSelfHostSectionProps) {
   return (
     <Section title="Cloud when you want it. Yours when you need it.">
-      <div className="grid items-start gap-12 lg:grid-cols-[1fr_480px]">
+      {/* gap-6 below lg: the stacked table → CTA → snippet must read as one
+          group at 390 (live-QA finding 2026-07-19); desktop keeps the rails */}
+      <div className="grid items-start gap-6 lg:grid-cols-[1fr_480px] lg:gap-12">
         <CloudVsSelfHostTable
           rows={PLAN_ROWS}
           featureHeader=""
@@ -120,10 +122,23 @@ export function CloudSelfHostSection({
           onSelfHost={onSelfHost}
           className="w-full"
         />
+        {/* <sm: the table's column-aligned CTA footer is hidden — the pair
+            renders here instead, directly above the compose snippet the
+            self-host CTA refers to */}
+        <div className="flex items-center gap-3 sm:hidden" aria-label="Cloud or self-host">
+          <Button kind="brand" className="flex-1 whitespace-nowrap" onClick={onTryCloud}>
+            Try Cloud
+          </Button>
+          <Button kind="quiet" className="flex-1 whitespace-nowrap" onClick={onSelfHost}>
+            Deploy with compose
+          </Button>
+        </div>
         <div className="min-w-0 flex flex-col gap-5 lg:pt-2">
-          <code className="font-data text-[13px]">
-            <span className="text-brand">docker compose up -d</span>{" "}
-            <span className="text-text-2"># the whole platform, one file</span>
+          {/* flex-wrap of two nowrap runs: at 390 the comment wraps as a
+              whole line instead of mid-comment (CodeSnippet convention) */}
+          <code className="font-data flex flex-wrap gap-x-2 text-[13px]">
+            <span className="whitespace-nowrap text-brand">docker compose up -d</span>
+            <span className="whitespace-nowrap text-text-2"># the whole platform, one file</span>
           </code>
           <a
             href={GITHUB_URL}
@@ -140,7 +155,7 @@ export function CloudSelfHostSection({
             {/* Discord blurple — brand-glyph color exception (design.md §8.1),
                 like the Google 'G' */}
             <DiscordIcon className="size-6 shrink-0 text-[#5865F2]" />
-            Discord — CueLABS community
+            Discord — CueLABS™ community
           </a>
         </div>
       </div>
@@ -199,7 +214,7 @@ export function DevelopersSection({ onGithub }: DevelopersSectionProps) {
             >
               {/* Discord blurple — brand-glyph color exception (design.md §8.1) */}
               <DiscordIcon className="size-4 shrink-0 text-[#5865F2]" />
-              Discord — #upstat-dev on the CueLABS server
+              Discord — #upstat-lab on the CueLABS™ server
             </a>
           </div>
         </div>
@@ -233,7 +248,7 @@ export function CommunitySection() {
           <DiscordIcon className="mt-1 size-7 shrink-0 text-[#5865F2]" />
           <span className="flex min-w-0 flex-1 flex-col gap-1">
             <span className="text-[14px] font-semibold text-text">
-              CueLABS Discord — #upstat
+              CueLABS™ Discord — #upstat-lab
             </span>
             <span className="text-[13px] text-text-2">
               Get help, share dashboards, talk to the maintainers.
@@ -252,7 +267,7 @@ export function CommunitySection() {
             href="https://cuesoft.io"
             className="flex items-center gap-1.5 text-[13px] font-medium text-brand transition-colors duration-[var(--duration-fast)] hover:text-brand-deep"
           >
-            CueLABS — more open source from Cuesoft
+            CueLABS™ — more open source from Cuesoft
             <ExternalLink aria-hidden="true" className="size-3.5" />
           </a>
         </div>

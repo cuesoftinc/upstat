@@ -11,7 +11,7 @@ import { WidgetShell, type WidgetShellMode } from "@/components/ui/WidgetShell";
 import { WidgetTypePicker } from "@/components/ui/WidgetTypePicker";
 import type { Widget, WidgetLayout, WidgetType } from "@/models";
 import { useDashboardController } from "@/controllers/dashboards";
-import { defaultWidget } from "@/controllers/widgets";
+import { defaultWidget, substituteVars } from "@/controllers/widgets";
 import { useTimeRange } from "@/controllers/time-range";
 import { WidgetBody } from "./widget-body";
 
@@ -218,7 +218,9 @@ export default function DashboardViewPage() {
                 }}
               >
                 <WidgetShell
-                  title={widget.title}
+                  // titles resolve template vars like queries do ("Error
+                  // rate — $service" reads as the picked service)
+                  title={substituteVars(widget.title, effectiveVars)}
                   query={widget.query_string}
                   mode={mode}
                   onModeChange={(m) => setFullscreenId(m === "fullscreen" ? widget.id : null)}

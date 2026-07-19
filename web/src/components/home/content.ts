@@ -6,7 +6,6 @@
 
 import type { CodeSnippetTab } from "@/components/ui/CodeSnippet";
 import type { PlanFeatureRow } from "@/components/ui/CloudVsSelfHostTable";
-import type { FooterColumn } from "@/components/ui/MarketingFooter";
 
 /** A5 — OTel section snippet (Figma 135:281; endpoint copy from the frame). */
 export const OTEL_SNIPPETS: CodeSnippetTab[] = [
@@ -120,37 +119,9 @@ export const ARCHITECTURE_FLOW = [
 ];
 
 export const GITHUB_URL = "https://github.com/cuesoftinc/upstat";
-export const DISCORD_URL = "https://discord.gg/cuelabs";
+// canonical invite (SKILL.md parity canon 2026-07-19, verified live)
+export const DISCORD_URL = "https://discord.gg/CDfZxxrxbb";
 export const DOCS_URL = "https://docs.upstat.cuesoft.io";
 
-/** A10 — landing footer columns (Figma 135:770). */
-export const FOOTER_COLUMNS: FooterColumn[] = [
-  {
-    heading: "Product",
-    links: [
-      { label: "Uptime", href: "/#pillars" },
-      { label: "Logs", href: "/#pillars" },
-      { label: "Traces", href: "/#pillars" },
-      { label: "RUM", href: "/#pillars" },
-      { label: "Dashboards", href: "/#pillars" },
-    ],
-  },
-  {
-    heading: "Open source",
-    links: [
-      { label: "GitHub", href: GITHUB_URL },
-      { label: "Self-host guide", href: `${DOCS_URL}/self-host` },
-      { label: "Roadmap", href: `${GITHUB_URL}#roadmap` },
-    ],
-  },
-  {
-    heading: "Company",
-    links: [
-      { label: "CueLABS", href: "https://cuesoft.io" },
-      { label: "Privacy", href: "/privacy" },
-      { label: "Status", href: "https://status.upstat.cuesoft.io/upstat" },
-    ],
-  },
-];
-
-export const FOOTER_COPYRIGHT = "© 2026 Cuesoft · upstat is CueLABS open source";
+// A10 footer columns/copyright: superseded by the canonical parity footer
+// (SKILL.md 2026-07-19) — MarketingFooter now owns the column set + legal bar.

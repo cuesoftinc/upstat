@@ -74,6 +74,17 @@ function baseRate(service: string): number {
 }
 
 /**
+ * Traffic dampening per environment — non-prod envs run a deterministic
+ * fraction of prod load, so the `$env` template var observably changes
+ * series (`env` was parsed but never consumed; PR #156 review). INC-42 is
+ * a prod incident, so non-prod also skips the outage shapes.
+ */
+function envScale(env: string | undefined): number {
+  if (!env || env === "prod") return 1;
+  return 0.15 + unitFor(`env:${env}`) * 0.3; // staging-class envs ≈ 15–45%
+}
+
+/**
  * Value generator for a (metric, fn, service) triple at a time bucket.
  * Shapes: duration metrics honor p50/p95/p99 ordering; count/rate metrics
  * follow the daily cycle; the INC-42 window spikes latency ~8x (checkout
@@ -86,9 +97,12 @@ export function metricValue(
   service: string,
   tMs: number,
   outage: OutageWindow,
+  env?: string,
 ): number {
   const cycle = dailyCycle(tMs);
-  const outageHit = inOutage(tMs, outage, service);
+  const scale = envScale(env);
+  // scale === 1 ⇔ prod (or no env filter) — only prod sees INC-42
+  const outageHit = scale === 1 && inOutage(tMs, outage, service);
   // ramp the spike in/out over 5 minutes so charts look organic
   const ramp = outageHit
     ? Math.min(1, (tMs - outage.start) / (5 * MINUTE), (outage.end - tMs) / (5 * MINUTE))
@@ -100,30 +114,35 @@ export function metricValue(
       fn === "p99" ? spread * 2.6 : fn === "p95" ? spread : fn === "p50" || fn === "avg" ? 1 : 1;
     let v = p50 * quantile * (0.9 + 0.2 * cycle) + noise(`${metric}:${fn}:${service}`, tMs, p50 * 0.08);
     if (ramp > 0) v *= 1 + 7 * ramp; // ~8x at peak (over the 1.5s crit line)
+    v *= 0.85 + 0.15 * scale; // lighter non-prod load runs a touch faster
     return Math.max(1, Math.round(v * 100) / 100);
   }
 
   if (metric.includes("error")) {
     let v = baseRate(service) * 0.004 * cycle + Math.abs(noise(`${metric}:${service}`, tMs, 0.2));
     if (ramp > 0) v = baseRate(service) * 0.1 * ramp; // ~25x error spike
+    v *= scale;
     return Math.round(v * 1000) / 1000;
   }
 
   if (metric.includes("cpu")) {
     let v = 22 + 30 * (cycle - 0.55) + noise(`cpu:${service}`, tMs, 4);
     if (ramp > 0) v += 35 * ramp;
+    v *= scale;
     return Math.min(99, Math.max(2, Math.round(v * 10) / 10));
   }
 
   if (metric.includes("queue")) {
     let v = 40 * cycle + Math.abs(noise(`queue:${service}`, tMs, 15));
     if (ramp > 0) v += 900 * ramp; // the ingest retry-storm backlog
+    v *= scale;
     return Math.round(v);
   }
 
   // request/throughput style metrics
   let v = baseRate(service) * cycle + noise(`${metric}:${service}`, tMs, baseRate(service) * 0.06);
   if (ramp > 0 && fn !== "count") v *= 1 - 0.35 * ramp; // throughput dips during the incident
+  v *= scale;
   return Math.max(0, Math.round(v * 100) / 100);
 }
 
@@ -145,7 +164,20 @@ const FNS: QueryFn[] = ["count", "rate", "sum", "avg", "min", "max", "p50", "p95
  * per §3 "errors, not empty results".
  */
 export function parseQuery(q: string): ParsedQuery | { error: string } {
-  const [filterPart, aggPart] = q.split("|").map((s) => s.trim());
+  // One pipe max (grammar §1): EVERY additional pipe is a syntax error.
+  // Splitting on every pipe silently dropped everything after the second
+  // one — `a ||| garbage((` parsed clean, and `a | rate() | nonsense`
+  // sailed through on the first segment alone, so MI-13's syntax-error
+  // state could never surface (QA 2026-07-19; PR #156 review).
+  const pipeIdx = q.indexOf("|");
+  if (pipeIdx !== -1 && q.indexOf("|", pipeIdx + 1) !== -1) {
+    return { error: "only one | segment allowed" };
+  }
+  const filterPart = (pipeIdx === -1 ? q : q.slice(0, pipeIdx)).trim();
+  const aggPart = pipeIdx === -1 ? "" : q.slice(pipeIdx + 1).trim();
+  if (pipeIdx !== -1 && aggPart === "") {
+    return { error: "aggregation expected after |" };
+  }
   const parsed: ParsedQuery = {
     metric: "http.requests_total",
     filters: {},
@@ -213,6 +245,7 @@ export function buildTimeseries(
 ): TimeseriesResult {
   const stepMs = stepOverrideMs ?? snapStepMs(toMs - fromMs);
   const agg = parsed.agg.length > 0 ? parsed.agg : [{ fn: "avg" as QueryFn }];
+  const env = parsed.filters.env;
   const groupServices =
     parsed.groupBy.includes("service") || !parsed.filters.service
       ? parsed.groupBy.includes("service")
@@ -228,14 +261,14 @@ export function buildTimeseries(
       for (let t = fromMs; t <= toMs; t += stepMs) {
         points.push({
           ts: iso(t),
-          value: metricValue(parsed.metric, fn, service, t, outage),
+          value: metricValue(parsed.metric, fn, service, t, outage, env),
         });
       }
       const name =
         groupServices.length > 1
           ? `${fn}(${parsed.metric}) service:${service}`
           : `${fn}(${parsed.metric})`;
-      series.push({ name, tags: { service }, points });
+      series.push({ name, tags: env ? { service, env } : { service }, points });
     }
   }
 

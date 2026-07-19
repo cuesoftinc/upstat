@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AppearanceSection,
   IntegrationsSection,
   KeysSection,
   MembersSection,
@@ -26,6 +27,7 @@ export default function SettingsPage() {
         <div className="flex min-w-0 flex-col gap-10">
           <IntegrationsSection />
           <RetentionSection />
+          <AppearanceSection />
           <PrivacySection />
         </div>
       </div>

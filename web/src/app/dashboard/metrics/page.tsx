@@ -44,9 +44,12 @@ export default function MetricsExplorerPage() {
       text: `service:${s.service}`,
       cardinality: Math.round(s.req_per_s * 60),
     }));
-    return [...metricSuggestions, ...serviceSuggestions]
-      .sort((a, b) => (b.cardinality ?? 0) - (a.cardinality ?? 0))
-      .slice(0, 8);
+    // full ranked list — QueryBar filters to the typed token and caps the
+    // display; pre-slicing here hid every match outside the global top-8
+    // (typing "metric:http.err" surfaced nothing — QA 2026-07-19)
+    return [...metricSuggestions, ...serviceSuggestions].sort(
+      (a, b) => (b.cardinality ?? 0) - (a.cardinality ?? 0),
+    );
   }, [summary.data, services.data]);
 
   // ranked by count (MI-13's cardinality discipline applies to facets too)

@@ -41,7 +41,7 @@ export interface GoogleAuthButtonProps {
 
 /**
  * GoogleAuthButton — the product's single auth CTA (X-1; design.md §8.2b:
- * default / hover / loading). Same name in every CueLABS product.
+ * default / hover / loading). Same name in every CueLABS™ product.
  * Google brand button colors are brand-mandated raw values (white /
  * #1F1F1F / #D9D9D9 — Figma 92:1449), NOT token-bound, in both modes.
  */

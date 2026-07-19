@@ -85,7 +85,7 @@ export default function StatusPage() {
             name={`${first.name} — 90 day history`}
             days={first.days}
             uptimePct={first.uptime_pct}
-            p95Ms={96}
+            p95Ms={first.p95_ms ?? undefined}
           />
         </section>
       )}

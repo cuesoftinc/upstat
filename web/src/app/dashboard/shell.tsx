@@ -98,7 +98,11 @@ function ShellChrome({ children }: { children: ReactNode }) {
   const banner = shell.bannerIncident;
 
   return (
-    <div className="font-ui flex min-h-screen bg-bg text-text">
+    // h-dvh (not min-h-screen): the app frame is viewport-bounded so <main>
+    // is the one scroll container — pillar views with internal scroll areas
+    // (the logs live-tail list, MI-4 pause-on-scroll) get a real overflow
+    // boundary instead of growing the body.
+    <div className="font-ui flex h-dvh bg-bg text-text">
       <NavRail
         activeKey={activeKeyFor(pathname)}
         onNavigate={(key) => router.push(PILLAR_ROUTES[key] ?? "/dashboard")}

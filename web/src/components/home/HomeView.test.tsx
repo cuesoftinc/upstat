@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { ThemeProvider } from "@/design/ThemeProvider";
 import { HomeView } from "./HomeView";
 import { FAQ_ITEMS } from "./content";
 
@@ -9,9 +10,16 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
 }));
 
+const renderHome = () =>
+  render(
+    <ThemeProvider>
+      <HomeView />
+    </ThemeProvider>,
+  );
+
 describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
   it("renders every section of the landing", () => {
-    render(<HomeView />);
+    renderHome();
     // A2 hero
     expect(
       screen.getByRole("heading", { level: 1, name: /All your telemetry\./ }),
@@ -42,28 +50,35 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
     // A14 self-host + A9 table
     expect(screen.getByText("Self-host — own your telemetry.")).toBeInTheDocument();
     expect(screen.getByText("Cloud when you want it. Yours when you need it.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Deploy with compose" })).toBeInTheDocument();
+    // ×2: the table's sm+ CTA footer and the <sm grouped CTA block (the
+    // pair is exclusive via CSS breakpoints, which jsdom doesn't apply)
+    expect(screen.getAllByRole("button", { name: "Deploy with compose" })).toHaveLength(2);
     // A13 developers — the ratified stack line, verbatim
     expect(
       screen.getByText("Go gRPC services · Next.js + React/TS · ClickHouse · OpenTelemetry"),
     ).toBeInTheDocument();
     // A8 community
-    expect(screen.getByText("CueLABS Discord — #upstat")).toBeInTheDocument();
+    expect(screen.getByText("CueLABS™ Discord — #upstat-lab")).toBeInTheDocument();
     // A15 FAQ + A16 CTA band
     expect(screen.getByText("Questions, answered.")).toBeInTheDocument();
     expect(screen.getByText("OTLP in. Answers out.")).toBeInTheDocument();
-    // A10 footer
-    expect(screen.getByText("© 2026 Cuesoft · upstat is CueLABS open source")).toBeInTheDocument();
+    // A10 footer — the canonical legal bar (parity canon 2026-07-19)
+    expect(screen.getByText(/CueLABS™ Division/).closest("p")).toHaveTextContent(
+      "© Cuesoft Inc. 2026. Upstat. CueLABS™ Division. MIT License.",
+    );
   });
 
-  it("keeps the star badge neutral in TEST_MODE (no invented count)", () => {
-    render(<HomeView />);
-    const badge = screen.getByRole("link", { name: /Star/ });
-    expect(badge).toHaveTextContent(/^Star$/);
+  it("keeps the nav star badge neutral in TEST_MODE (no invented count)", () => {
+    renderHome();
+    const navigation = screen.getByRole("navigation", { name: "Marketing" });
+    expect(
+      within(navigation).getByRole("link", { name: "Star cuesoftinc/upstat on GitHub" }),
+    ).toHaveTextContent(/^Star$/);
+    expect(within(navigation).getByTestId("theme-toggle")).toBeInTheDocument();
   });
 
   it("FAQ is single-open: opening one closes the other (A15)", async () => {
-    render(<HomeView />);
+    renderHome();
     // first item open by default
     expect(screen.getByText(FAQ_ITEMS[0].answer)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: FAQ_ITEMS[1].question }));
@@ -73,15 +88,15 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
 
   it("Try Cloud CTAs route to /signin", async () => {
     push.mockClear();
-    render(<HomeView />);
+    renderHome();
     const ctas = screen.getAllByRole("button", { name: "Try Cloud" });
-    expect(ctas.length).toBeGreaterThanOrEqual(3); // nav + hero + table + band
+    expect(ctas.length).toBeGreaterThanOrEqual(3); // hero + table + mobile group + band
     await userEvent.click(ctas[0]);
     expect(push).toHaveBeenCalledWith("/signin");
   });
 
   it("accuracy: MIT copy present, no fabricated pricing", () => {
-    render(<HomeView />);
+    renderHome();
     expect(screen.getByText(/MIT · CONTRIBUTING\.md · roadmap/)).toBeInTheDocument();
     expect(
       screen.getByText("Self-hosting is free forever — cloud pricing will be announced at GA."),
@@ -89,7 +104,7 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
   });
 
   it("renders the use-case quads with their Read more anchors (§8.4 SCROLL_TO)", () => {
-    render(<HomeView />);
+    renderHome();
     const links = screen.getAllByRole("link", { name: "Read more →" });
     expect(links.map((l) => l.getAttribute("href"))).toEqual([
       "#demo",
@@ -100,7 +115,7 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
   });
 
   it("demo band renders the seeded panels (uptime strip + query values)", () => {
-    render(<HomeView />);
+    renderHome();
     const demo = document.getElementById("demo")!;
     expect(within(demo).getByText("availability · api-common")).toBeInTheDocument();
     expect(within(demo).getByText("99.98%")).toBeInTheDocument();

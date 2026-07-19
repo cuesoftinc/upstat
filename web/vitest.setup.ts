@@ -17,6 +17,24 @@ if (typeof Element !== "undefined") {
   Element.prototype.scrollIntoView ??= () => undefined;
 }
 
+// This jsdom build ships no localStorage (sessionStorage exists) — the
+// NavRail expansion + theme persistence paths need one. Minimal in-memory
+// Storage, reset between files like the real thing on a fresh origin.
+if (typeof window !== "undefined" && typeof window.localStorage === "undefined") {
+  const store = new Map<string, string>();
+  const storage: Storage = {
+    get length() {
+      return store.size;
+    },
+    clear: () => store.clear(),
+    getItem: (key) => (store.has(key) ? store.get(key)! : null),
+    key: (index) => [...store.keys()][index] ?? null,
+    removeItem: (key) => void store.delete(key),
+    setItem: (key, value) => void store.set(key, String(value)),
+  };
+  Object.defineProperty(window, "localStorage", { value: storage, configurable: true });
+}
+
 // jsdom has no matchMedia. Tests run as reduced-motion: animation loops
 // (hero crosshair, MI pulses) stay off, keeping renders deterministic.
 if (typeof window !== "undefined" && typeof window.matchMedia !== "function") {

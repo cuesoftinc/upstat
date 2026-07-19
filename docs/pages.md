@@ -9,7 +9,7 @@
 
 ## Part A — Public home page (upstat.cuesoft.io)
 
-Shared CueLABS open-source-site pattern (Discord, GitHub, preview, **Try
+Shared CueLABS™ open-source-site pattern (Discord, GitHub, preview, **Try
 Cloud** / **Self Host**) in a Datadog-style product-led execution. The
 existing Figma landing (single desktop frame; pillars "Dev-first workflows",
 "Works for your Business needs", "Open-source, Transparent and
@@ -24,7 +24,7 @@ community-driven") remains the visual base, extended for the new pillars.
 | A5 | How ingestion works | OTLP/agent diagram: your services → OTel SDK/collector → Upstat | copyable snippet tabs (Go/Python/Node/k8s) |
 | A6 | Reliability showcase | Upstat's own public status page embedded (self-referential trust, PRD §5) | |
 | A7 | Open source | compose snippet, architecture diagram, GitHub/CONTRIBUTING | |
-| A8 | Community | Discord card, roadmap, CueLABS | |
+| A8 | Community | Discord card, roadmap, CueLABS™ | |
 | A9 | Cloud vs Self-host table | per-column CTAs | |
 | A10 | Footer | standard + privacy (UPS-005) | |
 

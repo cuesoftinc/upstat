@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { buildHomeDemoData } from "./home";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { renderHook, waitFor } from "@testing-library/react";
+import { buildHomeDemoData, useHomeDemoData } from "./home";
 
 const NOW = Date.parse("2026-07-18T12:03:21Z");
 
@@ -46,5 +47,41 @@ describe("home demo data (A4 — synthetic, from the §8.3 mock seeds)", () => {
     expect(alertRule.signal).toBe("log");
     expect(alertRule.thresholds).toEqual({ warn: null, crit: 50, window: "5m" });
     expect(alertRule.state).toBe("alert");
+  });
+});
+
+describe("useHomeDemoData hydration determinism (React #418 regression, QA 2026-07-19)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("first render is clock-independent (static prerender === hydration)", () => {
+    // The home page is prerendered at BUILD time; a Date.now()-seeded first
+    // render baked stale chart axis labels into the HTML and hydration threw
+    // React #418. The initial state must not depend on the system clock.
+    // Full fake timers: the deferred post-mount rebuild never fires, so
+    // result.current IS the first-render state.
+    const firstRenderAt = (epoch: string) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(Date.parse(epoch));
+      const { result, unmount } = renderHook(() => useHomeDemoData());
+      const data = result.current;
+      unmount();
+      vi.useRealTimers();
+      return data;
+    };
+    const atBuildTime = firstRenderAt("2026-07-10T08:00:00Z");
+    const daysLater = firstRenderAt("2026-07-19T21:42:00Z");
+    expect(atBuildTime).toEqual(daysLater);
+  });
+
+  it("rebuilds with the real clock after mount (the '2m ago' label stays honest)", async () => {
+    // fake only Date: the deferred rebuild still runs on real timers
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(Date.parse("2026-07-19T21:42:00Z"));
+    const { result } = renderHook(() => useHomeDemoData());
+    await waitFor(() =>
+      expect(result.current.statusUpdatedAt).toBe("2026-07-19T21:40:00Z"),
+    );
   });
 });

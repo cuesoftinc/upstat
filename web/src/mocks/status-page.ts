@@ -30,6 +30,9 @@ export function buildStatusPage(db: MockDb, slug: string, now = Date.now()): Sta
         status: m.status,
         days: history.days,
         uptime_pct: history.uptime_90d_pct,
+        // same latency source as the uptime pillar's cards — the page
+        // previously hardcoded 96ms and disagreed with /dashboard/uptime
+        p95_ms: m.last_response_time_ms,
       };
     });
 
