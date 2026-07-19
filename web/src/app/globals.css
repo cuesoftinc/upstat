@@ -144,9 +144,6 @@
 /* ------------------------------------------------------------------ */
 /* Base reset — Tailwind preflight stays off (historical choice, W0);   */
 /* this is the minimal reset the token components were built against.   */
-/* The old `legacy` layer (Poppins body, raw-hex canvas, svg sizing,     */
-/* .dummy-classname) left with the W3 tranche — its routes live in       */
-/* src/legacy now, styled by their own styled-components.                */
 /* ------------------------------------------------------------------ */
 
 @layer base {

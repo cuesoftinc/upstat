@@ -1,8 +1,7 @@
 import Link from "next/link";
 
 /**
- * 404 — token-based replacement for the styled-components page (quarantined
- * to src/legacy with the W3 tranche; styled-components leaves with it).
+ * 404 — token-based, on-brand (design.md §2; MI catalog polish rules).
  */
 export default function NotFound() {
   return (
