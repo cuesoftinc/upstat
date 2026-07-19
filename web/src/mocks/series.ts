@@ -110,7 +110,11 @@ const DEPLOY_STAGES = [
 ];
 
 export function lastDeploy(service: string, tMs: number): { at: number; version: string } {
-  const offset = Math.floor(unitFor(`deploy:${service}`) * DEPLOY_PERIOD);
+  // second-aligned offset: the log generator iterates whole seconds, so
+  // deploy instants must land exactly on one (PR #166 review — a ms-precise
+  // offset shifted every stage band off the generator's grid)
+  const offset =
+    Math.floor((unitFor(`deploy:${service}`) * DEPLOY_PERIOD) / SECOND) * SECOND;
   const n = Math.floor((tMs - offset) / DEPLOY_PERIOD);
   const at = offset + n * DEPLOY_PERIOD;
   // monotonic-looking versions: patch bumps per deploy, minor weekly
@@ -361,7 +365,10 @@ const LOG_TEMPLATES: Record<LogLevel, string[]> = {
     "check failed monitor=checkout-flow status=503 timeout=false",
   ],
   TRACE: [
-    "span exported trace_id=9f86d081884c7d659a2feaa0c55ad015 spans=6",
+    // `trace_id=…` is interpolated with the LINE's own trace id at
+    // generation time (PR #166 review — a hardcoded hero id here clashed
+    // with the generated per-line id and leaked outside the hero window)
+    "span exported trace_id={trace_id} spans=6",
     "otlp frame decoded size=2.1kb",
   ],
 };
@@ -456,23 +463,31 @@ export function generateLogs(
         tMs >= hero.startMs - 1_500 &&
         tMs <= hero.startMs + hero.durationMs + 1_500 &&
         hero.services.includes(service);
+      // the line's trace id: hero window → hero id; else a per-line hex on
+      // ~25% of lines — and always on messages that print a trace_id
+      let traceId = heroHit
+        ? hero.id
+        : r() < 0.25
+          ? traceIdHex(key)
+          : undefined;
+      let finalMessage = message;
+      if (finalMessage.includes("{trace_id}")) {
+        traceId ??= traceIdHex(key);
+        finalMessage = finalMessage.replace("{trace_id}", traceId);
+      }
       events.push({
         id: `log_${sec}_${slot}`,
         ts: iso(tMs),
         service,
         level,
         host: HOSTS[Math.floor(r() * HOSTS.length)],
-        message,
+        message: finalMessage,
         attrs: {
           env: "prod",
           version: deploy.version,
           ...(level === "ERROR" ? { "error.kind": "upstream" } : {}),
         },
-        ...(heroHit
-          ? { trace_id: hero.id }
-          : r() < 0.25
-            ? { trace_id: traceIdHex(key) }
-            : {}),
+        ...(traceId ? { trace_id: traceId } : {}),
       });
     }
   }
