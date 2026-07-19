@@ -8,7 +8,7 @@ const CANON: Record<string, [string, string][]> = {
     ["Features", "/#pillars"],
     ["Try Cloud", "/signin"],
     ["Self Host", "/#self-host"],
-    ["Dashboards", "/dashboard"],
+    ["Platform", "/#pillars"],
   ],
   Docs: [
     ["Docs", "https://cuesoft.gitbook.io/upstat"],

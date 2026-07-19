@@ -186,6 +186,23 @@ ThemeToggle lives in the marketing nav, the dashboard TopBar utility area
 and Settings ("Appearance"). Playwright asserts the canonical hrefs and
 the toggle flip/persist on home and dashboard.
 
+**Marketing content pass as-built (2026-07-19, user decisions).** Three
+revisions: (1) the nav/footer product slot is **Platform → `/#pillars`**
+(the 8-pillar grid) — "Dashboards" pointed a marketing surface at the
+auth-gated `/dashboard` app route; nav (desktop + mobile panel) and the
+footer Product column carry the same slot. (2) CTA dedupe per the
+"Community CTA placement" canon — GitHub/Discord conversion moments live
+in exactly three spots (nav star badge · A13 developers section's
+GitHub + Discord pair with the #upstat-lab copy · footer Community
+column); the former extras now carry differentiated real destinations:
+A9 links the query-grammar GitBook page and the product's own live
+status page (`/status/upstat`, the dogfood story), A8's card is
+CueLABS™ (`cuelabs.cuesoft.io`) with the GitBook roadmap and Self-host
+guide beside it. (3) The `/login` 308 stub is deleted (user: "no one
+needs those") — stale `/login` links 404 on the branded not-found page;
+`/signin` stays the only auth route. Root prose carries the CueLABS™
+mark (Makefile/CONTRIBUTING byte-identical to the generator templates).
+
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the
@@ -231,7 +248,7 @@ order per pages.md Part B.
 | pages.md | Route | Screen |
 | --- | --- | --- |
 | Part A (A1–A16) | `/` | Public home page |
-| flows/auth.md · design.md §8.1 Stage 4 | `/signin` | Single auth screen — GoogleAuthButton + legal links (X-1; `/login` 308-redirects here; there is no `/signup`) |
+| flows/auth.md · design.md §8.1 Stage 4 | `/signin` | Single auth screen — GoogleAuthButton + legal links (X-1; the only auth route — stale `/login` links 404 on the branded page (stub removed 2026-07-19); there is no `/signup`) |
 | B1 | `/dashboard` | Home — org health: incidents banner (MI-14), triggered monitors, SLO burn (MI-15), watched dashboards |
 | B1 first-run | `/dashboard/onboarding` | create-org (name + IANA timezone, X-10) → send-your-first-data (ingestion key + snippet + MI-16 waiting-for-data; resolves to `/dashboard` on first datapoint) |
 | B2 | `/dashboard/dashboards` · `/dashboard/dashboards/{id}` | List (org-shared, favorites) · grid editor (MI-11/12); create flow = name → widget-picker overlay → edit mode |

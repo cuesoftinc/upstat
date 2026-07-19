@@ -18,7 +18,7 @@ export interface MarketingNavProps {
 /** The canonical nav links (SKILL.md nav-parity canon, 2026-07-19). */
 export const NAV_LINKS = [
   { label: "Features", href: "/#pillars", external: false },
-  { label: "Dashboards", href: "/dashboard", external: false },
+  { label: "Platform", href: "/#pillars", external: false },
   { label: "Docs", href: "https://cuesoft.gitbook.io/upstat", external: true },
   { label: "GitHub", href: "https://github.com/cuesoftinc/upstat", external: true },
 ] as const;
@@ -61,7 +61,7 @@ function StarBadge({
 
 /**
  * MarketingNav — nav-parity canon (SKILL.md 2026-07-19, revised same day):
- * logo · Features · Dashboards · Docs · GitHub star badge · ThemeToggle ·
+ * logo · Features · Platform · Docs · GitHub star badge · ThemeToggle ·
  * Sign in text link · Try Cloud primary CTA (both → /signin).
  *
  * The bar (border/background) is full-bleed, but the ROW sits on the

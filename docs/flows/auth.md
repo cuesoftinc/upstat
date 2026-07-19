@@ -5,7 +5,8 @@
 > `GoogleAuth` is *the* flow; the `UserService` credential RPCs (CreateUser
 > with password, GetUser-with-password sign-in) exist only for the §3
 > migration window. There is no `/signup`; `/signin` is the single auth
-> screen (`/login` 308-redirects to it).
+> screen (the old `/login` stub is removed — stale links 404 on the
+> branded page; user decision 2026-07-19).
 
 ## 1. Hard rule & enforcement
 

@@ -58,7 +58,10 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
       screen.getByText("Go gRPC services · Next.js + React/TS · ClickHouse · OpenTelemetry"),
     ).toBeInTheDocument();
     // A8 community
-    expect(screen.getByText("CueLABS™ Discord — #upstat-lab")).toBeInTheDocument();
+    // CTA-dedupe canon: A13 keeps the one GitHub+Discord pair; A8 points at
+    // the lab + docs instead
+    expect(screen.getByText("Discord — #upstat-lab on the CueLABS™ server")).toBeInTheDocument();
+    expect(screen.getByText("CueLABS™ — more open source from Cuesoft")).toBeInTheDocument();
     // A15 FAQ + A16 CTA band
     expect(screen.getByText("Questions, answered.")).toBeInTheDocument();
     expect(screen.getByText("OTLP in. Answers out.")).toBeInTheDocument();
@@ -97,7 +100,7 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
 
   it("accuracy: MIT copy present, no fabricated pricing", () => {
     renderHome();
-    expect(screen.getByText(/MIT · CONTRIBUTING\.md · roadmap/)).toBeInTheDocument();
+    expect(screen.getByText(/Open-source observability by CueLABS™\. MIT licensed\./)).toBeInTheDocument();
     expect(
       screen.getByText("Self-hosting is free forever — cloud pricing will be announced at GA."),
     ).toBeInTheDocument();

@@ -2,7 +2,7 @@
 
 Next.js 16 (App Router, TypeScript, styled-components) front-end: marketing
 home at `/`, product dashboard at `/dashboard` (stats, uptime, traffic, SEO),
-Google sign-in at `/login` via gRPC-Web (Envoy).
+Google sign-in at `/signin` via gRPC-Web (Envoy).
 
 ## Run
 

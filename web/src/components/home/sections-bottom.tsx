@@ -5,7 +5,8 @@
  * (A13), community (A8), FAQ (A15), final CTA band (A16).
  */
 
-import { Check, ExternalLink, FileText } from "lucide-react";
+import { Activity, BookOpen, Check, ExternalLink, FileText, FlaskConical } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { CloudVsSelfHostTable } from "@/components/ui/CloudVsSelfHostTable";
@@ -14,6 +15,7 @@ import { DiscordIcon, GithubIcon } from "./BrandIcons";
 import {
   ARCHITECTURE_FLOW,
   COMPOSE_OUTPUT,
+  CUELABS_URL,
   DISCORD_URL,
   SELF_HOST_DOCS_URL,
   FAQ_ITEMS,
@@ -21,6 +23,8 @@ import {
   GOOD_FIRST_ISSUES,
   PLAN_ROWS,
   PROBLEM_CHIPS,
+  QUERY_GRAMMAR_DOCS_URL,
+  ROADMAP_URL,
   SELF_HOST_CHECKLIST,
   STACK_LINE,
 } from "./content";
@@ -100,14 +104,9 @@ export function SelfHostSection({ onSelfHostDocs }: SelfHostSectionProps) {
 export interface CloudSelfHostSectionProps {
   onTryCloud: () => void;
   onSelfHost: () => void;
-  onGithub: () => void;
 }
 
-export function CloudSelfHostSection({
-  onTryCloud,
-  onSelfHost,
-  onGithub,
-}: CloudSelfHostSectionProps) {
+export function CloudSelfHostSection({ onTryCloud, onSelfHost }: CloudSelfHostSectionProps) {
   return (
     <Section title="Cloud when you want it. Yours when you need it.">
       {/* gap-6 below lg: the stacked table → CTA → snippet must read as one
@@ -140,23 +139,23 @@ export function CloudSelfHostSection({
             <span className="whitespace-nowrap text-brand">docker compose up -d</span>
             <span className="whitespace-nowrap text-text-2"># the whole platform, one file</span>
           </code>
+          {/* CTA-dedupe canon (2026-07-19): GitHub/Discord conversion lives in
+              the nav badge, A13 and the footer — this section carries
+              differentiated real destinations instead */}
           <a
-            href={GITHUB_URL}
-            onClick={onGithub}
+            href={QUERY_GRAMMAR_DOCS_URL}
             className="flex items-center gap-2.5 text-[13px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
           >
-            <GithubIcon className="size-6 shrink-0 text-text" />
-            github.com/cuesoftinc/upstat — MIT · CONTRIBUTING.md · roadmap
+            <BookOpen aria-hidden="true" className="size-6 shrink-0 text-text" />
+            Query grammar — the one grammar across logs, metrics and traces
           </a>
-          <a
-            href={DISCORD_URL}
+          <Link
+            href="/status/upstat"
             className="flex items-center gap-2.5 text-[13px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
           >
-            {/* Discord blurple — brand-glyph color exception (design.md §8.1),
-                like the Google 'G' */}
-            <DiscordIcon className="size-6 shrink-0 text-[#5865F2]" />
-            Discord — CueLABS™ community
-          </a>
+            <Activity aria-hidden="true" className="size-6 shrink-0 text-ok" />
+            /status/upstat — we run upstat on upstat, publicly
+          </Link>
         </div>
       </div>
     </Section>
@@ -239,35 +238,36 @@ export function DevelopersSection({ onGithub }: DevelopersSectionProps) {
 export function CommunitySection() {
   return (
     <Section id="community" title="Community">
+      {/* CTA-dedupe canon (2026-07-19): the GitHub/Discord pair lives in A13 —
+          this section points at the lab and the docs instead */}
       <div className="grid items-start gap-12 lg:grid-cols-[1fr_480px]">
         <a
-          href={DISCORD_URL}
+          href={CUELABS_URL}
           className="flex items-start gap-4 rounded-(--radius) border border-border bg-bg-elev p-4 transition-colors duration-[var(--duration-base)] hover:border-text-2"
         >
-          {/* Discord blurple — brand-glyph color exception (design.md §8.1) */}
-          <DiscordIcon className="mt-1 size-7 shrink-0 text-[#5865F2]" />
+          <FlaskConical aria-hidden="true" className="mt-1 size-7 shrink-0 text-brand" />
           <span className="flex min-w-0 flex-1 flex-col gap-1">
             <span className="text-[14px] font-semibold text-text">
-              CueLABS™ Discord — #upstat-lab
+              CueLABS™ — more open source from Cuesoft
             </span>
             <span className="text-[13px] text-text-2">
-              Get help, share dashboards, talk to the maintainers.
+              The division upstat ships from — see what else is built in the open.
             </span>
           </span>
-          <span className="shrink-0 text-[13px] font-medium text-brand">Join →</span>
+          <span className="shrink-0 text-[13px] font-medium text-brand">Explore →</span>
         </a>
         <div className="flex flex-col gap-4 lg:pt-2">
           <a
-            href={`${GITHUB_URL}#roadmap`}
+            href={ROADMAP_URL}
             className="text-[13px] font-medium text-brand transition-colors duration-[var(--duration-fast)] hover:text-brand-deep"
           >
             Public roadmap →
           </a>
           <a
-            href="https://cuesoft.io"
+            href={SELF_HOST_DOCS_URL}
             className="flex items-center gap-1.5 text-[13px] font-medium text-brand transition-colors duration-[var(--duration-fast)] hover:text-brand-deep"
           >
-            CueLABS™ — more open source from Cuesoft
+            Self-host guide — run it on your infrastructure
             <ExternalLink aria-hidden="true" className="size-3.5" />
           </a>
         </div>

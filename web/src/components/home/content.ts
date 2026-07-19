@@ -125,6 +125,12 @@ export const DISCORD_URL = "https://discord.gg/CDfZxxrxbb";
 // user-reported dead link 2026-07-19; canon hrefs, verified 200)
 export const DOCS_URL = "https://cuesoft.gitbook.io/upstat";
 export const SELF_HOST_DOCS_URL = "https://cuesoft.gitbook.io/upstat/system/deployment";
+// CTA-dedupe destinations (canon "Community CTA placement", 2026-07-19):
+// GitHub/Discord conversion moments live in exactly three spots — the
+// extra sections carry differentiated real links instead.
+export const QUERY_GRAMMAR_DOCS_URL = "https://cuesoft.gitbook.io/upstat/system/query-grammar";
+export const ROADMAP_URL = "https://cuesoft.gitbook.io/upstat/product/roadmap";
+export const CUELABS_URL = "https://cuelabs.cuesoft.io";
 
 // A10 footer columns/copyright: superseded by the canonical parity footer
 // (SKILL.md 2026-07-19) — MarketingFooter now owns the column set + legal bar.
