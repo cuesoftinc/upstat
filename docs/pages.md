@@ -24,8 +24,8 @@ community-driven") remains the visual base, extended for the new pillars.
 | A5 | How ingestion works | OTLP/agent diagram: your services → OTel SDK/collector → Upstat | copyable snippet tabs (Go/Python/Node/k8s) |
 | A6 | Reliability showcase | Upstat's own public status page embedded (self-referential trust, PRD §5) | |
 | A7 | Open source | compose snippet, architecture diagram, GitHub/CONTRIBUTING | |
-| A8 | Community | Discord card, roadmap, CueLABS™ | |
-| A9 | Cloud vs Self-host table | per-column CTAs | |
+| A8 | Community | public-status card (live uptime at status.upstat.cuesoft.io/upstat) · roadmap · CueLABS™ **[Revised 2026-07-19]** — community-CTA placement canon: GitHub/Discord moments live in exactly three spots — the nav star badge, the A13 developers pair (#upstat-lab copy), and the footer Community column | |
+| A9 | Cloud vs Self-host table | per-column CTAs · docs deep-link rows under the compose line — self-host guide (docs.upstat.cuesoft.io/self-host) + query grammar (docs.upstat.cuesoft.io/query-grammar) **[Revised 2026-07-19]** | |
 | A10 | Footer | standard + privacy (UPS-005) | |
 
 Iteration 1 additions **[Directive 2026-07-18]** — existing rows keep their
@@ -36,7 +36,7 @@ page order.
 | --- | --- | --- | --- |
 | A11 | Feature deep-dives | benefit-led deep-dive per pillar (richer than the A3 card grid, slots after A3): headline benefit, 2–3 proof points, real product screenshot — alternating left/right layout | scroll-linked screenshot swap per pillar |
 | A12 | How it works | 3 steps (install snippet → send data → see everything) — each step carries a **real screen thumbnail** from the Stage-4 templates (design.md §8.1), no abstract art; extends A5's diagram | step thumbnail → matching A4 demo card |
-| A13 | For developers — Contribute | stack line (**Go gRPC services · Next.js + React/TS · ClickHouse · OpenTelemetry** — corrected 2026-07-18 QA loop: the web app is Next.js 16.x + React/TS, verified against `web/package.json`; the store is ClickHouse by the ratified R2 decision, not a generic "columnstore"), "interesting problems" list (ingestion pipeline, query grammar, TSDB), good-first-issues + CONTRIBUTING links, Discord invite, GitHub badge — expands A7's repo links, slots after A7 | star badge: count populated at runtime — no number in static designs |
+| A13 | For developers — Contribute | stack line (**Go gRPC services · Next.js + React/TS · ClickHouse · OpenTelemetry** — corrected 2026-07-18 QA loop: the web app is Next.js 16.x + React/TS, verified against `web/package.json`; the store is ClickHouse by the ratified R2 decision, not a generic "columnstore"), "interesting problems" list (ingestion pipeline, query grammar, TSDB), good-first-issues + CONTRIBUTING links, Discord invite, GitHub badge — expands A7's repo links, slots after A7 · the one body section carrying the GitHub + Discord pair (#upstat-lab copy) per the community-CTA placement canon **[Revised 2026-07-19]** | star badge: count populated at runtime — no number in static designs |
 | A14 | Self-host | data-ownership pitch (your telemetry, your box), compose one-liner, what ships in the box (every pillar, no feature gates), self-host docs link — expands A7's compose snippet, pairs with A9 | copy button on the one-liner |
 | A15 | FAQ | 4–5 product Q&As: cloud vs self-host? · OTel-compatible? · what happens at retention limits? · is everything open source? · how is this not Datadog? | accordion, single-open |
 | A16 | Final CTA band | full-width closing band: one-line pitch + dual CTA **Try Cloud** / **Self Host** (mirrors A2), sits above A10 | |
