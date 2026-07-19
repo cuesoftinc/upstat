@@ -14,6 +14,8 @@ describe("Heatmap", () => {
         ]}
       />,
     );
-    expect(screen.getByRole("img", { name: "heatmap" }).children).toHaveLength(4);
+    expect(screen.getByRole("img", { name: "heatmap" }).children).toHaveLength(
+      4,
+    );
   });
 });

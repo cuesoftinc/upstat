@@ -23,7 +23,13 @@ export interface CommandPaletteProps {
 }
 
 /** CommandPalette / SearchOverlay — §8.2b: empty / results / no-results. */
-export function CommandPalette({ open, onClose, items, onSelect, className }: CommandPaletteProps) {
+export function CommandPalette({
+  open,
+  onClose,
+  items,
+  onSelect,
+  className,
+}: CommandPaletteProps) {
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -31,7 +37,9 @@ export function CommandPalette({ open, onClose, items, onSelect, className }: Co
   const results = useMemo(
     () =>
       query
-        ? items.filter((i) => i.label.toLowerCase().includes(query.toLowerCase()))
+        ? items.filter((i) =>
+            i.label.toLowerCase().includes(query.toLowerCase()),
+          )
         : items,
     [items, query],
   );
@@ -96,7 +104,11 @@ export function CommandPalette({ open, onClose, items, onSelect, className }: Co
             className="h-11 flex-1 bg-transparent text-[14px] text-text placeholder:text-text-2 focus:outline-none"
           />
         </div>
-        <ul role="listbox" aria-label="Results" className="max-h-72 overflow-y-auto py-1">
+        <ul
+          role="listbox"
+          aria-label="Results"
+          className="max-h-72 overflow-y-auto py-1"
+        >
           {results.length === 0 && (
             <li className="px-3 py-6 text-center text-[13px] text-text-2">
               No results for “{query}”
@@ -121,7 +133,9 @@ export function CommandPalette({ open, onClose, items, onSelect, className }: Co
                     i === active && "bg-bg",
                   )}
                 >
-                  {Icon && <Icon aria-hidden="true" className="size-4 text-text-2" />}
+                  {Icon && (
+                    <Icon aria-hidden="true" className="size-4 text-text-2" />
+                  )}
                   <span className="flex-1 truncate">{item.label}</span>
                   {item.kbd && <KbdChip keys={item.kbd} />}
                 </button>

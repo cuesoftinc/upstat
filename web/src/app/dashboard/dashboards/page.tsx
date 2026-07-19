@@ -19,7 +19,8 @@ import { defaultWidget } from "@/controllers/widgets";
  */
 export default function DashboardsPage() {
   const router = useRouter();
-  const { data, loading, create, toggleFavorite, importJson } = useDashboardsController();
+  const { data, loading, create, toggleFavorite, importJson } =
+    useDashboardsController();
   const [createOpen, setCreateOpen] = useState(false);
   const [name, setName] = useState("");
   const [type, setType] = useState<WidgetType | null>("timeseries");
@@ -38,7 +39,9 @@ export default function DashboardsPage() {
       const dashboard = await importJson(importText);
       router.push(`/dashboard/dashboards/${dashboard.id}`);
     } catch (e) {
-      setImportError(e instanceof Error ? e.message : "could not import the dashboard");
+      setImportError(
+        e instanceof Error ? e.message : "could not import the dashboard",
+      );
       setImporting(false);
     }
   };
@@ -48,23 +51,38 @@ export default function DashboardsPage() {
     setCreating(true);
     setError(null);
     try {
-      const dashboard = await create(name.trim(), type ? defaultWidget(type) : undefined);
+      const dashboard = await create(
+        name.trim(),
+        type ? defaultWidget(type) : undefined,
+      );
       router.push(`/dashboard/dashboards/${dashboard.id}?edit=1`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "could not create the dashboard");
+      setError(
+        e instanceof Error ? e.message : "could not create the dashboard",
+      );
       setCreating(false);
     }
   };
 
   return (
-    <div className="flex flex-col gap-6 px-6 py-5" data-testid="dashboards-list">
+    <div
+      className="flex flex-col gap-6 px-6 py-5"
+      data-testid="dashboards-list"
+    >
       <header className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-[20px] font-semibold">Dashboards</h1>
         <div className="flex items-center gap-2">
-          <Button kind="quiet" onClick={() => setImportOpen(true)} data-testid="import-dashboard">
+          <Button
+            kind="quiet"
+            onClick={() => setImportOpen(true)}
+            data-testid="import-dashboard"
+          >
             Import JSON
           </Button>
-          <Button onClick={() => setCreateOpen(true)} data-testid="new-dashboard">
+          <Button
+            onClick={() => setCreateOpen(true)}
+            data-testid="new-dashboard"
+          >
             New dashboard
           </Button>
         </div>
@@ -81,8 +99,8 @@ export default function DashboardsPage() {
           aria-label="No dashboards"
           className="rounded-(--radius) border border-border bg-bg-elev p-6 text-[13px] leading-[1.45] text-text-2"
         >
-          No dashboards yet. Create one — it lands in edit mode with your
-          first widget placed.
+          No dashboards yet. Create one — it lands in edit mode with your first
+          widget placed.
         </section>
       ) : (
         <ul aria-label="Dashboards">
@@ -94,7 +112,9 @@ export default function DashboardsPage() {
                 updated={`updated ${ageLabel(d.updated_at)} ago`}
                 favorite={d.favorite}
                 shared={d.shared}
-                onFavoriteChange={(favorite) => void toggleFavorite(d.id, favorite)}
+                onFavoriteChange={(favorite) =>
+                  void toggleFavorite(d.id, favorite)
+                }
                 onClick={() => router.push(`/dashboard/dashboards/${d.id}`)}
               />
             </li>
@@ -137,7 +157,11 @@ export default function DashboardsPage() {
             <legend className="mx-auto mb-2 text-center text-[14px] font-medium text-text">
               Choose a visualization
             </legend>
-            <WidgetTypePicker layout="grid" selected={type} onSelect={setType} />
+            <WidgetTypePicker
+              layout="grid"
+              selected={type}
+              onSelect={setType}
+            />
           </fieldset>
 
           {error && (

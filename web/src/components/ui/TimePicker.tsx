@@ -25,7 +25,13 @@ export interface TimePickerProps {
  * button, and the absolute-range dialog becomes a fixed full-width sheet
  * under the bar so it can never leave the viewport.
  */
-export function TimePicker({ value, onChange, live = false, onLiveChange, className }: TimePickerProps) {
+export function TimePicker({
+  value,
+  onChange,
+  live = false,
+  onLiveChange,
+  className,
+}: TimePickerProps) {
   const [customOpen, setCustomOpen] = useState(false);
 
   return (
@@ -70,7 +76,9 @@ export function TimePicker({ value, onChange, live = false, onLiveChange, classN
           className={clsx(
             "flex items-center gap-1 px-2 text-[12px] font-medium md:border-l md:border-border",
             "transition-colors duration-[var(--duration-fast)] ease-standard",
-            value === "custom" ? "bg-bg-elev text-brand" : "text-text-2 hover:text-text",
+            value === "custom"
+              ? "bg-bg-elev text-brand"
+              : "text-text-2 hover:text-text",
           )}
         >
           <Calendar aria-hidden="true" className="size-3.5" />
@@ -117,7 +125,9 @@ export function TimePicker({ value, onChange, live = false, onLiveChange, classN
             aria-hidden="true"
             className={clsx(
               "size-1.5 rounded-full",
-              live ? "animate-pulse bg-brand motion-reduce:animate-none" : "bg-text-2",
+              live
+                ? "animate-pulse bg-brand motion-reduce:animate-none"
+                : "bg-text-2",
             )}
           />
           live

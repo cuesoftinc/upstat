@@ -5,7 +5,20 @@ import { clsx } from "clsx";
 import type { ReactNode } from "react";
 import type { AlertEvent } from "@/models";
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 /**
  * Feed timestamp — HH:mm for today's events, "MMM d" for older ones (a
@@ -14,7 +27,8 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
  * surface (the TimeseriesPanel X-10 note), independent of host timezone.
  */
 function feedTime(ts: string): string {
-  if (ts.slice(0, 10) === new Date().toISOString().slice(0, 10)) return ts.slice(11, 16);
+  if (ts.slice(0, 10) === new Date().toISOString().slice(0, 10))
+    return ts.slice(11, 16);
   return `${MONTHS[Number(ts.slice(5, 7)) - 1]} ${Number(ts.slice(8, 10))}`;
 }
 
@@ -55,18 +69,28 @@ export function AlertFeedRow({ event, onClick, className }: AlertFeedRowProps) {
         <span
           className={clsx(
             "truncate text-[13px]",
-            event.unread ? "font-semibold text-text" : "font-normal text-text-2",
+            event.unread
+              ? "font-semibold text-text"
+              : "font-normal text-text-2",
           )}
         >
           {event.monitor_name}
         </span>
-        <span className="truncate text-[12px] text-text-2">{event.message}</span>
+        <span className="truncate text-[12px] text-text-2">
+          {event.message}
+        </span>
       </div>
-      <time dateTime={event.ts} className="shrink-0 text-[11px] tabular-nums text-text-2">
+      <time
+        dateTime={event.ts}
+        className="shrink-0 text-[11px] tabular-nums text-text-2"
+      >
         {feedTime(event.ts)}
       </time>
       {event.unread && (
-        <span aria-label="unread" className="size-1.5 shrink-0 rounded-full bg-brand" />
+        <span
+          aria-label="unread"
+          className="size-1.5 shrink-0 rounded-full bg-brand"
+        />
       )}
     </button>
   );
@@ -117,7 +141,11 @@ function NotificationPanel({
       ) : (
         <div className="max-h-80 overflow-y-auto">
           {events.map((event) => (
-            <AlertFeedRow key={event.id} event={event} onClick={() => onEventClick?.(event)} />
+            <AlertFeedRow
+              key={event.id}
+              event={event}
+              onClick={() => onEventClick?.(event)}
+            />
           ))}
         </div>
       )}
@@ -135,14 +163,30 @@ export function NotificationPopover({
   className,
 }: NotificationPopoverProps) {
   if (!trigger) {
-    return <NotificationPanel events={events} onEventClick={onEventClick} className={className} />;
+    return (
+      <NotificationPanel
+        events={events}
+        onEventClick={onEventClick}
+        className={className}
+      />
+    );
   }
   return (
     <Popover.Root open={open} onOpenChange={onOpenChange}>
       <Popover.Trigger asChild>{trigger}</Popover.Trigger>
       <Popover.Portal>
-        <Popover.Content side="bottom" align="end" sideOffset={4} collisionPadding={8} asChild>
-          <NotificationPanel events={events} onEventClick={onEventClick} className={className} />
+        <Popover.Content
+          side="bottom"
+          align="end"
+          sideOffset={4}
+          collisionPadding={8}
+          asChild
+        >
+          <NotificationPanel
+            events={events}
+            onEventClick={onEventClick}
+            className={className}
+          />
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>

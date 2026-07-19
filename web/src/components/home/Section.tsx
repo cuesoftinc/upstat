@@ -25,9 +25,13 @@ export function Section({ id, title, sub, children, className }: SectionProps) {
       className={clsx("mx-auto w-full max-w-[1200px] px-6 py-14", className)}
     >
       {title && (
-        <h2 className="text-[24px] font-semibold text-text md:text-[28px]">{title}</h2>
+        <h2 className="text-[24px] font-semibold text-text md:text-[28px]">
+          {title}
+        </h2>
       )}
-      {sub && <p className="mt-3 text-[14px] leading-normal text-text-2">{sub}</p>}
+      {sub && (
+        <p className="mt-3 text-[14px] leading-normal text-text-2">{sub}</p>
+      )}
       <div className={clsx((title || sub) && "mt-10")}>{children}</div>
     </section>
   );

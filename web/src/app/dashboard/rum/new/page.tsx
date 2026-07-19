@@ -26,14 +26,20 @@ export default function RumNewPropertyPage() {
     : "";
 
   return (
-    <div className="flex flex-col gap-5 px-6 py-5" data-testid="rum-new-property">
+    <div
+      className="flex flex-col gap-5 px-6 py-5"
+      data-testid="rum-new-property"
+    >
       <h1 className="text-[20px] font-semibold">RUM — add property</h1>
 
       <section
         aria-labelledby="new-property-heading"
         className="rounded-(--radius) border border-border bg-bg-elev p-5"
       >
-        <h2 id="new-property-heading" className="mb-4 text-[16px] font-semibold">
+        <h2
+          id="new-property-heading"
+          className="mb-4 text-[16px] font-semibold"
+        >
           New property
         </h2>
 
@@ -54,7 +60,11 @@ export default function RumNewPropertyPage() {
                 {ctrl.error}
               </p>
             )}
-            <Button type="submit" disabled={ctrl.creating || !domain.trim()} data-testid="create-property">
+            <Button
+              type="submit"
+              disabled={ctrl.creating || !domain.trim()}
+              data-testid="create-property"
+            >
               {ctrl.creating ? "Creating…" : "Create property"}
             </Button>
           </form>
@@ -73,14 +83,20 @@ export default function RumNewPropertyPage() {
                 <CodeSnippet tabs={[{ label: "HTML", code: snippet }]} />
               </div>
 
-              <div aria-live="polite" className="flex flex-col items-start gap-3">
+              <div
+                aria-live="polite"
+                className="flex flex-col items-start gap-3"
+              >
                 {ctrl.verified ? (
                   <>
                     <span
                       data-testid="property-verified"
                       className="inline-flex items-center gap-1.5 rounded-full bg-ok/15 px-2.5 py-1 text-[12px] text-ok"
                     >
-                      <span aria-hidden="true" className="size-1.5 rounded-full bg-ok" />
+                      <span
+                        aria-hidden="true"
+                        className="size-1.5 rounded-full bg-ok"
+                      />
                       VERIFIED
                     </span>
                     <p className="text-[13px] leading-[1.45] text-text-2">
@@ -94,7 +110,10 @@ export default function RumNewPropertyPage() {
                       data-testid="property-verifying"
                       className="inline-flex items-center gap-1.5 rounded-full border border-border bg-bg px-2.5 py-1 text-[12px] text-text-2"
                     >
-                      <span aria-hidden="true" className="size-1.5 animate-pulse rounded-full bg-nodata motion-reduce:animate-none" />
+                      <span
+                        aria-hidden="true"
+                        className="size-1.5 animate-pulse rounded-full bg-nodata motion-reduce:animate-none"
+                      />
                       verifying
                     </span>
                     <p className="text-[13px] leading-[1.45] text-text">
@@ -105,7 +124,11 @@ export default function RumNewPropertyPage() {
                       flips green on the first event. No cookies are set;
                       visitor counts use a daily-rotating salt.
                     </p>
-                    <Button kind="quiet" onClick={ctrl.recheck} data-testid="recheck-property">
+                    <Button
+                      kind="quiet"
+                      onClick={ctrl.recheck}
+                      data-testid="recheck-property"
+                    >
                       Re-check now
                     </Button>
                   </>

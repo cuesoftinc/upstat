@@ -62,12 +62,19 @@ export function ShortcutCheatsheet({
           className,
         )}
       >
-        <h2 className="mb-3 text-[16px] font-semibold text-text">Keyboard shortcuts</h2>
+        <h2 className="mb-3 text-[16px] font-semibold text-text">
+          Keyboard shortcuts
+        </h2>
         {/* semantic: shortcut map is a definition list (label → keys) */}
         <dl className="grid grid-cols-2 gap-x-6 gap-y-2">
           {shortcuts.map((s) => (
-            <div key={s.keys} className="flex items-center justify-between gap-2">
-              <dt className="text-[13px] leading-[1.45] text-text-2">{s.label}</dt>
+            <div
+              key={s.keys}
+              className="flex items-center justify-between gap-2"
+            >
+              <dt className="text-[13px] leading-[1.45] text-text-2">
+                {s.label}
+              </dt>
               <dd className="m-0">
                 <KbdChip keys={s.keys} />
               </dd>

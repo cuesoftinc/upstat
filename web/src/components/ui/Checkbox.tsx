@@ -45,8 +45,12 @@ export function Checkbox({
         className,
       )}
     >
-      {isChecked && <Check aria-hidden="true" className="size-3" strokeWidth={3} />}
-      {isIndeterminate && <Minus aria-hidden="true" className="size-3" strokeWidth={3} />}
+      {isChecked && (
+        <Check aria-hidden="true" className="size-3" strokeWidth={3} />
+      )}
+      {isIndeterminate && (
+        <Minus aria-hidden="true" className="size-3" strokeWidth={3} />
+      )}
     </CheckboxPrimitive.Root>
   );
 }

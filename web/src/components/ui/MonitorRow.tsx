@@ -44,7 +44,9 @@ export function MonitorRow({
         onClick={onClick}
         className="flex min-w-0 flex-1 items-center gap-3 text-left"
       >
-        <span className="w-44 truncate text-[13px] font-medium text-text">{name}</span>
+        <span className="w-44 truncate text-[13px] font-medium text-text">
+          {name}
+        </span>
         <span className="font-data min-w-0 flex-1 truncate text-[12px] text-text-2">
           {summary}
         </span>

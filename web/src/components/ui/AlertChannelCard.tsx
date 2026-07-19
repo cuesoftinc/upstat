@@ -12,7 +12,12 @@ export interface AlertChannelCardProps {
 }
 
 /** AlertChannelCard — §8.2 alert forms: webhook/email · unverified/verified/degraded. */
-export function AlertChannelCard({ channel, onVerify, onDelete, className }: AlertChannelCardProps) {
+export function AlertChannelCard({
+  channel,
+  onVerify,
+  onDelete,
+  className,
+}: AlertChannelCardProps) {
   const Icon = channel.kind === "email" ? Mail : Webhook;
   return (
     <div
@@ -25,8 +30,12 @@ export function AlertChannelCard({ channel, onVerify, onDelete, className }: Ale
     >
       <Icon aria-hidden="true" className="size-4 shrink-0 text-text-2" />
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className="text-[12px] uppercase tracking-wide text-text-2">{channel.kind}</span>
-        <span className="font-data truncate text-[13px] text-text">{channel.target}</span>
+        <span className="text-[12px] uppercase tracking-wide text-text-2">
+          {channel.kind}
+        </span>
+        <span className="font-data truncate text-[13px] text-text">
+          {channel.target}
+        </span>
       </div>
       <span
         className={clsx(

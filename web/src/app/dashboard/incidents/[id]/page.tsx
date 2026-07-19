@@ -16,7 +16,8 @@ import { useIncidentController } from "@/controllers/incidents";
  */
 export default function IncidentDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { incident, entries, postUpdate, posting, postError } = useIncidentController(id);
+  const { incident, entries, postUpdate, posting, postError } =
+    useIncidentController(id);
 
   if (incident.loading || !incident.data) {
     return (
@@ -30,7 +31,10 @@ export default function IncidentDetailPage() {
   const inc = incident.data;
 
   return (
-    <div data-testid="incident-detail" className="flex max-w-[960px] flex-col gap-5 px-6 py-5">
+    <div
+      data-testid="incident-detail"
+      className="flex max-w-[960px] flex-col gap-5 px-6 py-5"
+    >
       <header className="flex items-center gap-3">
         <SevChip sev={Math.min(inc.sev, 3) as Sev} />
         <h1 className="min-w-0 flex-1 truncate text-[20px] font-semibold">
@@ -54,11 +58,15 @@ export default function IncidentDetailPage() {
         }
       />
 
-      {postError && <Toast kind="error" message={`Update failed — ${postError}`} />}
+      {postError && (
+        <Toast kind="error" message={`Update failed — ${postError}`} />
+      )}
 
       <section aria-label="Timeline" className="flex flex-col">
         {entries.length === 0 ? (
-          <p className="text-[13px] leading-[1.45] text-text-2">No updates yet.</p>
+          <p className="text-[13px] leading-[1.45] text-text-2">
+            No updates yet.
+          </p>
         ) : (
           <IncidentHistoryEntry
             updates={entries.map((e) => ({

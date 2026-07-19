@@ -107,7 +107,13 @@ export function PillarsSection() {
 /* A5 — OTel ingestion                                                  */
 /* ------------------------------------------------------------------ */
 
-function FlowChip({ label, accent = false }: { label: string; accent?: boolean }) {
+function FlowChip({
+  label,
+  accent = false,
+}: {
+  label: string;
+  accent?: boolean;
+}) {
   return (
     <span
       className={
@@ -130,7 +136,10 @@ export function OtelSection() {
       <div className="grid items-center gap-12 lg:grid-cols-[1fr_480px]">
         <CodeSnippet tabs={OTEL_SNIPPETS} />
         <div className="flex flex-col gap-5">
-          <div className="flex flex-wrap items-center gap-3" aria-label="Ingest flow">
+          <div
+            className="flex flex-wrap items-center gap-3"
+            aria-label="Ingest flow"
+          >
             <FlowChip label="your services" />
             <span aria-hidden="true" className="text-[13px] text-text-2">
               ⟶
@@ -142,8 +151,8 @@ export function OtelSection() {
             <FlowChip label="upstat ingest + storage" accent />
           </div>
           <p className="text-[12px] text-text-2">
-            OTLP (traces · metrics · logs) + StatsD-compatible endpoint · browser
-            SDK for RUM
+            OTLP (traces · metrics · logs) + StatsD-compatible endpoint ·
+            browser SDK for RUM
           </p>
         </div>
       </div>
@@ -184,7 +193,9 @@ function Step({
   return (
     <div className="min-w-0 flex flex-col gap-3">
       <div className="flex items-baseline gap-2.5">
-        <span className="font-data text-[20px] font-semibold tabular-nums text-brand">{n}</span>
+        <span className="font-data text-[20px] font-semibold tabular-nums text-brand">
+          {n}
+        </span>
         <h3 className="text-[16px] font-semibold text-text">{title}</h3>
       </div>
       <p className="text-[12px] leading-normal text-text-2">{body}</p>

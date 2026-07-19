@@ -61,7 +61,10 @@ export function TopBar({
         <span className="hidden rounded-(--radius) border border-border px-1 text-[10px] uppercase tracking-wide text-text-2 md:inline-block">
           {env}
         </span>
-        <ChevronDown aria-hidden="true" className="size-3.5 shrink-0 text-text-2" />
+        <ChevronDown
+          aria-hidden="true"
+          className="size-3.5 shrink-0 text-text-2"
+        />
       </button>
 
       <div className="flex-1" />
@@ -96,7 +99,10 @@ export function TopBar({
       >
         <Bell className="size-4.5" />
         {unreadCount > 0 && (
-          <CountBadge count={unreadCount} className="absolute -right-1 -top-1" />
+          <CountBadge
+            count={unreadCount}
+            className="absolute -right-1 -top-1"
+          />
         )}
       </button>
     </header>

@@ -10,7 +10,11 @@ export async function GET() {
 
 /** POST /v1/keys — create; the secret is visible in this response only. */
 export async function POST(req: Request) {
-  const body = await readJson<{ kind?: ApiKey["kind"]; name?: string; scope?: ApiKey["scope"] }>(req);
+  const body = await readJson<{
+    kind?: ApiKey["kind"];
+    name?: string;
+    scope?: ApiKey["scope"];
+  }>(req);
   if (!body?.kind || !body.name || !body.scope) {
     return jsonError(422, "bad_shape", "kind, name and scope are required");
   }

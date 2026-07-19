@@ -26,7 +26,11 @@ export async function POST(
   const db = getDb();
   const incident = db.incidents.find((i) => i.id === id);
   if (!incident) return notFound("incident");
-  const body = await readJson<{ phase?: IncidentPhase; body?: string; author?: string }>(req);
+  const body = await readJson<{
+    phase?: IncidentPhase;
+    body?: string;
+    author?: string;
+  }>(req);
   if (!body?.body || !body.author) {
     return jsonError(422, "bad_shape", "body and author are required");
   }

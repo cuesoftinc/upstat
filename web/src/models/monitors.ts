@@ -1,11 +1,6 @@
 /** Monitors / uptime checks — data-model.md §1 (current entities, B7 pillar). */
 
-export type MonitorStatus =
-  | "up"
-  | "down"
-  | "pending"
-  | "nodata"
-  | "paused";
+export type MonitorStatus = "up" | "down" | "pending" | "nodata" | "paused";
 
 export type MonitorType = "website" | "server" | "api" | "blog";
 

@@ -19,7 +19,9 @@ describe("LogLine", () => {
   it("expands into the JSON tree (MI-5)", async () => {
     render(<LogLine event={LOG} />);
     expect(screen.queryByText("attrs.env")).toBeNull();
-    await userEvent.click(screen.getByRole("button", { name: /insert failed/ }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /insert failed/ }),
+    );
     expect(screen.getByText("attrs.env")).toBeInTheDocument();
     expect(screen.getByText("trace_id")).toBeInTheDocument();
   });

@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { resetDb } from "@/mocks/store";
 import { GET, POST } from "./route";
-import { GET as getTimeline, POST as postTimeline } from "./[id]/timeline/route";
+import {
+  GET as getTimeline,
+  POST as postTimeline,
+} from "./[id]/timeline/route";
 
 const params = (id: string) => ({ params: Promise.resolve({ id }) });
 
@@ -20,7 +23,9 @@ describe("/v1/incidents + timeline", () => {
       services: ["checkout", "api-common"],
     });
 
-    const timeline = await (await getTimeline(new Request("http://mock"), params(inc42.id))).json();
+    const timeline = await (
+      await getTimeline(new Request("http://mock"), params(inc42.id))
+    ).json();
     expect(timeline.map((t: { phase: string }) => t.phase)).toEqual([
       "monitoring",
       "identified",
@@ -32,14 +37,20 @@ describe("/v1/incidents + timeline", () => {
     const res = await POST(
       new Request("http://mock", {
         method: "POST",
-        body: JSON.stringify({ title: "Ingest lag", sev: 2, commander: "Kemi" }),
+        body: JSON.stringify({
+          title: "Ingest lag",
+          sev: 2,
+          commander: "Kemi",
+        }),
       }),
     );
     expect(res.status).toBe(201);
     const incident = await res.json();
     expect(incident.key).toBe("INC-43");
     expect(incident.status).toBe("investigating");
-    const timeline = await (await getTimeline(new Request("http://mock"), params(incident.id))).json();
+    const timeline = await (
+      await getTimeline(new Request("http://mock"), params(incident.id))
+    ).json();
     expect(timeline).toHaveLength(1);
   });
 
@@ -49,7 +60,11 @@ describe("/v1/incidents + timeline", () => {
     const res = await postTimeline(
       new Request("http://mock", {
         method: "POST",
-        body: JSON.stringify({ phase: "resolved", body: "All clear for 60m.", author: "Ibukun" }),
+        body: JSON.stringify({
+          phase: "resolved",
+          body: "All clear for 60m.",
+          author: "Ibukun",
+        }),
       }),
       params(inc42.id),
     );

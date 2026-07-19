@@ -4,7 +4,9 @@ import { TopList } from "./TopList";
 
 describe("TopList", () => {
   it("renders ranked bars and the empty state", () => {
-    const { rerender } = render(<TopList entries={[{ label: "checkout", value: 42 }]} />);
+    const { rerender } = render(
+      <TopList entries={[{ label: "checkout", value: 42 }]} />,
+    );
     expect(screen.getByText("checkout")).toBeInTheDocument();
     rerender(<TopList entries={[]} />);
     expect(screen.getByText("No data in range.")).toBeInTheDocument();

@@ -14,7 +14,11 @@ export async function GET(req: Request) {
     ? Date.parse(url.searchParams.get("to")!)
     : now;
   if (Number.isNaN(fromMs) || Number.isNaN(toMs) || toMs <= fromMs) {
-    return jsonError(422, "ts_out_of_range", "from/to must be a valid RFC3339 range");
+    return jsonError(
+      422,
+      "ts_out_of_range",
+      "from/to must be a valid RFC3339 range",
+    );
   }
   // fresh org: nothing until the first pageview "arrives" (MI-16)
   if (!telemetryReady(getDb())) {

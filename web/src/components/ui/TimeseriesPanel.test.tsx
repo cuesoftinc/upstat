@@ -17,8 +17,12 @@ const SERIES: Series[] = [
 
 describe("TimeseriesPanel", () => {
   it("renders the chart with legend toggle", async () => {
-    render(<TimeseriesPanel title="p95 latency" query="| p95()" series={SERIES} />);
-    expect(screen.getByRole("img", { name: "p95 latency chart" })).toBeInTheDocument();
+    render(
+      <TimeseriesPanel title="p95 latency" query="| p95()" series={SERIES} />,
+    );
+    expect(
+      screen.getByRole("img", { name: "p95 latency chart" }),
+    ).toBeInTheDocument();
     const legend = screen.getByRole("button", { name: /p95\(/ });
     expect(legend).toHaveAttribute("aria-pressed", "true");
     await userEvent.click(legend);
@@ -26,7 +30,9 @@ describe("TimeseriesPanel", () => {
   });
 
   it("shows axis-first loading and radar empty states (MI-16)", () => {
-    const { container, rerender } = render(<TimeseriesPanel title="t" series={[]} loading />);
+    const { container, rerender } = render(
+      <TimeseriesPanel title="t" series={[]} loading />,
+    );
     expect(container.querySelector('[data-kind="panel-axis"]')).not.toBeNull();
     rerender(<TimeseriesPanel title="t" series={[]} />);
     expect(screen.getByText("Waiting for data…")).toBeInTheDocument();
@@ -59,6 +65,8 @@ describe("TimeseriesPanel", () => {
     );
     // ungrouped names still render in full
     render(<TimeseriesPanel title="u" series={SERIES} />);
-    expect(screen.getByText("p95(http.request.duration_ms)")).toBeInTheDocument();
+    expect(
+      screen.getByText("p95(http.request.duration_ms)"),
+    ).toBeInTheDocument();
   });
 });

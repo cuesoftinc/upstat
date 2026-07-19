@@ -13,7 +13,13 @@ export interface SettingsRowProps {
 }
 
 /** SettingsRow — §8.2: label + description + control slot · default/disabled. */
-export function SettingsRow({ label, description, control, disabled = false, className }: SettingsRowProps) {
+export function SettingsRow({
+  label,
+  description,
+  control,
+  disabled = false,
+  className,
+}: SettingsRowProps) {
   return (
     <div
       data-disabled={disabled || undefined}
@@ -26,7 +32,9 @@ export function SettingsRow({ label, description, control, disabled = false, cla
       <div className="flex min-w-0 flex-col gap-0.5">
         <span className="text-[14px] font-medium text-text">{label}</span>
         {description && (
-          <span className="text-[12px] leading-[1.45] text-text-2">{description}</span>
+          <span className="text-[12px] leading-[1.45] text-text-2">
+            {description}
+          </span>
         )}
       </div>
       {/* inert gates the WHOLE slot: a disabled composite must disable its

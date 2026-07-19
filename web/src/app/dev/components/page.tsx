@@ -9,7 +9,10 @@ export const metadata = { title: "Component gallery — Upstat dev" };
 
 export default function DevComponentsPage() {
   // both flags inline at build time (NEXT_PUBLIC_*, setup.md)
-  if (process.env.NODE_ENV === "production" && process.env.NEXT_PUBLIC_TEST_MODE !== "1") {
+  if (
+    process.env.NODE_ENV === "production" &&
+    process.env.NEXT_PUBLIC_TEST_MODE !== "1"
+  ) {
     notFound();
   }
   return <ComponentGallery />;

@@ -12,7 +12,14 @@ const OPTIONS = [
 describe("Select", () => {
   it("opens and commits a value", async () => {
     const onChange = vi.fn();
-    render(<Select options={OPTIONS} value="utc" onValueChange={onChange} aria-label="tz" />);
+    render(
+      <Select
+        options={OPTIONS}
+        value="utc"
+        onValueChange={onChange}
+        aria-label="tz"
+      />,
+    );
     await userEvent.click(screen.getByRole("combobox", { name: "tz" }));
     await userEvent.click(screen.getByRole("button", { name: "Africa/Lagos" }));
     expect(onChange).toHaveBeenCalledWith("lagos");
@@ -20,7 +27,13 @@ describe("Select", () => {
 
   it("filters via type-ahead (IANA lists, X-10)", async () => {
     render(
-      <Select options={OPTIONS} value={null} onValueChange={() => undefined} typeahead aria-label="tz" />,
+      <Select
+        options={OPTIONS}
+        value={null}
+        onValueChange={() => undefined}
+        typeahead
+        aria-label="tz"
+      />,
     );
     await userEvent.click(screen.getByRole("combobox", { name: "tz" }));
     await userEvent.type(screen.getByLabelText("Filter options"), "lag");

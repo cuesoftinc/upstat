@@ -116,7 +116,10 @@ export const NAV_PILLARS: { key: string; label: string; icon: LucideIcon }[] = [
  */
 export const NAV_SECTIONS: { title: string | null; keys: string[] }[] = [
   { title: null, keys: ["home"] },
-  { title: "Telemetry", keys: ["dashboards", "metrics", "logs", "traces", "rum", "uptime"] },
+  {
+    title: "Telemetry",
+    keys: ["dashboards", "metrics", "logs", "traces", "rum", "uptime"],
+  },
   { title: "Respond", keys: ["monitors", "incidents", "slos"] },
   { title: "Platform", keys: ["catalog", "settings"] },
 ];
@@ -205,13 +208,18 @@ function RailBody({
         <span className="flex size-8 shrink-0 items-center justify-center rounded-(--radius) bg-brand text-[14px] font-semibold text-on-brand">
           U
         </span>
-        {expanded && <span className="text-[14px] font-semibold text-text">upstat</span>}
+        {expanded && (
+          <span className="text-[14px] font-semibold text-text">upstat</span>
+        )}
       </span>
 
       {NAV_SECTIONS.map((section) => (
         <div
           key={section.title ?? "top"}
-          className={clsx("flex flex-col gap-1", expanded ? "items-stretch" : "items-center")}
+          className={clsx(
+            "flex flex-col gap-1",
+            expanded ? "items-stretch" : "items-center",
+          )}
         >
           {section.title ? (
             expanded ? (
@@ -310,7 +318,9 @@ export function NavRail({ activeKey, onNavigate, className }: NavRailProps) {
           expanded={inlineExpanded}
           activeKey={activeKey}
           onSelect={(key) => onNavigate?.(key)}
-          footLabel={inlineExpanded ? "Collapse navigation" : "Expand navigation"}
+          footLabel={
+            inlineExpanded ? "Collapse navigation" : "Expand navigation"
+          }
           footExpanded={isMobile ? drawerOpen : inlineExpanded}
           onToggle={() => (isMobile ? setDrawerOpen(true) : toggleExpanded())}
         />
@@ -320,7 +330,10 @@ export function NavRail({ activeKey, onNavigate, className }: NavRailProps) {
           drawer a real focus trap + inert background; Escape and
           overlay-tap dismissal and focus restoration to the toggle come
           with the primitive (the headless-behavior allowance, §1). */}
-      <Dialog.Root open={open} onOpenChange={(next) => !next && setDrawerOpen(false)}>
+      <Dialog.Root
+        open={open}
+        onOpenChange={(next) => !next && setDrawerOpen(false)}
+      >
         <Dialog.Portal>
           <Dialog.Overlay
             data-testid="rail-scrim"

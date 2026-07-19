@@ -17,9 +17,17 @@ const PAD_R = 8;
 const PAD_T = 6;
 const PAD_B = 18;
 
-export function ReplayPanel({ result, title }: { result: RuleTestResult; title: string }) {
+export function ReplayPanel({
+  result,
+  title,
+}: {
+  result: RuleTestResult;
+  title: string;
+}) {
   const points = result.series[0]?.points ?? [];
-  const values = result.series.flatMap((s) => s.points.map((p) => p.value ?? 0));
+  const values = result.series.flatMap((s) =>
+    s.points.map((p) => p.value ?? 0),
+  );
   const max = Math.max(...values, 1) * 1.05;
   const fromMs = points.length > 0 ? Date.parse(points[0].ts) : 0;
   const toMs = points.length > 0 ? Date.parse(points[points.length - 1].ts) : 1;
@@ -65,8 +73,8 @@ export function ReplayPanel({ result, title }: { result: RuleTestResult; title: 
         would have fired ×{result.would_have_fired}
         <span className="text-text-2">
           {" "}
-          · warn {result.thresholds.warn ?? "—"} · crit {result.thresholds.crit} · window{" "}
-          {result.thresholds.window}
+          · warn {result.thresholds.warn ?? "—"} · crit {result.thresholds.crit}{" "}
+          · window {result.thresholds.window}
         </span>
       </figcaption>
     </figure>

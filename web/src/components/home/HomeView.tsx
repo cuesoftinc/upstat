@@ -46,7 +46,11 @@ export function HomeView() {
 
   return (
     <div className="font-ui min-h-screen bg-bg text-text">
-      <MarketingNav starCount={stars} onSignIn={onSignIn} onTryCloud={onTryCloud} />
+      <MarketingNav
+        starCount={stars}
+        onSignIn={onSignIn}
+        onTryCloud={onTryCloud}
+      />
 
       <main>
         <HeroSection
@@ -77,7 +81,10 @@ export function HomeView() {
           visitorsSparkline={demo.visitorsSparkline}
           lcpSparkline={demo.lcpSparkline}
         />
-        <StatusEmbedSection rows={demo.statusRows} updatedAt={demo.statusUpdatedAt} />
+        <StatusEmbedSection
+          rows={demo.statusRows}
+          updatedAt={demo.statusUpdatedAt}
+        />
         <SelfHostSection onSelfHostDocs={onSelfHostDocs} />
         <CloudSelfHostSection onTryCloud={onTryCloud} onSelfHost={onSelfHost} />
         <DevelopersSection onGithub={onGithub} />

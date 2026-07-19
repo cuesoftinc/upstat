@@ -55,7 +55,11 @@ function noise(key: string, bucketMs: number, amplitude: number): number {
   return (r() * 2 - 1) * amplitude;
 }
 
-function inOutage(tMs: number, outage: OutageWindow, service?: string): boolean {
+function inOutage(
+  tMs: number,
+  outage: OutageWindow,
+  service?: string,
+): boolean {
   if (tMs < outage.start || tMs > outage.end) return false;
   if (!service) return true;
   return outage.services.includes(service);
@@ -102,32 +106,46 @@ const DEPLOY_BLIP_MS = 45 * MINUTE;
 const DEPLOY_STAGE_STEP_MS = 30 * SECOND;
 
 const DEPLOY_STAGES = [
-  (s: string, v: string) => `deploy started service=${s} version=${v} strategy=canary`,
-  (s: string, v: string) => `canary at 25% service=${s} version=${v} error_rate=nominal`,
+  (s: string, v: string) =>
+    `deploy started service=${s} version=${v} strategy=canary`,
+  (s: string, v: string) =>
+    `canary at 25% service=${s} version=${v} error_rate=nominal`,
   (s: string, v: string) => `canary checks passed service=${s} version=${v}`,
   (s: string, v: string) => `rollout 100% service=${s} version=${v}`,
-  (s: string, v: string) => `deploy finished service=${s} version=${v} duration=120s`,
+  (s: string, v: string) =>
+    `deploy finished service=${s} version=${v} duration=120s`,
 ];
 
-export function lastDeploy(service: string, tMs: number): { at: number; version: string } {
+export function lastDeploy(
+  service: string,
+  tMs: number,
+): { at: number; version: string } {
   // second-aligned offset: the log generator iterates whole seconds, so
   // deploy instants must land exactly on one (PR #166 review — a ms-precise
   // offset shifted every stage band off the generator's grid)
   const offset =
-    Math.floor((unitFor(`deploy:${service}`) * DEPLOY_PERIOD) / SECOND) * SECOND;
+    Math.floor((unitFor(`deploy:${service}`) * DEPLOY_PERIOD) / SECOND) *
+    SECOND;
   const n = Math.floor((tMs - offset) / DEPLOY_PERIOD);
   const at = offset + n * DEPLOY_PERIOD;
   // monotonic-looking versions: patch bumps per deploy, minor weekly
-  return { at, version: `1.${14 + (Math.floor(n / 28) % 4)}.${((n % 28) + 28) % 28}` };
+  return {
+    at,
+    version: `1.${14 + (Math.floor(n / 28) % 4)}.${((n % 28) + 28) % 28}`,
+  };
 }
 
 /** Rollout stage line for the second at `secMs`, or null outside windows. */
 function deployStageLine(service: string, secMs: number): string | null {
   const { at, version } = lastDeploy(service, secMs + SECOND - 1);
   const since = secMs - at;
-  if (since < 0 || since > DEPLOY_STAGE_STEP_MS * (DEPLOY_STAGES.length - 1)) return null;
+  if (since < 0 || since > DEPLOY_STAGE_STEP_MS * (DEPLOY_STAGES.length - 1))
+    return null;
   if (since % DEPLOY_STAGE_STEP_MS >= SECOND) return null; // band's first second only
-  return DEPLOY_STAGES[Math.round(since / DEPLOY_STAGE_STEP_MS)](service, version);
+  return DEPLOY_STAGES[Math.round(since / DEPLOY_STAGE_STEP_MS)](
+    service,
+    version,
+  );
 }
 
 /** 1 → just deployed, fading to 0 over the blip window (prod only). */
@@ -158,7 +176,11 @@ export function metricValue(
   const outageHit = scale === 1 && inOutage(tMs, outage, service);
   // ramp the spike in/out over 5 minutes so charts look organic
   const ramp = outageHit
-    ? Math.min(1, (tMs - outage.start) / (5 * MINUTE), (outage.end - tMs) / (5 * MINUTE))
+    ? Math.min(
+        1,
+        (tMs - outage.start) / (5 * MINUTE),
+        (outage.end - tMs) / (5 * MINUTE),
+      )
     : 0;
 
   // post-deploy cold-cache blip (prod only, log-line correlated)
@@ -167,8 +189,16 @@ export function metricValue(
   if (metric.includes("duration") || metric.includes("latency")) {
     const { p50, spread } = baseLatency(service);
     const quantile =
-      fn === "p99" ? spread * 2.6 : fn === "p95" ? spread : fn === "p50" || fn === "avg" ? 1 : 1;
-    let v = p50 * quantile * (0.9 + 0.2 * cycle) + noise(`${metric}:${fn}:${service}`, tMs, p50 * 0.08);
+      fn === "p99"
+        ? spread * 2.6
+        : fn === "p95"
+          ? spread
+          : fn === "p50" || fn === "avg"
+            ? 1
+            : 1;
+    let v =
+      p50 * quantile * (0.9 + 0.2 * cycle) +
+      noise(`${metric}:${fn}:${service}`, tMs, p50 * 0.08);
     if (ramp > 0) v *= 1 + 7 * ramp; // ~8x at peak (over the 1.5s crit line)
     v *= 1 + 0.14 * dRamp;
     v *= 0.85 + 0.15 * scale; // lighter non-prod load runs a touch faster
@@ -176,7 +206,9 @@ export function metricValue(
   }
 
   if (metric.includes("error")) {
-    let v = baseRate(service) * 0.004 * cycle + Math.abs(noise(`${metric}:${service}`, tMs, 0.2));
+    let v =
+      baseRate(service) * 0.004 * cycle +
+      Math.abs(noise(`${metric}:${service}`, tMs, 0.2));
     if (ramp > 0) v = baseRate(service) * 0.1 * ramp; // ~25x error spike
     v *= 1 + 1.2 * dRamp;
     v *= scale;
@@ -198,7 +230,9 @@ export function metricValue(
   }
 
   // request/throughput style metrics
-  let v = baseRate(service) * cycle + noise(`${metric}:${service}`, tMs, baseRate(service) * 0.06);
+  let v =
+    baseRate(service) * cycle +
+    noise(`${metric}:${service}`, tMs, baseRate(service) * 0.06);
   if (ramp > 0 && fn !== "count") v *= 1 - 0.35 * ramp; // throughput dips during the incident
   v *= scale;
   return Math.max(0, Math.round(v * 100) / 100);
@@ -213,7 +247,18 @@ export interface ParsedQuery {
   groupBy: string[];
 }
 
-const FNS: QueryFn[] = ["count", "rate", "sum", "avg", "min", "max", "p50", "p95", "p99", "uniq"];
+const FNS: QueryFn[] = [
+  "count",
+  "rate",
+  "sum",
+  "avg",
+  "min",
+  "max",
+  "p50",
+  "p95",
+  "p99",
+  "uniq",
+];
 
 /**
  * Pragmatic parser over the shared grammar (query-grammar.md §1) — enough
@@ -246,7 +291,13 @@ export function parseQuery(q: string): ParsedQuery | { error: string } {
   };
 
   const KNOWN_FACETS = new Set([
-    "service", "env", "host", "status", "level", "metric", "check",
+    "service",
+    "env",
+    "host",
+    "status",
+    "level",
+    "metric",
+    "check",
   ]);
 
   if (filterPart) {
@@ -287,7 +338,8 @@ export function parseQuery(q: string): ParsedQuery | { error: string } {
       if (!FNS.includes(fn)) return { error: `unknown function: ${m[1]}` };
       parsed.agg.push({ fn, field: m[2] || undefined });
     }
-    if (parsed.agg.length === 0) return { error: "aggregation expected after |" };
+    if (parsed.agg.length === 0)
+      return { error: "aggregation expected after |" };
   }
 
   return parsed;

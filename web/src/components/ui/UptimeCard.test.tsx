@@ -9,8 +9,12 @@ describe("UptimeCard", () => {
       uptime_pct: 100,
       down_minutes: 0,
     }));
-    render(<UptimeCard name="Homepage" days={days} uptimePct={99.987} p95Ms={96} />);
-    expect(screen.getByRole("img", { name: "Homepage 90-day uptime" }).children).toHaveLength(90);
+    render(
+      <UptimeCard name="Homepage" days={days} uptimePct={99.987} p95Ms={96} />,
+    );
+    expect(
+      screen.getByRole("img", { name: "Homepage 90-day uptime" }).children,
+    ).toHaveLength(90);
     expect(screen.getByText(/99\.987% uptime/)).toBeInTheDocument();
     expect(screen.getByText("p95 96 ms")).toBeInTheDocument();
     // all-up strip → ok dot-only pill in the header

@@ -10,8 +10,17 @@ import { useRequest } from "./use-request";
 /* ------------------------------------------------------------------ */
 
 const WIDGET_TYPES = new Set([
-  "timeseries", "query_value", "toplist", "table", "heatmap", "logstream",
-  "trace_latency", "slo", "status", "servicemap", "markdown",
+  "timeseries",
+  "query_value",
+  "toplist",
+  "table",
+  "heatmap",
+  "logstream",
+  "trace_latency",
+  "slo",
+  "status",
+  "servicemap",
+  "markdown",
 ]);
 
 export interface PortableDashboard {
@@ -27,14 +36,16 @@ export function dashboardToPortableJson(dashboard: Dashboard): string {
     version: 1,
     name: dashboard.name,
     template_vars: dashboard.template_vars,
-    widgets: dashboard.widgets.map(({ type, title, query, query_string, viz_options, layout }) => ({
-      type,
-      title,
-      query,
-      query_string,
-      viz_options,
-      layout,
-    })),
+    widgets: dashboard.widgets.map(
+      ({ type, title, query, query_string, viz_options, layout }) => ({
+        type,
+        title,
+        query,
+        query_string,
+        viz_options,
+        layout,
+      }),
+    ),
   };
   return JSON.stringify(portable, null, 2);
 }
@@ -49,7 +60,8 @@ export function parsePortableDashboard(text: string): PortableDashboard {
   }
   const obj = raw as Partial<PortableDashboard>;
   if (obj?.version !== 1) throw new Error("unsupported version — expected 1");
-  if (!obj.name || typeof obj.name !== "string") throw new Error("name is required");
+  if (!obj.name || typeof obj.name !== "string")
+    throw new Error("name is required");
   if (!Array.isArray(obj.widgets)) throw new Error("widgets must be an array");
   // template_vars must be a record of string arrays — a bare string value
   // would crash the template-var bar (PR #168 review)
@@ -59,7 +71,8 @@ export function parsePortableDashboard(text: string): PortableDashboard {
       obj.template_vars === null ||
       Array.isArray(obj.template_vars) ||
       Object.values(obj.template_vars).some(
-        (values) => !Array.isArray(values) || values.some((v) => typeof v !== "string"),
+        (values) =>
+          !Array.isArray(values) || values.some((v) => typeof v !== "string"),
       )
     ) {
       throw new Error("template_vars must map names to arrays of strings");
@@ -67,7 +80,9 @@ export function parsePortableDashboard(text: string): PortableDashboard {
   }
   for (const w of obj.widgets) {
     if (!w || typeof w !== "object" || !WIDGET_TYPES.has((w as Widget).type)) {
-      throw new Error(`unknown widget type: ${(w as Widget | undefined)?.type ?? "?"}`);
+      throw new Error(
+        `unknown widget type: ${(w as Widget | undefined)?.type ?? "?"}`,
+      );
     }
     // display fields must be strings when present — substituteVars calls
     // .replace on them at render time (PR #168 review round 2)
@@ -79,7 +94,9 @@ export function parsePortableDashboard(text: string): PortableDashboard {
     }
     if (
       w.viz_options !== undefined &&
-      (typeof w.viz_options !== "object" || w.viz_options === null || Array.isArray(w.viz_options))
+      (typeof w.viz_options !== "object" ||
+        w.viz_options === null ||
+        Array.isArray(w.viz_options))
     ) {
       throw new Error("widget viz_options must be an object");
     }
@@ -97,7 +114,9 @@ export function parsePortableDashboard(text: string): PortableDashboard {
     // out-of-range spans render broken CSS grid placements
     if (
       !layout ||
-      [layout.x, layout.y, layout.w, layout.h].some((n) => !Number.isInteger(n)) ||
+      [layout.x, layout.y, layout.w, layout.h].some(
+        (n) => !Number.isInteger(n),
+      ) ||
       layout.x < 0 ||
       layout.w < 1 ||
       layout.x + layout.w > 12 ||
@@ -170,7 +189,9 @@ export function useDashboardsController() {
       const dashboard = await dashboardsRepo.create({ name: portable.name });
       try {
         if (Object.keys(portable.template_vars).length > 0) {
-          await dashboardsRepo.update(dashboard.id, { template_vars: portable.template_vars });
+          await dashboardsRepo.update(dashboard.id, {
+            template_vars: portable.template_vars,
+          });
         }
         for (const widget of portable.widgets) {
           await dashboardsRepo.addWidget(dashboard.id, widget);

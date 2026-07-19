@@ -12,7 +12,13 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   mono?: boolean;
 }
 
-export function Input({ error = false, errorMessage, mono = false, className, ...rest }: InputProps) {
+export function Input({
+  error = false,
+  errorMessage,
+  mono = false,
+  className,
+  ...rest
+}: InputProps) {
   const invalid = error || Boolean(errorMessage);
   const field = (
     <input

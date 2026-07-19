@@ -25,7 +25,9 @@ export default function NewMonitorPage() {
   // reactive search params — reading window.location races client navigation
   const signalParam = useSearchParams().get("signal");
   const [signal, setSignal] = useState<AlertSignal>(
-    SIGNALS.includes(signalParam as AlertSignal) ? (signalParam as AlertSignal) : "uptime",
+    SIGNALS.includes(signalParam as AlertSignal)
+      ? (signalParam as AlertSignal)
+      : "uptime",
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,13 +63,18 @@ export default function NewMonitorPage() {
       });
       router.push(`/dashboard/uptime/${monitor.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "could not create the check");
+      setError(
+        err instanceof Error ? err.message : "could not create the check",
+      );
       setSaving(false);
     }
   };
 
   return (
-    <div className="flex flex-col gap-5 px-6 py-5" data-testid="new-monitor-page">
+    <div
+      className="flex flex-col gap-5 px-6 py-5"
+      data-testid="new-monitor-page"
+    >
       <h1 className="text-[20px] font-semibold">Create monitor</h1>
 
       {/* monitor type picker */}
@@ -96,11 +103,16 @@ export default function NewMonitorPage() {
         className="rounded-(--radius) border border-border bg-bg-elev p-5"
       >
         <h2 id="define-heading" className="mb-4 text-[16px] font-semibold">
-          {signal === "uptime" ? "Define check" : `Define rule — ${SIGNAL_LABELS[signal]}`}
+          {signal === "uptime"
+            ? "Define check"
+            : `Define rule — ${SIGNAL_LABELS[signal]}`}
         </h2>
 
         {signal === "uptime" ? (
-          <form onSubmit={createCheck} className="flex max-w-2xl flex-col gap-4">
+          <form
+            onSubmit={createCheck}
+            className="flex max-w-2xl flex-col gap-4"
+          >
             <div className="grid gap-4 md:grid-cols-[1fr_2fr]">
               <label className="flex flex-col gap-1 text-[13px]">
                 <span className="text-text-2">Check type</span>
@@ -117,13 +129,24 @@ export default function NewMonitorPage() {
               </label>
               <label className="flex flex-col gap-1 text-[13px]">
                 <span className="text-text-2">URL</span>
-                <Input mono value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://api.cuesoft.io/healthz" data-testid="check-url" />
+                <Input
+                  mono
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="https://api.cuesoft.io/healthz"
+                  data-testid="check-url"
+                />
               </label>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="flex flex-col gap-1 text-[13px]">
                 <span className="text-text-2">Name</span>
-                <Input value={checkName} onChange={(e) => setCheckName(e.target.value)} placeholder="api.cuesoft.io heartbeat" data-testid="check-name" />
+                <Input
+                  value={checkName}
+                  onChange={(e) => setCheckName(e.target.value)}
+                  placeholder="api.cuesoft.io heartbeat"
+                  data-testid="check-name"
+                />
               </label>
               <label className="flex flex-col gap-1 text-[13px]">
                 <span className="text-text-2">Interval</span>
@@ -145,7 +168,11 @@ export default function NewMonitorPage() {
               </p>
             )}
             <div className="flex gap-2">
-              <Button type="submit" disabled={saving || !checkName.trim() || !url.trim()} data-testid="create-monitor">
+              <Button
+                type="submit"
+                disabled={saving || !checkName.trim() || !url.trim()}
+                data-testid="create-monitor"
+              >
                 {saving ? "Creating…" : "Create monitor"}
               </Button>
               <Button kind="quiet" type="button" onClick={() => router.back()}>

@@ -16,8 +16,7 @@ export interface SkeletonProps {
  * Shimmer sweep; static under prefers-reduced-motion (§5).
  */
 export function Skeleton({ kind = "line", className, style }: SkeletonProps) {
-  const shimmer =
-    "animate-pulse motion-reduce:animate-none bg-bg-elev";
+  const shimmer = "animate-pulse motion-reduce:animate-none bg-bg-elev";
   if (kind === "panel-axis") {
     // axis-first loading: hairline axes + shimmering plot region
     return (
@@ -29,7 +28,12 @@ export function Skeleton({ kind = "line", className, style }: SkeletonProps) {
       >
         <div className="absolute inset-y-0 left-6 w-px bg-border" />
         <div className="absolute inset-x-6 bottom-4 h-px bg-border" />
-        <div className={clsx("absolute inset-x-8 top-2 bottom-6 rounded-(--radius)", shimmer)} />
+        <div
+          className={clsx(
+            "absolute inset-x-8 top-2 bottom-6 rounded-(--radius)",
+            shimmer,
+          )}
+        />
       </div>
     );
   }

@@ -50,7 +50,10 @@ export default function RuleReplayPage() {
       <div className="px-6 py-5">
         <p className="text-[13px] text-text-2">
           Rule not found.{" "}
-          <Link href="/dashboard/monitors" className="text-brand hover:underline">
+          <Link
+            href="/dashboard/monitors"
+            className="text-brand hover:underline"
+          >
             Back to monitors
           </Link>
         </p>
@@ -61,9 +64,14 @@ export default function RuleReplayPage() {
   const { pills } = splitQuery(rule.query_string);
 
   return (
-    <div className="flex flex-col gap-4 px-6 py-5" data-testid="rule-replay-page">
+    <div
+      className="flex flex-col gap-4 px-6 py-5"
+      data-testid="rule-replay-page"
+    >
       <header className="flex items-center justify-between gap-3">
-        <h1 className="text-[20px] font-semibold">Monitor rule — test replay</h1>
+        <h1 className="text-[20px] font-semibold">
+          Monitor rule — test replay
+        </h1>
         {replayToast ? (
           <Toast
             kind="success"
@@ -71,7 +79,13 @@ export default function RuleReplayPage() {
             onDismiss={() => setDismissedResult(testResult)}
           />
         ) : (
-          toast && <Toast kind="success" message={toast} onDismiss={() => setToast(null)} />
+          toast && (
+            <Toast
+              kind="success"
+              message={toast}
+              onDismiss={() => setToast(null)}
+            />
+          )
         )}
       </header>
 
@@ -81,7 +95,9 @@ export default function RuleReplayPage() {
             <QueryPill facet={p.facet} value={p.value} negated={p.negated} />
           </li>
         ))}
-        <li className="font-data text-[12px] text-text-2">{rule.query_string.split("|")[1] ?? ""}</li>
+        <li className="font-data text-[12px] text-text-2">
+          {rule.query_string.split("|")[1] ?? ""}
+        </li>
       </ul>
 
       <div className="grid gap-5 xl:grid-cols-[1.1fr_1fr]">
@@ -98,7 +114,10 @@ export default function RuleReplayPage() {
           className="rounded-(--radius) border border-border bg-bg-elev p-5"
         >
           <header className="mb-3 flex items-center justify-between">
-            <h2 id="replay-summary-heading" className="text-[16px] font-semibold">
+            <h2
+              id="replay-summary-heading"
+              className="text-[16px] font-semibold"
+            >
               Replay — last 24h
             </h2>
             {testResult && (
@@ -117,7 +136,8 @@ export default function RuleReplayPage() {
               <ol className="font-data flex flex-col gap-1.5 text-[13px] text-text">
                 {testResult.markers.map((ts) => (
                   <li key={ts}>
-                    {ts.slice(11, 16)} — crossed crit {testResult.thresholds.crit} → would fire
+                    {ts.slice(11, 16)} — crossed crit{" "}
+                    {testResult.thresholds.crit} → would fire
                   </li>
                 ))}
               </ol>
@@ -129,7 +149,9 @@ export default function RuleReplayPage() {
           <p className="mt-4 text-[12px] text-text-2">
             evaluation window {rule.thresholds.window} · cooldown{" "}
             {rule.notify.cooldown_minutes}m ·{" "}
-            {rule.notify.mute_windows.length > 0 ? "mute windows active" : "no mute windows active"}
+            {rule.notify.mute_windows.length > 0
+              ? "mute windows active"
+              : "no mute windows active"}
           </p>
           <p className="mt-1 text-[12px] text-text-2">
             notifications: {rule.notify.channel_ids.length} channel
@@ -137,10 +159,16 @@ export default function RuleReplayPage() {
           </p>
 
           <div className="mt-5 flex gap-2">
-            <Button kind="quiet" onClick={() => router.push(`/dashboard/monitors?rule=${rule.id}`)}>
+            <Button
+              kind="quiet"
+              onClick={() => router.push(`/dashboard/monitors?rule=${rule.id}`)}
+            >
               Edit thresholds
             </Button>
-            <Button onClick={() => setToast("Rule saved")} data-testid="save-rule-detail">
+            <Button
+              onClick={() => setToast("Rule saved")}
+              data-testid="save-rule-detail"
+            >
               Save rule
             </Button>
           </div>

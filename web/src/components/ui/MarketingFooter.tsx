@@ -39,8 +39,14 @@ const COLUMNS: FooterColumn[] = [
     links: [
       { label: "Docs", href: "https://cuesoft.gitbook.io/upstat" },
       { label: "Quickstart", href: "https://cuesoft.gitbook.io/upstat/setup" },
-      { label: "API reference", href: "https://cuesoft.gitbook.io/upstat/system/api-surface" },
-      { label: "Self-host guide", href: "https://cuesoft.gitbook.io/upstat/system/deployment" },
+      {
+        label: "API reference",
+        href: "https://cuesoft.gitbook.io/upstat/system/api-surface",
+      },
+      {
+        label: "Self-host guide",
+        href: "https://cuesoft.gitbook.io/upstat/system/deployment",
+      },
     ],
   },
   {
@@ -48,7 +54,10 @@ const COLUMNS: FooterColumn[] = [
     links: [
       { label: "GitHub", href: "https://github.com/cuesoftinc/upstat" },
       { label: "Discord", href: "https://discord.gg/CDfZxxrxbb" },
-      { label: "Roadmap", href: "https://cuesoft.gitbook.io/upstat/product/roadmap" },
+      {
+        label: "Roadmap",
+        href: "https://cuesoft.gitbook.io/upstat/product/roadmap",
+      },
       { label: "CueLABS™", href: "https://cuelabs.cuesoft.io" },
     ],
   },
@@ -62,7 +71,8 @@ const COLUMNS: FooterColumn[] = [
   },
 ];
 
-const SECURITY_URL = "https://github.com/cuesoftinc/upstat/blob/main/SECURITY.md";
+const SECURITY_URL =
+  "https://github.com/cuesoftinc/upstat/blob/main/SECURITY.md";
 const LICENSE_URL = "https://github.com/cuesoftinc/upstat/blob/main/LICENSE";
 
 /**
@@ -78,7 +88,12 @@ export function MarketingFooter({
   className,
 }: MarketingFooterProps) {
   return (
-    <footer className={clsx("font-ui border-t border-border bg-bg px-6 py-10", className)}>
+    <footer
+      className={clsx(
+        "font-ui border-t border-border bg-bg px-6 py-10",
+        className,
+      )}
+    >
       {/* marketing container (design.md §2): footer band is full-bleed, its
           content sits on the 1152 rails (outer px-6 supplies the gutters).
           Sibling-parity mobile structure (2026-07-19): brand + 4 columns in
@@ -102,7 +117,11 @@ export function MarketingFooter({
           </div>
         )}
         {columns.map((col) => (
-          <nav key={col.heading} aria-label={col.heading} className="flex flex-col gap-1.5">
+          <nav
+            key={col.heading}
+            aria-label={col.heading}
+            className="flex flex-col gap-1.5"
+          >
             <span className="text-[12px] font-semibold uppercase tracking-wide text-text-2">
               {col.heading}
             </span>

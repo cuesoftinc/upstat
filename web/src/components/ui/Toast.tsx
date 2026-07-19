@@ -20,7 +20,12 @@ const ICONS: Record<ToastKind, typeof Bell> = {
 };
 
 /** Toast — §8.2 kind: info / success / error; lives on z `toast 50`. */
-export function Toast({ kind = "info", message, onDismiss, className }: ToastProps) {
+export function Toast({
+  kind = "info",
+  message,
+  onDismiss,
+  className,
+}: ToastProps) {
   const Icon = ICONS[kind];
   return (
     <div

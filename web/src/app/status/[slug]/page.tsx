@@ -36,8 +36,8 @@ export default function StatusPage() {
         <p className="font-data text-[13px] text-text-2">404</p>
         <h1 className="text-[24px] font-semibold">Status page not found</h1>
         <p className="max-w-[420px] text-center text-[13px] leading-[1.45] text-text-2">
-          No status page exists at this address — the owner may have renamed
-          its slug or unpublished it.
+          No status page exists at this address — the owner may have renamed its
+          slug or unpublished it.
         </p>
         <Link
           href="/"
@@ -52,7 +52,10 @@ export default function StatusPage() {
   const first = page.components[0];
 
   return (
-    <main data-testid="status-page" className="mx-auto flex w-full max-w-[960px] flex-col gap-6 px-6 py-10">
+    <main
+      data-testid="status-page"
+      className="mx-auto flex w-full max-w-[960px] flex-col gap-6 px-6 py-10"
+    >
       <header className="flex flex-col gap-2">
         <h1 className="flex items-center gap-2 text-[24px] font-semibold">
           <span
@@ -93,7 +96,10 @@ export default function StatusPage() {
       </ul>
 
       {first && (
-        <section aria-label={`${first.name} 90 day history`} className="max-w-[420px]">
+        <section
+          aria-label={`${first.name} 90 day history`}
+          className="max-w-[420px]"
+        >
           <UptimeCard
             name={`${first.name} — 90 day history`}
             days={first.days}
@@ -103,7 +109,10 @@ export default function StatusPage() {
         </section>
       )}
 
-      <section aria-labelledby="past-incidents-heading" className="flex flex-col gap-2">
+      <section
+        aria-labelledby="past-incidents-heading"
+        className="flex flex-col gap-2"
+      >
         <h2 id="past-incidents-heading" className="text-[16px] font-semibold">
           Past incidents
         </h2>

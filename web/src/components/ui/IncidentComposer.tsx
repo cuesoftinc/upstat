@@ -38,7 +38,9 @@ const COMMANDS: SlashCommand[] = [
 
 function parse(text: string): ComposerSubmit {
   const result: ComposerSubmit = { body: text.trim() };
-  const status = text.match(/\/status\s+(investigating|identified|monitoring|resolved)/);
+  const status = text.match(
+    /\/status\s+(investigating|identified|monitoring|resolved)/,
+  );
   if (status) result.phase = status[1] as IncidentPhase;
   const sev = text.match(/\/sev\s+([1-4])/);
   if (sev) result.sev = Number(sev[1]);
@@ -49,7 +51,11 @@ function parse(text: string): ComposerSubmit {
  * IncidentComposer — §8.2b: idle / typing / slash-command autocomplete
  * (`/status`, `/sev`) / posting (optimistic prepend, MI-10).
  */
-export function IncidentComposer({ onSubmit, posting = false, className }: IncidentComposerProps) {
+export function IncidentComposer({
+  onSubmit,
+  posting = false,
+  className,
+}: IncidentComposerProps) {
   const [text, setText] = useState("");
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -86,7 +92,10 @@ export function IncidentComposer({ onSubmit, posting = false, className }: Incid
     // W1 `bottom-full mb-1`), open state stays derived from the caret word,
     // focus never leaves the textarea (onOpenAutoFocus prevented).
     <Popover.Root open={suggestions.length > 0} onOpenChange={() => undefined}>
-      <div className={clsx("font-ui relative", className)} data-state={posting ? "posting" : text ? "typing" : "idle"}>
+      <div
+        className={clsx("font-ui relative", className)}
+        data-state={posting ? "posting" : text ? "typing" : "idle"}
+      >
         <Popover.Portal>
           <Popover.Content
             side="top"
@@ -116,7 +125,9 @@ export function IncidentComposer({ onSubmit, posting = false, className }: Incid
                       i === active && "bg-bg",
                     )}
                   >
-                    <code className="font-data text-[12px] text-text">{s.cmd}</code>
+                    <code className="font-data text-[12px] text-text">
+                      {s.cmd}
+                    </code>
                     <span className="text-[11px] text-text-2">{s.hint}</span>
                   </button>
                 </li>
@@ -130,7 +141,9 @@ export function IncidentComposer({ onSubmit, posting = false, className }: Incid
             className={clsx(
               "flex items-end gap-2 rounded-(--radius) border bg-bg p-2",
               "transition-colors duration-[var(--duration-fast)] ease-standard",
-              posting ? "border-border opacity-70" : "border-border focus-within:border-brand",
+              posting
+                ? "border-border opacity-70"
+                : "border-border focus-within:border-brand",
             )}
           >
             <textarea

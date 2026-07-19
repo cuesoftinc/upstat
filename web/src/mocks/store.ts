@@ -1,5 +1,10 @@
 import type { Org } from "@/models";
-import { buildEmptySeed, buildSeed, starterMetricCatalog, type MockDb } from "./seed";
+import {
+  buildEmptySeed,
+  buildSeed,
+  starterMetricCatalog,
+  type MockDb,
+} from "./seed";
 
 /**
  * In-memory mock state — module singleton kept on `globalThis` so it
@@ -74,7 +79,11 @@ export function allStores(): MockDb[] {
  * first datapoint "arrives").
  */
 export function telemetryReady(db: MockDb, now = Date.now()): boolean {
-  if (!db.onboarding.has_data && db.firstDataAtMs !== null && now >= db.firstDataAtMs) {
+  if (
+    !db.onboarding.has_data &&
+    db.firstDataAtMs !== null &&
+    now >= db.firstDataAtMs
+  ) {
     db.onboarding.has_data = true;
     // first datapoint "arrived" — the metrics catalog starts populating
     if (db.metricCatalog.length === 0) {

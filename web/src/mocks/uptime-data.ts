@@ -60,8 +60,7 @@ export function monitorHistory(
     for (let i = 0; i < 120; i++) {
       const t = now - i * interval;
       const r = mulberry32(hashSeed(`check:${monitor.id}:${i}`));
-      const inOutage =
-        isCheckout && t >= outage.start && t <= outage.end;
+      const inOutage = isCheckout && t >= outage.start && t <= outage.end;
       const up = inOutage ? r() < 0.2 : true;
       recentChecks.push({
         id: `chk_${monitor.id}_${i}`,
@@ -69,18 +68,23 @@ export function monitorHistory(
         up,
         status_code: up ? 200 : 503,
         response_time_ms: Math.round(
-          (up ? 80 + r() * 220 : 2000 + r() * 3000) * (inOutage && up ? 2.4 : 1),
+          (up ? 80 + r() * 220 : 2000 + r() * 3000) *
+            (inOutage && up ? 2.4 : 1),
         ),
         checked_at: iso(t),
       });
     }
   }
 
-  const known = days.filter((d) => d.uptime_pct !== null) as (UptimeDay & { uptime_pct: number })[];
+  const known = days.filter((d) => d.uptime_pct !== null) as (UptimeDay & {
+    uptime_pct: number;
+  })[];
   const uptime90 =
     known.length === 0
       ? null
-      : Math.round((known.reduce((s, d) => s + d.uptime_pct, 0) / known.length) * 1000) / 1000;
+      : Math.round(
+          (known.reduce((s, d) => s + d.uptime_pct, 0) / known.length) * 1000,
+        ) / 1000;
 
   return {
     monitor_id: monitor.id,

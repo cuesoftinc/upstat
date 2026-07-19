@@ -13,9 +13,12 @@ async function signIn(page: Page) {
   await expect(page.getByTestId("dashboard-home")).toBeVisible();
 }
 
-const rail = (page: Page) => page.getByRole("navigation", { name: "Product navigation" });
+const rail = (page: Page) =>
+  page.getByRole("navigation", { name: "Product navigation" });
 
-test("defaults expanded at ≥1280px with labels and section groups", async ({ page }) => {
+test("defaults expanded at ≥1280px with labels and section groups", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await signIn(page);
   await expect(rail(page)).toHaveAttribute("data-expanded", "true");
@@ -39,7 +42,9 @@ test("defaults collapsed below 1280px", async ({ page }) => {
   await expect(rail(page).getByText("Telemetry")).toBeHidden();
 });
 
-test("foot chevron toggles and the choice persists across reloads", async ({ page }) => {
+test("foot chevron toggles and the choice persists across reloads", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await signIn(page);
   const toggle = page.getByTestId("rail-toggle");
@@ -47,7 +52,9 @@ test("foot chevron toggles and the choice persists across reloads", async ({ pag
 
   await toggle.click();
   await expect(rail(page)).toHaveAttribute("data-expanded", "false");
-  expect(await page.evaluate(() => window.localStorage.getItem("nav.rail.expanded"))).toBe("0");
+  expect(
+    await page.evaluate(() => window.localStorage.getItem("nav.rail.expanded")),
+  ).toBe("0");
 
   // persisted collapsed state wins over the ≥1280 expanded default
   await page.reload();
@@ -57,20 +64,26 @@ test("foot chevron toggles and the choice persists across reloads", async ({ pag
   // handler is live (the reload assertion is satisfied pre-hydration)
   await expect(async () => {
     await toggle.click();
-    await expect(rail(page)).toHaveAttribute("data-expanded", "true", { timeout: 1_000 });
+    await expect(rail(page)).toHaveAttribute("data-expanded", "true", {
+      timeout: 1_000,
+    });
   }).toPass({ timeout: 15_000 });
   await page.reload();
   await expect(rail(page)).toHaveAttribute("data-expanded", "true");
 });
 
-test("dashboard chrome theme toggle flips + persists (theme-parity canon)", async ({ page }) => {
+test("dashboard chrome theme toggle flips + persists (theme-parity canon)", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await signIn(page);
   const html = page.locator("html");
   await expect(html).not.toHaveAttribute("data-theme", "light");
   await page.getByRole("banner").getByTestId("theme-toggle").click();
   await expect(html).toHaveAttribute("data-theme", "light");
-  expect(await page.evaluate(() => window.localStorage.getItem("upstat.theme"))).toBe("light");
+  expect(
+    await page.evaluate(() => window.localStorage.getItem("upstat.theme")),
+  ).toBe("light");
   await page.reload();
   await expect(html).toHaveAttribute("data-theme", "light");
   // settings carries the same control as a labelled select
@@ -81,10 +94,14 @@ test("dashboard chrome theme toggle flips + persists (theme-parity canon)", asyn
   await expect(html).not.toHaveAttribute("data-theme", "light");
 });
 
-test("below md, expansion is an overlay drawer — content never squeezes ([Clarified 2026-07-19])", async ({ page }) => {
+test("below md, expansion is an overlay drawer — content never squeezes ([Clarified 2026-07-19])", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   // desktop-persisted expansion must NOT apply below md — boots collapsed
-  await page.addInitScript(() => window.localStorage.setItem("nav.rail.expanded", "1"));
+  await page.addInitScript(() =>
+    window.localStorage.setItem("nav.rail.expanded", "1"),
+  );
   await signIn(page);
   await expect(rail(page)).toHaveAttribute("data-expanded", "false");
   await expect
@@ -122,18 +139,26 @@ test("below md, expansion is an overlay drawer — content never squeezes ([Clar
   await expect(drawer).toBeHidden();
 
   // the transient drawer never rewrites the persisted desktop choice
-  expect(await page.evaluate(() => window.localStorage.getItem("nav.rail.expanded"))).toBe("1");
+  expect(
+    await page.evaluate(() => window.localStorage.getItem("nav.rail.expanded")),
+  ).toBe("1");
 });
 
-test("navigation works at both rail widths (charts unaffected)", async ({ page }) => {
+test("navigation works at both rail widths (charts unaffected)", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await signIn(page);
   // expanded: click by visible label row
-  await rail(page).getByRole("button", { name: "Dashboards", exact: true }).click();
+  await rail(page)
+    .getByRole("button", { name: "Dashboards", exact: true })
+    .click();
   await page.waitForURL("**/dashboard/dashboards");
   // collapse and navigate by icon (aria-label)
   await page.getByTestId("rail-toggle").click();
-  await rail(page).getByRole("button", { name: "Metrics", exact: true }).click();
+  await rail(page)
+    .getByRole("button", { name: "Metrics", exact: true })
+    .click();
   await page.waitForURL("**/dashboard/metrics");
   await expect(page.getByTestId("timeseries-plot")).toBeVisible();
 });

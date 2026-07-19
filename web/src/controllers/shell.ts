@@ -41,7 +41,17 @@ export function useShellController() {
 
   // MI-14: persistent banner while any sev1/2 incident is open.
   const bannerIncident: Incident | null =
-    (incidents.data ?? []).find((i) => i.status !== "resolved" && i.sev <= 2) ?? null;
+    (incidents.data ?? []).find((i) => i.status !== "resolved" && i.sev <= 2) ??
+    null;
 
-  return { org, orgs, feed, incidents, unread, bannerIncident, switchOrg, newOrg };
+  return {
+    org,
+    orgs,
+    feed,
+    incidents,
+    unread,
+    bannerIncident,
+    switchOrg,
+    newOrg,
+  };
 }

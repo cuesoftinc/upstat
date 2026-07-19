@@ -49,14 +49,24 @@ export const orgsRepo = {
 export const dashboardsRepo = {
   list: () => http.get<Dashboard[]>("/v1/dashboards"),
   get: (id: string) => http.get<Dashboard>(`/v1/dashboards/${id}`),
-  create: (input: { name: string }) => http.post<Dashboard>("/v1/dashboards", input),
+  create: (input: { name: string }) =>
+    http.post<Dashboard>("/v1/dashboards", input),
   update: (id: string, patch: Partial<Dashboard>) =>
     http.patch<Dashboard>(`/v1/dashboards/${id}`, patch),
   remove: (id: string) => http.delete(`/v1/dashboards/${id}`),
-  addWidget: (dashboardId: string, widget: Omit<Widget, "id" | "dashboard_id">) =>
-    http.post<Widget>(`/v1/dashboards/${dashboardId}/widgets`, widget),
-  updateWidget: (dashboardId: string, widgetId: string, patch: Partial<Widget>) =>
-    http.patch<Widget>(`/v1/dashboards/${dashboardId}/widgets/${widgetId}`, patch),
+  addWidget: (
+    dashboardId: string,
+    widget: Omit<Widget, "id" | "dashboard_id">,
+  ) => http.post<Widget>(`/v1/dashboards/${dashboardId}/widgets`, widget),
+  updateWidget: (
+    dashboardId: string,
+    widgetId: string,
+    patch: Partial<Widget>,
+  ) =>
+    http.patch<Widget>(
+      `/v1/dashboards/${dashboardId}/widgets/${widgetId}`,
+      patch,
+    ),
   removeWidget: (dashboardId: string, widgetId: string) =>
     http.delete(`/v1/dashboards/${dashboardId}/widgets/${widgetId}`),
 };
@@ -104,12 +114,14 @@ export const rumRepo = {
 export const monitorsRepo = {
   list: () => http.get<Monitor[]>("/v1/monitors"),
   get: (id: string) => http.get<Monitor>(`/v1/monitors/${id}`),
-  create: (input: Pick<Monitor, "name" | "target" | "type"> & Partial<Monitor>) =>
-    http.post<Monitor>("/v1/monitors", input),
+  create: (
+    input: Pick<Monitor, "name" | "target" | "type"> & Partial<Monitor>,
+  ) => http.post<Monitor>("/v1/monitors", input),
   update: (id: string, patch: Partial<Monitor>) =>
     http.patch<Monitor>(`/v1/monitors/${id}`, patch),
   remove: (id: string) => http.delete(`/v1/monitors/${id}`),
-  history: (id: string) => http.get<MonitorHistory>(`/v1/monitors/${id}/checks`),
+  history: (id: string) =>
+    http.get<MonitorHistory>(`/v1/monitors/${id}/checks`),
   /** MI-9: 24h response-time replay against timeout-derived thresholds. */
   test: (id: string) => http.post<RuleTestResult>(`/v1/monitors/${id}/test`),
 };
@@ -119,11 +131,13 @@ export const alertsRepo = {
   channels: () => http.get<AlertChannel[]>("/v1/channels"),
   createChannel: (input: Pick<AlertChannel, "kind" | "target">) =>
     http.post<AlertChannel>("/v1/channels", input),
-  verifyChannel: (id: string) => http.post<AlertChannel>(`/v1/channels/${id}/verify`),
+  verifyChannel: (id: string) =>
+    http.post<AlertChannel>(`/v1/channels/${id}/verify`),
   removeChannel: (id: string) => http.delete(`/v1/channels/${id}`),
   rules: () => http.get<AlertRule[]>("/v1/rules"),
-  createRule: (input: Omit<AlertRule, "id" | "org_id" | "state" | "last_triggered_at">) =>
-    http.post<AlertRule>("/v1/rules", input),
+  createRule: (
+    input: Omit<AlertRule, "id" | "org_id" | "state" | "last_triggered_at">,
+  ) => http.post<AlertRule>("/v1/rules", input),
   updateRule: (id: string, patch: Partial<AlertRule>) =>
     http.patch<AlertRule>(`/v1/rules/${id}`, patch),
   removeRule: (id: string) => http.delete(`/v1/rules/${id}`),
@@ -154,16 +168,28 @@ export const incidentsRepo = {
     http.post<Incident>("/v1/incidents", input),
   update: (id: string, patch: Partial<Incident>) =>
     http.patch<Incident>(`/v1/incidents/${id}`, patch),
-  timeline: (id: string) => http.get<TimelineEntry[]>(`/v1/incidents/${id}/timeline`),
-  postUpdate: (id: string, entry: { phase?: string; body: string; author: string }) =>
-    http.post<TimelineEntry>(`/v1/incidents/${id}/timeline`, entry),
+  timeline: (id: string) =>
+    http.get<TimelineEntry[]>(`/v1/incidents/${id}/timeline`),
+  postUpdate: (
+    id: string,
+    entry: { phase?: string; body: string; author: string },
+  ) => http.post<TimelineEntry>(`/v1/incidents/${id}/timeline`, entry),
 };
 
 /** SLOs (pages.md B10). */
 export const slosRepo = {
   list: () => http.get<Slo[]>("/v1/slos"),
-  create: (input: Omit<Slo, "id" | "org_id" | "current" | "budget_remaining_pct" | "burn_rate" | "state">) =>
-    http.post<Slo>("/v1/slos", input),
+  create: (
+    input: Omit<
+      Slo,
+      | "id"
+      | "org_id"
+      | "current"
+      | "budget_remaining_pct"
+      | "burn_rate"
+      | "state"
+    >,
+  ) => http.post<Slo>("/v1/slos", input),
   remove: (id: string) => http.delete(`/v1/slos/${id}`),
 };
 
@@ -180,8 +206,11 @@ export const catalogRepo = {
 /** API keys & ingestion tokens (pages.md B12). */
 export const keysRepo = {
   list: () => http.get<ApiKey[]>("/v1/keys"),
-  create: (input: { kind: ApiKey["kind"]; name: string; scope: ApiKey["scope"] }) =>
-    http.post<ApiKeyWithSecret>("/v1/keys", input),
+  create: (input: {
+    kind: ApiKey["kind"];
+    name: string;
+    scope: ApiKey["scope"];
+  }) => http.post<ApiKeyWithSecret>("/v1/keys", input),
   rotate: (id: string) => http.post<ApiKeyWithSecret>(`/v1/keys/${id}/rotate`),
   revoke: (id: string) => http.delete(`/v1/keys/${id}`),
 };

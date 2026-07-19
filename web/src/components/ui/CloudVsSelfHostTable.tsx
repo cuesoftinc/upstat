@@ -60,13 +60,22 @@ export function CloudVsSelfHostTable({
     >
       <thead>
         <tr className="border-b border-border bg-bg-elev">
-          <th scope="col" className="p-3 text-left text-[13px] font-semibold text-text">
+          <th
+            scope="col"
+            className="p-3 text-left text-[13px] font-semibold text-text"
+          >
             {featureHeader}
           </th>
-          <th scope="col" className="w-32 p-3 text-center text-[13px] font-semibold text-text">
+          <th
+            scope="col"
+            className="w-32 p-3 text-center text-[13px] font-semibold text-text"
+          >
             {cloudHeader}
           </th>
-          <th scope="col" className="w-32 p-3 text-center text-[13px] font-semibold text-text">
+          <th
+            scope="col"
+            className="w-32 p-3 text-center text-[13px] font-semibold text-text"
+          >
             {selfHostHeader}
           </th>
         </tr>
@@ -74,7 +83,9 @@ export function CloudVsSelfHostTable({
       <tbody>
         {rows.map((row) => (
           <tr key={row.feature} className="border-b border-border">
-            <td className="p-3 text-[13px] leading-[1.45] text-text">{row.feature}</td>
+            <td className="p-3 text-[13px] leading-[1.45] text-text">
+              {row.feature}
+            </td>
             <td className="p-3 text-center">
               <Mark yes={row.cloud} />
             </td>
@@ -91,12 +102,22 @@ export function CloudVsSelfHostTable({
         <tr>
           <td className="p-3" />
           <td className="p-3 text-center">
-            <Button kind="brand" size="sm" className="whitespace-nowrap" onClick={onTryCloud}>
+            <Button
+              kind="brand"
+              size="sm"
+              className="whitespace-nowrap"
+              onClick={onTryCloud}
+            >
               Try Cloud
             </Button>
           </td>
           <td className="p-3 text-center">
-            <Button kind="quiet" size="sm" className="whitespace-nowrap" onClick={onSelfHost}>
+            <Button
+              kind="quiet"
+              size="sm"
+              className="whitespace-nowrap"
+              onClick={onSelfHost}
+            >
               {selfHostCta}
             </Button>
           </td>

@@ -65,13 +65,18 @@ export default function UptimePage() {
       </header>
 
       {/* UptimeCard strips */}
-      <section aria-label="Uptime overview" className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <section
+        aria-label="Uptime overview"
+        className="grid grid-cols-1 gap-4 lg:grid-cols-3"
+      >
         {cards.loading || ctrl.loading ? (
           Array.from({ length: 3 }, (_, i) => (
             <Skeleton key={i} kind="panel-axis" style={{ height: 96 }} />
           ))
         ) : (cards.data ?? []).length === 0 ? (
-          <p className="text-[13px] text-text-2">No checks yet — create your first below.</p>
+          <p className="text-[13px] text-text-2">
+            No checks yet — create your first below.
+          </p>
         ) : (
           (cards.data ?? []).map((history) => {
             const monitor = monitorsById.get(history.monitor_id);
@@ -153,11 +158,22 @@ export default function UptimePage() {
         <div className="flex flex-col gap-4">
           <label className="flex flex-col gap-1 text-[13px]">
             <span className="text-text-2">Name</span>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="api.cuesoft.io heartbeat" data-testid="check-name" />
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="api.cuesoft.io heartbeat"
+              data-testid="check-name"
+            />
           </label>
           <label className="flex flex-col gap-1 text-[13px]">
             <span className="text-text-2">URL</span>
-            <Input mono value={target} onChange={(e) => setTarget(e.target.value)} placeholder="https://api.cuesoft.io/healthz" data-testid="check-target" />
+            <Input
+              mono
+              value={target}
+              onChange={(e) => setTarget(e.target.value)}
+              placeholder="https://api.cuesoft.io/healthz"
+              data-testid="check-target"
+            />
           </label>
           <div className="grid grid-cols-2 gap-4">
             <label className="flex flex-col gap-1 text-[13px]">

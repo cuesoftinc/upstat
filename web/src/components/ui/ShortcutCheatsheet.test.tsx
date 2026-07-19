@@ -6,7 +6,9 @@ import { ShortcutCheatsheet } from "./ShortcutCheatsheet";
 describe("ShortcutCheatsheet", () => {
   it("renders the MI-17 keyboard map when open", () => {
     render(<ShortcutCheatsheet open />);
-    expect(screen.getByRole("dialog", { name: "Keyboard shortcuts" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog", { name: "Keyboard shortcuts" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Go to dashboards")).toBeInTheDocument();
   });
 

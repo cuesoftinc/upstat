@@ -7,7 +7,9 @@ describe("EmptyState", () => {
     render(<EmptyState pillar="rum" />);
     expect(screen.getByText(/upstat.js/)).toBeInTheDocument();
     expect(screen.getByLabelText("Copy snippet")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Setup docs/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Setup docs/ }),
+    ).toBeInTheDocument();
   });
 
   it("stops the sweep when data arrives", () => {

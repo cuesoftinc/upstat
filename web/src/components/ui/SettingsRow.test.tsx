@@ -37,7 +37,14 @@ describe("SettingsRow", () => {
   });
 
   it("keeps the control slot live when enabled", () => {
-    render(<SettingsRow label="Digest" control={<button type="button">edit</button>} />);
-    expect(screen.getByRole("button", { name: "edit" }).closest("[inert]")).toBeNull();
+    render(
+      <SettingsRow
+        label="Digest"
+        control={<button type="button">edit</button>}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "edit" }).closest("[inert]"),
+    ).toBeNull();
   });
 });

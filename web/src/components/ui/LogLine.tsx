@@ -19,7 +19,12 @@ function formatTs(ts: string): string {
 }
 
 /** LogLine — §8.2: collapsed / expanded (JSON tree) / level ×5 tints (MI-5). */
-export function LogLine({ event, onPivot, defaultExpanded = false, className }: LogLineProps) {
+export function LogLine({
+  event,
+  onPivot,
+  defaultExpanded = false,
+  className,
+}: LogLineProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [copiedPath, setCopiedPath] = useState<string | null>(null);
 
@@ -27,7 +32,9 @@ export function LogLine({ event, onPivot, defaultExpanded = false, className }: 
     ["service", event.service],
     ["level", event.level],
     ["host", event.host],
-    ...(event.trace_id ? ([["trace_id", event.trace_id]] as [string, string][]) : []),
+    ...(event.trace_id
+      ? ([["trace_id", event.trace_id]] as [string, string][])
+      : []),
     ...Object.entries(event.attrs).map(
       ([k, v]) => [`attrs.${k}`, String(v)] as [string, string],
     ),
@@ -47,7 +54,10 @@ export function LogLine({ event, onPivot, defaultExpanded = false, className }: 
     <div
       data-level={event.level}
       data-expanded={expanded}
-      className={clsx("font-data border-b border-border text-[13px]", className)}
+      className={clsx(
+        "font-data border-b border-border text-[13px]",
+        className,
+      )}
     >
       <button
         type="button"
@@ -72,16 +82,25 @@ export function LogLine({ event, onPivot, defaultExpanded = false, className }: 
             expanded && "rotate-90",
           )}
         />
-        <span className="shrink-0 tabular-nums text-text-2">{formatTs(event.ts)}</span>
+        <span className="shrink-0 tabular-nums text-text-2">
+          {formatTs(event.ts)}
+        </span>
         <LevelChip level={event.level} />
-        <span className="w-24 shrink-0 truncate text-text-2">{event.service}</span>
-        <span className="min-w-0 flex-1 truncate text-text">{event.message}</span>
+        <span className="w-24 shrink-0 truncate text-text-2">
+          {event.service}
+        </span>
+        <span className="min-w-0 flex-1 truncate text-text">
+          {event.message}
+        </span>
       </button>
 
       {expanded && (
         <dl className="flex flex-col gap-0.5 border-t border-border bg-bg-elev px-7 py-2">
           {fields.map(([key, value]) => (
-            <div key={key} className="group flex items-center gap-2 text-[12px]">
+            <div
+              key={key}
+              className="group flex items-center gap-2 text-[12px]"
+            >
               <dt className="flex w-40 shrink-0 items-center gap-1 text-text-2">
                 {key}
                 <button
@@ -102,7 +121,8 @@ export function LogLine({ event, onPivot, defaultExpanded = false, className }: 
                   type="button"
                   title={`⌘click to filter ${key}:${value}`}
                   onClick={(e) => {
-                    if ((e.metaKey || e.ctrlKey) && onPivot) onPivot(key, value);
+                    if ((e.metaKey || e.ctrlKey) && onPivot)
+                      onPivot(key, value);
                   }}
                   className="truncate text-left text-text hover:text-brand"
                 >

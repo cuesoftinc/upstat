@@ -9,7 +9,10 @@ export async function PATCH(
   const { id } = await params;
   const member = getDb().members.find((m) => m.id === id);
   if (!member) return notFound("member");
-  const body = await readJson<{ role?: Member["role"]; status?: Member["status"] }>(req);
+  const body = await readJson<{
+    role?: Member["role"];
+    status?: Member["status"];
+  }>(req);
   if (!body) return jsonError(400, "bad_shape", "malformed JSON body");
   if (body.role !== undefined) {
     if (member.role === "owner" && body.role !== "owner") {

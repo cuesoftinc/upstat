@@ -29,7 +29,9 @@ export function TopList({ entries, loading = false, className }: TopListProps) {
   }
   if (entries.length === 0) {
     return (
-      <p className={clsx("font-ui text-[12px] text-text-2", className)}>No data in range.</p>
+      <p className={clsx("font-ui text-[12px] text-text-2", className)}>
+        No data in range.
+      </p>
     );
   }
   const max = Math.max(...entries.map((e) => e.value), 1);
@@ -37,7 +39,9 @@ export function TopList({ entries, loading = false, className }: TopListProps) {
     <ol className={clsx("font-ui flex flex-col gap-1.5", className)}>
       {entries.map((entry, i) => (
         <li key={entry.label} className="flex items-center gap-2">
-          <span className="w-36 truncate text-[12px] text-text">{entry.label}</span>
+          <span className="w-36 truncate text-[12px] text-text">
+            {entry.label}
+          </span>
           <span className="relative h-3.5 flex-1 overflow-hidden rounded-[1px] bg-bg">
             <span
               className="absolute inset-y-0 left-0 rounded-[1px]"

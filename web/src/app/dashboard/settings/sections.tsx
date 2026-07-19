@@ -23,7 +23,13 @@ import { useOrgController } from "@/controllers/onboarding";
 import { useSettingsController } from "@/controllers/settings";
 import { useTheme, type Theme } from "@/design/ThemeProvider";
 
-function SectionHeading({ id, children }: { id: string; children: React.ReactNode }) {
+function SectionHeading({
+  id,
+  children,
+}: {
+  id: string;
+  children: React.ReactNode;
+}) {
   return (
     <h2 id={id} className="text-[16px] font-semibold text-text">
       {children}
@@ -59,7 +65,8 @@ export function OrgSection() {
     return zones.map((z) => ({ value: z, label: z }));
   }, []);
 
-  if (loading || !org) return <Skeleton kind="panel-axis" style={{ height: 180 }} />;
+  if (loading || !org)
+    return <Skeleton kind="panel-axis" style={{ height: 180 }} />;
 
   const effectiveName = name ?? org.name;
   const pulse = () => {
@@ -72,7 +79,9 @@ export function OrgSection() {
       <div className="flex items-center gap-2">
         <SectionHeading id="org-heading">Organization</SectionHeading>
         {saved && (
-          <span className="rounded-(--radius) bg-ok/15 px-2 py-0.5 text-[12px] text-ok">Saved</span>
+          <span className="rounded-(--radius) bg-ok/15 px-2 py-0.5 text-[12px] text-ok">
+            Saved
+          </span>
         )}
       </div>
       <SettingsRow
@@ -132,12 +141,18 @@ export function OrgSection() {
 /* API keys & ingestion tokens                                          */
 /* ------------------------------------------------------------------ */
 
-export function KeysSection({ kind }: { kind?: "ingestion_token" | "property_key" }) {
+export function KeysSection({
+  kind,
+}: {
+  kind?: "ingestion_token" | "property_key";
+}) {
   const { keys, createKey, rotateKey, revokeKey } = useSettingsController();
   const [secret, setSecret] = useState<ApiKeyWithSecret | null>(null);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
-  const [newScope, setNewScope] = useState<KeyScope>(kind === "property_key" ? "rum" : "all");
+  const [newScope, setNewScope] = useState<KeyScope>(
+    kind === "property_key" ? "rum" : "all",
+  );
 
   const list = (keys.data ?? []).filter((k) => !kind || k.kind === kind);
   const isProperties = kind === "property_key";
@@ -179,7 +194,11 @@ export function KeysSection({ kind }: { kind?: "ingestion_token" | "property_key
         <ul className="flex flex-col">
           {list.map((key) => (
             <li key={key.id} className="flex items-center gap-2">
-              <APIKeyRow apiKey={key} onRevoke={() => void revokeKey(key.id)} className="min-w-0 flex-1" />
+              <APIKeyRow
+                apiKey={key}
+                onRevoke={() => void revokeKey(key.id)}
+                className="min-w-0 flex-1"
+              />
               {key.status === "active" && (
                 <Button
                   kind="quiet"
@@ -202,10 +221,17 @@ export function KeysSection({ kind }: { kind?: "ingestion_token" | "property_key
             Copy this key now — it is only shown once. Previous key stays valid
             for 24h (rotation grace).
           </p>
-          <code data-testid="key-secret" className="font-data break-all text-[12px] text-text">
+          <code
+            data-testid="key-secret"
+            className="font-data break-all text-[12px] text-text"
+          >
             {secret.key}
           </code>
-          <Toast kind="success" message={`${secret.name} key issued`} onDismiss={() => setSecret(null)} />
+          <Toast
+            kind="success"
+            message={`${secret.name} key issued`}
+            onDismiss={() => setSecret(null)}
+          />
         </div>
       )}
 
@@ -219,22 +245,36 @@ export function KeysSection({ kind }: { kind?: "ingestion_token" | "property_key
         <Input
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          placeholder={isProperties ? "site domain, e.g. upstat.cuesoft.io" : "key name"}
+          placeholder={
+            isProperties ? "site domain, e.g. upstat.cuesoft.io" : "key name"
+          }
           aria-label={isProperties ? "Property domain" : "Key name"}
           className="w-64"
           data-testid="new-key-name"
         />
         {!isProperties && (
           <Select
-            options={["all", "otlp", "rum", "statsd"].map((s) => ({ value: s, label: s }))}
+            options={["all", "otlp", "rum", "statsd"].map((s) => ({
+              value: s,
+              label: s,
+            }))}
             value={newScope}
             onValueChange={(s) => setNewScope(s as KeyScope)}
             aria-label="Key scope"
             className="min-w-28"
           />
         )}
-        <Button type="submit" size="sm" disabled={creating || newName.trim().length === 0} data-testid="create-key">
-          {creating ? "Creating…" : isProperties ? "Create property" : "Create key"}
+        <Button
+          type="submit"
+          size="sm"
+          disabled={creating || newName.trim().length === 0}
+          data-testid="create-key"
+        >
+          {creating
+            ? "Creating…"
+            : isProperties
+              ? "Create property"
+              : "Create key"}
         </Button>
       </form>
     </section>
@@ -296,13 +336,21 @@ export function MembersSection() {
           data-testid="invite-email"
         />
         <Select
-          options={(["member", "admin", "owner"] as const).map((r) => ({ value: r, label: r }))}
+          options={(["member", "admin", "owner"] as const).map((r) => ({
+            value: r,
+            label: r,
+          }))}
           value={role}
           onValueChange={(r) => setRole(r as MemberRole)}
           aria-label="Invite role"
           className="min-w-28"
         />
-        <Button type="submit" size="sm" disabled={inviting || email.trim().length === 0} data-testid="invite-member">
+        <Button
+          type="submit"
+          size="sm"
+          disabled={inviting || email.trim().length === 0}
+          data-testid="invite-member"
+        >
           {inviting ? "Inviting…" : "Invite"}
         </Button>
       </form>
@@ -317,7 +365,10 @@ export function MembersSection() {
 export function IntegrationsSection() {
   const { channels, verifyChannel, removeChannel } = useAlertsController();
   return (
-    <section aria-labelledby="integrations-heading" className="flex flex-col gap-3">
+    <section
+      aria-labelledby="integrations-heading"
+      className="flex flex-col gap-3"
+    >
       <SectionHeading id="integrations-heading">Integrations</SectionHeading>
       {channels.loading ? (
         <Skeleton kind="line" />
@@ -347,8 +398,13 @@ const RETENTION_ROWS = [
 
 export function RetentionSection() {
   return (
-    <section aria-labelledby="retention-heading" className="flex flex-col gap-3">
-      <SectionHeading id="retention-heading">Retention per signal</SectionHeading>
+    <section
+      aria-labelledby="retention-heading"
+      className="flex flex-col gap-3"
+    >
+      <SectionHeading id="retention-heading">
+        Retention per signal
+      </SectionHeading>
       <dl className="flex flex-col gap-2">
         {RETENTION_ROWS.map((row) => (
           <div
@@ -356,7 +412,9 @@ export function RetentionSection() {
             className="flex items-center justify-between rounded-(--radius) border border-border bg-bg-elev px-3 py-2"
           >
             <dt className="text-[13px] font-medium text-text">{row.label}</dt>
-            <dd className="font-data m-0 text-[12px] text-text-2">{row.value}</dd>
+            <dd className="font-data m-0 text-[12px] text-text-2">
+              {row.value}
+            </dd>
           </div>
         ))}
       </dl>
@@ -365,7 +423,10 @@ export function RetentionSection() {
 }
 
 const PRIVACY_ROWS = [
-  { label: "Cookieless visitor model", value: "daily-rotating salt, no cross-day tracking" },
+  {
+    label: "Cookieless visitor model",
+    value: "daily-rotating salt, no cross-day tracking",
+  },
   { label: "Raw IP addresses", value: "never stored" },
   { label: "Export & delete", value: "self-serve via API, org-scoped" },
 ];
@@ -377,7 +438,10 @@ const PRIVACY_ROWS = [
 export function AppearanceSection() {
   const { theme, setTheme } = useTheme();
   return (
-    <section aria-labelledby="appearance-heading" className="flex flex-col gap-3">
+    <section
+      aria-labelledby="appearance-heading"
+      className="flex flex-col gap-3"
+    >
       <SectionHeading id="appearance-heading">Appearance</SectionHeading>
       <div className="flex items-center justify-between gap-4 rounded-(--radius) border border-border bg-bg-elev px-3 py-2">
         <span className="text-[13px] font-medium text-text">Theme</span>
@@ -399,7 +463,9 @@ export function AppearanceSection() {
 export function PrivacySection() {
   return (
     <section aria-labelledby="privacy-heading" className="flex flex-col gap-3">
-      <SectionHeading id="privacy-heading">Privacy &amp; data controls</SectionHeading>
+      <SectionHeading id="privacy-heading">
+        Privacy &amp; data controls
+      </SectionHeading>
       <dl className="flex flex-col gap-2">
         {PRIVACY_ROWS.map((row) => (
           <div
@@ -407,7 +473,9 @@ export function PrivacySection() {
             className="flex items-center justify-between gap-4 rounded-(--radius) border border-border bg-bg-elev px-3 py-2"
           >
             <dt className="text-[13px] font-medium text-text">{row.label}</dt>
-            <dd className="font-data m-0 text-right text-[12px] text-text-2">{row.value}</dd>
+            <dd className="font-data m-0 text-right text-[12px] text-text-2">
+              {row.value}
+            </dd>
           </div>
         ))}
       </dl>

@@ -16,8 +16,14 @@ export async function POST(req: Request) {
   if (!body?.name) {
     return jsonError(422, "bad_shape", "name is required");
   }
-  if (listOrgs().some((o) => o.name.toLowerCase() === body.name!.toLowerCase())) {
-    return jsonError(409, "name_taken", "an organization with this name exists");
+  if (
+    listOrgs().some((o) => o.name.toLowerCase() === body.name!.toLowerCase())
+  ) {
+    return jsonError(
+      409,
+      "name_taken",
+      "an organization with this name exists",
+    );
   }
   const org = createOrg(body.name, body.timezone || "UTC");
   return jsonOk(org, 201);

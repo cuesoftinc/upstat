@@ -12,7 +12,10 @@ import {
 function Probe() {
   const { theme, setTheme } = useTheme();
   return (
-    <button type="button" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+    <button
+      type="button"
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+    >
       theme:{theme}
     </button>
   );

@@ -11,15 +11,15 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import type {
-  AlertRule,
-  Series,
-  UptimeDay,
-} from "@/models";
+import type { AlertRule, Series, UptimeDay } from "@/models";
 import type { IncidentHistoryUpdate } from "@/components/ui/IncidentHistoryEntry";
 import { track, usePageView } from "./use-analytics";
 import { githubRepo } from "@/models/repositories";
-import { buildTimeseries, type OutageWindow, type ParsedQuery } from "@/mocks/series";
+import {
+  buildTimeseries,
+  type OutageWindow,
+  type ParsedQuery,
+} from "@/mocks/series";
 import { monitorHistory } from "@/mocks/uptime-data";
 import { HOUR, MINUTE, hashSeed, mulberry32 } from "@/mocks/util";
 import type { Monitor } from "@/models";
@@ -82,12 +82,21 @@ function demoMonitor(id: string, name: string): Monitor {
 }
 
 function meanUptime(days: UptimeDay[]): number {
-  const vals = days.map((d) => d.uptime_pct).filter((v): v is number => v !== null);
+  const vals = days
+    .map((d) => d.uptime_pct)
+    .filter((v): v is number => v !== null);
   if (vals.length === 0) return 0;
-  return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 100) / 100;
+  return (
+    Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 100) / 100
+  );
 }
 
-function sparkline(key: string, n: number, base: number, amp: number): number[] {
+function sparkline(
+  key: string,
+  n: number,
+  base: number,
+  amp: number,
+): number[] {
   const r = mulberry32(hashSeed(key));
   const out: number[] = [];
   let v = base;
@@ -117,9 +126,18 @@ export function buildHomeDemoData(now: number): HomeDemoData {
     agg: [{ fn: "p50" }, { fn: "p95" }, { fn: "p99" }],
     groupBy: [],
   };
-  const ts = buildTimeseries(parsed, snapped - 4 * HOUR, snapped, outage, DEMO_STEP_MS);
+  const ts = buildTimeseries(
+    parsed,
+    snapped - 4 * HOUR,
+    snapped,
+    outage,
+    DEMO_STEP_MS,
+  );
   const names = ["p50", "p95", "p99"];
-  const latencySeries = ts.series.map((s, i) => ({ ...s, name: names[i] ?? s.name }));
+  const latencySeries = ts.series.map((s, i) => ({
+    ...s,
+    name: names[i] ?? s.name,
+  }));
 
   // 90-day heartbeat with the INC-41 dent (mon_homepage path in the seed);
   // the random sub-10-minute blips are cleared so the strip reads like the
@@ -156,7 +174,9 @@ export function buildHomeDemoData(now: number): HomeDemoData {
   const p95Tail = latencySeries[1].points.slice(-24).map((p) => p.value ?? 0);
 
   const statusDays = (blipDay: number, blipPct: number): UptimeDay[] =>
-    allUpDays.map((d, i) => (i === blipDay ? { ...d, uptime_pct: blipPct, down_minutes: 8 } : d));
+    allUpDays.map((d, i) =>
+      i === blipDay ? { ...d, uptime_pct: blipPct, down_minutes: 8 } : d,
+    );
   const apiDays = statusDays(31, 99.3);
   const dashDays = statusDays(57, 98.9);
 
@@ -177,7 +197,12 @@ export function buildHomeDemoData(now: number): HomeDemoData {
       query: { v: 1, filters: { op: "and", terms: [] } },
       query_string: 'logs("status:error service:web").rollup(count, 5m)',
       thresholds: { warn: null, crit: 50, window: "5m" },
-      notify: { channel_ids: [], cooldown_minutes: 0, renotify_minutes: 30, mute_windows: [] },
+      notify: {
+        channel_ids: [],
+        cooldown_minutes: 0,
+        renotify_minutes: 30,
+        mute_windows: [],
+      },
       state: "alert",
       last_triggered_at: null,
     },
@@ -191,7 +216,9 @@ export function buildHomeDemoData(now: number): HomeDemoData {
       { name: "Dashboard", days: dashDays, uptimePct: meanUptime(dashDays) },
     ],
     // real now (not the 5m snap) — the relative label reads "2m ago" exactly
-    statusUpdatedAt: new Date(now - 2 * MINUTE).toISOString().replace(/\.\d{3}Z$/, "Z"),
+    statusUpdatedAt: new Date(now - 2 * MINUTE)
+      .toISOString()
+      .replace(/\.\d{3}Z$/, "Z"),
   };
 }
 
@@ -210,7 +237,10 @@ export function useHomeDemoData(): HomeDemoData {
   // Deferred a tick (use-request pattern): setState stays out of the
   // synchronous effect body.
   useEffect(() => {
-    const t = window.setTimeout(() => setData(buildHomeDemoData(Date.now())), 0);
+    const t = window.setTimeout(
+      () => setData(buildHomeDemoData(Date.now())),
+      0,
+    );
     return () => window.clearTimeout(t);
   }, []);
   return data;
@@ -305,7 +335,9 @@ export function useHomeController() {
 
   const onSelfHost = useCallback(() => {
     track("self_host_click", { path: "/" });
-    document.getElementById("self-host")?.scrollIntoView({ behavior: "smooth" });
+    document
+      .getElementById("self-host")
+      ?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
   // docs-link variant: tracks the CTA but lets the anchor navigate

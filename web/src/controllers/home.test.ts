@@ -29,7 +29,9 @@ describe("home demo data (A4 — synthetic, from the §8.3 mock seeds)", () => {
     const demo = buildHomeDemoData(NOW);
     expect(demo.heartbeat.days).toHaveLength(90);
     expect(demo.heartbeat.uptimePct).toBeLessThan(100);
-    expect(demo.heartbeatAllUp.days.every((d) => d.uptime_pct === 100)).toBe(true);
+    expect(demo.heartbeatAllUp.days.every((d) => d.uptime_pct === 100)).toBe(
+      true,
+    );
     expect(demo.heartbeatAllUp.uptimePct).toBe(100);
   });
 
@@ -45,7 +47,11 @@ describe("home demo data (A4 — synthetic, from the §8.3 mock seeds)", () => {
   it("keeps the alert-rule demo on the documented contract shape", () => {
     const { alertRule } = buildHomeDemoData(NOW);
     expect(alertRule.signal).toBe("log");
-    expect(alertRule.thresholds).toEqual({ warn: null, crit: 50, window: "5m" });
+    expect(alertRule.thresholds).toEqual({
+      warn: null,
+      crit: 50,
+      window: "5m",
+    });
     expect(alertRule.state).toBe("alert");
   });
 });

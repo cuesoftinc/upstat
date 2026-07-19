@@ -26,7 +26,9 @@ function hexPoints(cx: number, cy: number, r: number): string {
 }
 
 function formatReq(reqPerS: number): string {
-  return reqPerS >= 1000 ? `${(reqPerS / 1000).toFixed(1)}k` : reqPerS.toFixed(0);
+  return reqPerS >= 1000
+    ? `${(reqPerS / 1000).toFixed(1)}k`
+    : reqPerS.toFixed(0);
 }
 
 /**

@@ -36,7 +36,9 @@ describe("MarketingFooter (parity canon, SKILL.md 2026-07-19)", () => {
     for (const [heading, links] of Object.entries(CANON)) {
       const column = screen.getByRole("navigation", { name: heading });
       for (const [label, href] of links) {
-        expect(within(column).getByRole("link", { name: label })).toHaveAttribute("href", href);
+        expect(
+          within(column).getByRole("link", { name: label }),
+        ).toHaveAttribute("href", href);
       }
     }
   });
@@ -44,16 +46,18 @@ describe("MarketingFooter (parity canon, SKILL.md 2026-07-19)", () => {
   it("legal bar: verbatim copyright with linked marks", () => {
     render(<MarketingFooter />);
     const bar = screen.getByText(/CueLABS™ Division/).closest("p")!;
-    expect(bar).toHaveTextContent("© Cuesoft Inc. 2026. Upstat. CueLABS™ Division. MIT License.");
-    expect(within(bar).getByRole("link", { name: "Cuesoft Inc." })).toHaveAttribute(
-      "href",
-      "https://cuesoft.io",
+    expect(bar).toHaveTextContent(
+      "© Cuesoft Inc. 2026. Upstat. CueLABS™ Division. MIT License.",
     );
-    expect(within(bar).getByRole("link", { name: "CueLABS™ Division" })).toHaveAttribute(
-      "href",
-      "https://cuelabs.cuesoft.io",
-    );
-    expect(within(bar).getByRole("link", { name: "MIT License" })).toHaveAttribute(
+    expect(
+      within(bar).getByRole("link", { name: "Cuesoft Inc." }),
+    ).toHaveAttribute("href", "https://cuesoft.io");
+    expect(
+      within(bar).getByRole("link", { name: "CueLABS™ Division" }),
+    ).toHaveAttribute("href", "https://cuelabs.cuesoft.io");
+    expect(
+      within(bar).getByRole("link", { name: "MIT License" }),
+    ).toHaveAttribute(
       "href",
       "https://github.com/cuesoftinc/upstat/blob/main/LICENSE",
     );
@@ -69,5 +73,4 @@ describe("MarketingFooter (parity canon, SKILL.md 2026-07-19)", () => {
       "https://github.com/cuesoftinc/upstat/blob/main/SECURITY.md",
     );
   });
-
 });

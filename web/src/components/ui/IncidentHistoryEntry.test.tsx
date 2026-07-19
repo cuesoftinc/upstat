@@ -8,8 +8,16 @@ describe("IncidentHistoryEntry", () => {
       <IncidentHistoryEntry
         title="INC-42 — Checkout 5xx spike"
         updates={[
-          { ts: "2026-07-18T09:00:00Z", phase: "investigating", body: "Declared." },
-          { ts: "2026-07-18T09:45:00Z", phase: "monitoring", body: "Throttle applied." },
+          {
+            ts: "2026-07-18T09:00:00Z",
+            phase: "investigating",
+            body: "Declared.",
+          },
+          {
+            ts: "2026-07-18T09:45:00Z",
+            phase: "monitoring",
+            body: "Throttle applied.",
+          },
         ]}
       />,
     );

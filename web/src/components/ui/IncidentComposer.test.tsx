@@ -7,7 +7,9 @@ describe("IncidentComposer", () => {
   it("autocompletes slash commands (MI-10)", async () => {
     render(<IncidentComposer onSubmit={() => undefined} />);
     await userEvent.type(screen.getByLabelText("Incident update"), "/sta");
-    expect(screen.getByRole("listbox", { name: "Slash commands" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("listbox", { name: "Slash commands" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("/status resolved")).toBeInTheDocument();
   });
 

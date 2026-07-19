@@ -14,7 +14,13 @@ export interface QueryPillProps {
 }
 
 /** QueryPill — tokenized filter chip (`service:api-common`), §8.2 default/hover. */
-export function QueryPill({ facet, value, negated = false, onRemove, className }: QueryPillProps) {
+export function QueryPill({
+  facet,
+  value,
+  negated = false,
+  onRemove,
+  className,
+}: QueryPillProps) {
   return (
     <span
       className={clsx(

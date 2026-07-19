@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildTimeseries, generateLogs, parseQuery, type OutageWindow } from "./series";
+import {
+  buildTimeseries,
+  generateLogs,
+  parseQuery,
+  type OutageWindow,
+} from "./series";
 import { HOUR, MINUTE } from "./util";
 
 const NOW = Date.parse("2026-07-18T12:00:00Z");
@@ -11,7 +16,9 @@ const OUTAGE: OutageWindow = {
 
 describe("parseQuery", () => {
   it("parses filters, aggregation and group-by", () => {
-    const parsed = parseQuery("metric:http.request.duration_ms service:web | p95() by service");
+    const parsed = parseQuery(
+      "metric:http.request.duration_ms service:web | p95() by service",
+    );
     if ("error" in parsed) throw new Error(parsed.error);
     expect(parsed.metric).toBe("http.request.duration_ms");
     expect(parsed.filters.service).toBe("web");
@@ -32,7 +39,9 @@ describe("parseQuery", () => {
   it("rejects malformed pipes instead of silently succeeding (MI-13)", () => {
     // split-on-every-pipe used to drop the garbage and parse clean, so the
     // QueryBar's syntax-error state was unreachable (QA 2026-07-19)
-    expect(parseQuery("metric:http.requests_total ||| nonsense((")).toHaveProperty("error");
+    expect(
+      parseQuery("metric:http.requests_total ||| nonsense(("),
+    ).toHaveProperty("error");
     expect(parseQuery("service:web |")).toHaveProperty("error");
     expect(parseQuery("service:web | nonsense((")).toHaveProperty("error");
   });
@@ -40,7 +49,9 @@ describe("parseQuery", () => {
   it("rejects EVERY additional pipe — one | segment max (grammar §1, #156)", () => {
     // `a | rate() | nonsense` used to sail through on the first segment
     // alone, silently ignoring the second pipe and trailing text
-    expect(parseQuery("service:web | rate() | nonsense")).toHaveProperty("error");
+    expect(parseQuery("service:web | rate() | nonsense")).toHaveProperty(
+      "error",
+    );
     expect(parseQuery("service:web | rate() | sum()")).toHaveProperty("error");
     expect(parseQuery("service:web | rate() |")).toHaveProperty("error");
     // the single-pipe form still parses clean
@@ -57,7 +68,9 @@ describe("parseQuery", () => {
 
 describe("buildTimeseries", () => {
   it("is deterministic and spans the requested range", () => {
-    const parsed = parseQuery("metric:http.request.duration_ms service:checkout | p95()");
+    const parsed = parseQuery(
+      "metric:http.request.duration_ms service:checkout | p95()",
+    );
     if ("error" in parsed) throw new Error(parsed.error);
     const a = buildTimeseries(parsed, NOW - 4 * HOUR, NOW, OUTAGE);
     const b = buildTimeseries(parsed, NOW - 4 * HOUR, NOW, OUTAGE);
@@ -69,12 +82,16 @@ describe("buildTimeseries", () => {
   });
 
   it("shows the INC-42 outage spike on implicated services", () => {
-    const parsed = parseQuery("metric:http.request.duration_ms service:checkout | p95()");
+    const parsed = parseQuery(
+      "metric:http.request.duration_ms service:checkout | p95()",
+    );
     if ("error" in parsed) throw new Error(parsed.error);
     const result = buildTimeseries(parsed, NOW - 6 * HOUR, NOW, OUTAGE);
     const points = result.series[0].points;
     const mid = (OUTAGE.start + OUTAGE.end) / 2;
-    const during = points.filter((p) => Math.abs(Date.parse(p.ts) - mid) < 20 * MINUTE);
+    const during = points.filter(
+      (p) => Math.abs(Date.parse(p.ts) - mid) < 20 * MINUTE,
+    );
     const before = points.filter((p) => Date.parse(p.ts) < OUTAGE.start - HOUR);
     const avg = (xs: typeof points) =>
       xs.reduce((s, p) => s + (p.value ?? 0), 0) / Math.max(xs.length, 1);
@@ -82,13 +99,19 @@ describe("buildTimeseries", () => {
   });
 
   it("keeps p95 above p50 (honest quantile shapes)", () => {
-    const q50 = parseQuery("metric:http.request.duration_ms service:web | p50()");
-    const q95 = parseQuery("metric:http.request.duration_ms service:web | p95()");
+    const q50 = parseQuery(
+      "metric:http.request.duration_ms service:web | p50()",
+    );
+    const q95 = parseQuery(
+      "metric:http.request.duration_ms service:web | p95()",
+    );
     if ("error" in q50 || "error" in q95) throw new Error("parse failed");
     const r50 = buildTimeseries(q50, NOW - 2 * HOUR, NOW, OUTAGE);
     const r95 = buildTimeseries(q95, NOW - 2 * HOUR, NOW, OUTAGE);
     for (let i = 0; i < r50.series[0].points.length; i++) {
-      expect(r95.series[0].points[i].value!).toBeGreaterThan(r50.series[0].points[i].value!);
+      expect(r95.series[0].points[i].value!).toBeGreaterThan(
+        r50.series[0].points[i].value!,
+      );
     }
   });
 
@@ -101,7 +124,9 @@ describe("buildTimeseries", () => {
 
   it("consumes env — switching $env observably changes series, INC-42 stays prod-only (#156)", () => {
     const q = (env: string) =>
-      parseQuery(`metric:http.errors_total service:checkout env:${env} | rate()`);
+      parseQuery(
+        `metric:http.errors_total service:checkout env:${env} | rate()`,
+      );
     const prod = q("prod");
     const staging = q("staging");
     if ("error" in prod || "error" in staging) throw new Error("parse failed");
@@ -121,19 +146,39 @@ describe("buildTimeseries", () => {
     const mid = (OUTAGE.start + OUTAGE.end) / 2;
     const avgWhere = (r: typeof rProd, pred: (t: number) => boolean) => {
       const xs = r.series[0].points.filter((p) => pred(Date.parse(p.ts)));
-      return xs.reduce((s, p) => s + (p.value ?? 0), 0) / Math.max(xs.length, 1);
+      return (
+        xs.reduce((s, p) => s + (p.value ?? 0), 0) / Math.max(xs.length, 1)
+      );
     };
     const during = (t: number) => Math.abs(t - mid) < 20 * MINUTE;
     const before = (t: number) => t < OUTAGE.start - HOUR;
-    expect(avgWhere(rProd, during)).toBeGreaterThan(avgWhere(rProd, before) * 5);
-    expect(avgWhere(rStaging, during)).toBeLessThan(avgWhere(rStaging, before) * 2);
+    expect(avgWhere(rProd, during)).toBeGreaterThan(
+      avgWhere(rProd, before) * 5,
+    );
+    expect(avgWhere(rStaging, during)).toBeLessThan(
+      avgWhere(rStaging, before) * 2,
+    );
   });
 });
 
 describe("generateLogs", () => {
   it("is deterministic, newest-first, and respects limits", () => {
-    const a = generateLogs(NOW - 10 * MINUTE, NOW, OUTAGE, undefined, undefined, 50);
-    const b = generateLogs(NOW - 10 * MINUTE, NOW, OUTAGE, undefined, undefined, 50);
+    const a = generateLogs(
+      NOW - 10 * MINUTE,
+      NOW,
+      OUTAGE,
+      undefined,
+      undefined,
+      50,
+    );
+    const b = generateLogs(
+      NOW - 10 * MINUTE,
+      NOW,
+      OUTAGE,
+      undefined,
+      undefined,
+      50,
+    );
     expect(a).toEqual(b);
     expect(a).toHaveLength(50);
     for (let i = 1; i < a.length; i++) {
@@ -142,7 +187,14 @@ describe("generateLogs", () => {
   });
 
   it("filters by service and level", () => {
-    const logs = generateLogs(NOW - 30 * MINUTE, NOW, OUTAGE, "checkout", "ERROR", 20);
+    const logs = generateLogs(
+      NOW - 30 * MINUTE,
+      NOW,
+      OUTAGE,
+      "checkout",
+      "ERROR",
+      20,
+    );
     for (const line of logs) {
       expect(line.service).toBe("checkout");
       expect(line.level).toBe("ERROR");

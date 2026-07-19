@@ -17,7 +17,10 @@ describe("ErrorGroupRow", () => {
         }}
       />,
     );
-    expect(screen.getByRole("button")).toHaveAttribute("data-state", "regressed");
+    expect(screen.getByRole("button")).toHaveAttribute(
+      "data-state",
+      "regressed",
+    );
     expect(screen.getByText("128")).toBeInTheDocument();
   });
 });

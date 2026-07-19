@@ -28,7 +28,11 @@ export async function GET(req: Request) {
     ? Date.parse(url.searchParams.get("to")!)
     : now;
   if (Number.isNaN(fromMs) || Number.isNaN(toMs) || toMs <= fromMs) {
-    return jsonError(422, "ts_out_of_range", "from/to must be a valid RFC3339 range");
+    return jsonError(
+      422,
+      "ts_out_of_range",
+      "from/to must be a valid RFC3339 range",
+    );
   }
   if (toMs - fromMs > 92 * DAY) {
     return jsonError(422, "range_too_large", "max range is 92 days");

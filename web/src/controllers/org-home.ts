@@ -52,9 +52,21 @@ const spark = (points: number[]) => points.slice(-24);
 
 async function buildTiles(fromIso: string, toIso: string): Promise<StatTile[]> {
   const [reqs, p95, errs, slos] = await Promise.all([
-    queryRepo.run({ q: "metric:http.requests_total | rate() by service", from: fromIso, to: toIso }),
-    queryRepo.run({ q: "metric:http.request.duration_ms service:checkout | p95()", from: fromIso, to: toIso }),
-    queryRepo.run({ q: "metric:http.errors_total service:checkout | rate()", from: fromIso, to: toIso }),
+    queryRepo.run({
+      q: "metric:http.requests_total | rate() by service",
+      from: fromIso,
+      to: toIso,
+    }),
+    queryRepo.run({
+      q: "metric:http.request.duration_ms service:checkout | p95()",
+      from: fromIso,
+      to: toIso,
+    }),
+    queryRepo.run({
+      q: "metric:http.errors_total service:checkout | rate()",
+      from: fromIso,
+      to: toIso,
+    }),
     slosRepo.list(),
   ]);
 
@@ -79,11 +91,15 @@ async function buildTiles(fromIso: string, toIso: string): Promise<StatTile[]> {
     // availability rides between 99.9 and 100 — render the request shape
     // compressed so the tile still breathes (the §8.3 honesty rule applies
     // to charts; the tile sparkline is texture over the same series)
-    sparkline: spark(reqSums.map((v, i) => 99.9 + (v > 0 ? (reqSums[i] % 7) * 0.01 : 0))),
+    sparkline: spark(
+      reqSums.map((v, i) => 99.9 + (v > 0 ? (reqSums[i] % 7) * 0.01 : 0)),
+    ),
   });
 
   const p95Points =
-    p95.kind === "timeseries" ? (p95.series[0]?.points.map((p) => p.value ?? 0) ?? []) : [];
+    p95.kind === "timeseries"
+      ? (p95.series[0]?.points.map((p) => p.value ?? 0) ?? [])
+      : [];
   const p95Last = p95Points[p95Points.length - 1] ?? 0;
   tiles.push({
     label: "p95 latency · checkout",
@@ -94,7 +110,9 @@ async function buildTiles(fromIso: string, toIso: string): Promise<StatTile[]> {
   });
 
   const errPoints =
-    errs.kind === "timeseries" ? (errs.series[0]?.points.map((p) => p.value ?? 0) ?? []) : [];
+    errs.kind === "timeseries"
+      ? (errs.series[0]?.points.map((p) => p.value ?? 0) ?? [])
+      : [];
   const reqCheckout = Math.max(reqLast / 7, 1); // rough per-service share
   const errLast = errPoints[errPoints.length - 1] ?? 0;
   const errRatePct = Math.min((errLast / reqCheckout) * 100, 100);
@@ -113,14 +131,20 @@ export function useOrgHomeController() {
   const router = useRouter();
   const time = useTimeRange();
   const onboarding = useRequest(() => orgsRepo.onboarding(), []);
-  const tiles = useRequest(() => buildTiles(time.fromIso, time.toIso), [time.fromIso, time.toIso]);
+  const tiles = useRequest(
+    () => buildTiles(time.fromIso, time.toIso),
+    [time.fromIso, time.toIso],
+  );
   const dashboards = useRequest(() => dashboardsRepo.list(), []);
   const feed = useRequest(() => alertsRepo.feed(), []);
   const slos = useRequest(() => slosRepo.list(), []);
 
   // First-run: no data yet → the B1 onboarding flow owns the screen.
   useEffect(() => {
-    if (onboarding.data && (!onboarding.data.org_created || !onboarding.data.has_data)) {
+    if (
+      onboarding.data &&
+      (!onboarding.data.org_created || !onboarding.data.has_data)
+    ) {
       router.replace("/dashboard/onboarding");
     }
   }, [onboarding.data, router]);

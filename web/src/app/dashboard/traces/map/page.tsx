@@ -5,7 +5,10 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ServiceMapNode } from "@/components/ui/ServiceMapNode";
-import { useServiceMapController, type MapEdge } from "@/controllers/service-map";
+import {
+  useServiceMapController,
+  type MapEdge,
+} from "@/controllers/service-map";
 import { PageTabs } from "../../page-tabs";
 import { apmTabs } from "../apm-tabs";
 
@@ -50,7 +53,10 @@ export default function ServiceMapPage() {
         {selected && (
           <p className="ml-auto text-[12px] text-text-2">
             highlight: <span className="font-data text-text">{selected}</span> —{" "}
-            <Link href={`/dashboard/traces/services/${selected}`} className="text-brand hover:underline">
+            <Link
+              href={`/dashboard/traces/services/${selected}`}
+              className="text-brand hover:underline"
+            >
               open service →
             </Link>
           </p>
@@ -64,106 +70,115 @@ export default function ServiceMapPage() {
           aria-label="Empty service map"
           className="rounded-(--radius) border border-border bg-bg-elev p-10 text-center text-[13px] text-text-2"
         >
-          The map draws itself from traces — instrument two services and
-          their edge appears here.
+          The map draws itself from traces — instrument two services and their
+          edge appears here.
         </section>
       ) : (
         // overflow-x-auto: the %-positioned topology needs a minimum canvas
         // width — it pans inside the section on narrow viewports (390)
         <section aria-label="Service topology" className="overflow-x-auto">
           <div className="relative min-w-[880px]" style={{ height: H }}>
-          {/* edges */}
-          <svg
-            viewBox={`0 0 ${W} ${H}`}
-            preserveAspectRatio="none"
-            aria-hidden="true"
-            className="absolute inset-0 h-full w-full"
-          >
+            {/* edges */}
+            <svg
+              viewBox={`0 0 ${W} ${H}`}
+              preserveAspectRatio="none"
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full"
+            >
+              {edges.map((edge) => {
+                const a = nodeAt(edge.from);
+                const b = nodeAt(edge.to);
+                if (!a || !b) return null;
+                const involved =
+                  selected !== null &&
+                  (edge.from === selected || edge.to === selected);
+                return (
+                  <line
+                    key={`${edge.from}-${edge.to}`}
+                    x1={a.x * W}
+                    y1={a.y * H}
+                    x2={b.x * W}
+                    y2={b.y * H}
+                    stroke={
+                      edge.erroring
+                        ? "var(--color-crit)"
+                        : "var(--color-border)"
+                    }
+                    strokeWidth={involved ? 2 : 1.25}
+                    strokeDasharray="4 4"
+                    opacity={selected === null || involved ? 1 : 0.35}
+                  />
+                );
+              })}
+            </svg>
+
+            {/* edge hit areas + tooltip */}
             {edges.map((edge) => {
               const a = nodeAt(edge.from);
               const b = nodeAt(edge.to);
               if (!a || !b) return null;
-              const involved =
-                selected !== null && (edge.from === selected || edge.to === selected);
+              const mx = ((a.x + b.x) / 2) * 100;
+              const my = ((a.y + b.y) / 2) * 100;
               return (
-                <line
-                  key={`${edge.from}-${edge.to}`}
-                  x1={a.x * W}
-                  y1={a.y * H}
-                  x2={b.x * W}
-                  y2={b.y * H}
-                  stroke={edge.erroring ? "var(--color-crit)" : "var(--color-border)"}
-                  strokeWidth={involved ? 2 : 1.25}
-                  strokeDasharray="4 4"
-                  opacity={selected === null || involved ? 1 : 0.35}
+                <button
+                  key={`hit-${edge.from}-${edge.to}`}
+                  type="button"
+                  aria-label={`${edge.from} → ${edge.to}: ${edgeLabel(edge)}`}
+                  onMouseEnter={() => setHoverEdge(edge)}
+                  onMouseLeave={() => setHoverEdge(null)}
+                  onFocus={() => setHoverEdge(edge)}
+                  onBlur={() => setHoverEdge(null)}
+                  className="absolute size-6 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                  style={{ left: `${mx}%`, top: `${my}%` }}
                 />
               );
             })}
-          </svg>
 
-          {/* edge hit areas + tooltip */}
-          {edges.map((edge) => {
-            const a = nodeAt(edge.from);
-            const b = nodeAt(edge.to);
-            if (!a || !b) return null;
-            const mx = ((a.x + b.x) / 2) * 100;
-            const my = ((a.y + b.y) / 2) * 100;
-            return (
-              <button
-                key={`hit-${edge.from}-${edge.to}`}
-                type="button"
-                aria-label={`${edge.from} → ${edge.to}: ${edgeLabel(edge)}`}
-                onMouseEnter={() => setHoverEdge(edge)}
-                onMouseLeave={() => setHoverEdge(null)}
-                onFocus={() => setHoverEdge(edge)}
-                onBlur={() => setHoverEdge(null)}
-                className="absolute size-6 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                style={{ left: `${mx}%`, top: `${my}%` }}
-              />
-            );
-          })}
-
-          {hoverEdge && (
-            <div
-              role="status"
-              data-testid="edge-tooltip"
-              className="absolute z-[var(--z-dropdown)] -translate-x-1/2 rounded-(--radius) border border-border bg-bg-elev px-3 py-2 shadow-lg"
-              style={{
-                left: `${(((nodeAt(hoverEdge.from)?.x ?? 0) + (nodeAt(hoverEdge.to)?.x ?? 0)) / 2) * 100}%`,
-                top: `calc(${(((nodeAt(hoverEdge.from)?.y ?? 0) + (nodeAt(hoverEdge.to)?.y ?? 0)) / 2) * 100}% + 16px)`,
-              }}
-            >
-              <p className="font-data text-[11px] text-text-2">
-                {hoverEdge.from} → {hoverEdge.to}
-              </p>
-              <p className="font-data text-[12px] tabular-nums text-text">{edgeLabel(hoverEdge)}</p>
-            </div>
-          )}
-
-          {/* nodes */}
-          <ul aria-label="Services">
-            {nodes.map((node, i) => (
-              <li
-                key={node.stats.service}
-                className="absolute"
+            {hoverEdge && (
+              <div
+                role="status"
+                data-testid="edge-tooltip"
+                className="absolute z-[var(--z-dropdown)] -translate-x-1/2 rounded-(--radius) border border-border bg-bg-elev px-3 py-2 shadow-lg"
                 style={{
-                  left: `calc(${node.x * 100}% - ${NODE_HALF}px)`,
-                  top: `calc(${node.y * 100}% - ${NODE_HALF}px)`,
+                  left: `${(((nodeAt(hoverEdge.from)?.x ?? 0) + (nodeAt(hoverEdge.to)?.x ?? 0)) / 2) * 100}%`,
+                  top: `calc(${(((nodeAt(hoverEdge.from)?.y ?? 0) + (nodeAt(hoverEdge.to)?.y ?? 0)) / 2) * 100}% + 16px)`,
                 }}
               >
-                <ServiceMapNode
-                  name={node.stats.service}
-                  reqPerS={node.stats.req_per_s}
-                  errorRate={node.stats.error_rate}
-                  colorIndex={i}
-                  selected={selected === node.stats.service}
-                  onClick={() =>
-                    setSelected((cur) => (cur === node.stats.service ? null : node.stats.service))
-                  }
-                />
-              </li>
-            ))}
-          </ul>
+                <p className="font-data text-[11px] text-text-2">
+                  {hoverEdge.from} → {hoverEdge.to}
+                </p>
+                <p className="font-data text-[12px] tabular-nums text-text">
+                  {edgeLabel(hoverEdge)}
+                </p>
+              </div>
+            )}
+
+            {/* nodes */}
+            <ul aria-label="Services">
+              {nodes.map((node, i) => (
+                <li
+                  key={node.stats.service}
+                  className="absolute"
+                  style={{
+                    left: `calc(${node.x * 100}% - ${NODE_HALF}px)`,
+                    top: `calc(${node.y * 100}% - ${NODE_HALF}px)`,
+                  }}
+                >
+                  <ServiceMapNode
+                    name={node.stats.service}
+                    reqPerS={node.stats.req_per_s}
+                    errorRate={node.stats.error_rate}
+                    colorIndex={i}
+                    selected={selected === node.stats.service}
+                    onClick={() =>
+                      setSelected((cur) =>
+                        cur === node.stats.service ? null : node.stats.service,
+                      )
+                    }
+                  />
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
       )}

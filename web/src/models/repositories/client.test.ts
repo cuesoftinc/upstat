@@ -10,7 +10,9 @@ describe("repository http client", () => {
   it("parses successful JSON responses", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () => new Response(JSON.stringify({ ok: true }), { status: 200 })),
+      vi.fn(
+        async () => new Response(JSON.stringify({ ok: true }), { status: 200 }),
+      ),
     );
     await expect(http.get("/v1/orgs/current")).resolves.toEqual({ ok: true });
   });
@@ -21,12 +23,16 @@ describe("repository http client", () => {
       vi.fn(
         async () =>
           new Response(
-            JSON.stringify({ error: { code: "not_found", message: "org not found" } }),
+            JSON.stringify({
+              error: { code: "not_found", message: "org not found" },
+            }),
             { status: 404 },
           ),
       ),
     );
-    const err = (await http.get("/v1/orgs/current").catch((e) => e)) as ApiError;
+    const err = (await http
+      .get("/v1/orgs/current")
+      .catch((e) => e)) as ApiError;
     expect(err).toBeInstanceOf(ApiError);
     expect(err.code).toBe("not_found");
     expect(err.status).toBe(404);
@@ -34,7 +40,10 @@ describe("repository http client", () => {
   });
 
   it("synthesizes a stable code for non-envelope failures", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => new Response("bad gateway", { status: 502 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("bad gateway", { status: 502 })),
+    );
     const err = (await http.get("/v1/anything").catch((e) => e)) as ApiError;
     expect(err).toBeInstanceOf(ApiError);
     expect(err.code).toBe("internal");

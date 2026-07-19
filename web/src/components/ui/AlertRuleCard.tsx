@@ -33,7 +33,11 @@ const STATE_TO_PILL: Record<AlertRule["state"], StatusPillStatus> = {
  * mono query summary, mono threshold line
  * (`warn > 800 · crit > 1500 · for 5m`).
  */
-export function AlertRuleCard({ rule, onClick, className }: AlertRuleCardProps) {
+export function AlertRuleCard({
+  rule,
+  onClick,
+  className,
+}: AlertRuleCardProps) {
   const Icon = SIGNAL_ICON[rule.signal];
   return (
     <button
@@ -48,18 +52,25 @@ export function AlertRuleCard({ rule, onClick, className }: AlertRuleCardProps) 
     >
       <div className="flex w-full items-center gap-2">
         <Icon aria-hidden="true" className="size-4 shrink-0 text-text-2" />
-        <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-text">{rule.name}</span>
+        <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-text">
+          {rule.name}
+        </span>
         <StatusPill status={STATE_TO_PILL[rule.state]} />
       </div>
-      <code className="font-data w-full truncate text-[12px] text-text-2">{rule.query_string}</code>
+      <code className="font-data w-full truncate text-[12px] text-text-2">
+        {rule.query_string}
+      </code>
       <div className="font-data flex w-full items-center gap-2 text-[12px] tabular-nums text-text">
         <span className="truncate">
-          {rule.thresholds.warn !== null && <>warn &gt; {rule.thresholds.warn} · </>}
+          {rule.thresholds.warn !== null && (
+            <>warn &gt; {rule.thresholds.warn} · </>
+          )}
           crit &gt; {rule.thresholds.crit} · for {rule.thresholds.window}
         </span>
         {rule.last_triggered_at && (
           <span className="ml-auto shrink-0 text-[11px] text-text-2">
-            last triggered {rule.last_triggered_at.slice(0, 16).replace("T", " ")}
+            last triggered{" "}
+            {rule.last_triggered_at.slice(0, 16).replace("T", " ")}
           </span>
         )}
       </div>

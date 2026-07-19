@@ -10,7 +10,10 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { WidgetShell, type WidgetShellMode } from "@/components/ui/WidgetShell";
 import { WidgetTypePicker } from "@/components/ui/WidgetTypePicker";
 import type { Widget, WidgetLayout, WidgetType } from "@/models";
-import { dashboardToPortableJson, useDashboardController } from "@/controllers/dashboards";
+import {
+  dashboardToPortableJson,
+  useDashboardController,
+} from "@/controllers/dashboards";
 import { defaultWidget, substituteVars } from "@/controllers/widgets";
 import { useMediaQuery } from "@/controllers/use-media-query";
 import { useTimeRange } from "@/controllers/time-range";
@@ -59,7 +62,9 @@ export default function DashboardViewPage() {
 
   const effectiveVars = useMemo(() => {
     const out: Record<string, string> = {};
-    for (const [name, values] of Object.entries(dashboard?.template_vars ?? {})) {
+    for (const [name, values] of Object.entries(
+      dashboard?.template_vars ?? {},
+    )) {
       out[name] = vars[name] ?? values[0] ?? "";
     }
     return out;
@@ -154,7 +159,11 @@ export default function DashboardViewPage() {
             </span>
           )}
           {ctrl.editMode && (
-            <Button kind="quiet" onClick={() => setEditorTarget("new")} data-testid="add-widget">
+            <Button
+              kind="quiet"
+              onClick={() => setEditorTarget("new")}
+              data-testid="add-widget"
+            >
               + Add widget
             </Button>
           )}
@@ -188,14 +197,22 @@ export default function DashboardViewPage() {
 
       {/* template variable bar */}
       {Object.keys(dashboard.template_vars).length > 0 && (
-        <section aria-label="Template variables" className="flex flex-wrap items-center gap-2">
+        <section
+          aria-label="Template variables"
+          className="flex flex-wrap items-center gap-2"
+        >
           {Object.entries(dashboard.template_vars).map(([name, values]) => (
-            <label key={name} className="flex items-center gap-1 text-[12px] text-text-2">
+            <label
+              key={name}
+              className="flex items-center gap-1 text-[12px] text-text-2"
+            >
               <span className="font-data">${name} =</span>
               <Select
                 options={values.map((v) => ({ value: v, label: v }))}
                 value={effectiveVars[name] ?? null}
-                onValueChange={(v) => setVars((prev) => ({ ...prev, [name]: v }))}
+                onValueChange={(v) =>
+                  setVars((prev) => ({ ...prev, [name]: v }))
+                }
                 aria-label={`$${name}`}
                 className="min-w-28"
               />
@@ -217,7 +234,9 @@ export default function DashboardViewPage() {
           data-testid="widget-grid"
           className="grid"
           style={{
-            gridTemplateColumns: stacked ? "minmax(0, 1fr)" : `repeat(${COLS}, minmax(0, 1fr))`,
+            gridTemplateColumns: stacked
+              ? "minmax(0, 1fr)"
+              : `repeat(${COLS}, minmax(0, 1fr))`,
             // stacked rows size to content: the plot keeps its layout.h
             // height and the legend renders below it unclipped
             gridAutoRows: stacked ? "auto" : ROW_H,
@@ -230,7 +249,11 @@ export default function DashboardViewPage() {
             const layout =
               drag?.widgetId === widget.id ? drag.preview : widget.layout;
             const mode: WidgetShellMode =
-              fullscreenId === widget.id ? "fullscreen" : ctrl.editMode ? "edit" : "view";
+              fullscreenId === widget.id
+                ? "fullscreen"
+                : ctrl.editMode
+                  ? "edit"
+                  : "view";
             const plotH = layout.h * ROW_H + (layout.h - 1) * GUTTER - 72;
             return (
               <div
@@ -238,8 +261,12 @@ export default function DashboardViewPage() {
                 data-widget-id={widget.id}
                 className="relative min-w-0"
                 style={{
-                  gridColumn: stacked ? "1 / -1" : `${layout.x + 1} / span ${layout.w}`,
-                  gridRow: stacked ? "auto" : `${layout.y + 1} / span ${layout.h}`,
+                  gridColumn: stacked
+                    ? "1 / -1"
+                    : `${layout.x + 1} / span ${layout.w}`,
+                  gridRow: stacked
+                    ? "auto"
+                    : `${layout.y + 1} / span ${layout.h}`,
                   opacity: drag?.widgetId === widget.id ? 0.85 : 1,
                 }}
               >
@@ -249,7 +276,9 @@ export default function DashboardViewPage() {
                   title={substituteVars(widget.title, effectiveVars)}
                   query={widget.query_string}
                   mode={mode}
-                  onModeChange={(m) => setFullscreenId(m === "fullscreen" ? widget.id : null)}
+                  onModeChange={(m) =>
+                    setFullscreenId(m === "fullscreen" ? widget.id : null)
+                  }
                   onEdit={() => setEditorTarget(widget)}
                   onDuplicate={() => void ctrl.duplicateWidget(widget)}
                   onDelete={() => void ctrl.removeWidget(widget.id)}
@@ -325,7 +354,8 @@ function WidgetEditor({
 
   // reset per-open — the React "derive state from props" pattern (render-
   // phase setState behind a change guard; no refs during render)
-  const openKey = target === null ? "closed" : isNew ? "new" : (target as Widget).id;
+  const openKey =
+    target === null ? "closed" : isNew ? "new" : (target as Widget).id;
   const [lastKey, setLastKey] = useState(openKey);
   if (lastKey !== openKey) {
     setLastKey(openKey);
@@ -368,7 +398,11 @@ function WidgetEditor({
           <Button kind="quiet" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={() => void submit()} disabled={saving} data-testid="save-widget">
+          <Button
+            onClick={() => void submit()}
+            disabled={saving}
+            data-testid="save-widget"
+          >
             {saving ? "Saving…" : isNew ? "Add" : "Save"}
           </Button>
         </>
@@ -378,7 +412,11 @@ function WidgetEditor({
         <WidgetTypePicker layout="row" selected={effType} onSelect={setType} />
         <label className="flex flex-col gap-1 text-[13px]">
           <span className="text-text-2">Title</span>
-          <Input value={effTitle} onChange={(e) => setTitle(e.target.value)} data-testid="widget-title" />
+          <Input
+            value={effTitle}
+            onChange={(e) => setTitle(e.target.value)}
+            data-testid="widget-title"
+          />
         </label>
         <label className="flex flex-col gap-1 text-[13px]">
           <span className="text-text-2">Query</span>

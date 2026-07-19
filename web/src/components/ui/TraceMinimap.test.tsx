@@ -30,7 +30,15 @@ const SPANS: Span[] = [
 
 describe("TraceMinimap", () => {
   it("renders one bar per span", () => {
-    render(<TraceMinimap spans={SPANS} durationMs={48.2} startTs="2026-07-18T11:18:00.000Z" />);
-    expect(screen.getByRole("img", { name: "trace minimap" }).children).toHaveLength(2);
+    render(
+      <TraceMinimap
+        spans={SPANS}
+        durationMs={48.2}
+        startTs="2026-07-18T11:18:00.000Z"
+      />,
+    );
+    expect(
+      screen.getByRole("img", { name: "trace minimap" }).children,
+    ).toHaveLength(2);
   });
 });

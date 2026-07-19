@@ -5,7 +5,10 @@ import { Input } from "./Input";
 describe("Input", () => {
   it("marks the error state with aria-invalid", () => {
     render(<Input error aria-label="Name" />);
-    expect(screen.getByLabelText("Name")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByLabelText("Name")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
   });
 
   it("renders mono for query/data inputs", () => {

@@ -10,7 +10,9 @@ test("signin → dashboard home via the single Google CTA", async ({ page }) => 
 
   const screen = page.getByTestId("signin-screen");
   await expect(screen).toBeVisible();
-  await expect(screen.getByRole("heading", { name: "Sign in to Upstat" })).toBeVisible();
+  await expect(
+    screen.getByRole("heading", { name: "Sign in to Upstat" }),
+  ).toBeVisible();
 
   // X-1: a single auth affordance, Google only (scoped to the screen —
   // the Next dev overlay injects its own buttons in dev mode).
@@ -24,15 +26,21 @@ test("signin → dashboard home via the single Google CTA", async ({ page }) => 
   const home = page.getByTestId("dashboard-home");
   await expect(home).toBeVisible();
   // B1 org-health screen served from the seeded narrative.
-  await expect(home.getByRole("heading", { name: "Home — org health" })).toBeVisible();
+  await expect(
+    home.getByRole("heading", { name: "Home — org health" }),
+  ).toBeVisible();
 });
 
-test("/login 404s on the branded page (redirect stub removed 2026-07-19)", async ({ page }) => {
+test("/login 404s on the branded page (redirect stub removed 2026-07-19)", async ({
+  page,
+}) => {
   // user decision: the /login → /signin stub is gone — /signin is the only
   // auth route; stale links land on the branded not-found page
   const response = await page.goto("/login");
   expect(response!.status()).toBe(404);
-  await expect(page.getByRole("heading", { name: /This page doesn/ })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /This page doesn/ }),
+  ).toBeVisible();
 });
 
 test("signin column stays constrained at desktop width", async ({ page }) => {
@@ -57,13 +65,23 @@ test("signin column stays constrained at desktop width", async ({ page }) => {
 test("mock server serves the seeded narrative", async ({ request }) => {
   const org = await request.get("/api/mock/v1/orgs/current");
   expect(org.ok()).toBeTruthy();
-  expect(await org.json()).toMatchObject({ name: "Upstat", timezone: "Africa/Lagos" });
+  expect(await org.json()).toMatchObject({
+    name: "Upstat",
+    timezone: "Africa/Lagos",
+  });
 
   const incidents = await request.get("/api/mock/v1/incidents");
   const list = await incidents.json();
-  expect(list.some((i: { key: string; status: string }) => i.key === "INC-42" && i.status === "monitoring")).toBeTruthy();
+  expect(
+    list.some(
+      (i: { key: string; status: string }) =>
+        i.key === "INC-42" && i.status === "monitoring",
+    ),
+  ).toBeTruthy();
 
-  const trace = await request.get("/api/mock/v1/traces/9f86d081884c7d659a2feaa0c55ad015");
+  const trace = await request.get(
+    "/api/mock/v1/traces/9f86d081884c7d659a2feaa0c55ad015",
+  );
   const traceBody = await trace.json();
   expect(traceBody.spans).toHaveLength(6);
   expect(traceBody.root_name).toBe("POST /v1/events");

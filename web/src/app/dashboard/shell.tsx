@@ -9,7 +9,10 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense, useMemo, useState, type ReactNode } from "react";
-import { CommandPalette, type CommandItem } from "@/components/ui/CommandPalette";
+import {
+  CommandPalette,
+  type CommandItem,
+} from "@/components/ui/CommandPalette";
 import { IncidentBanner } from "@/components/ui/IncidentBanner";
 import { NavRail, NAV_PILLARS } from "@/components/ui/NavRail";
 import { NotificationPopover } from "@/components/ui/AlertFeedRow";
@@ -39,8 +42,11 @@ export const PILLAR_ROUTES: Record<string, string> = {
 };
 
 function activeKeyFor(pathname: string): string {
-  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/onboarding")) return "home";
-  const entries = Object.entries(PILLAR_ROUTES).filter(([key]) => key !== "home");
+  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/onboarding"))
+    return "home";
+  const entries = Object.entries(PILLAR_ROUTES).filter(
+    ([key]) => key !== "home",
+  );
   const hit = entries.find(([, route]) => pathname.startsWith(route));
   return hit?.[0] ?? "home";
 }
@@ -62,7 +68,11 @@ function GlobalTimePicker() {
   return (
     <span className="flex items-center gap-2">
       {time.zoomDepth > 0 && (
-        <ZoomStackChip depth={time.zoomDepth} label={time.zoomLabel} onReset={time.resetZoom} />
+        <ZoomStackChip
+          depth={time.zoomDepth}
+          label={time.zoomLabel}
+          onReset={time.resetZoom}
+        />
       )}
       <TimePicker
         value={time.preset}
@@ -134,9 +144,12 @@ function ShellChrome({ children }: { children: ReactNode }) {
                       type="button"
                       onClick={() => {
                         setOrgOpen(false);
-                        if (org.id !== shell.org.data?.id) void shell.switchOrg(org.id);
+                        if (org.id !== shell.org.data?.id)
+                          void shell.switchOrg(org.id);
                       }}
-                      aria-current={org.id === shell.org.data?.id ? "true" : undefined}
+                      aria-current={
+                        org.id === shell.org.data?.id ? "true" : undefined
+                      }
                       className="flex w-full items-center justify-between px-3 py-1.5 text-left text-[13px] text-text transition-colors duration-[var(--duration-fast)] hover:bg-bg"
                     >
                       <span className="truncate">{org.name}</span>

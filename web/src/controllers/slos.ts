@@ -11,7 +11,15 @@ export function useSlosController() {
 
   const create = useCallback(
     async (
-      input: Omit<Slo, "id" | "org_id" | "current" | "budget_remaining_pct" | "burn_rate" | "state">,
+      input: Omit<
+        Slo,
+        | "id"
+        | "org_id"
+        | "current"
+        | "budget_remaining_pct"
+        | "burn_rate"
+        | "state"
+      >,
     ) => {
       await slosRepo.create(input);
       await state.reload();

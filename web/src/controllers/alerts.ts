@@ -28,7 +28,9 @@ export function useAlertsController() {
   );
 
   const createRule = useCallback(
-    async (input: Omit<AlertRule, "id" | "org_id" | "state" | "last_triggered_at">) => {
+    async (
+      input: Omit<AlertRule, "id" | "org_id" | "state" | "last_triggered_at">,
+    ) => {
       await alertsRepo.createRule(input);
       await rules.reload();
     },

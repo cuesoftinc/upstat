@@ -12,13 +12,24 @@ import { useCatalogPageController } from "@/controllers/catalog";
  * detail rail (req/s · p95 · error rate · env chips).
  */
 export default function ServiceCatalogPage() {
-  const { catalog, entries, search, setSearch, selected, select, detail, stats } =
-    useCatalogPageController();
+  const {
+    catalog,
+    entries,
+    search,
+    setSearch,
+    selected,
+    select,
+    detail,
+    stats,
+  } = useCatalogPageController();
 
   const last = (points: number[]) => points[points.length - 1] ?? 0;
 
   return (
-    <div data-testid="service-catalog" className="flex flex-col gap-5 px-6 py-5">
+    <div
+      data-testid="service-catalog"
+      className="flex flex-col gap-5 px-6 py-5"
+    >
       <h1 className="text-[20px] font-semibold">Service catalog</h1>
 
       <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_400px]">
@@ -50,7 +61,9 @@ export default function ServiceCatalogPage() {
                   <ServiceCatalogRow
                     entry={entry}
                     onClick={() => select(entry.id)}
-                    className={selected?.id === entry.id ? "border-brand/60" : undefined}
+                    className={
+                      selected?.id === entry.id ? "border-brand/60" : undefined
+                    }
                   />
                 </li>
               ))}
@@ -132,7 +145,9 @@ export default function ServiceCatalogPage() {
                   label="error rate"
                   value={`${(stats ? stats.error_rate * 100 : 0).toFixed(1)}%`}
                   sparkline={detail.data.errs}
-                  threshold={stats && stats.error_rate >= 0.05 ? "crit" : "none"}
+                  threshold={
+                    stats && stats.error_rate >= 0.05 ? "crit" : "none"
+                  }
                   className="rounded-(--radius) border border-border bg-bg p-3"
                 />
               </div>

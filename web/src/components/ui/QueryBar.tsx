@@ -54,7 +54,9 @@ export function QueryBar({
   // AFTER filtering (a pre-filter cap hides valid matches).
   const token = text.split(/\s+/).pop()?.toLowerCase() ?? "";
   const matching = (
-    token ? suggestions.filter((s) => s.text.toLowerCase().includes(token)) : suggestions
+    token
+      ? suggestions.filter((s) => s.text.toLowerCase().includes(token))
+      : suggestions
   ).slice(0, 8);
   const open = focused && matching.length > 0 && text.length > 0;
 
@@ -102,7 +104,8 @@ export function QueryBar({
           className={clsx(
             "font-data min-w-24 flex-1 bg-transparent text-[13px] text-text",
             "placeholder:text-text-2 focus:outline-none",
-            syntaxError && "underline decoration-crit decoration-wavy underline-offset-4",
+            syntaxError &&
+              "underline decoration-crit decoration-wavy underline-offset-4",
           )}
         />
       </div>
@@ -111,7 +114,10 @@ export function QueryBar({
           reliably only when the region pre-exists and its TEXT changes; a
           conditionally-mounted node can be missed (QA 2026-07-19). Empty
           <p> renders zero-height; mt-1 applies only with content. */}
-      <p role="alert" className={clsx("text-[12px] text-crit", syntaxError && "mt-1")}>
+      <p
+        role="alert"
+        className={clsx("text-[12px] text-crit", syntaxError && "mt-1")}
+      >
         {syntaxError}
       </p>
 
@@ -133,7 +139,9 @@ export function QueryBar({
               >
                 <span>{s.text}</span>
                 {s.cardinality !== undefined && (
-                  <span className="text-[11px] tabular-nums text-text-2">{s.cardinality}</span>
+                  <span className="text-[11px] tabular-nums text-text-2">
+                    {s.cardinality}
+                  </span>
                 )}
               </button>
             </li>

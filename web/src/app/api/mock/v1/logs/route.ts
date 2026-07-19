@@ -37,7 +37,8 @@ export async function GET(req: Request) {
   if (live) beforeMs = now;
   if (cursor) {
     const cursorMs = Date.parse(cursor);
-    if (Number.isNaN(cursorMs)) return jsonError(422, "bad_shape", "invalid cursor");
+    if (Number.isNaN(cursorMs))
+      return jsonError(422, "bad_shape", "invalid cursor");
     beforeMs = cursorMs;
   }
 
@@ -74,7 +75,11 @@ export async function GET(req: Request) {
   return jsonOk({
     events,
     ...(nextCursor ? { next_cursor: nextCursor } : {}),
-    histogram: logHistogram(fromMs, live ? now : (to ? Date.parse(to) : now), db.outage),
+    histogram: logHistogram(
+      fromMs,
+      live ? now : to ? Date.parse(to) : now,
+      db.outage,
+    ),
     facets: {
       service: facetCounts(events, (e) => e.service),
       level: facetCounts(events, (e) => e.level),

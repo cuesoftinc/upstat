@@ -8,10 +8,7 @@ import type { IncidentPhase, IncidentSev } from "./incidents";
 import type { MonitorStatus, UptimeDay } from "./monitors";
 
 export type StatusPageOverall =
-  | "operational"
-  | "degraded"
-  | "partial_outage"
-  | "major_outage";
+  "operational" | "degraded" | "partial_outage" | "major_outage";
 
 export interface StatusPageComponent {
   name: string;

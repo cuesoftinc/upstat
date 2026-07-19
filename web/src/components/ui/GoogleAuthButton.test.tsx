@@ -6,7 +6,9 @@ import { GoogleAuthButton } from "./GoogleAuthButton";
 describe("GoogleAuthButton", () => {
   it("renders the single Google CTA copy", () => {
     render(<GoogleAuthButton />);
-    expect(screen.getByRole("button", { name: /continue with google/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /continue with google/i }),
+    ).toBeInTheDocument();
   });
 
   it("fires onClick", async () => {

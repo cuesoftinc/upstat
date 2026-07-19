@@ -32,7 +32,11 @@ function formatCount(n: number): string {
  * volume bars in a bg-elev card with a mono totals header and time axis
  * (Figma 75:646); MI-6 crossfade on facet change.
  */
-export function LogHistogram({ buckets, height = 64, className }: LogHistogramProps) {
+export function LogHistogram({
+  buckets,
+  height = 64,
+  className,
+}: LogHistogramProps) {
   const totals = buckets.map((b) =>
     STACK.reduce((s, { level }) => s + (b.counts[level] ?? 0), 0),
   );
@@ -52,7 +56,9 @@ export function LogHistogram({ buckets, height = 64, className }: LogHistogramPr
       )}
     >
       <div className="font-data flex gap-3 text-[12px]">
-        <span className="text-text tabular-nums">{formatCount(grandTotal)} events</span>
+        <span className="text-text tabular-nums">
+          {formatCount(grandTotal)} events
+        </span>
         <span className="text-text-2 tabular-nums">
           error {formatCount(errorTotal)} · warn {formatCount(warnTotal)}
         </span>
@@ -69,38 +75,40 @@ export function LogHistogram({ buckets, height = 64, className }: LogHistogramPr
             style={{ height }}
           >
             {buckets.map((bucket, i) => (
-          <Tooltip
-            key={bucket.ts}
-            content={STACK.filter(({ level }) => (bucket.counts[level] ?? 0) > 0)
-              .reverse()
-              .map(({ level }) => ({
-                label: level,
-                value: String(bucket.counts[level]),
-              }))}
-          >
-            <span
-              data-ts={bucket.ts}
-              className="flex flex-col-reverse"
-              style={{ width: 6, height }}
-            >
-              {STACK.map(({ level, color }) => {
-                const v = bucket.counts[level] ?? 0;
-                if (v === 0) return null;
-                return (
-                  <span
-                    key={level}
-                    style={{
-                      height: `${(v / max) * 100}%`,
-                      background: color,
-                      opacity: 0.9,
-                    }}
-                    className="block w-full"
-                  />
-                );
-              })}
-              <span className="sr-only">{totals[i]} lines</span>
-            </span>
-          </Tooltip>
+              <Tooltip
+                key={bucket.ts}
+                content={STACK.filter(
+                  ({ level }) => (bucket.counts[level] ?? 0) > 0,
+                )
+                  .reverse()
+                  .map(({ level }) => ({
+                    label: level,
+                    value: String(bucket.counts[level]),
+                  }))}
+              >
+                <span
+                  data-ts={bucket.ts}
+                  className="flex flex-col-reverse"
+                  style={{ width: 6, height }}
+                >
+                  {STACK.map(({ level, color }) => {
+                    const v = bucket.counts[level] ?? 0;
+                    if (v === 0) return null;
+                    return (
+                      <span
+                        key={level}
+                        style={{
+                          height: `${(v / max) * 100}%`,
+                          background: color,
+                          opacity: 0.9,
+                        }}
+                        className="block w-full"
+                      />
+                    );
+                  })}
+                  <span className="sr-only">{totals[i]} lines</span>
+                </span>
+              </Tooltip>
             ))}
           </div>
 
@@ -108,7 +116,10 @@ export function LogHistogram({ buckets, height = 64, className }: LogHistogramPr
             {buckets
               .filter((_, i) => labelIdx.has(i))
               .map((b) => (
-                <span key={b.ts} className="font-data text-[11px] tabular-nums text-text-2">
+                <span
+                  key={b.ts}
+                  className="font-data text-[11px] tabular-nums text-text-2"
+                >
                   {b.ts.slice(11, 16)}
                 </span>
               ))}

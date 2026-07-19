@@ -26,11 +26,15 @@ export async function PATCH(
   if (body.type !== undefined) monitor.type = body.type;
   if (body.active !== undefined) monitor.active = body.active;
   if (body.muted !== undefined) monitor.muted = body.muted;
-  if (body.interval_seconds !== undefined) monitor.interval_seconds = body.interval_seconds;
-  if (body.timeout_seconds !== undefined) monitor.timeout_seconds = body.timeout_seconds;
-  if (body.failure_threshold !== undefined) monitor.failure_threshold = body.failure_threshold;
+  if (body.interval_seconds !== undefined)
+    monitor.interval_seconds = body.interval_seconds;
+  if (body.timeout_seconds !== undefined)
+    monitor.timeout_seconds = body.timeout_seconds;
+  if (body.failure_threshold !== undefined)
+    monitor.failure_threshold = body.failure_threshold;
   if (body.active === false) monitor.status = "paused";
-  else if (body.active === true && monitor.status === "paused") monitor.status = "pending";
+  else if (body.active === true && monitor.status === "paused")
+    monitor.status = "pending";
   monitor.updated_at = iso(Date.now());
   return jsonOk(monitor);
 }

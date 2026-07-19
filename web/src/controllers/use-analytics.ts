@@ -9,7 +9,11 @@
  */
 
 import { useEffect } from "react";
-import { analytics, type EventDims, type UpstatEvent } from "@/models/analytics";
+import {
+  analytics,
+  type EventDims,
+  type UpstatEvent,
+} from "@/models/analytics";
 
 /** Fire a registered event (api.md §3.4 registry names; never throws). */
 export function track(name: UpstatEvent, dims?: EventDims): void {

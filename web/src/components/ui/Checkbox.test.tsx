@@ -6,7 +6,10 @@ import { Checkbox } from "./Checkbox";
 describe("Checkbox", () => {
   it("exposes the indeterminate state as mixed", () => {
     render(<Checkbox checked="indeterminate" aria-label="Select all" />);
-    expect(screen.getByRole("checkbox")).toHaveAttribute("aria-checked", "mixed");
+    expect(screen.getByRole("checkbox")).toHaveAttribute(
+      "aria-checked",
+      "mixed",
+    );
   });
 
   it("toggles checked → unchecked", async () => {

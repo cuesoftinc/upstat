@@ -41,7 +41,9 @@ export function Modal({
         <Dialog.Overlay
           className={clsx(
             "fixed inset-0 z-[var(--z-modal)] bg-bg/70",
-            variant === "sheet" ? "flex justify-end" : "flex items-center justify-center p-4",
+            variant === "sheet"
+              ? "flex justify-end"
+              : "flex items-center justify-center p-4",
           )}
         >
           <Dialog.Content

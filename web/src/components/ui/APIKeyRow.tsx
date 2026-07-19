@@ -53,14 +53,20 @@ export function APIKeyRow({ apiKey, onRevoke, className }: APIKeyRowProps) {
           </span>
         </span>
         <span className="flex items-center gap-2">
-          <code className="font-data text-[12px] text-text-2">{apiKey.key_masked}</code>
+          <code className="font-data text-[12px] text-text-2">
+            {apiKey.key_masked}
+          </code>
           <button
             type="button"
             aria-label={`Copy key ${apiKey.name}`}
             onClick={() => void copy()}
             className="text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
           >
-            {copied ? <Check className="size-3 text-ok" /> : <Copy className="size-3" />}
+            {copied ? (
+              <Check className="size-3 text-ok" />
+            ) : (
+              <Copy className="size-3" />
+            )}
           </button>
         </span>
       </div>

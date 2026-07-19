@@ -29,15 +29,58 @@ export interface PillarCardProps {
  * The pages.md A3 pillar set (8) — copy + icons per the landing v2 masters
  * (Figma 91:1517 instances on frame 135:2, W2 QA loop).
  */
-export const MARKETING_PILLARS: Omit<PillarCardProps, "compact" | "className">[] = [
-  { pillar: 1, icon: Activity, title: "Uptime & Synthetics", description: "Catch downtime before your users do" },
-  { pillar: 2, icon: Globe, title: "Website Analytics / RUM", description: "Real-user vitals & errors, cookieless" },
-  { pillar: 3, icon: BarChart3, title: "Metrics", description: "Explore any metric in one grammar" },
-  { pillar: 4, icon: FileText, title: "Logs", description: "Live-tail production in seconds" },
-  { pillar: 5, icon: Route, title: "APM / Traces", description: "See where every slow request went" },
-  { pillar: 6, icon: LayoutGrid, title: "Dashboards", description: "Every signal, one synced grid" },
-  { pillar: 7, icon: Bell, title: "Alerting", description: "Page on any signal, not just pings" },
-  { pillar: 8, icon: Target, title: "Incidents & SLOs", description: "Sev workflow, honest error budgets" },
+export const MARKETING_PILLARS: Omit<
+  PillarCardProps,
+  "compact" | "className"
+>[] = [
+  {
+    pillar: 1,
+    icon: Activity,
+    title: "Uptime & Synthetics",
+    description: "Catch downtime before your users do",
+  },
+  {
+    pillar: 2,
+    icon: Globe,
+    title: "Website Analytics / RUM",
+    description: "Real-user vitals & errors, cookieless",
+  },
+  {
+    pillar: 3,
+    icon: BarChart3,
+    title: "Metrics",
+    description: "Explore any metric in one grammar",
+  },
+  {
+    pillar: 4,
+    icon: FileText,
+    title: "Logs",
+    description: "Live-tail production in seconds",
+  },
+  {
+    pillar: 5,
+    icon: Route,
+    title: "APM / Traces",
+    description: "See where every slow request went",
+  },
+  {
+    pillar: 6,
+    icon: LayoutGrid,
+    title: "Dashboards",
+    description: "Every signal, one synced grid",
+  },
+  {
+    pillar: 7,
+    icon: Bell,
+    title: "Alerting",
+    description: "Page on any signal, not just pings",
+  },
+  {
+    pillar: 8,
+    icon: Target,
+    title: "Incidents & SLOs",
+    description: "Sev workflow, honest error budgets",
+  },
 ];
 
 /**
@@ -80,12 +123,23 @@ export function PillarCard({
         className="h-[3px] w-6 rounded-full"
         style={{ background: accent }}
       />
-      <Icon aria-hidden="true" className={compact ? "size-5" : "size-6"} style={{ color: accent }} />
-      <span className={clsx("font-semibold text-text", compact ? "text-[13px]" : "text-[16px]")}>
+      <Icon
+        aria-hidden="true"
+        className={compact ? "size-5" : "size-6"}
+        style={{ color: accent }}
+      />
+      <span
+        className={clsx(
+          "font-semibold text-text",
+          compact ? "text-[13px]" : "text-[16px]",
+        )}
+      >
         {title}
       </span>
       {!compact && (
-        <span className="text-[12px] leading-[1.45] text-text-2">{description}</span>
+        <span className="text-[12px] leading-[1.45] text-text-2">
+          {description}
+        </span>
       )}
     </a>
   );

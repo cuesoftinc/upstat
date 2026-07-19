@@ -62,7 +62,11 @@ function hhmm(ms: number): string {
   return new Date(ms).toISOString().slice(11, 16);
 }
 
-function parseUrl(search: string): { preset: TimePreset | "custom"; window: Window | null; live: boolean } {
+function parseUrl(search: string): {
+  preset: TimePreset | "custom";
+  window: Window | null;
+  live: boolean;
+} {
   const params = new URLSearchParams(search);
   const live = params.get("live") === "1";
   const from = params.get("from");
@@ -104,7 +108,14 @@ export function TimeRangeProvider({ children }: { children: ReactNode }) {
   const current = zoom ?? base;
 
   const writeUrl = useCallback(
-    (next: { preset: TimePreset | "custom"; window: Window | null; live: boolean }, push: boolean) => {
+    (
+      next: {
+        preset: TimePreset | "custom";
+        window: Window | null;
+        live: boolean;
+      },
+      push: boolean,
+    ) => {
       if (typeof window === "undefined") return;
       const params = new URLSearchParams(window.location.search);
       params.delete("range");
@@ -195,14 +206,31 @@ export function TimeRangeProvider({ children }: { children: ReactNode }) {
       zoomBy,
       resetZoom,
     }),
-    [zoom, stack.length, preset, current, live, setPreset, setLive, zoomBy, resetZoom],
+    [
+      zoom,
+      stack.length,
+      preset,
+      current,
+      live,
+      setPreset,
+      setLive,
+      zoomBy,
+      resetZoom,
+    ],
   );
 
-  return <TimeRangeContext.Provider value={value}>{children}</TimeRangeContext.Provider>;
+  return (
+    <TimeRangeContext.Provider value={value}>
+      {children}
+    </TimeRangeContext.Provider>
+  );
 }
 
 export function useTimeRange(): TimeRangeState {
   const ctx = useContext(TimeRangeContext);
-  if (!ctx) throw new Error("useTimeRange requires TimeRangeProvider (the /dashboard shell)");
+  if (!ctx)
+    throw new Error(
+      "useTimeRange requires TimeRangeProvider (the /dashboard shell)",
+    );
   return ctx;
 }

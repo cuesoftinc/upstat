@@ -8,7 +8,8 @@ class ResizeObserverStub {
   unobserve() {}
   disconnect() {}
 }
-globalThis.ResizeObserver ??= ResizeObserverStub as unknown as typeof ResizeObserver;
+globalThis.ResizeObserver ??=
+  ResizeObserverStub as unknown as typeof ResizeObserver;
 
 if (typeof Element !== "undefined") {
   Element.prototype.hasPointerCapture ??= () => false;
@@ -20,7 +21,10 @@ if (typeof Element !== "undefined") {
 // This jsdom build ships no localStorage (sessionStorage exists) — the
 // NavRail expansion + theme persistence paths need one. Minimal in-memory
 // Storage, reset between files like the real thing on a fresh origin.
-if (typeof window !== "undefined" && typeof window.localStorage === "undefined") {
+if (
+  typeof window !== "undefined" &&
+  typeof window.localStorage === "undefined"
+) {
   const store = new Map<string, string>();
   const storage: Storage = {
     get length() {
@@ -32,7 +36,10 @@ if (typeof window !== "undefined" && typeof window.localStorage === "undefined")
     removeItem: (key) => void store.delete(key),
     setItem: (key, value) => void store.set(key, String(value)),
   };
-  Object.defineProperty(window, "localStorage", { value: storage, configurable: true });
+  Object.defineProperty(window, "localStorage", {
+    value: storage,
+    configurable: true,
+  });
 }
 
 // jsdom has no matchMedia. Tests run as reduced-motion: animation loops

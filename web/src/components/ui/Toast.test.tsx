@@ -6,7 +6,9 @@ import { Toast } from "./Toast";
 describe("Toast", () => {
   it("renders each kind and dismisses", async () => {
     const onDismiss = vi.fn();
-    render(<Toast kind="error" message="Something failed" onDismiss={onDismiss} />);
+    render(
+      <Toast kind="error" message="Something failed" onDismiss={onDismiss} />,
+    );
     expect(screen.getByRole("status")).toHaveAttribute("data-kind", "error");
     await userEvent.click(screen.getByLabelText("Dismiss"));
     expect(onDismiss).toHaveBeenCalledOnce();

@@ -72,7 +72,9 @@ export function WidgetShell({
             className="size-4 cursor-grab text-text-2 opacity-0 transition-opacity duration-[var(--duration-fast)] group-hover:opacity-100"
           />
         )}
-        <h3 className="min-w-0 flex-1 truncate text-[16px] font-semibold text-text">{title}</h3>
+        <h3 className="min-w-0 flex-1 truncate text-[16px] font-semibold text-text">
+          {title}
+        </h3>
         {query && (
           <code className="font-data hidden max-w-56 truncate rounded-(--radius) border border-border bg-bg px-1.5 py-0.5 text-[11px] text-text-2 md:block">
             {query}
@@ -111,7 +113,12 @@ export function WidgetShell({
                     icon: Maximize2,
                     action: () => onModeChange?.("fullscreen"),
                   },
-                  { label: "Delete", icon: Trash2, action: onDelete, destructive: true },
+                  {
+                    label: "Delete",
+                    icon: Trash2,
+                    action: onDelete,
+                    destructive: true,
+                  },
                 ].map(({ label, icon: Icon, action, destructive }) => (
                   <li key={label} role="none">
                     <button

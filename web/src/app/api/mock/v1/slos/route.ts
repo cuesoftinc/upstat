@@ -10,9 +10,14 @@ export async function GET() {
 
 /** POST /v1/slos — define an SLO; starts healthy with a full budget. */
 export async function POST(req: Request) {
-  const body = await readJson<Pick<Slo, "name" | "sli_source" | "target" | "window">>(req);
+  const body =
+    await readJson<Pick<Slo, "name" | "sli_source" | "target" | "window">>(req);
   if (!body?.name || !body.sli_source || body.target === undefined) {
-    return jsonError(422, "bad_shape", "name, sli_source and target are required");
+    return jsonError(
+      422,
+      "bad_shape",
+      "name, sli_source and target are required",
+    );
   }
   const db = getDb();
   const slo: Slo = {

@@ -9,7 +9,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { LogEvent } from "@/models";
 import { logsRepo } from "@/models/repositories";
-import { initialQueryFromUrl, joinQuery, useQueryPills, useSavedViews } from "./explorer";
+import {
+  initialQueryFromUrl,
+  joinQuery,
+  useQueryPills,
+  useSavedViews,
+} from "./explorer";
 import { useRequest } from "./use-request";
 import { useTimeRange } from "./time-range";
 
@@ -23,7 +28,13 @@ export function useLogsExplorerController() {
   const [activeQuery, setActiveQuery] = useState(initialQuery);
 
   const base = useRequest(
-    () => logsRepo.query({ q: activeQuery, from: time.fromIso, to: time.toIso, limit: 100 }),
+    () =>
+      logsRepo.query({
+        q: activeQuery,
+        from: time.fromIso,
+        to: time.toIso,
+        limit: 100,
+      }),
     [activeQuery, time.fromIso, time.toIso],
   );
 
@@ -46,7 +57,11 @@ export function useLogsExplorerController() {
     seen.current = new Set();
     const poll = async (first: boolean) => {
       try {
-        const page = await logsRepo.query({ q: activeQuery, live: 1, limit: 60 });
+        const page = await logsRepo.query({
+          q: activeQuery,
+          live: 1,
+          limit: 60,
+        });
         if (stopped) return;
         const fresh = page.events.filter((e) => !seen.current.has(e.id));
         for (const e of fresh) seen.current.add(e.id);
@@ -93,7 +108,11 @@ export function useLogsExplorerController() {
     if (q) params.set("q", q);
     else params.delete("q");
     const qs = params.toString();
-    window.history.replaceState(null, "", `${window.location.pathname}${qs ? `?${qs}` : ""}`);
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}${qs ? `?${qs}` : ""}`,
+    );
   }, []);
 
   const submitQuery = useCallback(
@@ -115,14 +134,18 @@ export function useLogsExplorerController() {
   const pivot = useCallback(
     (facet: string, value: string) => {
       queryState.addPill(facet, value);
-      submitQuery(joinQuery([...queryState.pills, { facet, value }], queryState.text));
+      submitQuery(
+        joinQuery([...queryState.pills, { facet, value }], queryState.text),
+      );
     },
     [queryState, submitQuery],
   );
 
   const toggleFacet = useCallback(
     (facet: string, value: string) => {
-      const idx = queryState.pills.findIndex((p) => p.facet === facet && p.value === value);
+      const idx = queryState.pills.findIndex(
+        (p) => p.facet === facet && p.value === value,
+      );
       const pills =
         idx === -1
           ? [...queryState.pills, { facet, value }]
@@ -137,7 +160,12 @@ export function useLogsExplorerController() {
   const removePill = useCallback(
     (index: number) => {
       queryState.removePill(index);
-      submitQuery(joinQuery(queryState.pills.filter((_, i) => i !== index), queryState.text));
+      submitQuery(
+        joinQuery(
+          queryState.pills.filter((_, i) => i !== index),
+          queryState.text,
+        ),
+      );
     },
     [queryState, submitQuery],
   );
@@ -188,7 +216,13 @@ export function useLogsExplorerController() {
 export function useLogLineKeys(listRef: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.key !== "j" && e.key !== "k") || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (
+        (e.key !== "j" && e.key !== "k") ||
+        e.metaKey ||
+        e.ctrlKey ||
+        e.altKey
+      )
+        return;
       const target = e.target;
       if (
         target instanceof HTMLElement &&
@@ -203,7 +237,9 @@ export function useLogLineKeys(listRef: React.RefObject<HTMLElement | null>) {
       if (!list) return;
       // LogLine header buttons carry aria-expanded (the JSON tree's inner
       // copy buttons don't) — those are the navigable rows
-      const rows = [...list.querySelectorAll<HTMLButtonElement>("button[aria-expanded]")];
+      const rows = [
+        ...list.querySelectorAll<HTMLButtonElement>("button[aria-expanded]"),
+      ];
       if (rows.length === 0) return;
       const current = rows.indexOf(document.activeElement as HTMLButtonElement);
       const next =

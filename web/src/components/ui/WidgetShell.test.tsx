@@ -11,7 +11,9 @@ describe("WidgetShell", () => {
         chart
       </WidgetShell>,
     );
-    await userEvent.click(screen.getByRole("button", { name: "Widget menu for Errors" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Widget menu for Errors" }),
+    );
     await userEvent.click(screen.getByRole("menuitem", { name: "Fullscreen" }));
     expect(onMode).toHaveBeenCalledWith("fullscreen");
     rerender(

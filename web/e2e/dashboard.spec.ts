@@ -51,25 +51,35 @@ async function goTo(page: Page, pillar: string) {
     .click();
 }
 
-test("semantic landmarks: one main, nav rail, banner, single h1", async ({ page }) => {
+test("semantic landmarks: one main, nav rail, banner, single h1", async ({
+  page,
+}) => {
   await signIn(page);
   await expect(page.locator("main")).toHaveCount(1);
-  await expect(page.getByRole("navigation", { name: "Product navigation" })).toBeVisible();
+  await expect(
+    page.getByRole("navigation", { name: "Product navigation" }),
+  ).toBeVisible();
   await expect(page.getByRole("banner")).toBeVisible(); // TopBar <header>
   await expect(page.locator("main h1")).toHaveCount(1);
   await expect(page.locator("main h1")).toHaveText("Home — org health");
   // lists are real lists, not div-soup
-  await expect(page.getByRole("list", { name: "Dashboards" }).first()).toBeVisible();
+  await expect(
+    page.getByRole("list", { name: "Dashboards" }).first(),
+  ).toBeVisible();
 });
 
-test("TopBar collapses to icon utilities at 390 — no overflow, everything operable", async ({ page }) => {
+test("TopBar collapses to icon utilities at 390 — no overflow, everything operable", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await signIn(page);
   const banner = page.getByRole("banner");
 
   // the document does not scroll horizontally, and no chrome side-scroll
   const docOverflow = await page.evaluate(
-    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    () =>
+      document.documentElement.scrollWidth -
+      document.documentElement.clientWidth,
   );
   expect(docOverflow).toBeLessThanOrEqual(0);
 
@@ -110,7 +120,9 @@ test("TopBar collapses to icon utilities at 390 — no overflow, everything oper
 
   // search icon opens the CommandPalette
   await banner.getByRole("button", { name: "Search" }).click();
-  await expect(page.getByRole("dialog", { name: "Command palette" })).toBeVisible();
+  await expect(
+    page.getByRole("dialog", { name: "Command palette" }),
+  ).toBeVisible();
   await page.keyboard.press("Escape");
 
   // theme toggle still flips from the collapsed bar
@@ -127,11 +139,16 @@ test("TopBar collapses to icon utilities at 390 — no overflow, everything oper
   expect(orgBox.x + orgBox.width).toBeLessThanOrEqual(390);
 });
 
-test("right-anchored TopBar layers stay inside the viewport (review class 2026-07-19)", async ({ page }) => {
+test("right-anchored TopBar layers stay inside the viewport (review class 2026-07-19)", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await signIn(page);
 
-  const withinViewport = async (dialog: ReturnType<typeof page.locator>, width: number) => {
+  const withinViewport = async (
+    dialog: ReturnType<typeof page.locator>,
+    width: number,
+  ) => {
     const box = (await dialog.boundingBox())!;
     expect(box.x).toBeGreaterThanOrEqual(0);
     expect(box.y).toBeGreaterThanOrEqual(0);
@@ -144,7 +161,10 @@ test("right-anchored TopBar layers stay inside the viewport (review class 2026-0
     await page.setViewportSize({ width, height: 900 });
 
     // global TimePicker: the anchored-right custom-range popover
-    await page.getByRole("banner").getByRole("button", { name: "Custom range" }).click();
+    await page
+      .getByRole("banner")
+      .getByRole("button", { name: "Custom range" })
+      .click();
     const customRange = page.getByRole("dialog", { name: "Absolute range" });
     await expect(customRange).toBeVisible();
     await withinViewport(customRange, width);
@@ -152,16 +172,24 @@ test("right-anchored TopBar layers stay inside the viewport (review class 2026-0
     await expect(customRange).toBeHidden();
 
     // notifications bell popover (anchored right-2)
-    await page.getByRole("banner").getByRole("button", { name: /Notifications/ }).click();
+    await page
+      .getByRole("banner")
+      .getByRole("button", { name: /Notifications/ })
+      .click();
     const notifications = page.getByRole("dialog", { name: "Notifications" });
     await expect(notifications).toBeVisible();
     await withinViewport(notifications, width);
-    await page.getByRole("banner").getByRole("button", { name: /Notifications/ }).click();
+    await page
+      .getByRole("banner")
+      .getByRole("button", { name: /Notifications/ })
+      .click();
     await expect(notifications).toBeHidden();
   }
 });
 
-test("full journey: onboarding → B1 → dashboards → explorer → logs → trace → monitor → incident → status page", async ({ page }) => {
+test("full journey: onboarding → B1 → dashboards → explorer → logs → trace → monitor → incident → status page", async ({
+  page,
+}) => {
   test.setTimeout(300_000); // dev-mode route compiles dominate; generous budget
   // dev-persistent mock store: names must be unique per run (reused server)
   const run = Date.now().toString(36).slice(-5);
@@ -191,17 +219,27 @@ test("full journey: onboarding → B1 → dashboards → explorer → logs → t
   await page.waitForURL("**/dashboard", { timeout: 30_000 });
   await expect(page.getByTestId("dashboard-home")).toBeVisible();
   // fresh org is empty: no dashboards yet
-  await expect(page.getByText("No dashboards yet", { exact: false })).toBeVisible();
+  await expect(
+    page.getByText("No dashboards yet", { exact: false }),
+  ).toBeVisible();
 
   // back to the seeded org (restores the primary narrative). The switch is
   // a FULL reload (location.assign) — wait for the reloaded TopBar to show
   // the primary org before navigating on.
-  await page.getByRole("button", { name: new RegExp(`Acme ${run} prod`, "i") }).click();
+  await page
+    .getByRole("button", { name: new RegExp(`Acme ${run} prod`, "i") })
+    .click();
   await page.getByRole("button", { name: /^Upstat/ }).click();
-  await expect(page.getByRole("banner").getByRole("button", { name: /Upstat prod/i })).toBeVisible({
+  await expect(
+    page.getByRole("banner").getByRole("button", { name: /Upstat prod/i }),
+  ).toBeVisible({
     timeout: 30_000,
   });
-  await expect(page.getByRole("list", { name: "Dashboards" }).getByText("Service overview")).toBeVisible();
+  await expect(
+    page
+      .getByRole("list", { name: "Dashboards" })
+      .getByText("Service overview"),
+  ).toBeVisible();
 
   /* ---- B2 dashboards: create w/ widget picker → MI-11 edit mode ---- */
   await goTo(page, "Dashboards");
@@ -235,24 +273,41 @@ test("full journey: onboarding → B1 → dashboards → explorer → logs → t
   await page.getByTestId("view-name").fill(`Checkout latency ${run}`);
   await page.getByTestId("confirm-save-view").click();
   await expect(
-    page.getByRole("list", { name: "Saved views" }).getByText(`Checkout latency ${run}`),
+    page
+      .getByRole("list", { name: "Saved views" })
+      .getByText(`Checkout latency ${run}`),
   ).toBeVisible();
 
   /* ---- B4 logs: explorer + live tail (MI-4) ---- */
   await goTo(page, "Logs");
   await expect(page.getByTestId("logs-explorer")).toBeVisible();
-  await expect(page.getByRole("list", { name: "Log lines" }).locator("li").first()).toBeVisible();
+  await expect(
+    page.getByRole("list", { name: "Log lines" }).locator("li").first(),
+  ).toBeVisible();
   // MI-5: expand a line into the JSON tree
-  await page.getByRole("list", { name: "Log lines" }).locator("li button").first().click();
+  await page
+    .getByRole("list", { name: "Log lines" })
+    .locator("li button")
+    .first()
+    .click();
   await expect(page.locator("dl").first()).toBeVisible();
   // live tail streams batches
-  const liveToggle = page.getByRole("banner").getByRole("button", { name: "live" });
+  const liveToggle = page
+    .getByRole("banner")
+    .getByRole("button", { name: "live" });
   await liveToggle.click();
-  const tailCount = await page.getByRole("list", { name: "Log lines" }).locator("li").count();
+  const tailCount = await page
+    .getByRole("list", { name: "Log lines" })
+    .locator("li")
+    .count();
   await expect
-    .poll(async () => page.getByRole("list", { name: "Log lines" }).locator("li").count(), {
-      timeout: 10_000,
-    })
+    .poll(
+      async () =>
+        page.getByRole("list", { name: "Log lines" }).locator("li").count(),
+      {
+        timeout: 10_000,
+      },
+    )
     .toBeGreaterThan(tailCount);
   // MI-4: scrolling up pauses the tail (PAUSED pill + buffered count). The
   // list is a real overflow container (h-dvh app frame — QA 2026-07-19);
@@ -291,7 +346,10 @@ test("full journey: onboarding → B1 → dashboards → explorer → logs → t
   await expect(page.getByTestId("trace-waterfall")).toBeVisible();
   await expect(page.getByText("POST /v1/events").first()).toBeVisible();
   // span click → drawer with tags
-  await page.getByRole("list", { name: "Trace spans" }).getByText("clickhouse.insert").click();
+  await page
+    .getByRole("list", { name: "Trace spans" })
+    .getByText("clickhouse.insert")
+    .click();
   await expect(page.getByRole("complementary")).toBeVisible(); // SpanDrawer <aside>
   // MI-7 cross-link into the service map
   await page.getByTestId("map-crosslink").click();
@@ -305,11 +363,15 @@ test("full journey: onboarding → B1 → dashboards → explorer → logs → t
   await page.getByTestId("new-monitor").click();
   await page.waitForURL("**/dashboard/monitors/new**");
   await page.getByTestId("check-name").fill(`payments heartbeat ${run}`);
-  await page.getByTestId("check-url").fill("https://payments.cuesoft.io/healthz");
+  await page
+    .getByTestId("check-url")
+    .fill("https://payments.cuesoft.io/healthz");
   await page.getByTestId("create-monitor").click();
   await page.waitForURL("**/dashboard/uptime/*");
   await expect(page.getByTestId("monitor-detail")).toBeVisible();
-  await expect(page.getByText(`payments heartbeat ${run}`).first()).toBeVisible();
+  await expect(
+    page.getByText(`payments heartbeat ${run}`).first(),
+  ).toBeVisible();
   // MI-9 on the seeded checkout monitor (its 24h includes the INC-42 spike)
   await page.goto("/dashboard/uptime/mon_checkout");
   await page.getByTestId("run-monitor-test").click();
@@ -319,14 +381,18 @@ test("full journey: onboarding → B1 → dashboards → explorer → logs → t
   /* ---- B9 declare incident → MI-10 composer → status page reflects ---- */
   await goTo(page, "Incidents");
   await page.getByTestId("declare-incident").click();
-  await page.getByTestId("incident-title").fill(`Elevated error rate on /v1/events (${run})`);
+  await page
+    .getByTestId("incident-title")
+    .fill(`Elevated error rate on /v1/events (${run})`);
   await page.getByRole("combobox", { name: "Commander" }).click();
   await page.getByRole("option", { name: /Kemi/ }).click();
   await page.getByTestId("confirm-declare").click();
   await page.waitForURL("**/dashboard/incidents/*");
   await expect(page.getByTestId("incident-detail")).toBeVisible();
   // MI-10: slash-command update via the composer
-  await page.getByRole("textbox", { name: "Incident update" }).fill("Mitigation under way");
+  await page
+    .getByRole("textbox", { name: "Incident update" })
+    .fill("Mitigation under way");
   await page.getByRole("button", { name: "Post update" }).click();
   await expect(page.getByText("Mitigation under way")).toBeVisible();
 
@@ -336,6 +402,10 @@ test("full journey: onboarding → B1 → dashboards → explorer → logs → t
   await expect(page.locator('[data-theme="light"]')).toBeVisible();
   await expect(page.locator("main")).toHaveCount(1);
   await expect(page.getByText("Major outage")).toBeVisible(); // the declared sev1
-  await expect(page.getByText(`Elevated error rate on /v1/events (${run})`).first()).toBeVisible();
-  await expect(page.getByRole("list", { name: "Components" }).locator("li").first()).toBeVisible();
+  await expect(
+    page.getByText(`Elevated error rate on /v1/events (${run})`).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("list", { name: "Components" }).locator("li").first(),
+  ).toBeVisible();
 });
