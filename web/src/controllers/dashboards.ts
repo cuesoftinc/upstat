@@ -69,6 +69,20 @@ export function parsePortableDashboard(text: string): PortableDashboard {
     if (!w || typeof w !== "object" || !WIDGET_TYPES.has((w as Widget).type)) {
       throw new Error(`unknown widget type: ${(w as Widget | undefined)?.type ?? "?"}`);
     }
+    // display fields must be strings when present — substituteVars calls
+    // .replace on them at render time (PR #168 review round 2)
+    if (w.title !== undefined && typeof w.title !== "string") {
+      throw new Error("widget title must be a string");
+    }
+    if (w.query_string !== undefined && typeof w.query_string !== "string") {
+      throw new Error("widget query_string must be a string");
+    }
+    if (
+      w.viz_options !== undefined &&
+      (typeof w.viz_options !== "object" || w.viz_options === null || Array.isArray(w.viz_options))
+    ) {
+      throw new Error("widget viz_options must be an object");
+    }
     const layout = (w as Widget).layout;
     // 12-col grid bounds (PR #168 review): integers, on-grid, in-range —
     // out-of-range spans render broken CSS grid placements

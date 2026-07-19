@@ -85,6 +85,24 @@ describe("portable dashboard JSON (pages.md B2; api.md §6)", () => {
     }
   });
 
+  it("rejects non-string display fields (PR #168 review round 2)", () => {
+    expect(() =>
+      parsePortableDashboard(
+        '{"version":1,"name":"x","widgets":[{"type":"timeseries","title":{},"layout":{"x":0,"y":0,"w":4,"h":3}}]}',
+      ),
+    ).toThrow(/title must be a string/);
+    expect(() =>
+      parsePortableDashboard(
+        '{"version":1,"name":"x","widgets":[{"type":"timeseries","query_string":42,"layout":{"x":0,"y":0,"w":4,"h":3}}]}',
+      ),
+    ).toThrow(/query_string must be a string/);
+    expect(() =>
+      parsePortableDashboard(
+        '{"version":1,"name":"x","widgets":[{"type":"timeseries","viz_options":[],"layout":{"x":0,"y":0,"w":4,"h":3}}]}',
+      ),
+    ).toThrow(/viz_options must be an object/);
+  });
+
   it("defaults optional fields on import", () => {
     const parsed = parsePortableDashboard(
       '{"version":1,"name":"minimal","widgets":[{"type":"markdown","layout":{"x":0,"y":0,"w":4,"h":2}}]}',

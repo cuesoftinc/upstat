@@ -142,7 +142,13 @@ export default function TraceExplorerPage() {
                   View {selected.root_service} in service map →
                 </Link>
               </header>
-              <TraceWaterfall trace={selected} logs={traceLogs.data ?? []} />
+              {/* filter to the CURRENT trace id — useRequest retains the
+                  prior trace's data while a new fetch is in flight
+                  (PR 168 review round 2) */}
+              <TraceWaterfall
+                trace={selected}
+                logs={(traceLogs.data ?? []).filter((l) => l.trace_id === selected.trace_id)}
+              />
               <p className="font-data mt-2 text-[11px] tabular-nums text-text-2">
                 trace_id {selected.trace_id.slice(0, 16)} · {selected.span_count} spans ·{" "}
                 {fmtMs(selected.duration_ms)} total
