@@ -65,9 +65,15 @@ verified in both themes) — the one extra constraint the teal brand imposes.
 
 ### Layout
 
-- Left product nav (Datadog pattern): icon rail 56px with flyout labels;
-  sections = pillars (§pages.md B). Top bar: org/env switcher · **global time
-  picker** · search (`/`) · incidents bell.
+- Left product nav (Datadog pattern) **[Directive 2026-07-19]**: expandable
+  rail — collapsed 56px icon rail (flyout labels on hover) ⇄ expanded 240px
+  with icon+label rows grouped by pillar section (Telemetry / Respond /
+  Platform); sections = pillars (§pages.md B). Chevron toggle at the rail foot
+  switches state; the choice persists per user across sessions
+  (`nav.rail.expanded` in localStorage). Default: expanded on desktop ≥1280px,
+  collapsed below. Active item = brand accent bar + brand icon in both states.
+  Top bar: org/env switcher · **global time picker** · search (`/`) ·
+  incidents bell.
 - Views: filter bar (query pills) → visualization canvas → detail drawer
   (right, 480px) for point/line/span inspection.
 - Grid dashboards: 12-col draggable/resizable widgets (react-grid-layout
@@ -331,7 +337,7 @@ project license, the copy reads **MIT**.
 | Component | Variants × states |
 | --- | --- |
 | **App chrome** | |
-| NavRail / NavRailItem | pillar icon ×12 · item: default / hover (flyout label) / active (brand accent) · rail chrome 56px: flyout-open / collapsed — **as built (2026-07-17):** NavRailItem is the variant set; NavRail ships as a single chrome component with rail states documented in its description |
+| NavRail / NavRailItem | pillar icon ×12 · item: default / hover (flyout label) / active (brand accent) · rail chrome 56px: flyout-open / collapsed — **as built (2026-07-17):** NavRailItem is the variant set; NavRail ships as a single chrome component with rail states documented in its description — **[Directive 2026-07-19]:** rail is expandable; NavRail is now a variant set `state=collapsed` (56px) / `state=expanded` (240px icon+label rows, pillar section groups, foot chevron toggle, `upstat` wordmark); NavRailItem gains a `layout=rail/expanded` axis (expanded row 228px: default / hover raised bg / active accent bar); toggle persists per user, default expanded ≥1280px; exemplar `B1 — Home (rail expanded)` |
 | TopBar | org/env switcher closed/open · global TimePicker slot · search (`/`) field · bell: idle / unread-badge / flash (MI-14) — **as built (2026-07-17):** single chrome component, switcher/bell states documented in its description; bell badge states are CountBadge instances |
 | Modal / Sheet | modal sm/lg · right sheet · header + body slot + footer actions · z `sheet/modal 40` (§2 layers) |
 | CommandPalette / SearchOverlay | empty / results / no-results · result row: icon + label + kbd hint (`/` search, MI-17) |
