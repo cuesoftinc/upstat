@@ -62,7 +62,7 @@ test("home renders every Part A section", async ({ page }) => {
   // CTA-dedupe canon: the one GitHub+Discord pair lives in A13; A8 carries
   // the CueLABS™ card + docs links
   await expect(page.getByText("Discord — #upstat-lab on the CueLABS™ server")).toBeVisible();
-  await expect(page.getByText("CueLABS™ — more open source from Cuesoft")).toBeVisible();
+  await expect(page.getByText("CueLABS™ — more open-source from Cuesoft")).toBeVisible();
 
   // A15 FAQ · A16 CTA band · A10 footer
   await expect(page.getByText("Questions, answered.")).toBeVisible();

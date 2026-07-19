@@ -61,7 +61,7 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
     // CTA-dedupe canon: A13 keeps the one GitHub+Discord pair; A8 points at
     // the lab + docs instead
     expect(screen.getByText("Discord — #upstat-lab on the CueLABS™ server")).toBeInTheDocument();
-    expect(screen.getByText("CueLABS™ — more open source from Cuesoft")).toBeInTheDocument();
+    expect(screen.getByText("CueLABS™ — more open-source from Cuesoft")).toBeInTheDocument();
     // A15 FAQ + A16 CTA band
     expect(screen.getByText("Questions, answered.")).toBeInTheDocument();
     expect(screen.getByText("OTLP in. Answers out.")).toBeInTheDocument();

@@ -60,7 +60,7 @@ export function HeroSection({
             </Button>
           </div>
           <p className="text-[12px] text-text-2">
-            Open source · OTLP in, answers out · Self-host in one line
+            Open-source · OTLP in, answers out · Self-host in one line
           </p>
         </div>
 
