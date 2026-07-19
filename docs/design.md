@@ -402,6 +402,13 @@ project license, the copy reads **MIT**.
 | ThresholdOverlay | warn band / crit band / would-have-fired marker — composes over TimeseriesPanel (MI-9 test replay) — **as built (2026-07-17):** exemplar single, not a variant set |
 | ServiceCatalogRow | telemetry presence dots per pillar (present/absent ×4) · owner + repo/runbook links · default / hover |
 | ErrorGroupRow | fingerprint msg (mono) + count + sparkline + last-seen · new / ongoing / regressed |
+| **Wave B rows (designed 2026-07-20)** | |
+| SyntheticStepRow | kind: http / assertion / wait · drag grip + step index + kind chip (Mono/Micro 10) + summary (Mono/Data 13) + delete — the B7 multi-step check builder row; add via quiet "Add step" |
+| StepResultRow | result: pass / fail · step index + StatusPill ("PASS"/"FAIL") + summary + duration bar (brand; crit on fail; width ∝ duration) + fixed-precision duration — the B7 run-view timeline row |
+| StatusPageBuilderRow | drag grip + component name (inline rename) + monitor-mapping Select + delete · row order = public page order — the B7 status-page builder row; output is the existing /status/{slug} construction |
+| LogPatternRow | expand chevron + count (tnum) + 7-bucket trend sparkline + template with `<placeholders>` + dominant-level meta · expands to sample LogLine rows — the B4 Patterns tab row |
+| UsageMeterRow | pillar + unit label + MTD value (tnum) + bar vs trailing-3-month peak + plan column ("Self-host: unlimited · Cloud: announced at GA" — accuracy canon, no invented quotas/pricing) — B12 usage |
+| FunnelStageCard | stage label + count (PageTitle/20 tnum) + share-of-previous meta · stages compose with "→ n%" connectors — B6 RUM drill-down funnel |
 | ZoomStackChip | depth ×n label · default / hover (reset affordance) — MI-3 zoom breadcrumb; a QueryPill re-skin is acceptable |
 | TraceMinimap | default / span-service highlight (series color) — MI-7 |
 | WidgetTypeCell | state: default / selected · icon + label tile, one per widget type — iteration-1 addition **[built 2026-07-18]** |
