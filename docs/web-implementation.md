@@ -94,7 +94,7 @@ design-phase QA loops, design.md §8).
 | **W0 Foundations** | `tokens.css` (§3) + Tailwind mapping · Inter/JetBrains Mono via `next/font` + the §2 type ramp in the Tailwind theme · MVC skeleton (`models/`, `controllers/`, `components/ui/`) · `AuthProvider` interface + `TestModeAuthProvider` · new `/signin` (single GoogleAuthButton screen; the ONLY auth route per the route standard) with the legacy login/signup pages quarantined per X-1 (§8) · mock server + seed dataset (§5–6) · Vitest + Playwright harnesses wired into CI build+test (UX-5) | tokens render both themes correctly vs the Style Guide page (dark default); TEST_MODE boots to a stubbed `/dashboard` against the mock server; `/signup` gone from routing (flows/auth.md); CI green |
 | **W1 Components** | `components/ui/*` per the design.md §8.1 build order (Stage 1 atoms → Stage 2 molecules → Stage 3 panels/chrome) and the §8.2/§8.2b contract rows — the bespoke-SVG chart set included · MI specs MI-1…MI-18 · unit tests per component. The §8.2b Marketing (Stage 5) rows land at the top of W2 instead — they have no consumer before it | every built component passes QA vs its Figma component set (variants, states, both themes, motion specs) |
 | **W2 Home — DONE (as built 2026-07-19, PR #146)** | Marketing kit (§8.2b Stage-5 rows) · Part A screens (§4): A1–A10 + iteration rows A11–A16 · demo cards on §8.3 synthetic data (U0-3) · live GitHub star fetch at runtime (A1 badge + A13 — no static count, per the as-built MarketingNav note) · dogfood instrumentation: `page_view` per the api.md §3.4 registry row, env-gated until the events layer (Phase 1) is live; CTA-click events are registered in the §3.4 master registry **before** W2 instruments them (registry-first discipline, api.md §3.4a) | QA vs the Stage-5 Figma page; Playwright covers the landing flow (§8.4) incl. the cross-page CTA handoff into the app |
-| **W3 Dashboards** | Part B routes (§4) under the `/dashboard` IA: NavRail (12 pillars) + TopBar chrome · first-run onboarding (create-org → send-your-first-data, MI-16) · B1–B12 screens with their create flows (dashboard + widget picker, monitor type-picker → rule editor, RUM property, declare-incident modal) and drill-ins · public status page route · feature controllers per pillar · legacy dashboard quarantine on close (§8) | QA vs the Stage-4 Figma frames + §8.4 prototype flows; Playwright covers the §8.4 "Login" journey (§7); remaining legacy component trees + mock `/api/dashboard/*` quarantined (the legacy `/dashboard/*` routes moved to `src/legacy` at W1, §8) |
+| **W3 Dashboards — DONE (as built 2026-07-19, PR #152)** | Part B routes (§4) under the `/dashboard` IA: NavRail (12 pillars) + TopBar chrome · first-run onboarding (create-org → send-your-first-data, MI-16) · B1–B12 screens with their create flows (dashboard + widget picker, monitor type-picker → rule editor, RUM property, declare-incident modal) and drill-ins · public status page route · feature controllers per pillar · legacy dashboard quarantine on close (§8) | QA vs the Stage-4 Figma frames + §8.4 prototype flows; Playwright covers the §8.4 "Login" journey (§7); remaining legacy component trees + mock `/api/dashboard/*` quarantined (the legacy `/dashboard/*` routes moved to `src/legacy` at W1, §8) |
 
 **W2 as-built (2026-07-19, PR #146).** Radix convergence complete — Modal/Sheet,
 Tooltip, Select type-ahead, Switch, Checkbox, NotificationPopover, and the
@@ -112,6 +112,33 @@ TEST_MODE — no events fire under Playwright/CI (api.md §3.4). The public
 status page embed is composed from the StatusPageHeader +
 StatusPageComponentRow set (§6), not a bespoke embed. Section components are
 canon at `web/src/components/home/`.
+
+**W3 as-built (2026-07-19, PR #152).** All twelve NavRail pillars shipped
+against the mock server, plus the public `/status/[slug]` page — live-
+derived from declared incidents, not a static embed — and first-run
+onboarding (create-org → send-your-first-data) backed by a multi-org mock
+store. MI coverage closed out: MI-1 URL-synced global time, MI-3 zoom stack
++ breadcrumb chip, MI-4 live tail, MI-2 synced crosshair, MI-11/12 widget
+grid editor, MI-10 slash-command incident composer, and MI-18 saved views.
+Mock endpoints added: `orgs/{id}/activate`, `rules/{id}/test` +
+`monitors/{id}/test` (MI-9 replay), `channels/{id}/verify`, `status/{slug}`,
+`views` CRUD, and a `/v1/reset` test seam. The legacy orphan tranche
+quarantined 72 files (`git mv` only, zero deletions) to `src/legacy`; the
+gRPC/proto control-plane tree stays live per X-8 until monitors-v2, and the
+retirement-PR dependency candidates (`styled-components`, `chart.js`,
+`react-chartjs-2`, `recharts`, `@tanstack/react-query`, `js-cookie`,
+`@iconify/react`, `@react-oauth/google`, `@floating-ui/react-dom`) are
+listed, not removed here. `scripts/check-boundaries.mjs` — legacy
+quarantine, views-never-fetch, no-raw-hex — is wired into `npm run lint`.
+Un-ignoring the registry from ESLint surfaced a stale negation pattern in
+the old ignore list (it didn't reach nested files, so the registry had been
+silently unlinted); 12 latent errors were fixed once it was linted for
+real. The `/dev/components` gallery now carries the apparule pattern's
+production guard — `notFound()` when `NODE_ENV=production` and not
+TEST_MODE. `Select` moved to the ARIA 1.2 combobox pattern and
+`ShortcutCheatsheet` to a semantic `<dl>`. Playwright's §8.4 journey runs
+serialized against the shared mock store, reset to a clean seed via
+`/v1/reset` at the start of the run for hermetic e2e.
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
