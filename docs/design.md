@@ -82,8 +82,11 @@ verified in both themes) — the one extra constraint the teal brand imposes.
   line at x 816 (= right rail − 480). **As built (2026-07-19):** Figma Home
   135:2 (landing v2) retro-aligned to these rails from a drifted 1100px/x 170
   container (worst offenders: pillar grid ending at x 1220, how-it-works col 3
-  overflowing to x 1375.6, footer band at x −8); `MarketingNav` main component
-  widened 1100 → 1152 to span the container.
+  overflowing to x 1375.6, footer band at x −8). The `MarketingNav` *instance*
+  on the frame widened 1100 → 1152 (auto-layout main component untouched);
+  interior grids on the container: pillar grid 4×270px cols, how-it-works
+  3×368px cols — both 24px gutters. All 15 sections re-audited to zero
+  deviation.
 
 
 ### Shared foundations (ecosystem parity — identical across the three products)
