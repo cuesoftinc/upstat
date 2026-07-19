@@ -10,7 +10,7 @@ const renderNav = (props: Parameters<typeof MarketingNav>[0] = {}) =>
     </ThemeProvider>,
   );
 
-describe("MarketingNav (parity canon, SKILL.md 2026-07-19)", () => {
+describe("MarketingNav (parity canon, SKILL.md 2026-07-19, revised same day)", () => {
   it("renders the four canonical links with the ratified hrefs", () => {
     renderNav();
     expect(NAV_LINKS.map((l) => l.label)).toEqual(["Features", "Dashboards", "Docs", "GitHub"]);
@@ -20,25 +20,31 @@ describe("MarketingNav (parity canon, SKILL.md 2026-07-19)", () => {
       "href",
       "https://cuesoft.gitbook.io/upstat",
     );
-    expect(screen.getByRole("link", { name: "GitHub" })).toHaveAttribute(
+    // the GitHub item renders as the star badge (canon revision 2026-07-19)
+    expect(screen.getByRole("link", { name: "Star cuesoftinc/upstat on GitHub" })).toHaveAttribute(
       "href",
       "https://github.com/cuesoftinc/upstat",
     );
   });
 
-  it("carries the theme toggle and the Sign in CTA", () => {
+  it("carries the theme toggle, the Sign in link and the Try Cloud CTA", () => {
     renderNav();
     expect(screen.getByTestId("theme-toggle")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Sign in" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/signin");
+    expect(screen.getByRole("button", { name: "Try Cloud" })).toBeInTheDocument();
   });
 
-  it("shows the runtime star count on the GitHub link when provided (never static)", () => {
+  it("shows the runtime star count on the star badge when provided (never static)", () => {
     renderNav({ starCount: 1284 });
-    expect(screen.getByRole("link", { name: /GitHub/ })).toHaveTextContent("1,284");
+    expect(screen.getByRole("link", { name: "Star cuesoftinc/upstat on GitHub" })).toHaveTextContent(
+      "1,284",
+    );
   });
 
-  it("keeps the GitHub link neutral without a runtime count", () => {
+  it("keeps the star badge neutral without a runtime count", () => {
     renderNav();
-    expect(screen.getByRole("link", { name: "GitHub" })).toHaveTextContent(/^GitHub$/);
+    expect(screen.getByRole("link", { name: "Star cuesoftinc/upstat on GitHub" })).toHaveTextContent(
+      /^Star$/,
+    );
   });
 });

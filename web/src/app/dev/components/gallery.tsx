@@ -883,7 +883,7 @@ function GalleryAll() {
       </Section>
 
       <Section title="Marketing (Stage-5 kit)">
-        <Cell label="MarketingNav (parity canon: 4 links · theme toggle · Sign in)" grow>
+        <Cell label="MarketingNav (parity canon rev: 4 links · star badge · theme toggle · Sign in · Try Cloud)" grow>
           <div className="overflow-hidden rounded-(--radius) border border-border">
             <MarketingNav starCount={1284} />
           </div>

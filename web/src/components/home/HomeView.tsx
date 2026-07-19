@@ -46,7 +46,7 @@ export function HomeView() {
 
   return (
     <div className="font-ui min-h-screen bg-bg text-text">
-      <MarketingNav starCount={stars} onSignIn={onSignIn} />
+      <MarketingNav starCount={stars} onSignIn={onSignIn} onTryCloud={onTryCloud} />
 
       <main>
         <HeroSection

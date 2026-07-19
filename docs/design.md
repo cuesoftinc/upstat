@@ -109,6 +109,8 @@ verified in both themes) — the one extra constraint the teal brand imposes.
 | Radii (product) | 4px |
 | Product note | data views may compress to the 4px sub-grid (2px hairline gaps in dense tables) |
 
+- **Cursor affordance**: enabled interactive controls show `cursor: pointer` — one base-layer rule on `button:not(:disabled)`, `[role="button"]:not([aria-disabled="true"])`, `select:not(:disabled)`, `summary`, `label[for]`; links use the native pointer; disabled controls keep the default cursor. [Directive 2026-07-19]
+
 These rows are standardized in the org SKILL.md — a change here is an
 ecosystem change, PR'd to all three design.md files together.
 

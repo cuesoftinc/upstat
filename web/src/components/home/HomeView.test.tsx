@@ -58,7 +58,7 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
       screen.getByText("Go gRPC services · Next.js + React/TS · ClickHouse · OpenTelemetry"),
     ).toBeInTheDocument();
     // A8 community
-    expect(screen.getByText("CueLABS Discord — #upstat")).toBeInTheDocument();
+    expect(screen.getByText("CueLABS Discord — #upstat-lab")).toBeInTheDocument();
     // A15 FAQ + A16 CTA band
     expect(screen.getByText("Questions, answered.")).toBeInTheDocument();
     expect(screen.getByText("OTLP in. Answers out.")).toBeInTheDocument();
@@ -68,12 +68,12 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
     );
   });
 
-  it("keeps the nav GitHub link neutral in TEST_MODE (no invented count)", () => {
+  it("keeps the nav star badge neutral in TEST_MODE (no invented count)", () => {
     renderHome();
     const navigation = screen.getByRole("navigation", { name: "Marketing" });
-    expect(within(navigation).getByRole("link", { name: "GitHub" })).toHaveTextContent(
-      /^GitHub$/,
-    );
+    expect(
+      within(navigation).getByRole("link", { name: "Star cuesoftinc/upstat on GitHub" }),
+    ).toHaveTextContent(/^Star$/);
     expect(within(navigation).getByTestId("theme-toggle")).toBeInTheDocument();
   });
 

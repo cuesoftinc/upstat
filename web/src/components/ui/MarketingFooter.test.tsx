@@ -49,6 +49,10 @@ describe("MarketingFooter (parity canon, SKILL.md 2026-07-19)", () => {
       "href",
       "https://cuesoft.io",
     );
+    expect(within(bar).getByRole("link", { name: "CueLABS™ Division" })).toHaveAttribute(
+      "href",
+      "https://cuelabs.cuesoft.io",
+    );
     expect(within(bar).getByRole("link", { name: "MIT License" })).toHaveAttribute(
       "href",
       "https://github.com/cuesoftinc/upstat/blob/main/LICENSE",

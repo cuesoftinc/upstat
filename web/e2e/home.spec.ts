@@ -59,17 +59,19 @@ test("home renders every Part A section", async ({ page }) => {
   await expect(
     page.getByText("Go gRPC services · Next.js + React/TS · ClickHouse · OpenTelemetry"),
   ).toBeVisible();
-  await expect(page.getByText("CueLABS Discord — #upstat")).toBeVisible();
+  await expect(page.getByText("CueLABS Discord — #upstat-lab")).toBeVisible();
 
   // A15 FAQ · A16 CTA band · A10 footer
   await expect(page.getByText("Questions, answered.")).toBeVisible();
   await expect(page.getByText("OTLP in. Answers out.")).toBeVisible();
   await expect(page.getByRole("contentinfo").getByText(/CueLABS™ Division/)).toBeVisible();
 
-  // TEST_MODE: the nav GitHub link stays neutral — no invented star count
-  await expect(
-    page.getByRole("navigation", { name: "Marketing" }).getByRole("link", { name: /^GitHub$/ }),
-  ).toBeVisible();
+  // TEST_MODE: the nav star badge stays neutral — no invented star count
+  const starBadge = page
+    .getByRole("navigation", { name: "Marketing" })
+    .getByRole("link", { name: "Star cuesoftinc/upstat on GitHub" });
+  await expect(starBadge).toBeVisible();
+  await expect(starBadge).toHaveText(/^Star$/);
 
   expect(pageErrors).toEqual([]);
 });
@@ -82,12 +84,14 @@ test("nav + footer carry the canonical parity links (SKILL.md canon)", async ({ 
     ["Features", "/#pillars"],
     ["Dashboards", "/dashboard"],
     ["Docs", "https://cuesoft.gitbook.io/upstat"],
-    ["GitHub", "https://github.com/cuesoftinc/upstat"],
+    // the GitHub item renders as the star badge (canon revision 2026-07-19)
+    ["Star cuesoftinc/upstat on GitHub", "https://github.com/cuesoftinc/upstat"],
   ] as const) {
     await expect(nav.getByRole("link", { name: label })).toHaveAttribute("href", href);
   }
   await expect(nav.getByTestId("theme-toggle")).toBeVisible();
-  await expect(nav.getByRole("button", { name: "Sign in" })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/signin");
+  await expect(nav.getByRole("button", { name: "Try Cloud" })).toBeVisible();
 
   const footer = page.getByRole("contentinfo"); // panel legends are scoped <footer>s — the landmark is the page footer
   const columns: [string, [string, string][]][] = [
@@ -134,12 +138,16 @@ test("nav + footer carry the canonical parity links (SKILL.md canon)", async ({ 
     }
   }
   // legal bar: verbatim line + linked marks + language + security
-  await expect(footer.getByText(/CueLABS™ Division/)).toHaveText(
+  await expect(footer.locator("p", { hasText: "CueLABS™ Division" })).toHaveText(
     "© Cuesoft Inc. 2026. Upstat. CueLABS™ Division. MIT License.",
   );
   await expect(footer.getByRole("link", { name: "Cuesoft Inc." })).toHaveAttribute(
     "href",
     "https://cuesoft.io",
+  );
+  await expect(footer.getByRole("link", { name: "CueLABS™ Division" })).toHaveAttribute(
+    "href",
+    "https://cuelabs.cuesoft.io",
   );
   await expect(footer.getByRole("link", { name: "MIT License" })).toHaveAttribute(
     "href",
@@ -196,15 +204,21 @@ test("FAQ is a single-open accordion (A15)", async ({ page }) => {
 
 test("CTAs hand off into the app: Try Cloud → /signin (§8.4 cross-page)", async ({ page }) => {
   await page.goto("/");
-  // hero CTA (the nav's Try Cloud moved out with the parity canon — the
-  // nav now carries the Sign in CTA)
-  await page.getByRole("button", { name: "Try Cloud" }).first().click();
+  const nav = page.getByRole("navigation", { name: "Marketing" });
+
+  // nav Try Cloud primary CTA (back per the canon revision 2026-07-19)
+  await nav.getByRole("button", { name: "Try Cloud" }).click();
   await page.waitForURL("**/signin");
   await expect(page.getByTestId("signin-screen")).toBeVisible();
 
-  // nav Sign in CTA
+  // nav Sign in text link
   await page.goto("/");
-  await page.getByRole("navigation", { name: "Marketing" }).getByRole("button", { name: "Sign in" }).click();
+  await nav.getByRole("link", { name: "Sign in" }).click();
+  await page.waitForURL("**/signin");
+
+  // hero CTA
+  await page.goto("/");
+  await page.getByRole("main").getByRole("button", { name: "Try Cloud" }).first().click();
   await page.waitForURL("**/signin");
 
   // final CTA band
@@ -247,6 +261,17 @@ test("home is responsive at 375w (mobile)", async ({ page }) => {
   await expect(page.locator("tfoot").getByRole("button", { name: "Deploy with compose" })).toBeHidden();
 });
 
+test("enabled controls carry the pointer cursor (Directive 2026-07-19)", async ({ page }) => {
+  await page.goto("/");
+  const nav = page.getByRole("navigation", { name: "Marketing" });
+  const cursorOf = (locator: ReturnType<typeof page.locator>) =>
+    locator.evaluate((el) => getComputedStyle(el).cursor);
+  // a rendered button — the base-layer rule, not a per-component class
+  expect(await cursorOf(nav.getByRole("button", { name: "Try Cloud" }))).toBe("pointer");
+  // a nav link — links keep the native pointer
+  expect(await cursorOf(nav.getByRole("link", { name: "Docs" }))).toBe("pointer");
+});
+
 test("mobile nav is a menu-button disclosure at 390w (SKILL.md mobile clause)", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
@@ -272,7 +297,8 @@ test("mobile nav is a menu-button disclosure at 390w (SKILL.md mobile clause)", 
     ["Features", "/#pillars"],
     ["Dashboards", "/dashboard"],
     ["Docs", "https://cuesoft.gitbook.io/upstat"],
-    ["GitHub", "https://github.com/cuesoftinc/upstat"],
+    // the GitHub item renders as the star badge (canon revision 2026-07-19)
+    ["Star cuesoftinc/upstat on GitHub", "https://github.com/cuesoftinc/upstat"],
   ] as const) {
     const link = panel.getByRole("link", { name: label });
     await expect(link).toBeVisible();
@@ -283,7 +309,8 @@ test("mobile nav is a menu-button disclosure at 390w (SKILL.md mobile clause)", 
   await panel.getByTestId("theme-toggle").click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 
-  // and the Sign in CTA hands off into the app
-  await panel.getByRole("button", { name: "Sign in" }).click();
+  // Sign in text link is present; the Try Cloud CTA hands off into the app
+  await expect(panel.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/signin");
+  await panel.getByRole("button", { name: "Try Cloud" }).click();
   await page.waitForURL("**/signin");
 });

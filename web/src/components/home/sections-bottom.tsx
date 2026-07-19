@@ -214,7 +214,7 @@ export function DevelopersSection({ onGithub }: DevelopersSectionProps) {
             >
               {/* Discord blurple — brand-glyph color exception (design.md §8.1) */}
               <DiscordIcon className="size-4 shrink-0 text-[#5865F2]" />
-              Discord — #upstat-dev on the CueLABS server
+              Discord — #upstat-lab on the CueLABS server
             </a>
           </div>
         </div>
@@ -248,7 +248,7 @@ export function CommunitySection() {
           <DiscordIcon className="mt-1 size-7 shrink-0 text-[#5865F2]" />
           <span className="flex min-w-0 flex-1 flex-col gap-1">
             <span className="text-[14px] font-semibold text-text">
-              CueLABS Discord — #upstat
+              CueLABS Discord — #upstat-lab
             </span>
             <span className="text-[13px] text-text-2">
               Get help, share dashboards, talk to the maintainers.

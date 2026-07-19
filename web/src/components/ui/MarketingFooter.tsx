@@ -158,7 +158,14 @@ export function MarketingFooter({
           >
             Cuesoft Inc.
           </a>{" "}
-          2026. Upstat. CueLABS™ Division.{" "}
+          2026. Upstat.{" "}
+          <a
+            href="https://cuelabs.cuesoft.io"
+            className="transition-colors duration-[var(--duration-fast)] hover:text-text"
+          >
+            CueLABS™ Division
+          </a>
+          .{" "}
           <a
             href={LICENSE_URL}
             className="transition-colors duration-[var(--duration-fast)] hover:text-text"
