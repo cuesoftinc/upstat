@@ -1,6 +1,8 @@
 "use client";
 
+import * as Popover from "@radix-ui/react-popover";
 import { clsx } from "clsx";
+import type { ReactNode } from "react";
 import type { AlertEvent } from "@/models";
 
 export interface AlertFeedRowProps {
@@ -60,13 +62,29 @@ export function AlertFeedRow({ event, onClick, className }: AlertFeedRowProps) {
 export interface NotificationPopoverProps {
   events: AlertEvent[];
   onEventClick?: (event: AlertEvent) => void;
+  /**
+   * W2 Radix convergence: when a trigger is given (the TopBar bell, W3),
+   * the panel rides @radix-ui/react-popover (anchor/dismiss/focus).
+   * Without one it renders the plain panel — the W1 embed contract.
+   */
+  trigger?: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   className?: string;
 }
 
-/** NotificationPopover — §8.2b: empty / list. */
-export function NotificationPopover({ events, onEventClick, className }: NotificationPopoverProps) {
+function NotificationPanel({
+  events,
+  onEventClick,
+  className,
+  ...rest
+}: Pick<NotificationPopoverProps, "events" | "onEventClick" | "className"> &
+  React.ComponentPropsWithRef<"div">) {
   return (
     <div
+      // rest carries Popover.Content's slotted props (ref, positioning
+      // callbacks) when composed via asChild; empty in the plain render
+      {...rest}
       role="dialog"
       aria-label="Notifications"
       className={clsx(
@@ -89,5 +107,29 @@ export function NotificationPopover({ events, onEventClick, className }: Notific
         </div>
       )}
     </div>
+  );
+}
+
+/** NotificationPopover — §8.2b: empty / list. */
+export function NotificationPopover({
+  events,
+  onEventClick,
+  trigger,
+  open,
+  onOpenChange,
+  className,
+}: NotificationPopoverProps) {
+  if (!trigger) {
+    return <NotificationPanel events={events} onEventClick={onEventClick} className={className} />;
+  }
+  return (
+    <Popover.Root open={open} onOpenChange={onOpenChange}>
+      <Popover.Trigger asChild>{trigger}</Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content side="bottom" align="end" sideOffset={4} asChild>
+          <NotificationPanel events={events} onEventClick={onEventClick} className={className} />
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }

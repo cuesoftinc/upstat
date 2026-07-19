@@ -124,10 +124,14 @@ export function TimeseriesPanel({
         className,
       )}
     >
-      <header className="flex items-center gap-2">
+      {/* stacked header — the master (Figma 50:100) and every landing v2
+          instance put the query chip on its own line under the title */}
+      <header className="flex flex-col items-start gap-2">
         <h3 className="text-[16px] font-semibold text-text">{title}</h3>
         {query && (
-          <code className="font-data truncate rounded-(--radius) border border-border bg-bg px-1.5 py-0.5 text-[11px] text-text-2">
+          // max-w-full + truncate: long queries clip inside the panel in
+          // narrow contexts (375w home hero); fixed-width panels unchanged
+          <code className="font-data max-w-full truncate rounded-(--radius) border border-border bg-bg px-1.5 py-0.5 text-[11px] text-text-2">
             {query}
           </code>
         )}
@@ -149,7 +153,9 @@ export function TimeseriesPanel({
           viewBox={`0 0 ${PLOT_W} ${plotH}`}
           role="img"
           aria-label={`${title} chart`}
-          className="w-full"
+          // min-w-0: the viewBox's intrinsic 600px must not set the panel's
+          // min-content width (375w home); rendering at fixed widths unchanged
+          className="w-full min-w-0"
           style={{ height: plotH }}
           onMouseMove={handleMove}
           onMouseLeave={handleLeave}

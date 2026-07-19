@@ -1,5 +1,6 @@
 "use client";
 
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import { clsx } from "clsx";
 import { Check, Minus } from "lucide-react";
 
@@ -11,7 +12,11 @@ export interface CheckboxProps {
   className?: string;
 }
 
-/** Checkbox — §8.2b: checked / unchecked / indeterminate × default / disabled. */
+/**
+ * Checkbox — §8.2b: checked / unchecked / indeterminate × default / disabled.
+ * W2 Radix convergence: role/aria-checked=mixed/keyboard ride
+ * @radix-ui/react-checkbox; box + glyph chrome is the W1 Figma-QA'd markup.
+ */
 export function Checkbox({
   checked,
   onCheckedChange,
@@ -22,13 +27,13 @@ export function Checkbox({
   const isChecked = checked === true;
   const isIndeterminate = checked === "indeterminate";
   return (
-    <button
-      type="button"
-      role="checkbox"
-      aria-checked={isIndeterminate ? "mixed" : isChecked}
-      aria-label={aria["aria-label"]}
+    <CheckboxPrimitive.Root
+      checked={checked}
+      // Radix resolves indeterminate → true on toggle, matching the W1
+      // behavior; the public callback stays boolean-only.
+      onCheckedChange={(next) => onCheckedChange?.(next === true)}
       disabled={disabled}
-      onClick={() => onCheckedChange?.(!isChecked)}
+      aria-label={aria["aria-label"]}
       className={clsx(
         "inline-flex size-4 shrink-0 items-center justify-center rounded-(--radius) border",
         "transition-colors duration-[var(--duration-fast)] ease-standard",
@@ -42,6 +47,6 @@ export function Checkbox({
     >
       {isChecked && <Check aria-hidden="true" className="size-3" strokeWidth={3} />}
       {isIndeterminate && <Minus aria-hidden="true" className="size-3" strokeWidth={3} />}
-    </button>
+    </CheckboxPrimitive.Root>
   );
 }

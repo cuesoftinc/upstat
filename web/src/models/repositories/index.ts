@@ -170,3 +170,6 @@ export const membersRepo = {
     http.patch<Member>(`/v1/members/${id}`, { role }),
   remove: (id: string) => http.delete(`/v1/members/${id}`),
 };
+
+/** GitHub star fetch (A13 runtime star count). */
+export * from "./github";

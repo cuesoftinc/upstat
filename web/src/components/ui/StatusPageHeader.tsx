@@ -10,11 +10,25 @@ export type OverallStatus =
   | "major_outage";
 
 export interface StatusPageHeaderProps {
-  orgName: string;
+  /** Org heading — omitted in embeds (the landing v2 status embed, 135:471). */
+  orgName?: string;
   overall: OverallStatus;
   /** RFC3339 last-updated timestamp. */
   lastUpdated: string;
+  /** `relative` renders "Last updated 2m ago" (landing embed); default absolute UTC. */
+  updatedFormat?: "absolute" | "relative";
+  /** `banner` puts the last-updated label inside the banner, right-aligned
+   *  (landing v2 embed, 135:471); default keeps it on its own line below. */
+  updatedPlacement?: "below" | "banner";
   className?: string;
+}
+
+function relativeLabel(iso: string): string {
+  const deltaMs = Date.now() - Date.parse(iso);
+  const min = Math.max(Math.round(deltaMs / 60_000), 0);
+  if (min < 60) return `${min}m ago`;
+  const h = Math.round(min / 60);
+  return h < 24 ? `${h}h ago` : `${Math.round(h / 24)}d ago`;
 }
 
 const COPY: Record<OverallStatus, string> = {
@@ -25,7 +39,22 @@ const COPY: Record<OverallStatus, string> = {
 };
 
 /** StatusPageHeader — §8.2: overall ×4 + last-updated ts (public page, B7). */
-export function StatusPageHeader({ orgName, overall, lastUpdated, className }: StatusPageHeaderProps) {
+export function StatusPageHeader({
+  orgName,
+  overall,
+  lastUpdated,
+  updatedFormat = "absolute",
+  updatedPlacement = "below",
+  className,
+}: StatusPageHeaderProps) {
+  const updatedLabel = (
+    <>
+      Last updated{" "}
+      {updatedFormat === "relative"
+        ? relativeLabel(lastUpdated)
+        : `${lastUpdated.replace("T", " ").slice(0, 19)} UTC`}
+    </>
+  );
   // Figma 75:862: outages (partial + major) carry crit + x-circle;
   // only degraded stays warn + triangle.
   const Icon =
@@ -35,7 +64,7 @@ export function StatusPageHeader({ orgName, overall, lastUpdated, className }: S
       data-overall={overall}
       className={clsx("font-ui flex flex-col gap-3", className)}
     >
-      <h1 className="text-[20px] font-semibold text-text">{orgName} status</h1>
+      {orgName && <h1 className="text-[20px] font-semibold text-text">{orgName} status</h1>}
       <div
         className={clsx(
           "flex items-center gap-2 rounded-(--radius) border p-3",
@@ -55,10 +84,13 @@ export function StatusPageHeader({ orgName, overall, lastUpdated, className }: S
           )}
         />
         <span className="text-[16px] font-semibold text-text">{COPY[overall]}</span>
+        {updatedPlacement === "banner" && (
+          <span className="ml-auto text-[12px] tabular-nums text-text-2">{updatedLabel}</span>
+        )}
       </div>
-      <p className="text-[12px] tabular-nums text-text-2">
-        Last updated {lastUpdated.replace("T", " ").slice(0, 19)} UTC
-      </p>
+      {updatedPlacement === "below" && (
+        <p className="text-[12px] tabular-nums text-text-2">{updatedLabel}</p>
+      )}
     </header>
   );
 }
