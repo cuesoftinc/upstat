@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { incidentsRepo } from "@/models/repositories";
-import type { IncidentPhase } from "@/models";
+import type { Incident, IncidentPhase, TimelineEntry } from "@/models";
 import { useRequest } from "./use-request";
 
 /** Incidents controller — declare/update + timeline composer (pages.md B9, MI-10). */
@@ -24,14 +24,47 @@ export function useIncidentsController() {
 export function useIncidentController(id: string) {
   const incident = useRequest(() => incidentsRepo.get(id), [id]);
   const timeline = useRequest(() => incidentsRepo.timeline(id), [id]);
+  // MI-10: posting an update optimistically prepends; rollback on failure.
+  const [optimistic, setOptimistic] = useState<TimelineEntry | null>(null);
+  const [posting, setPosting] = useState(false);
+  const [postError, setPostError] = useState<string | null>(null);
 
   const postUpdate = useCallback(
-    async (entry: { phase?: IncidentPhase; body: string; author: string }) => {
-      await incidentsRepo.postUpdate(id, entry);
-      await Promise.all([incident.reload(), timeline.reload()]);
+    async (entry: { phase?: IncidentPhase; sev?: number; body: string; author: string }) => {
+      const pending: TimelineEntry = {
+        id: `pending_${Date.now()}`,
+        incident_id: id,
+        ts: new Date().toISOString(),
+        author: entry.author,
+        phase: entry.phase ?? incident.data?.status ?? "investigating",
+        body: entry.body,
+      };
+      setOptimistic(pending);
+      setPosting(true);
+      setPostError(null);
+      try {
+        // `/sev n` slash command patches the incident severity (MI-10)
+        if (entry.sev && entry.sev !== incident.data?.sev) {
+          await incidentsRepo.update(id, { sev: entry.sev as Incident["sev"] });
+        }
+        await incidentsRepo.postUpdate(id, { phase: entry.phase, body: entry.body, author: entry.author });
+        await Promise.all([incident.reload(), timeline.reload()]);
+      } catch (e) {
+        // rollback the optimistic entry (MI-10)
+        setPostError(e instanceof Error ? e.message : "post failed");
+        throw e;
+      } finally {
+        setOptimistic(null);
+        setPosting(false);
+      }
     },
     [id, incident, timeline],
   );
 
-  return { incident, timeline, postUpdate };
+  /** Timeline including the optimistic prepend, newest-first. */
+  const entries: TimelineEntry[] = optimistic
+    ? [optimistic, ...(timeline.data ?? [])]
+    : (timeline.data ?? []);
+
+  return { incident, timeline, entries, postUpdate, posting, postError };
 }

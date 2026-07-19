@@ -1,6 +1,6 @@
 import { jsonError, jsonOk, readJson } from "@/mocks/http";
 import { buildTimeseries, parseQuery } from "@/mocks/series";
-import { getDb } from "@/mocks/store";
+import { getDb, telemetryReady } from "@/mocks/store";
 import { DAY } from "@/mocks/util";
 
 const MAX_RANGE_DAYS = 92;
@@ -30,5 +30,9 @@ export async function POST(req: Request) {
   }
 
   const db = getDb();
+  // fresh org: no telemetry until the first datapoint "arrives" (MI-16)
+  if (!telemetryReady(db)) {
+    return jsonOk({ kind: "timeseries", series: [], step: "1m" });
+  }
   return jsonOk(buildTimeseries(parsed, fromMs, toMs, db.outage));
 }

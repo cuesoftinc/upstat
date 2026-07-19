@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { alertsRepo } from "@/models/repositories";
-import type { AlertChannel, AlertRule } from "@/models";
+import type { AlertChannel, AlertRule, RuleTestResult } from "@/models";
 import { useRequest } from "./use-request";
 
 /** Alerting controller — channels + rules CRUD + triggered feed (pages.md B8). */
@@ -43,5 +43,64 @@ export function useAlertsController() {
     [rules],
   );
 
-  return { channels, rules, feed, createChannel, removeChannel, createRule, removeRule };
+  const updateRule = useCallback(
+    async (id: string, patch: Partial<AlertRule>) => {
+      await alertsRepo.updateRule(id, patch);
+      await rules.reload();
+    },
+    [rules],
+  );
+
+  /** MI-9 — replay a rule's last 24h (the repository call, controller-owned). */
+  const testRule = useCallback((id: string) => alertsRepo.testRule(id), []);
+
+  const verifyChannel = useCallback(
+    async (id: string) => {
+      await alertsRepo.verifyChannel(id);
+      await channels.reload();
+    },
+    [channels],
+  );
+
+  return {
+    channels,
+    rules,
+    feed,
+    createChannel,
+    verifyChannel,
+    removeChannel,
+    createRule,
+    updateRule,
+    removeRule,
+    testRule,
+  };
+}
+
+/** Single rule + MI-9 test replay (trigger bands, would-have-fired markers). */
+export function useRuleController(id: string) {
+  const rules = useRequest(() => alertsRepo.rules(), []);
+  const rule = (rules.data ?? []).find((r) => r.id === id) ?? null;
+  const test = useRuleTest(() => alertsRepo.testRule(id));
+  return { rules, rule, ...test };
+}
+
+/** Shared MI-9 runner (rules + the uptime-monitor variant). */
+export function useRuleTest(run: () => Promise<RuleTestResult>) {
+  const [testResult, setTestResult] = useState<RuleTestResult | null>(null);
+  const [testing, setTesting] = useState(false);
+  const [testError, setTestError] = useState<string | null>(null);
+
+  const runTest = useCallback(async () => {
+    setTesting(true);
+    setTestError(null);
+    try {
+      setTestResult(await run());
+    } catch (e) {
+      setTestError(e instanceof Error ? e.message : "test failed");
+    } finally {
+      setTesting(false);
+    }
+  }, [run]);
+
+  return { testResult, testing, testError, runTest };
 }

@@ -10,3 +10,5 @@ export * from "./incidents";
 export * from "./slos";
 export * from "./catalog";
 export * from "./keys";
+export * from "./views";
+export * from "./status";

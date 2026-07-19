@@ -21,6 +21,18 @@ export interface TimeseriesPanelProps {
   /** External crosshair sync (MI-2): fraction 0..1 or null. */
   cursor?: number | null;
   onCursorChange?: (fraction: number | null) => void;
+  /**
+   * MI-3 drag-to-zoom: dragging a horizontal region reports its bounds as
+   * fractions 0..1 of the plotted range; the controller converts to time.
+   */
+  onZoomRange?: (fromFrac: number, toFrac: number) => void;
+  /** MI-3: double-click resets the zoom stack. */
+  onZoomReset?: () => void;
+  /**
+   * false = bare plot (no title/query header, border or panel bg) — the
+   * WidgetShell provides the chrome when the panel is a dashboard widget.
+   */
+  chrome?: boolean;
   className?: string;
 }
 
@@ -59,10 +71,16 @@ export function TimeseriesPanel({
   height = 160,
   cursor = null,
   onCursorChange,
+  onZoomRange,
+  onZoomReset,
+  chrome = true,
   className,
 }: TimeseriesPanelProps) {
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [localCursor, setLocalCursor] = useState<number | null>(null);
+  /** MI-3 drag selection, fractions of the plot width. */
+  const [drag, setDrag] = useState<{ from: number; to: number } | null>(null);
+  const dragging = useRef(false);
   const svgRef = useRef<SVGSVGElement>(null);
   const cursorFrac = cursor ?? localCursor;
 
@@ -93,14 +111,20 @@ export function TimeseriesPanel({
   const cursorIndex =
     cursorFrac !== null && n > 0 ? Math.round(cursorFrac * (n - 1)) : null;
 
-  const handleMove = (e: React.MouseEvent<SVGSVGElement>) => {
+  const fracAt = (clientX: number): number | null => {
     const rect = svgRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const fx = (e.clientX - rect.left) / rect.width;
-    const frac = Math.max(
-      0,
-      Math.min(1, (fx * PLOT_W - PAD_L) / innerW),
-    );
+    if (!rect) return null;
+    const fx = (clientX - rect.left) / rect.width;
+    return Math.max(0, Math.min(1, (fx * PLOT_W - PAD_L) / innerW));
+  };
+
+  const handleMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    const frac = fracAt(e.clientX);
+    if (frac === null) return;
+    if (dragging.current) {
+      setDrag((d) => (d ? { ...d, to: frac } : d));
+      return;
+    }
     setLocalCursor(frac);
     onCursorChange?.(frac);
   };
@@ -108,6 +132,26 @@ export function TimeseriesPanel({
   const handleLeave = () => {
     setLocalCursor(null);
     onCursorChange?.(null);
+    dragging.current = false;
+    setDrag(null);
+  };
+
+  const handleDown = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (!onZoomRange) return;
+    const frac = fracAt(e.clientX);
+    if (frac === null) return;
+    dragging.current = true;
+    setDrag({ from: frac, to: frac });
+  };
+
+  const handleUp = () => {
+    if (!dragging.current || !drag) return;
+    dragging.current = false;
+    const lo = Math.min(drag.from, drag.to);
+    const hi = Math.max(drag.from, drag.to);
+    setDrag(null);
+    // ignore sub-2% drags — that's a click, not a zoom
+    if (hi - lo >= 0.02) onZoomRange?.(lo, hi);
   };
 
   // Empty = no data at all — hiding every series via the legend must NOT
@@ -120,22 +164,25 @@ export function TimeseriesPanel({
     <section
       data-mode={mode}
       className={clsx(
-        "font-ui flex w-full flex-col gap-2 rounded-(--radius) border border-border bg-bg-elev p-3",
+        "font-ui flex w-full flex-col gap-2",
+        chrome && "rounded-(--radius) border border-border bg-bg-elev p-3",
         className,
       )}
     >
       {/* stacked header — the master (Figma 50:100) and every landing v2
           instance put the query chip on its own line under the title */}
-      <header className="flex flex-col items-start gap-2">
-        <h3 className="text-[16px] font-semibold text-text">{title}</h3>
-        {query && (
-          // max-w-full + truncate: long queries clip inside the panel in
-          // narrow contexts (375w home hero); fixed-width panels unchanged
-          <code className="font-data max-w-full truncate rounded-(--radius) border border-border bg-bg px-1.5 py-0.5 text-[11px] text-text-2">
-            {query}
-          </code>
-        )}
-      </header>
+      {chrome && (
+        <header className="flex flex-col items-start gap-2">
+          <h3 className="text-[16px] font-semibold text-text">{title}</h3>
+          {query && (
+            // max-w-full + truncate: long queries clip inside the panel in
+            // narrow contexts (375w home hero); fixed-width panels unchanged
+            <code className="font-data max-w-full truncate rounded-(--radius) border border-border bg-bg px-1.5 py-0.5 text-[11px] text-text-2">
+              {query}
+            </code>
+          )}
+        </header>
+      )}
 
       {loading ? (
         // height via style — a template-built `h-[…]` class never reaches
@@ -159,6 +206,10 @@ export function TimeseriesPanel({
           style={{ height: plotH }}
           onMouseMove={handleMove}
           onMouseLeave={handleLeave}
+          onMouseDown={handleDown}
+          onMouseUp={handleUp}
+          onDoubleClick={onZoomReset}
+          data-testid="timeseries-plot"
         >
           {/* y grid + axis labels (11px, §2 ramp) */}
           {[0, 0.5, 1].map((t) => {
@@ -274,6 +325,21 @@ export function TimeseriesPanel({
               </g>
             );
           })}
+
+          {/* MI-3 drag-to-zoom selection region */}
+          {drag && Math.abs(drag.to - drag.from) > 0 && (
+            <rect
+              x={PAD_L + Math.min(drag.from, drag.to) * innerW}
+              y={PAD_T}
+              width={Math.abs(drag.to - drag.from) * innerW}
+              height={innerH}
+              fill="var(--color-brand)"
+              opacity={0.12}
+              stroke="var(--color-brand)"
+              strokeWidth={1}
+              data-testid="zoom-selection"
+            />
+          )}
         </svg>
       )}
 

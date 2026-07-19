@@ -1,17 +1,24 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { dashboardsRepo } from "@/models/repositories";
-import type { Widget } from "@/models";
+import type { Widget, WidgetLayout } from "@/models";
 import { useRequest } from "./use-request";
 
 /** Dashboards list controller (pages.md B2). */
 export function useDashboardsController() {
   const state = useRequest(() => dashboardsRepo.list(), []);
 
+  /** Create flow: name → widget picker → the first widget lands placed. */
   const create = useCallback(
-    async (name: string) => {
+    async (name: string, firstWidget?: Omit<Widget, "id" | "dashboard_id">) => {
       const dashboard = await dashboardsRepo.create({ name });
+      if (firstWidget) {
+        await dashboardsRepo.addWidget(dashboard.id, {
+          ...firstWidget,
+          layout: { ...firstWidget.layout, x: 0, y: 0 },
+        });
+      }
       await state.reload();
       return dashboard;
     },
@@ -37,9 +44,42 @@ export function useDashboardsController() {
   return { ...state, create, toggleFavorite, remove };
 }
 
+function isTypingTarget(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLElement &&
+    (target.tagName === "INPUT" ||
+      target.tagName === "TEXTAREA" ||
+      target.tagName === "SELECT" ||
+      target.isContentEditable)
+  );
+}
+
 /** Single-dashboard controller — grid editing + widget CRUD (MI-11/12). */
 export function useDashboardController(id: string) {
   const state = useRequest(() => dashboardsRepo.get(id), [id]);
+
+  // MI-11: `e` toggles edit mode; ?edit=1 lands in it (the create flow).
+  const [editMode, setEditMode] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("edit") === "1",
+  );
+  const [savedPulse, setSavedPulse] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "e" || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (isTypingTarget(e.target)) return;
+      setEditMode((v) => !v);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const pulseSaved = useCallback(() => {
+    setSavedPulse(true);
+    window.setTimeout(() => setSavedPulse(false), 1200);
+  }, []);
 
   const addWidget = useCallback(
     async (widget: Omit<Widget, "id" | "dashboard_id">) => {
@@ -73,5 +113,40 @@ export function useDashboardController(id: string) {
     [id, state],
   );
 
-  return { ...state, addWidget, updateWidget, removeWidget, rename };
+  /** MI-11 drag/resize commit — persists a widget's grid placement. */
+  const moveWidget = useCallback(
+    async (widgetId: string, layout: WidgetLayout) => {
+      await dashboardsRepo.updateWidget(id, widgetId, { layout });
+      await state.reload();
+      pulseSaved();
+    },
+    [id, state, pulseSaved],
+  );
+
+  const duplicateWidget = useCallback(
+    async (widget: Widget) => {
+      const { id: _id, dashboard_id: _did, ...rest } = widget;
+      await dashboardsRepo.addWidget(id, {
+        ...rest,
+        title: `${widget.title} (copy)`,
+        layout: { ...widget.layout, y: widget.layout.y + widget.layout.h },
+      });
+      await state.reload();
+    },
+    [id, state],
+  );
+
+  return {
+    ...state,
+    addWidget,
+    updateWidget,
+    removeWidget,
+    rename,
+    moveWidget,
+    duplicateWidget,
+    editMode,
+    setEditMode,
+    savedPulse,
+    pulseSaved,
+  };
 }
