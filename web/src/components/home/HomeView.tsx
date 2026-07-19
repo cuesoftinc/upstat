@@ -12,7 +12,6 @@
 import { MarketingFooter } from "@/components/ui/MarketingFooter";
 import { MarketingNav } from "@/components/ui/MarketingNav";
 import { useHomeController } from "@/controllers/home";
-import { FOOTER_COLUMNS, FOOTER_COPYRIGHT } from "./content";
 import {
   CloudSelfHostSection,
   CommunitySection,
@@ -47,7 +46,7 @@ export function HomeView() {
 
   return (
     <div className="font-ui min-h-screen bg-bg text-text">
-      <MarketingNav starCount={stars} onSignIn={onSignIn} onTryCloud={onTryCloud} />
+      <MarketingNav starCount={stars} onSignIn={onSignIn} />
 
       <main>
         <HeroSection
@@ -91,12 +90,9 @@ export function HomeView() {
         <FinalCtaSection onTryCloud={onTryCloud} onSelfHost={onSelfHost} />
       </main>
 
-      <MarketingFooter
-        inline
-        showBrand={false}
-        columns={FOOTER_COLUMNS}
-        copyright={FOOTER_COPYRIGHT}
-      />
+      {/* A10 footer — the canonical parity shape (brand block + 4 columns +
+          legal bar) is the component default (SKILL.md canon 2026-07-19) */}
+      <MarketingFooter />
     </div>
   );
 }

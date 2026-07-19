@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { ThemeProvider, themeInitScript } from "@/design/ThemeProvider";
 import "./globals.css";
 
 // Design-system fonts (design.md §2): Inter for UI, JetBrains Mono for
@@ -30,7 +31,12 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        {/* pre-paint: applies the persisted `upstat.theme` override before
+            first paint (theme-parity canon) — a static literal script */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }

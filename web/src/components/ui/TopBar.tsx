@@ -5,6 +5,7 @@ import { Bell, ChevronDown, Search } from "lucide-react";
 import type { ReactNode } from "react";
 import { CountBadge } from "./CountBadge";
 import { KbdChip } from "./KbdChip";
+import { ThemeToggle } from "./ThemeToggle";
 
 export interface TopBarProps {
   orgName: string;
@@ -66,6 +67,10 @@ export function TopBar({
         <span className="flex-1 text-left">Search…</span>
         <KbdChip keys="/" />
       </button>
+
+      {/* theme-parity canon (SKILL.md 2026-07-19): the toggle lives in the
+          chrome utility area, next to the bell */}
+      <ThemeToggle />
 
       <button
         type="button"

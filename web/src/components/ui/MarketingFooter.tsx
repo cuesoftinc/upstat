@@ -1,6 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
+import { ShieldCheck } from "lucide-react";
 import { Fragment } from "react";
 
 export interface FooterLink {
@@ -14,64 +15,82 @@ export interface FooterColumn {
 }
 
 export interface MarketingFooterProps {
-  /** Column set — defaults to the standard A10 columns. */
+  /** Column set — defaults to the canonical parity columns (SKILL.md). */
   columns?: FooterColumn[];
   /**
-   * Landing v2 rendering (Figma 135:770): links inline, dot-joined,
-   * no brand block, copyright line below. Defaults keep the W1 shape.
+   * Landing v2 rendering (Figma 135:770): links inline, dot-joined.
+   * Defaults keep the stacked-column shape.
    */
   inline?: boolean;
   showBrand?: boolean;
-  copyright?: string;
   className?: string;
 }
 
+/**
+ * Canonical footer columns (SKILL.md "Marketing nav, footer & theme parity
+ * canon", ratified 2026-07-19) — Product / Docs / Community / Legal.
+ */
 const COLUMNS: FooterColumn[] = [
   {
     heading: "Product",
     links: [
-      { label: "Platform", href: "/#platform" },
-      { label: "Status page", href: "https://status.upstat.cuesoft.io/upstat" },
-      { label: "Docs", href: "https://docs.upstat.cuesoft.io" },
+      { label: "Features", href: "/#pillars" },
+      { label: "Try Cloud", href: "/signin" },
+      { label: "Self Host", href: "/#self-host" },
+      { label: "Dashboards", href: "/dashboard" },
     ],
   },
   {
-    heading: "Open source",
+    heading: "Docs",
     links: [
-      { label: "GitHub", href: "https://github.com/cuesoftinc/upstat" },
-      { label: "Contributing", href: "https://github.com/cuesoftinc/upstat/blob/main/CONTRIBUTING.md" },
-      { label: "Roadmap", href: "https://github.com/cuesoftinc/upstat#roadmap" },
+      { label: "Docs", href: "https://cuesoft.gitbook.io/upstat" },
+      { label: "Quickstart", href: "https://cuesoft.gitbook.io/upstat/setup" },
+      { label: "API reference", href: "https://cuesoft.gitbook.io/upstat/system/api-surface" },
+      { label: "Self-host guide", href: "https://cuesoft.gitbook.io/upstat/system/deployment" },
     ],
   },
   {
     heading: "Community",
     links: [
-      { label: "Discord", href: "https://discord.gg/cuelabs" },
-      { label: "CueLABS", href: "https://cuesoft.io" },
+      { label: "GitHub", href: "https://github.com/cuesoftinc/upstat" },
+      { label: "Discord", href: "https://discord.gg/CDfZxxrxbb" },
+      { label: "Roadmap", href: "https://cuesoft.gitbook.io/upstat/product/roadmap" },
+      { label: "CueLABS", href: "https://cuelabs.cuesoft.io" },
     ],
   },
   {
     heading: "Legal",
-    links: [{ label: "Privacy (cookieless)", href: "/privacy" }],
+    links: [
+      { label: "Privacy", href: "https://privacy.cuesoft.io" },
+      { label: "Terms", href: "https://terms.cuesoft.io" },
+      { label: "Status", href: "https://status.cuesoft.io" },
+    ],
   },
 ];
 
-/** MarketingFooter — pages.md A10: standard + privacy (UPS-005). */
+const SECURITY_URL = "https://github.com/cuesoftinc/upstat/blob/main/SECURITY.md";
+const LICENSE_URL = "https://github.com/cuesoftinc/upstat/blob/main/LICENSE";
+
+/**
+ * MarketingFooter — parity canon (SKILL.md 2026-07-19, supersedes the A10
+ * ad-hoc columns): brand block + Product/Docs/Community/Legal columns +
+ * legal bar (verbatim copyright with linked "Cuesoft Inc." and "MIT
+ * License", language selector — English-only for now, ratified — and the
+ * security-policy affordance), in upstat's visual idiom.
+ */
 export function MarketingFooter({
   columns = COLUMNS,
   inline = false,
   showBrand = true,
-  copyright,
   className,
 }: MarketingFooterProps) {
   return (
     <footer className={clsx("font-ui border-t border-border bg-bg px-6 py-10", className)}>
       {/* marketing container (design.md §2): footer band is full-bleed, its
-          content sits on the 1152 rails (outer px-6 supplies the gutters —
-          the old generic max-w-5xl (1024) drifted 64px off the rail). */}
+          content sits on the 1152 rails (outer px-6 supplies the gutters) */}
       <div className="mx-auto flex max-w-[1152px] flex-wrap justify-between gap-8">
         {showBrand && (
-          <div className="flex flex-col gap-2">
+          <div className="flex max-w-56 flex-col gap-2">
             <span className="flex items-center gap-2 text-[16px] font-semibold text-text">
               <span
                 aria-hidden="true"
@@ -81,7 +100,7 @@ export function MarketingFooter({
               </span>
               Upstat
             </span>
-            <span className="text-[12px] text-text-2">
+            <span className="text-[12px] leading-[1.45] text-text-2">
               Open-source observability by CueLABS. MIT licensed.
             </span>
           </div>
@@ -126,9 +145,47 @@ export function MarketingFooter({
           </nav>
         ))}
       </div>
-      {copyright && (
-        <p className="mx-auto mt-8 max-w-[1152px] text-[12px] text-text-2">{copyright}</p>
-      )}
+
+      {/* legal bar — verbatim copyright (linked marks), language selector
+          (English-only, a real control — no i18n yet, ratified) and the
+          security-policy affordance */}
+      <div className="mx-auto mt-8 flex max-w-[1152px] flex-wrap items-center gap-x-6 gap-y-3 border-t border-border pt-4">
+        <p className="text-[12px] text-text-2">
+          ©{" "}
+          <a
+            href="https://cuesoft.io"
+            className="transition-colors duration-[var(--duration-fast)] hover:text-text"
+          >
+            Cuesoft Inc.
+          </a>{" "}
+          2026. Upstat. CueLABS™ Division.{" "}
+          <a
+            href={LICENSE_URL}
+            className="transition-colors duration-[var(--duration-fast)] hover:text-text"
+          >
+            MIT License
+          </a>
+          .
+        </p>
+        <span className="flex-1" />
+        <a
+          href={SECURITY_URL}
+          className="flex items-center gap-1.5 text-[12px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
+        >
+          <ShieldCheck aria-hidden="true" className="size-3.5" />
+          Security
+        </a>
+        <label className="flex items-center gap-1.5 text-[12px] text-text-2">
+          <span className="sr-only">Language</span>
+          <select
+            aria-label="Language"
+            defaultValue="en"
+            className="rounded-(--radius) border border-border bg-bg-elev px-1.5 py-0.5 text-[12px] text-text-2"
+          >
+            <option value="en">English</option>
+          </select>
+        </label>
+      </div>
     </footer>
   );
 }

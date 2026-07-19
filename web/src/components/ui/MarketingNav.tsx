@@ -2,38 +2,36 @@
 
 import { clsx } from "clsx";
 import Link from "next/link";
-import { ChevronDown, Star, Zap } from "lucide-react";
-import { useState } from "react";
+import { Zap } from "lucide-react";
 import { Button } from "./Button";
-import { MARKETING_PILLARS, PillarCard } from "./PillarCard";
+import { ThemeToggle } from "./ThemeToggle";
 
 export interface MarketingNavProps {
   onSignIn?: () => void;
-  onTryCloud?: () => void;
   /** Live GitHub star count — populated at runtime, never a static number (A13). */
   starCount?: number | null;
   className?: string;
 }
 
+/** The canonical nav links (SKILL.md nav-parity canon, 2026-07-19). */
+export const NAV_LINKS = [
+  { label: "Features", href: "/#pillars", external: false },
+  { label: "Dashboards", href: "/dashboard", external: false },
+  { label: "Docs", href: "https://cuesoft.gitbook.io/upstat", external: true },
+  { label: "GitHub", href: "https://github.com/cuesoftinc/upstat", external: true },
+] as const;
+
 /**
- * MarketingNav — pages.md A1: logo · Platform (pillar dropdown = mini
- * feature map ×8) · Docs · Community · GitHub badge · Sign in · Try Cloud.
- * Star badge is neutral ("Star") unless a runtime count arrives (§8.2b).
+ * MarketingNav — nav-parity canon (SKILL.md, 2026-07-19; supersedes the A1
+ * pillar-dropdown shape): logo · Features · Dashboards · Docs · GitHub ·
+ * ThemeToggle · Sign in CTA (/signin). The GitHub link carries the runtime
+ * star count when one arrives — never a static number (§8.2b).
  *
  * The bar (border/background) is full-bleed, but the ROW sits on the
- * marketing container (design.md §2, decided 2026-07-19: 1152px content at
- * 1440, rails x144/x1296) — the Figma master spans the container, it is not
- * pinned to the viewport edges. Without the cap, nav items hugged the
- * viewport on ultra-wide screens while every section stayed centered.
+ * marketing container (design.md §2: 1152px content at 1440, rails
+ * x144/x1296).
  */
-export function MarketingNav({
-  onSignIn,
-  onTryCloud,
-  starCount = null,
-  className,
-}: MarketingNavProps) {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
+export function MarketingNav({ onSignIn, starCount = null, className }: MarketingNavProps) {
   return (
     <nav
       aria-label="Marketing"
@@ -61,83 +59,27 @@ export function MarketingNav({
           upstat
         </Link>
 
-        <div
-          className="relative hidden md:block"
-          onMouseEnter={() => setDropdownOpen(true)}
-          onMouseLeave={() => setDropdownOpen(false)}
-        >
-          <button
-            type="button"
-            aria-expanded={dropdownOpen}
-            // Open-only: hover already opened it — a toggle would close on the
-            // very click that follows the hover. Escape / mouse-leave close.
-            onClick={() => setDropdownOpen(true)}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") setDropdownOpen(false);
-            }}
-            className="flex items-center gap-1 rounded-(--radius) px-2 py-1.5 text-[13px] font-medium text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
+        {NAV_LINKS.map((link) => (
+          <a
+            key={link.label}
+            href={link.href}
+            {...(link.external ? { target: "_blank", rel: "noreferrer" } : {})}
+            className="hidden text-[13px] font-medium text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text md:block"
           >
-            Platform
-            <ChevronDown
-              aria-hidden="true"
-              className={clsx(
-                "size-3.5 transition-transform duration-[var(--duration-fast)]",
-                dropdownOpen && "rotate-180",
-              )}
-            />
-          </button>
-          {dropdownOpen && (
-            <div
-              role="menu"
-              aria-label="Platform pillars"
-              className="absolute left-0 top-full z-[var(--z-dropdown)] grid w-[560px] grid-cols-2 gap-2 rounded-(--radius) border border-border bg-bg-elev p-3 shadow-xl"
-            >
-              {MARKETING_PILLARS.map((pillar) => (
-                <PillarCard key={pillar.pillar} {...pillar} compact />
-              ))}
-            </div>
-          )}
-        </div>
-
-        <a
-          href="https://docs.upstat.cuesoft.io"
-          className="hidden text-[13px] font-medium text-text-2 hover:text-text md:block"
-        >
-          Docs
-        </a>
-        <a
-          href="#community"
-          className="hidden text-[13px] font-medium text-text-2 hover:text-text md:block"
-        >
-          Community
-        </a>
+            {link.label}
+            {link.label === "GitHub" && typeof starCount === "number" && (
+              <span className="ml-1.5 tabular-nums text-text">
+                {starCount.toLocaleString()}
+              </span>
+            )}
+          </a>
+        ))}
 
         <div className="flex-1" />
 
-        <a
-          href="https://github.com/cuesoftinc/upstat"
-          target="_blank"
-          rel="noreferrer"
-          className="flex h-7 items-center gap-1.5 rounded-(--radius) border border-border px-2 text-[12px] font-medium text-text-2 transition-colors duration-[var(--duration-fast)] hover:border-text-2 hover:text-text"
-        >
-          <Star aria-hidden="true" className="size-3.5" />
-          Star
-          {typeof starCount === "number" && (
-            <span className="tabular-nums text-text">
-              {starCount.toLocaleString()}
-            </span>
-          )}
-        </a>
-
-        <button
-          type="button"
-          onClick={onSignIn}
-          className="text-[13px] font-medium text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
-        >
+        <ThemeToggle />
+        <Button kind="brand" onClick={onSignIn}>
           Sign in
-        </button>
-        <Button kind="brand" onClick={onTryCloud}>
-          Try Cloud
         </Button>
       </div>
     </nav>

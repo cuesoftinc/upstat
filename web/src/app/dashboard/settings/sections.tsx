@@ -21,6 +21,7 @@ import type { ApiKeyWithSecret, KeyScope, MemberRole } from "@/models";
 import { useAlertsController } from "@/controllers/alerts";
 import { useOrgController } from "@/controllers/onboarding";
 import { useSettingsController } from "@/controllers/settings";
+import { useTheme, type Theme } from "@/design/ThemeProvider";
 
 function SectionHeading({ id, children }: { id: string; children: React.ReactNode }) {
   return (
@@ -368,6 +369,32 @@ const PRIVACY_ROWS = [
   { label: "Raw IP addresses", value: "never stored" },
   { label: "Export & delete", value: "self-serve via API, org-scoped" },
 ];
+
+/* ------------------------------------------------------------------ */
+/* Appearance (theme-parity canon, SKILL.md 2026-07-19)                 */
+/* ------------------------------------------------------------------ */
+
+export function AppearanceSection() {
+  const { theme, setTheme } = useTheme();
+  return (
+    <section aria-labelledby="appearance-heading" className="flex flex-col gap-3">
+      <SectionHeading id="appearance-heading">Appearance</SectionHeading>
+      <div className="flex items-center justify-between gap-4 rounded-(--radius) border border-border bg-bg-elev px-3 py-2">
+        <span className="text-[13px] font-medium text-text">Theme</span>
+        <Select
+          options={[
+            { value: "dark", label: "Dark (default)" },
+            { value: "light", label: "Light" },
+          ]}
+          value={theme}
+          onValueChange={(v) => setTheme(v as Theme)}
+          aria-label="Theme"
+          className="min-w-36"
+        />
+      </div>
+    </section>
+  );
+}
 
 export function PrivacySection() {
   return (
