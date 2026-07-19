@@ -203,6 +203,21 @@ needs those") — stale `/login` links 404 on the branded not-found page;
 `/signin` stays the only auth route. Root prose carries the CueLABS™
 mark (Makefile/CONTRIBUTING byte-identical to the generator templates).
 
+**Mobile TopBar as-built (2026-07-19).** Below `md` the dashboard TopBar's
+fixed-width utility cluster (~770px: org/env + preset TimePicker + w-56
+search + toggle + bell) overflowed the clipped document — right-side taps
+side-scrolled the chrome itself (probed: the bell panel landed at
+x=−302). The cluster now collapses at <md: the org switcher compacts
+(name truncates at 96px, env chip hides), the global TimePicker collapses
+to its calendar icon-button and its absolute-range dialog becomes a fixed
+full-width sheet under the bar (viewport-bounded by construction), search
+collapses to an icon button (same CommandPalette trigger; `/` still
+works), ThemeToggle and the bell stay as icons. Floating layers keep the
+collision clamps from the 2026-07-19 sweep. Playwright (390): no
+horizontal document scroll, every TopBar control visible/operable
+in-viewport, TimePicker sheet + bell popover + org menu bounding boxes
+inside the viewport. Desktop (md+) is untouched.
+
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the

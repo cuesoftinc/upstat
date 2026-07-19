@@ -62,6 +62,71 @@ test("semantic landmarks: one main, nav rail, banner, single h1", async ({ page 
   await expect(page.getByRole("list", { name: "Dashboards" }).first()).toBeVisible();
 });
 
+test("TopBar collapses to icon utilities at 390 — no overflow, everything operable", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await signIn(page);
+  const banner = page.getByRole("banner");
+
+  // the document does not scroll horizontally, and no chrome side-scroll
+  const docOverflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(docOverflow).toBeLessThanOrEqual(0);
+
+  // every TopBar control sits fully inside the viewport
+  const controls: [string, ReturnType<typeof banner.getByRole>][] = [
+    ["org switcher", banner.locator('button[aria-haspopup="menu"]')],
+    ["time picker", banner.getByRole("button", { name: "Custom range" })],
+    ["search", banner.getByRole("button", { name: "Search" })],
+    ["theme toggle", banner.getByTestId("theme-toggle")],
+    ["bell", banner.getByRole("button", { name: /Notifications/ })],
+  ];
+  for (const [label, control] of controls) {
+    await expect(control, label).toBeVisible();
+    const box = (await control.boundingBox())!;
+    expect(box.x, label).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width, `${label} right edge`).toBeLessThanOrEqual(390);
+  }
+
+  // TimePicker → the fixed sheet dialog, in-viewport
+  await banner.getByRole("button", { name: "Custom range" }).click();
+  const customRange = page.getByRole("dialog", { name: "Absolute range" });
+  await expect(customRange).toBeVisible();
+  const dialogBox = (await customRange.boundingBox())!;
+  expect(dialogBox.x).toBeGreaterThanOrEqual(0);
+  expect(dialogBox.x + dialogBox.width).toBeLessThanOrEqual(390);
+  await page.keyboard.press("Escape");
+  await expect(customRange).toBeHidden();
+
+  // bell popover in-viewport, no chrome side-scroll after the tap
+  await banner.getByRole("button", { name: /Notifications/ }).click();
+  const notifications = page.getByRole("dialog", { name: "Notifications" });
+  await expect(notifications).toBeVisible();
+  const bellBox = (await notifications.boundingBox())!;
+  expect(bellBox.x).toBeGreaterThanOrEqual(0);
+  expect(bellBox.x + bellBox.width).toBeLessThanOrEqual(390);
+  expect(await page.evaluate(() => window.scrollX)).toBe(0);
+  await banner.getByRole("button", { name: /Notifications/ }).click();
+
+  // search icon opens the CommandPalette
+  await banner.getByRole("button", { name: "Search" }).click();
+  await expect(page.getByRole("dialog", { name: "Command palette" })).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  // theme toggle still flips from the collapsed bar
+  await banner.getByTestId("theme-toggle").click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await banner.getByTestId("theme-toggle").click();
+
+  // org switcher opens its menu in-viewport
+  await banner.locator('button[aria-haspopup="menu"]').click();
+  const orgs = page.getByRole("navigation", { name: "Organizations" });
+  await expect(orgs).toBeVisible();
+  const orgBox = (await orgs.boundingBox())!;
+  expect(orgBox.x).toBeGreaterThanOrEqual(0);
+  expect(orgBox.x + orgBox.width).toBeLessThanOrEqual(390);
+});
+
 test("right-anchored TopBar layers stay inside the viewport (review class 2026-07-19)", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await signIn(page);
