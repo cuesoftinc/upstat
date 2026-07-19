@@ -14,7 +14,8 @@ describe("MarketingNav (parity canon, SKILL.md 2026-07-19, revised same day)", (
   it("renders the four canonical links with the ratified hrefs", () => {
     renderNav();
     expect(NAV_LINKS.map((l) => l.label)).toEqual(["Features", "Platform", "Docs", "GitHub"]);
-    expect(screen.getByRole("link", { name: "Features" })).toHaveAttribute("href", "/#pillars");
+    // differentiated 2026-07-19: Features → the feature-highlights band
+    expect(screen.getByRole("link", { name: "Features" })).toHaveAttribute("href", "/#features");
     expect(screen.getByRole("link", { name: "Platform" })).toHaveAttribute("href", "/#pillars");
     expect(screen.getByRole("link", { name: "Docs" })).toHaveAttribute(
       "href",

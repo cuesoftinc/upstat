@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { WidgetShell, type WidgetShellMode } from "@/components/ui/WidgetShell";
 import { WidgetTypePicker } from "@/components/ui/WidgetTypePicker";
 import type { Widget, WidgetLayout, WidgetType } from "@/models";
-import { useDashboardController } from "@/controllers/dashboards";
+import { dashboardToPortableJson, useDashboardController } from "@/controllers/dashboards";
 import { defaultWidget, substituteVars } from "@/controllers/widgets";
 import { useMediaQuery } from "@/controllers/use-media-query";
 import { useTimeRange } from "@/controllers/time-range";
@@ -104,7 +104,9 @@ export default function DashboardViewPage() {
             : {
                 ...d.origin,
                 w: Math.max(2, Math.min(COLS - d.origin.x, d.origin.w + dCol)),
-                h: Math.max(1, d.origin.h + dRow),
+                // 1..24 — matches the portable-JSON import bound, so any
+                // editable layout stays exportable→importable (PR 168 r4)
+                h: Math.min(24, Math.max(1, d.origin.h + dRow)),
               };
         return { ...d, preview };
       });
@@ -156,6 +158,24 @@ export default function DashboardViewPage() {
               + Add widget
             </Button>
           )}
+          {/* B2 portable JSON export (api.md §6) — downloads the definition */}
+          <Button
+            kind="quiet"
+            data-testid="export-dashboard"
+            onClick={() => {
+              const blob = new Blob([dashboardToPortableJson(dashboard)], {
+                type: "application/json",
+              });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `${dashboard.name.toLowerCase().replace(/\s+/g, "-")}.dashboard.json`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+          >
+            Export JSON
+          </Button>
           <Button
             kind={ctrl.editMode ? "brand" : "quiet"}
             onClick={() => ctrl.setEditMode(!ctrl.editMode)}

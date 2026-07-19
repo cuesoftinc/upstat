@@ -15,9 +15,13 @@ export interface MarketingNavProps {
   className?: string;
 }
 
-/** The canonical nav links (SKILL.md nav-parity canon, 2026-07-19). */
+/**
+ * The canonical nav links (SKILL.md nav-parity canon, 2026-07-19).
+ * Features anchors the feature-highlights band; Platform anchors the
+ * 8-pillar grid — differentiated 2026-07-19 (both previously /#pillars).
+ */
 export const NAV_LINKS = [
-  { label: "Features", href: "/#pillars", external: false },
+  { label: "Features", href: "/#features", external: false },
   { label: "Platform", href: "/#pillars", external: false },
   { label: "Docs", href: "https://cuesoft.gitbook.io/upstat", external: true },
   { label: "GitHub", href: "https://github.com/cuesoftinc/upstat", external: true },

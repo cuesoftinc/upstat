@@ -288,6 +288,33 @@ dismisses on ESC and, below `lg`, on backdrop tap. Token hygiene: signin
 brand-mark type joins the §2 ramp (16px), BufferedCountChip uses
 `rounded-full`.
 
+**Demo completeness as-built (2026-07-19).** Gap-diff of pages.md /
+features.md against the implementation, closed in one pass: **B2 portable
+JSON** — dashboards export a versioned portable definition (ids stripped;
+`Export JSON` on the view downloads it) and import one (`Import JSON` on
+the list validates version/name/widget types/layout and lands on the new
+dashboard); **B6** devices + countries breakdowns render (the summary
+generated both, unrendered); **B5 logs-in-span** — the span drawer's logs
+tab carries the trace-correlated lines (a controller fetches the trace
+window and keeps `trace_id` matches; per-span filtering by service + a
+±1.5s window matching the stream's correlation skew); **B9
+declare-from-alert** — active rows in the monitors Triggered feed open the
+declare-incident modal prefilled (title from the alert, sev mapped), via
+the extracted shared `DeclareIncidentModal`; **A1/A-footer nav anchors
+differentiated** — Features → `/#features` (the A11 feature-highlights
+band), Platform → `/#pillars`. Adjudicated Figma-parity restyles landed
+with the design-side updates: FAQItem → product radius + 4px-grid padding;
+StatusPill → 4px-grid padding. **Expanded-rail reflow ([Directive
+2026-07-19] + mobile clarification)**: with the 240px rail, every
+dashboard route reflows cleanly at 1280/1440 (e2e sweep asserts no
+document side-scroll and no element outside a scroll container, both
+widths, rail expanded); below `md` rail expansion renders as a 240px
+**overlay drawer** over a scrim — content keeps full width, the persisted
+desktop state does not apply (mobile boots collapsed), scrim/Escape/item
+selection dismiss (`e2e/navrail.spec.ts`). Known spec gap deliberately
+deferred: the A1 Features pillar-map dropdown (pending adjudication
+against the 4-text-links parity canon).
+
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the

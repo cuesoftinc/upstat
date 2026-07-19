@@ -34,7 +34,7 @@ const COLUMNS: FooterColumn[] = [
   {
     heading: "Product",
     links: [
-      { label: "Features", href: "/#pillars" },
+      { label: "Features", href: "/#features" },
       { label: "Try Cloud", href: "/signin" },
       { label: "Self Host", href: "/#self-host" },
       { label: "Platform", href: "/#pillars" },

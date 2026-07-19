@@ -18,7 +18,9 @@ import {
   Settings,
   Target,
 } from "lucide-react";
+import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
+import { useMediaQuery } from "@/controllers/use-media-query";
 
 export interface NavRailItemProps {
   icon: LucideIcon;
@@ -171,28 +173,28 @@ export interface NavRailProps {
   className?: string;
 }
 
-/**
- * NavRail — product nav (design.md §2, [Directive 2026-07-19] expandable
- * rail supersedes flyout-only): collapsed 56px icon rail ⇄ expanded 240px
- * icon+label rows in Telemetry/Respond/Platform groups. Foot chevron
- * toggles; the choice persists (`nav.rail.expanded`); expanded is the
- * ≥1280px default.
- */
-export function NavRail({ activeKey, onNavigate, className }: NavRailProps) {
-  const [expanded, toggleExpanded] = useRailExpanded();
+/** Rail brand mark + section groups + foot toggle (shared by the inline
+ *  rail and the <md overlay drawer). */
+function RailBody({
+  expanded,
+  activeKey,
+  onSelect,
+  footLabel,
+  footExpanded,
+  footTestId = "rail-toggle",
+  onToggle,
+}: {
+  expanded: boolean;
+  activeKey: string;
+  onSelect: (key: string) => void;
+  footLabel: string;
+  footExpanded: boolean;
+  footTestId?: string;
+  onToggle: () => void;
+}) {
   const byKey = new Map(NAV_PILLARS.map((p) => [p.key, p]));
   return (
-    <nav
-      aria-label="Product navigation"
-      data-expanded={expanded}
-      className={clsx(
-        "sticky top-0 z-[var(--z-sticky)] flex h-dvh flex-col gap-1",
-        "border-r border-border bg-bg py-2",
-        "transition-[width] duration-[var(--duration-base)] ease-standard motion-reduce:transition-none",
-        expanded ? "w-60 items-stretch px-1.5" : "w-14 items-center",
-        className,
-      )}
-    >
+    <>
       <span
         aria-hidden="true"
         className={clsx(
@@ -231,7 +233,7 @@ export function NavRail({ activeKey, onNavigate, className }: NavRailProps) {
                 label={pillar.label}
                 active={pillar.key === activeKey}
                 expanded={expanded}
-                onClick={() => onNavigate?.(pillar.key)}
+                onClick={() => onSelect(pillar.key)}
               />
             );
           })}
@@ -240,10 +242,10 @@ export function NavRail({ activeKey, onNavigate, className }: NavRailProps) {
 
       <button
         type="button"
-        data-testid="rail-toggle"
-        aria-label={expanded ? "Collapse navigation" : "Expand navigation"}
-        aria-expanded={expanded}
-        onClick={toggleExpanded}
+        data-testid={footTestId}
+        aria-label={footLabel}
+        aria-expanded={footExpanded}
+        onClick={onToggle}
         className={clsx(
           "mt-auto flex h-9 items-center rounded-(--radius) text-text-2",
           "transition-colors duration-[var(--duration-fast)] ease-standard hover:bg-bg-elev hover:text-text",
@@ -259,6 +261,94 @@ export function NavRail({ activeKey, onNavigate, className }: NavRailProps) {
           <ChevronsRight aria-hidden="true" className="size-4.5" />
         )}
       </button>
-    </nav>
+    </>
+  );
+}
+
+/**
+ * NavRail — product nav (design.md §2, [Directive 2026-07-19] expandable
+ * rail supersedes flyout-only): collapsed 56px icon rail ⇄ expanded 240px
+ * icon+label rows in Telemetry/Respond/Platform groups. Foot chevron
+ * toggles; the choice persists (`nav.rail.expanded`); expanded is the
+ * ≥1280px default.
+ *
+ * Below `md` ([Clarified 2026-07-19]) expansion must never squeeze the
+ * content: the persisted state does not apply (mobile always boots the
+ * 56px rail) and the foot chevron opens a 240px OVERLAY DRAWER over a
+ * scrim instead — content keeps full width beneath; scrim tap, Escape,
+ * and item selection close it; focus moves into the drawer and returns
+ * to the toggle on close.
+ */
+export function NavRail({ activeKey, onNavigate, className }: NavRailProps) {
+  const [expanded, toggleExpanded] = useRailExpanded();
+  const isMobile = useMediaQuery("(max-width: 767px)");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // the inline rail never expands below md — the drawer takes over
+  const inlineExpanded = expanded && !isMobile;
+  const open = isMobile && drawerOpen;
+
+  const select = (key: string) => {
+    setDrawerOpen(false);
+    onNavigate?.(key);
+  };
+
+  return (
+    <>
+      <nav
+        aria-label="Product navigation"
+        data-expanded={inlineExpanded}
+        className={clsx(
+          "sticky top-0 z-[var(--z-sticky)] flex h-dvh flex-col gap-1",
+          "border-r border-border bg-bg py-2",
+          "transition-[width] duration-[var(--duration-base)] ease-standard motion-reduce:transition-none",
+          inlineExpanded ? "w-60 items-stretch px-1.5" : "w-14 items-center",
+          className,
+        )}
+      >
+        <RailBody
+          expanded={inlineExpanded}
+          activeKey={activeKey}
+          onSelect={(key) => onNavigate?.(key)}
+          footLabel={inlineExpanded ? "Collapse navigation" : "Expand navigation"}
+          footExpanded={isMobile ? drawerOpen : inlineExpanded}
+          onToggle={() => (isMobile ? setDrawerOpen(true) : toggleExpanded())}
+        />
+      </nav>
+
+      {/* Radix Dialog (PR 168 review round 4): modal semantics give the
+          drawer a real focus trap + inert background; Escape and
+          overlay-tap dismissal and focus restoration to the toggle come
+          with the primitive (the headless-behavior allowance, §1). */}
+      <Dialog.Root open={open} onOpenChange={(next) => !next && setDrawerOpen(false)}>
+        <Dialog.Portal>
+          <Dialog.Overlay
+            data-testid="rail-scrim"
+            className="fixed inset-0 z-[var(--z-overlay)] bg-bg/70 md:hidden"
+          />
+          <Dialog.Content
+            aria-label="Product navigation drawer"
+            aria-describedby={undefined}
+            data-testid="rail-drawer"
+            className={clsx(
+              "fixed inset-y-0 left-0 z-[var(--z-modal)] flex w-60 flex-col gap-1 outline-none",
+              "border-r border-border bg-bg px-1.5 py-2 shadow-xl md:hidden",
+              "animate-[slide-in_var(--duration-entrance)_var(--ease-standard)] motion-reduce:animate-none",
+            )}
+          >
+            <Dialog.Title className="sr-only">Product navigation</Dialog.Title>
+            <RailBody
+              expanded
+              activeKey={activeKey}
+              onSelect={select}
+              footLabel="Close navigation"
+              footTestId="rail-drawer-close"
+              footExpanded
+              onToggle={() => setDrawerOpen(false)}
+            />
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </>
   );
 }

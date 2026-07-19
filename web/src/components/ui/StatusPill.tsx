@@ -71,7 +71,8 @@ export function StatusPill({ status, dotOnly = false, label, className }: Status
       data-status={status}
       className={clsx(
         "font-ui inline-flex items-center gap-1.5 rounded-(--radius) text-[12px] font-medium",
-        dotOnly ? "p-[5px]" : "px-2 py-[3px]",
+        // 4px-grid padding (adjudicated restyle 2026-07-19; was 5px/3px)
+        dotOnly ? "p-1" : "px-2 py-1",
         TINT[status],
         TEXT[status],
         className,

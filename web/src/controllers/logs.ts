@@ -178,3 +178,43 @@ export function useLogsExplorerController() {
     applyView,
   };
 }
+
+/**
+ * §5 keyboard navigation for the log list — `j`/`k` move focus between
+ * LogLine header buttons (Enter then expands via native button
+ * semantics). The ShortcutCheatsheet advertised j/k with no
+ * implementation behind it (completeness fix 2026-07-19).
+ */
+export function useLogLineKeys(listRef: React.RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.key !== "j" && e.key !== "k") || e.metaKey || e.ctrlKey || e.altKey) return;
+      const target = e.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      const list = listRef.current;
+      if (!list) return;
+      // LogLine header buttons carry aria-expanded (the JSON tree's inner
+      // copy buttons don't) — those are the navigable rows
+      const rows = [...list.querySelectorAll<HTMLButtonElement>("button[aria-expanded]")];
+      if (rows.length === 0) return;
+      const current = rows.indexOf(document.activeElement as HTMLButtonElement);
+      const next =
+        e.key === "j"
+          ? Math.min(current + 1, rows.length - 1)
+          : Math.max(current - 1, 0);
+      rows[next]?.focus();
+      rows[next]?.scrollIntoView({ block: "nearest" });
+      e.preventDefault();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [listRef]);
+}

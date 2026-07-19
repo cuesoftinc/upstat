@@ -17,7 +17,7 @@ community-driven") remains the visual base, extended for the new pillars.
 
 | # | Section | Content | Interactions |
 | --- | --- | --- | --- |
-| A1 | Nav | logo · Features (pillar-map dropdown) · Platform (anchors to the A3 pillar grid) · Docs (GitBook) · GitHub star badge (neutral "Star") · ThemeToggle · Sign in text link · **Try Cloud** CTA **[Revised 2026-07-19]** | Features dropdown = mini feature map |
+| A1 | Nav | logo · Features (anchors the A11 feature-highlights band, `/#features` — differentiated from Platform 2026-07-19; the pillar-map dropdown preview remains specced, unbuilt) · Platform (anchors to the A3 pillar grid) · Docs (GitBook) · GitHub star badge (neutral "Star") · ThemeToggle · Sign in text link · **Try Cloud** CTA **[Revised 2026-07-19]** | Features dropdown = mini feature map **[gap — pending adjudication vs the 4-text-links canon]** |
 | A2 | Hero | H1 (from Figma pillars); dual CTA **Try Cloud** / **Self Host**; hero visual: live-looking dashboard with animated timeseries + synced crosshair demo | crosshair demo animates on an 8s loop |
 | A3 | Pillar grid | 8 cards: Uptime & Synthetics · Website Analytics/RUM · Metrics · Logs · APM/Traces · Dashboards · Alerting · Incidents & SLOs | hover lifts + pillar color accent |
 | A4 | Demo strip | **static demo cards** (synthetic data, U0-3) — the interactive embedded demo org is descoped to a post-Phase-3 enhancement **[Decided]** | — |
