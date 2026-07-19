@@ -27,10 +27,38 @@ test("signin → dashboard home via the single Google CTA", async ({ page }) => 
   await expect(home.getByText("Upstat · Africa/Lagos")).toBeVisible();
 });
 
-test("/login permanently redirects to /signin (no 404 for old links)", async ({ request }) => {
+test("/login permanently redirects to /signin (no 404 for old links)", async ({ request, baseURL }) => {
   const response = await request.get("/login", { maxRedirects: 0 });
   expect(response.status()).toBe(308);
-  expect(response.headers()["location"]).toContain("/signin");
+  // Regression (live bug): behind the App Hosting proxy an absolute Location
+  // built from request.url pointed at https://0.0.0.0:8080/signin. The
+  // Location must be host-independent — relative, or absolute on the host
+  // the client actually requested.
+  const location = response.headers()["location"];
+  if (location.startsWith("/")) {
+    expect(location).toBe("/signin");
+  } else {
+    expect(location).toBe(new URL("/signin", baseURL).toString());
+  }
+});
+
+test("signin column stays constrained at desktop width", async ({ page }) => {
+  // Regression (live bug): an unlayered/legacy `main { min-width: 100vw }`
+  // in globals.css beat the 360px max-width (min-width wins the property
+  // conflict regardless of cascade layers), stretching the signin column to
+  // the full viewport.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/signin");
+
+  const main = page.getByTestId("signin-screen").locator("main");
+  await expect(main).toBeVisible();
+  const box = await main.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.width).toBeLessThanOrEqual(380);
+  // And it sits centered, not pinned to an edge.
+  const viewport = page.viewportSize()!;
+  const center = box!.x + box!.width / 2;
+  expect(Math.abs(center - viewport.width / 2)).toBeLessThanOrEqual(2);
 });
 
 test("mock server serves the seeded narrative", async ({ request }) => {

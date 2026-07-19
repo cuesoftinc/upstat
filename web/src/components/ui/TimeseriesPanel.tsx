@@ -10,6 +10,13 @@ export type TimeseriesMode = "line" | "area" | "bars";
 
 export interface TimeseriesPanelProps {
   title: string;
+  /**
+   * Element for the panel title. Defaults to h3 (dashboard context). Pass
+   * "p" where the panel is illustrative (marketing surfaces) so demo chart
+   * titles don't enter the page's heading outline — the home hero's h3
+   * directly after the page h1 was a heading-level skip.
+   */
+  titleAs?: "h2" | "h3" | "h4" | "p";
   /** Query chip text (mono). */
   query?: string;
   series: Series[];
@@ -51,6 +58,7 @@ function formatTime(ts: string): string {
  */
 export function TimeseriesPanel({
   title,
+  titleAs: TitleTag = "h3",
   query,
   series,
   mode = "line",
@@ -127,7 +135,7 @@ export function TimeseriesPanel({
       {/* stacked header — the master (Figma 50:100) and every landing v2
           instance put the query chip on its own line under the title */}
       <header className="flex flex-col items-start gap-2">
-        <h3 className="text-[16px] font-semibold text-text">{title}</h3>
+        <TitleTag className="text-[16px] font-semibold text-text">{title}</TitleTag>
         {query && (
           // max-w-full + truncate: long queries clip inside the panel in
           // narrow contexts (375w home hero); fixed-width panels unchanged

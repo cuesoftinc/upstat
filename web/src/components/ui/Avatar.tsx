@@ -75,7 +75,7 @@ export function AvatarStack({ names, size = 20, max = 5, className }: AvatarStac
       {overflow > 0 && (
         <span
           style={{ width: size, height: size }}
-          className="font-ui -ml-1.5 inline-flex items-center justify-center rounded-full border border-border bg-bg-elev text-[10px] font-medium text-text-2"
+          className="font-ui -ml-1.5 inline-flex shrink-0 items-center justify-center rounded-full border border-border bg-bg-elev text-[10px] font-medium text-text-2"
         >
           +{overflow}
         </span>

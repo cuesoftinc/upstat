@@ -40,7 +40,7 @@ export function APIKeyRow({ apiKey, onRevoke, className }: APIKeyRowProps) {
       data-status={apiKey.status}
       data-kind={apiKey.kind}
       className={clsx(
-        "font-ui flex items-center gap-3 border-b border-border px-3 py-2",
+        "font-ui @container flex items-center gap-3 border-b border-border px-3 py-2",
         apiKey.status === "revoked" && "opacity-60",
         className,
       )}
@@ -74,7 +74,10 @@ export function APIKeyRow({ apiKey, onRevoke, className }: APIKeyRowProps) {
       >
         {STATUS_LABEL[apiKey.status]}
       </span>
-      <span className="w-24 shrink-0 text-right text-[12px] tabular-nums text-text-2">
+      {/* Trailing stat clips in narrow compositions (368px how-it-works
+          column) — the Figma master hides it there, so the row hides it
+          below 416px of its own width (container query, not viewport). */}
+      <span className="hidden w-24 shrink-0 text-right text-[12px] tabular-nums text-text-2 @[26rem]:block">
         {apiKey.rejected_count} rejected
       </span>
       {onRevoke && apiKey.status !== "revoked" && (
