@@ -1,6 +1,16 @@
 "use client";
 
 import { clsx } from "clsx";
+import {
+  Check,
+  Clock,
+  Minus,
+  Pause,
+  TriangleAlert,
+  X,
+  type LucideIcon,
+} from "lucide-react";
+import { useColorVision } from "@/design/ColorVisionProvider";
 
 /** §8.2: ok / warn / crit (breathing) / nodata / paused / pending. */
 export type StatusPillStatus =
@@ -44,6 +54,17 @@ const TEXT: Record<StatusPillStatus, string> = {
   pending: "text-text-2",
 };
 
+// §5 colorblind mode: the dot-only variant is the one color-only status
+// surface — in patterns mode the dot becomes a per-status glyph.
+const GLYPH: Record<StatusPillStatus, LucideIcon> = {
+  ok: Check,
+  warn: TriangleAlert,
+  crit: X,
+  nodata: Minus,
+  paused: Pause,
+  pending: Clock,
+};
+
 // 14% tint container in the status color (Figma tint-bg).
 const TINT: Record<StatusPillStatus, string> = {
   ok: "bg-ok/14",
@@ -66,6 +87,10 @@ export function StatusPill({
   label,
   className,
 }: StatusPillProps) {
+  // §5 colorblind mode — labeled pills already carry text; only the
+  // dot-only variant needs the glyph
+  const { patterns } = useColorVision();
+  const Glyph = GLYPH[status];
   return (
     <span
       data-status={status}
@@ -78,15 +103,27 @@ export function StatusPill({
         className,
       )}
     >
-      <span
-        aria-hidden="true"
-        className={clsx(
-          "inline-block size-2 rounded-full",
-          DOT[status],
-          status === "crit" &&
-            "animate-[breathe_1.6s_var(--ease-standard)_infinite] motion-reduce:animate-none",
-        )}
-      />
+      {patterns && dotOnly ? (
+        <Glyph
+          aria-hidden="true"
+          data-glyph={status}
+          className={clsx(
+            "size-2.5",
+            status === "crit" &&
+              "animate-[breathe_1.6s_var(--ease-standard)_infinite] motion-reduce:animate-none",
+          )}
+        />
+      ) : (
+        <span
+          aria-hidden="true"
+          className={clsx(
+            "inline-block size-2 rounded-full",
+            DOT[status],
+            status === "crit" &&
+              "animate-[breathe_1.6s_var(--ease-standard)_infinite] motion-reduce:animate-none",
+          )}
+        />
+      )}
       {!dotOnly && <span>{label ?? LABELS[status]}</span>}
       {dotOnly && <span className="sr-only">{label ?? LABELS[status]}</span>}
     </span>

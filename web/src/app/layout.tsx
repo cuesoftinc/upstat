@@ -1,5 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import {
+  ColorVisionProvider,
+  colorVisionInitScript,
+} from "@/design/ColorVisionProvider";
 import { ThemeProvider, themeInitScript } from "@/design/ThemeProvider";
 import "./globals.css";
 
@@ -41,10 +45,14 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body>
-        {/* pre-paint: applies the persisted `upstat.theme` override before
-            first paint (theme-parity canon) — a static literal script */}
+        {/* pre-paint: applies the persisted `upstat.theme` override and the
+            `upstat.colorvision` mode before first paint — static literal
+            scripts (theme-parity canon; design.md §5 colorblind mode) */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-        <ThemeProvider>{children}</ThemeProvider>
+        <script dangerouslySetInnerHTML={{ __html: colorVisionInitScript }} />
+        <ThemeProvider>
+          <ColorVisionProvider>{children}</ColorVisionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

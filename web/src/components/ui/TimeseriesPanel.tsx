@@ -1,8 +1,13 @@
 "use client";
 
 import { clsx } from "clsx";
-import { useMemo, useRef, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import type { Series } from "@/models";
+import {
+  patternFillStyle,
+  seriesDash,
+  useColorVision,
+} from "@/design/ColorVisionProvider";
 import { EmptyState } from "./EmptyState";
 import { Skeleton } from "./Skeleton";
 
@@ -98,6 +103,10 @@ export function TimeseriesPanel({
 }: TimeseriesPanelProps) {
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [localCursor, setLocalCursor] = useState<number | null>(null);
+  // §5 colorblind mode: dash arrays on strokes, hatch patterns on bars
+  const { patterns } = useColorVision();
+  const uid = useId();
+  const barPatternId = (i: number) => `${uid}-bar-${i}`;
   /** MI-3 drag selection, fractions of the plot width. */
   const [drag, setDrag] = useState<{ from: number; to: number } | null>(null);
   const dragging = useRef(false);
@@ -282,12 +291,44 @@ export function TimeseriesPanel({
               );
             })}
 
+          {/* §5 colorblind mode: per-series hatch patterns for bar fills —
+              angle/pitch vary by index, index 0 stays solid */}
+          {patterns && mode === "bars" && (
+            <defs>
+              {series.map((s, i) => (
+                <pattern
+                  key={s.name}
+                  id={barPatternId(i)}
+                  width={5}
+                  height={5}
+                  patternUnits="userSpaceOnUse"
+                  patternTransform={`rotate(${[0, 45, 135, 90, 25, 115, 65, 155][i % 8]})`}
+                >
+                  <rect width={5} height={5} fill={seriesColor(i)} />
+                  {i % 8 !== 0 && (
+                    <line
+                      x1={0}
+                      y1={0}
+                      x2={0}
+                      y2={5}
+                      stroke="var(--color-bg-elev)"
+                      strokeWidth={1.75}
+                    />
+                  )}
+                </pattern>
+              ))}
+            </defs>
+          )}
+
           {/* series */}
           {visible.map((s, si) => {
             const pts = s.points;
             const color = seriesColor(series.indexOf(s));
             if (mode === "bars") {
               const bw = Math.max((innerW / Math.max(pts.length, 1)) * 0.7, 1);
+              const fill = patterns
+                ? `url(#${barPatternId(series.indexOf(s))})`
+                : color;
               return (
                 <g key={s.name}>
                   {pts.map((p, i) =>
@@ -298,7 +339,7 @@ export function TimeseriesPanel({
                         y={y(p.value)}
                         width={bw}
                         height={Math.max(PAD_T + innerH - y(p.value), 0)}
-                        fill={color}
+                        fill={fill}
                         opacity={0.85}
                       />
                     ),
@@ -323,7 +364,19 @@ export function TimeseriesPanel({
                     opacity={0.15}
                   />
                 )}
-                <path d={path} fill="none" stroke={color} strokeWidth={1.5} />
+                <path
+                  d={path}
+                  fill="none"
+                  stroke={color}
+                  strokeWidth={1.5}
+                  // §5 colorblind mode: series-index dash arrays (first
+                  // series stays solid)
+                  strokeDasharray={
+                    patterns
+                      ? seriesDash(series.indexOf(s)) || undefined
+                      : undefined
+                  }
+                />
                 {/* crosshair value dots (MI-2) */}
                 {cursorIndex !== null && pts[cursorIndex]?.value !== null && (
                   <circle
@@ -412,10 +465,35 @@ export function TimeseriesPanel({
                 hidden.has(s.name) ? "opacity-40" : "opacity-100",
               )}
             >
-              <span
-                className="size-2 rounded-[1px]"
-                style={{ background: seriesColor(i) }}
-              />
+              {/* §5 colorblind mode: the swatch mirrors the series' non-
+                  color mark — dash sample for strokes, hatch for bars */}
+              {patterns && mode !== "bars" ? (
+                <svg
+                  width="14"
+                  height="4"
+                  aria-hidden="true"
+                  className="shrink-0"
+                >
+                  <line
+                    x1="0"
+                    y1="2"
+                    x2="14"
+                    y2="2"
+                    stroke={seriesColor(i)}
+                    strokeWidth="2"
+                    strokeDasharray={seriesDash(i) || undefined}
+                  />
+                </svg>
+              ) : (
+                <span
+                  className="size-2 rounded-[1px]"
+                  style={
+                    patterns
+                      ? patternFillStyle(seriesColor(i), i)
+                      : { background: seriesColor(i) }
+                  }
+                />
+              )}
               <span className="font-data max-w-48 truncate text-text-2">
                 {legendLabel(s.name)}
               </span>

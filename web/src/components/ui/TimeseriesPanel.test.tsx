@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Series } from "@/models";
+import { ColorVisionProvider } from "@/design/ColorVisionProvider";
 import { TimeseriesPanel } from "./TimeseriesPanel";
 
 const SERIES: Series[] = [
@@ -68,5 +69,47 @@ describe("TimeseriesPanel", () => {
     expect(
       screen.getByText("p95(http.request.duration_ms)"),
     ).toBeInTheDocument();
+  });
+});
+
+describe("TimeseriesPanel — §5 colorblind mode (pattern fills / dashes)", () => {
+  const TWO_SERIES: Series[] = [
+    SERIES[0],
+    { ...SERIES[0], name: "second", tags: { service: "api" } },
+  ];
+
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  const renderWithPatterns = (ui: React.ReactElement) => {
+    window.localStorage.setItem("upstat.colorvision", "patterns");
+    return render(<ColorVisionProvider>{ui}</ColorVisionProvider>);
+  };
+
+  it("line mode: non-first series strokes gain dash arrays", () => {
+    const { container } = renderWithPatterns(
+      <TimeseriesPanel title="t" series={TWO_SERIES} />,
+    );
+    const dashed = container.querySelectorAll("path[stroke-dasharray]");
+    // series 0 stays solid (the baseline); series 1 is dashed
+    expect(dashed.length).toBe(1);
+  });
+
+  it("bars mode: bars fill from hatch pattern defs", () => {
+    const { container } = renderWithPatterns(
+      <TimeseriesPanel title="t" series={SERIES} mode="bars" />,
+    );
+    expect(container.querySelector("defs pattern")).not.toBeNull();
+    const bar = container.querySelector("svg g rect");
+    expect(bar?.getAttribute("fill")).toMatch(/^url\(#/);
+  });
+
+  it("off by default — no dashes, no pattern defs", () => {
+    const { container } = render(
+      <TimeseriesPanel title="t" series={TWO_SERIES} mode="bars" />,
+    );
+    expect(container.querySelector("defs pattern")).toBeNull();
+    expect(container.querySelector("path[stroke-dasharray]")).toBeNull();
   });
 });

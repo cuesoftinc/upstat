@@ -2,6 +2,7 @@
 
 import { clsx } from "clsx";
 import type { LogLevel } from "@/models";
+import { patternFillStyle, useColorVision } from "@/design/ColorVisionProvider";
 import { Tooltip } from "./Tooltip";
 
 export interface LogHistogramProps {
@@ -37,6 +38,9 @@ export function LogHistogram({
   height = 64,
   className,
 }: LogHistogramProps) {
+  // §5 colorblind mode: level stacks gain stripe overlays (INFO stays
+  // solid; the other levels get distinct angles/pitches)
+  const { patterns } = useColorVision();
   const totals = buckets.map((b) =>
     STACK.reduce((s, { level }) => s + (b.counts[level] ?? 0), 0),
   );
@@ -91,16 +95,19 @@ export function LogHistogram({
                   className="flex flex-col-reverse"
                   style={{ width: 6, height }}
                 >
-                  {STACK.map(({ level, color }) => {
+                  {STACK.map(({ level, color }, li) => {
                     const v = bucket.counts[level] ?? 0;
                     if (v === 0) return null;
                     return (
                       <span
                         key={level}
+                        data-level={level}
                         style={{
                           height: `${(v / max) * 100}%`,
-                          background: color,
                           opacity: 0.9,
+                          ...(patterns
+                            ? patternFillStyle(color, li)
+                            : { background: color }),
                         }}
                         className="block w-full"
                       />
