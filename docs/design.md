@@ -57,11 +57,18 @@ verified in both themes) — the one extra constraint the teal brand imposes.
 ### Type & numerals
 
 - UI: `Inter`; data/query/code: `JetBrains Mono` (log lines, queries, IDs).
-- Type ramp **[Decided]**: 11 (axis labels) / 12 (dense meta) / **13 base**
-  (data views, lh 1.45) / 14 (settings/forms) / 16 (panel titles, 600) /
-  20 (page titles, 600) / 24–32 (marketing only); weights 400/500/600;
-  tabular figures in all numeric contexts; fixed-precision latencies
-  (`142 ms`, `1.24 s`).
+- Type ramp **[Decided]**: **10 micro** (chip type — TopBar env chip,
+  MemberRow role chip, APIKeyRow kind/scope chips, Avatar initials/+n,
+  CountBadge, ErrorGroupRow state chip; Inter + JetBrains Mono twins,
+  named `Micro/10` / `Mono/Micro 10` in Figma) **[Ratified 2026-07-19]** /
+  11 (axis labels) / 12 (dense meta) / **13 base** (data views, lh 1.45) /
+  14 (settings/forms) / 16 (panel titles, 600) / 20 (page titles, 600) /
+  24–32 (marketing only) · **marketing display extension [Ratified
+  2026-07-19]**: landing hero h1 **34/44** and final CTA band **26/32**
+  (mobile/desktop responsive pairs; desktop steps are the named
+  `Display/44` / `Display/32` Figma styles, Stage-5 marketing only);
+  weights 400/500/600; tabular figures in all numeric contexts;
+  fixed-precision latencies (`142 ms`, `1.24 s`).
 
 ### Layout
 
