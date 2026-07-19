@@ -292,9 +292,6 @@ CREATE TABLE spans (
 `org_id` leads every ORDER BY — the tenancy-isolation primitive (queries are
 always org-scoped; cross-org reads are structurally awkward by design).
 
-Legacy sketch note (superseded by the DDL above): `metrics_points`
-(series-hash, ts, value, tags), `logs` (ts, org, service, level, message,
-attrs map, trace_id), `spans` (trace_id, span_id, parent, service, name,
-start, duration, status, attrs) — schemas finalized during OBS-001 design.
 Retention defaults extend §4's table: metrics 13mo (rollup-thinned), logs
-15d hot (+archive later), traces 7d sampled **[Proposed]**.
+15d hot (+archive later), traces 7d sampled **[Proposed]**; schemas are
+finalized during OBS-001 design.

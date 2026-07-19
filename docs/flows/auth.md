@@ -2,9 +2,10 @@
 
 > Implements decision X-1 as hardened 2026-07-16: **Google sign-in only** —
 > no username/password, product-wide. Firebase Auth on `sandbox-e306a`.
-> Replaces `UserService` credential flows (CreateUser with password,
-> GetUser-with-password sign-in); `GoogleAuth` becomes *the* flow. `/signup`
-> retires; `/login` is the single auth screen.
+> `GoogleAuth` is *the* flow; the `UserService` credential RPCs (CreateUser
+> with password, GetUser-with-password sign-in) exist only for the §3
+> migration window. There is no `/signup`; `/signin` is the single auth
+> screen (`/login` 308-redirects to it).
 
 ## 1. Hard rule & enforcement
 

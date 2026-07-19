@@ -22,7 +22,6 @@
 | --- | --- |
 | `GET /health`, `GET /ready` (both services) | probes |
 | `GET /insights/{monitor_id}`, `POST /analyze/{monitor_id}` (observability :8081) | insight read/trigger |
-| `web /api/dashboard/stats`, `/api/dashboard/total-users` | **mock data** — scaffolding to be replaced (ANA-002), not product surface |
 
 ## 1a. Service topology for new surfaces **[Decided]**
 
