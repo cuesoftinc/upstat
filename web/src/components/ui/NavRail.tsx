@@ -289,22 +289,28 @@ export function NavRail({ activeKey, onNavigate, className }: NavRailProps) {
   const inlineExpanded = expanded && !isMobile;
   const open = isMobile && drawerOpen;
 
-  // Escape closes the drawer; focus returns to the foot toggle
+  // every dismissal path returns focus to the foot toggle (PR #168
+  // review — only Escape restored it before)
+  const closeDrawer = () => {
+    setDrawerOpen(false);
+    railRef.current?.querySelector<HTMLElement>("[data-testid=rail-toggle]")?.focus();
+  };
+
+  // Escape closes the drawer; focus moves in on open
   useEffect(() => {
     if (!open) return;
     drawerRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setDrawerOpen(false);
-        railRef.current?.querySelector<HTMLElement>("[data-testid=rail-toggle]")?.focus();
-      }
+      if (e.key === "Escape") closeDrawer();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
+    // closeDrawer is stable in behavior (setState + ref read)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const select = (key: string) => {
-    setDrawerOpen(false);
+    closeDrawer();
     onNavigate?.(key);
   };
 
@@ -338,7 +344,7 @@ export function NavRail({ activeKey, onNavigate, className }: NavRailProps) {
           <div
             role="presentation"
             data-testid="rail-scrim"
-            onClick={() => setDrawerOpen(false)}
+            onClick={closeDrawer}
             className="fixed inset-0 z-[var(--z-overlay)] bg-bg/70 md:hidden"
           />
           <nav
@@ -359,7 +365,7 @@ export function NavRail({ activeKey, onNavigate, className }: NavRailProps) {
               footLabel="Close navigation"
               footTestId="rail-drawer-close"
               footExpanded
-              onToggle={() => setDrawerOpen(false)}
+              onToggle={closeDrawer}
             />
           </nav>
         </>

@@ -58,6 +58,33 @@ describe("portable dashboard JSON (pages.md B2; api.md §6)", () => {
     ).toThrow(/layout/);
   });
 
+  it("rejects malformed template_vars and off-grid layouts (PR #168 review)", () => {
+    expect(() =>
+      parsePortableDashboard(
+        '{"version":1,"name":"x","template_vars":{"env":"prod"},"widgets":[]}',
+      ),
+    ).toThrow(/template_vars/);
+    expect(() =>
+      parsePortableDashboard(
+        '{"version":1,"name":"x","template_vars":{"env":[1]},"widgets":[]}',
+      ),
+    ).toThrow(/template_vars/);
+    for (const layout of [
+      '{"x":12,"y":0,"w":1,"h":3}', // x beyond the grid
+      '{"x":8,"y":0,"w":6,"h":3}', // x+w > 12
+      '{"x":0.5,"y":0,"w":4,"h":3}', // fractional
+      '{"x":-1,"y":0,"w":4,"h":3}', // negative
+      '{"x":0,"y":0,"w":0,"h":3}', // zero width
+      '{"x":0,"y":0,"w":4,"h":0}', // zero height
+    ]) {
+      expect(() =>
+        parsePortableDashboard(
+          `{"version":1,"name":"x","widgets":[{"type":"timeseries","layout":${layout}}]}`,
+        ),
+      ).toThrow(/12-column grid/);
+    }
+  });
+
   it("defaults optional fields on import", () => {
     const parsed = parsePortableDashboard(
       '{"version":1,"name":"minimal","widgets":[{"type":"markdown","layout":{"x":0,"y":0,"w":4,"h":2}}]}',

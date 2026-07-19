@@ -99,12 +99,20 @@ export function useTraceLogsController(trace: Trace | null) {
     async () => {
       if (!trace) return [];
       const startMs = Date.parse(trace.start);
-      const page = await logsRepo.query({
-        from: new Date(startMs - 5_000).toISOString(),
-        to: new Date(startMs + trace.duration_ms + 5_000).toISOString(),
-        limit: 500,
-      });
-      return page.events.filter((e) => e.trace_id === trace.trace_id);
+      const from = new Date(startMs - 5_000).toISOString();
+      const to = new Date(startMs + trace.duration_ms + 5_000).toISOString();
+      // follow next_cursor so busy windows aren't truncated at one page
+      // (PR #168 review); capped — a trace window is seconds long, so the
+      // cap is generous headroom, not a correctness ceiling
+      const matches: LogEvent[] = [];
+      let cursor: string | undefined;
+      for (let pageNo = 0; pageNo < 6; pageNo++) {
+        const page = await logsRepo.query({ from, to, limit: 500, ...(cursor ? { cursor } : {}) });
+        matches.push(...page.events.filter((e) => e.trace_id === trace.trace_id));
+        if (!page.next_cursor) break;
+        cursor = page.next_cursor;
+      }
+      return matches;
     },
     [trace?.trace_id],
   );

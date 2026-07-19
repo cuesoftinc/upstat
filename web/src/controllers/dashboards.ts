@@ -51,16 +51,40 @@ export function parsePortableDashboard(text: string): PortableDashboard {
   if (obj?.version !== 1) throw new Error("unsupported version — expected 1");
   if (!obj.name || typeof obj.name !== "string") throw new Error("name is required");
   if (!Array.isArray(obj.widgets)) throw new Error("widgets must be an array");
+  // template_vars must be a record of string arrays — a bare string value
+  // would crash the template-var bar (PR #168 review)
+  if (obj.template_vars !== undefined) {
+    if (
+      typeof obj.template_vars !== "object" ||
+      obj.template_vars === null ||
+      Array.isArray(obj.template_vars) ||
+      Object.values(obj.template_vars).some(
+        (values) => !Array.isArray(values) || values.some((v) => typeof v !== "string"),
+      )
+    ) {
+      throw new Error("template_vars must map names to arrays of strings");
+    }
+  }
   for (const w of obj.widgets) {
     if (!w || typeof w !== "object" || !WIDGET_TYPES.has((w as Widget).type)) {
       throw new Error(`unknown widget type: ${(w as Widget | undefined)?.type ?? "?"}`);
     }
     const layout = (w as Widget).layout;
+    // 12-col grid bounds (PR #168 review): integers, on-grid, in-range —
+    // out-of-range spans render broken CSS grid placements
     if (
       !layout ||
-      [layout.x, layout.y, layout.w, layout.h].some((n) => typeof n !== "number")
+      [layout.x, layout.y, layout.w, layout.h].some((n) => !Number.isInteger(n)) ||
+      layout.x < 0 ||
+      layout.w < 1 ||
+      layout.x + layout.w > 12 ||
+      layout.y < 0 ||
+      layout.h < 1 ||
+      layout.h > 24
     ) {
-      throw new Error("every widget needs a numeric x/y/w/h layout");
+      throw new Error(
+        "every widget needs an integer layout inside the 12-column grid (0 ≤ x, x+w ≤ 12, w ≥ 1, y ≥ 0, 1 ≤ h ≤ 24)",
+      );
     }
   }
   return {
@@ -114,16 +138,28 @@ export function useDashboardsController() {
     [state],
   );
 
-  /** B2 portable JSON import — parse, create, place every widget. */
+  /** B2 portable JSON import — parse, create, place every widget. A
+   *  mid-import failure rolls the created dashboard back (best effort)
+   *  so nothing half-imported persists (PR #168 review). */
   const importJson = useCallback(
     async (text: string) => {
       const portable = parsePortableDashboard(text);
       const dashboard = await dashboardsRepo.create({ name: portable.name });
-      if (Object.keys(portable.template_vars).length > 0) {
-        await dashboardsRepo.update(dashboard.id, { template_vars: portable.template_vars });
-      }
-      for (const widget of portable.widgets) {
-        await dashboardsRepo.addWidget(dashboard.id, widget);
+      try {
+        if (Object.keys(portable.template_vars).length > 0) {
+          await dashboardsRepo.update(dashboard.id, { template_vars: portable.template_vars });
+        }
+        for (const widget of portable.widgets) {
+          await dashboardsRepo.addWidget(dashboard.id, widget);
+        }
+      } catch (error) {
+        try {
+          await dashboardsRepo.remove(dashboard.id);
+        } catch {
+          /* rollback is best effort — surface the original failure */
+        }
+        await state.reload();
+        throw error;
       }
       await state.reload();
       return dashboard;
