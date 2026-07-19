@@ -5,6 +5,55 @@ import { alertsRepo } from "@/models/repositories";
 import type { AlertChannel, AlertRule, RuleTestResult } from "@/models";
 import { useRequest } from "./use-request";
 
+/**
+ * B8 "monitor status page (grouped by state)" — [Decided 2026-07-20]
+ * literal reading: the monitors list gains a group-by-state view over the
+ * rules. Groups render in worst-first order; a rule carrying any mute
+ * window groups under Muted regardless of its evaluation state (the rule
+ * editor's mute semantics — mute_windows are recurrence strings, presence
+ * = muted).
+ */
+export type MonitorStateGroup =
+  | "triggered"
+  | "warn"
+  | "ok"
+  | "nodata"
+  | "muted";
+
+export const MONITOR_STATE_GROUPS: {
+  key: MonitorStateGroup;
+  label: string;
+}[] = [
+  { key: "triggered", label: "Triggered" },
+  { key: "warn", label: "Warn" },
+  { key: "ok", label: "OK" },
+  { key: "nodata", label: "No data" },
+  { key: "muted", label: "Muted" },
+];
+
+/** Presence of any mute window = muted (the rule editor's semantics). */
+export function ruleMuted(rule: AlertRule): boolean {
+  return rule.notify.mute_windows.length > 0;
+}
+
+export function groupRulesByState(
+  rules: AlertRule[],
+): Record<MonitorStateGroup, AlertRule[]> {
+  const groups: Record<MonitorStateGroup, AlertRule[]> = {
+    triggered: [],
+    warn: [],
+    ok: [],
+    nodata: [],
+    muted: [],
+  };
+  for (const rule of rules) {
+    if (ruleMuted(rule)) groups.muted.push(rule);
+    else if (rule.state === "alert") groups.triggered.push(rule);
+    else groups[rule.state].push(rule);
+  }
+  return groups;
+}
+
 /** Alerting controller — channels + rules CRUD + triggered feed (pages.md B8). */
 export function useAlertsController() {
   const channels = useRequest(() => alertsRepo.channels(), []);

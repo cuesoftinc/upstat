@@ -456,7 +456,9 @@ export function buildSeed(now: number): MockDb {
         channel_ids: ["ch_email", "ch_slack"],
         cooldown_minutes: 5,
         renotify_minutes: 15,
-        mute_windows: [],
+        // weekend maintenance mute (the rule-editor recurrence shape) —
+        // seeds the B8 grouped view's Muted bucket
+        mute_windows: [{ from: "SAT 00:00", to: "MON 00:00" }],
       },
       state: "ok",
       last_triggered_at: iso(now - 23 * DAY),
