@@ -21,7 +21,7 @@ export default function SignInPage() {
         <header className="flex flex-col gap-[var(--space-2)]">
           <span
             aria-hidden="true"
-            className="mb-[var(--space-2)] inline-flex size-8 items-center justify-center rounded-(--radius) bg-brand text-[15px] font-semibold text-on-brand"
+            className="mb-[var(--space-2)] inline-flex size-8 items-center justify-center rounded-(--radius) bg-brand text-[16px] font-semibold text-on-brand"
           >
             U
           </span>

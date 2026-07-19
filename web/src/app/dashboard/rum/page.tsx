@@ -99,7 +99,9 @@ export default function RumPage() {
               Array.from({ length: 6 }, (_, i) => <Skeleton key={i} kind="value" />)
             ) : (
               <>
-                <QueryValue label="visitors · daily avg" value={fmtK(s?.uniques_daily_avg ?? 0)} deltaPct={6} threshold="none" sparkline={uniquesSpark} className="rounded-(--radius) border border-border bg-bg-elev p-4" />
+                {/* analytics-math §4 exact-label rule: multi-day uniques are
+                    "daily-average uniques" — the label must carry "unique" */}
+                <QueryValue label="unique visitors · daily avg" value={fmtK(s?.uniques_daily_avg ?? 0)} deltaPct={6} threshold="none" sparkline={uniquesSpark} className="rounded-(--radius) border border-border bg-bg-elev p-4" />
                 <QueryValue label="pageviews" value={fmtK(s?.page_views ?? 0)} deltaPct={3} threshold="ok" sparkline={viewsSpark} className="rounded-(--radius) border border-border bg-bg-elev p-4" />
                 <QueryValue label="bounce rate" value={s?.bounce_rate === null || s?.bounce_rate === undefined ? "—" : `${Math.round(s.bounce_rate * 100)}%`} deltaPct={4} threshold="warn" sparkline={viewsSpark.map((x) => x % 17)} className="rounded-(--radius) border border-border bg-bg-elev p-4" />
                 <QueryValue label="p75 LCP" value={`${((v?.lcp_ms.p75 ?? 0) / 1000).toFixed(1)} s`} deltaPct={18} threshold="crit" sparkline={lcpSpark} className="rounded-(--radius) border border-border bg-bg-elev p-4" />

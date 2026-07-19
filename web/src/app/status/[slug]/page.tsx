@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { IncidentHistoryEntry } from "@/components/ui/IncidentHistoryEntry";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -28,12 +29,22 @@ export default function StatusPage() {
   }
 
   if (error || !page) {
+    // branded 404 treatment (the app-wide not-found pattern) — public
+    // surface, so the CTA points home, not into the auth-gated dashboard
     return (
-      <main className="mx-auto w-full max-w-[960px] px-6 py-10">
-        <h1 className="text-[20px] font-semibold">Status page not found</h1>
-        <p className="mt-2 text-[13px] leading-[1.45] text-text-2">
-          No status page exists at this address.
+      <main className="font-ui flex min-h-screen flex-col items-center justify-center gap-4 bg-bg px-6 text-text">
+        <p className="font-data text-[13px] text-text-2">404</p>
+        <h1 className="text-[24px] font-semibold">Status page not found</h1>
+        <p className="max-w-[420px] text-center text-[13px] leading-[1.45] text-text-2">
+          No status page exists at this address — the owner may have renamed
+          its slug or unpublished it.
         </p>
+        <Link
+          href="/"
+          className="rounded-(--radius) bg-brand px-4 py-2 text-[13px] font-medium text-on-brand transition-colors duration-[var(--duration-fast)] hover:bg-brand-deep"
+        >
+          Go to upstat.cuesoft.io
+        </Link>
       </main>
     );
   }
@@ -52,9 +63,11 @@ export default function StatusPage() {
           </span>
           {page.org_name.toLowerCase()} status
         </h1>
+        {/* no subscribe affordance yet (pages.md B7 subscribe = Later) —
+            the copy must not advertise one (dead-end copy, QA 2026-07-19) */}
         <p className="text-[13px] leading-[1.45] text-text-2">
           Live status for the {page.org_name.toLowerCase()} cloud — updates
-          every 60s · subscribe via RSS / webhook
+          every 60s
         </p>
       </header>
 

@@ -84,9 +84,10 @@ export function WidgetBody({
       const sparkline = (series?.points ?? []).map((p) => p.value ?? 0).slice(-24);
       const precision = (widget.viz_options.precision as number) ?? 0;
       return (
+        // no label — WidgetShell's header already carries the widget title;
+        // a labeled QueryValue rendered it twice (UX walk 2026-07-19)
         <QueryValue
           value={v.toFixed(precision)}
-          label={widget.title}
           sparkline={widget.viz_options.sparkline ? sparkline : undefined}
           threshold="none"
         />

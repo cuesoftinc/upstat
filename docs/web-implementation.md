@@ -257,6 +257,37 @@ cluster wrapping beneath it at 390. The root layout carries
 contract) — the pre-paint theme script sets `data-theme` before React
 hydrates.
 
+**Demo realism & UX pass as-built (2026-07-19).** The seeded telemetry now
+reads as a real production system under watch: a deterministic
+continuous-delivery schedule (one deploy per service every 6h) surfaces as
+staged release LOG lines (started → canary → full → finished over ~2min)
+and a correlated 45-min post-deploy latency/error blip on that service's
+metrics — release events visibly explain chart shifts, while chart deploy
+MARKERS stay cut per pages.md B1 (no deploy-events API is implied); every
+log line's `version` attr is the service's current version and bumps at
+the deploy. Log trace ids are per-line deterministic hexes (~25% of
+lines) — only lines inside the hero-trace window on its services carry
+the hero id (it previously rode ~30% of ALL lines). Error-group
+sparklines cohere with their states (new = appears at first_seen;
+regressed = spike aligned to the INC-42 window; ongoing = steady band).
+The alert feed matches rule states — the warn-state SLO-burn rule has its
+sev2 entry, and the trace-latency rule carries a triggered→recovered pair
+matching its `last_triggered_at`; feed timestamps render "MMM d" once an
+event is older than today (a bare "16:00" on a 4-day-old event read as
+today), UTC-derived like every data surface. UX fixes in the same pass:
+QueryBar's syntax-error live region is always-mounted (role=alert on a
+conditionally-mounted node is unreliable in screen readers); the RUM
+uniques tile reads "unique visitors · daily avg" (analytics-math §4
+exact-label rule); `/status/{slug}` 404s on a branded public page (CTA →
+home, not the auth-gated app) and the status header no longer advertises
+the not-yet-built subscribe affordance; query-value widgets no longer
+repeat their title inside the body (WidgetShell owns the title);
+WidgetShell clips fixed-height cells cleanly and the seeded p95 widget is
+one row taller so its 7-service legend renders unclipped; SpanDrawer
+dismisses on ESC and, below `lg`, on backdrop tap. Token hygiene: signin
+brand-mark type joins the §2 ramp (16px), BufferedCountChip uses
+`rounded-full`.
+
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the
@@ -267,19 +298,22 @@ B1/B2/B4/B5), and the QA loop checks all three.
 ## 3. Token mapping — design.md §2 → `web/src/design/tokens.css`
 
 One custom property per Figma variable in the `upstat/tokens` collection
-(design.md §7); light values on `:root`, dark on `[data-theme="dark"]`.
-**Dark is the default** (design.md §2: dashboards + marketing default dark)
-— no stored preference resolves to dark; `prefers-color-scheme` honored
-with manual override (the theme toggle sets `data-theme`).
+(design.md §7). **Dark is the default and lives on `:root`** (design.md
+§2: dashboards + marketing default dark); light mode is the manual
+override `[data-theme="light"]` set by the theme toggle. Deliberately
+**no `prefers-color-scheme` auto-switch** — upstat is dark-primary and
+theme is an explicit user choice (a ratified deviation from the sibling
+light-`:root` arrangement; the ThemeProvider contract is otherwise
+identical).
 
-| Group | Token names |
+| Group | Token names (as built in `tokens.css`) |
 | --- | --- |
-| Color | `--bg` · `--bg-elev` · `--border` · `--text` · `--text-2` · `--brand` · `--brand-deep` · `--on-brand` · `--ok` · `--warn` · `--crit` · `--nodata` |
-| Series palette | `--series-1` … `--series-8` — the §2 8-step categorical set, identical both modes; series→color assignment stable per view session |
-| Spacing | `--space-4` `--space-8` `--space-12` `--space-16` `--space-24` `--space-32` `--space-48` `--space-64` — the 4px-grid scale, no off-scale values (data views may compress to the 4px sub-grid: 2px hairline gaps in dense tables, §2) |
-| Radii | `--radius: 4px` (the product radius — denser than siblings) · `--radius-full: 9999px` (pills, dots, avatars) |
+| Color | `--color-bg` · `--color-bg-elev` · `--color-border` · `--color-text` · `--color-text-2` · `--color-brand` · `--color-brand-deep` · `--color-on-brand` · `--color-ok` · `--color-warn` · `--color-crit` · `--color-nodata` (the `--color-` prefix is the Tailwind v4 `@theme` convention; the Figma variables carry the bare names) |
+| Series palette | `--color-series-1` … `--color-series-8` — the §2 8-step categorical set, identical both modes; series→color assignment stable per view session |
+| Spacing | step-named on the 4px grid: `--space-1: 4px` `--space-2: 8px` `--space-3: 12px` `--space-4: 16px` `--space-6: 24px` `--space-8: 32px` `--space-12: 48px` `--space-16: 64px` — no off-scale values (data views may compress to the 4px sub-grid: 2px hairline gaps in dense tables, §2) |
+| Radii | `--radius: 4px` (the product radius — denser than siblings); fully-round pills/dots/avatars use the Tailwind `rounded-full` utility (no separate custom property) |
 | Motion | `--duration-fast: 120ms` · `--duration-base: 200ms` · `--duration-slow: 300ms` · `--duration-entrance: 250ms` · `--ease-standard: cubic-bezier(0.2, 0, 0, 1)` · `--ease-exit: cubic-bezier(0.4, 0, 1, 1)` |
-| Z layers | `--z-base: 0` · `--z-sticky: 10` · `--z-dropdown: 20` · `--z-overlay: 30` · `--z-sheet: 40` · `--z-toast: 50` |
+| Z layers | `--z-base: 0` · `--z-sticky: 10` · `--z-dropdown: 20` · `--z-overlay: 30` · `--z-modal: 40` (the §2 "sheet/modal 40" layer) · `--z-toast: 50` |
 
 Notes: status semantics are sacred — `ok/warn/crit/nodata` are reserved for
 state, never decoration, and `ok` stays visually distinct from `brand`

@@ -5,6 +5,19 @@ import { clsx } from "clsx";
 import type { ReactNode } from "react";
 import type { AlertEvent } from "@/models";
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/**
+ * Feed timestamp — HH:mm for today's events, "MMM d" for older ones (a
+ * bare "16:00" on a 4-day-old event read as today; UX walk 2026-07-19).
+ * Derived from the ISO string so it renders UTC like every other data
+ * surface (the TimeseriesPanel X-10 note), independent of host timezone.
+ */
+function feedTime(ts: string): string {
+  if (ts.slice(0, 10) === new Date().toISOString().slice(0, 10)) return ts.slice(11, 16);
+  return `${MONTHS[Number(ts.slice(5, 7)) - 1]} ${Number(ts.slice(8, 10))}`;
+}
+
 export interface AlertFeedRowProps {
   event: AlertEvent;
   onClick?: () => void;
@@ -49,8 +62,8 @@ export function AlertFeedRow({ event, onClick, className }: AlertFeedRowProps) {
         </span>
         <span className="truncate text-[12px] text-text-2">{event.message}</span>
       </div>
-      <time className="shrink-0 text-[11px] tabular-nums text-text-2">
-        {event.ts.slice(11, 16)}
+      <time dateTime={event.ts} className="shrink-0 text-[11px] tabular-nums text-text-2">
+        {feedTime(event.ts)}
       </time>
       {event.unread && (
         <span aria-label="unread" className="size-1.5 shrink-0 rounded-full bg-brand" />

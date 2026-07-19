@@ -137,7 +137,10 @@ export function WidgetShell({
           </div>
         )}
       </header>
-      <div className="min-h-0 flex-1">{children}</div>
+      {/* overflow-hidden: fixed-height grid cells clip cleanly instead of
+          bleeding legends into the neighbor row (UX walk 2026-07-19);
+          stacked mobile rows size to content, so nothing clips there */}
+      <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
     </section>
   );
 }

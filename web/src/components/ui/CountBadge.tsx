@@ -44,7 +44,7 @@ export function BufferedCountChip({ count, onClick, className }: BufferedCountCh
       type="button"
       onClick={onClick}
       className={clsx(
-        "font-data inline-flex items-center gap-1 rounded-[10px] border border-brand bg-brand/12 px-2 py-[3px]",
+        "font-data inline-flex items-center gap-1 rounded-full border border-brand bg-brand/12 px-2 py-[3px]",
         "text-[11px] font-medium text-brand",
         "transition-colors duration-[var(--duration-fast)] ease-standard hover:bg-brand/20",
         className,
