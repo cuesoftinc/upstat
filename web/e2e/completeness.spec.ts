@@ -128,3 +128,20 @@ test("nav: Features and Platform anchor different landing sections", async ({ pa
   await expect(page.locator("#features")).toHaveCount(1);
   await expect(page.locator("#pillars")).toHaveCount(1);
 });
+
+test("logs: j/k walk the log lines with focus; Enter expands (§5)", async ({ page }) => {
+  await page.goto("/dashboard/logs");
+  // live tail is off by default (?live=1 enables it) — the row window is
+  // the static base query, so focus targets stay stable
+  const lines = page.getByRole("list", { name: "Log lines" }).locator("button[aria-expanded]");
+  await expect(lines.first()).toBeVisible({ timeout: 15_000 });
+  await page.getByRole("heading", { name: "Logs" }).click(); // ensure no input has focus
+  await page.keyboard.press("j");
+  await expect(lines.first()).toBeFocused();
+  await page.keyboard.press("j");
+  await expect(lines.nth(1)).toBeFocused();
+  await page.keyboard.press("k");
+  await expect(lines.first()).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(lines.first()).toHaveAttribute("aria-expanded", "true");
+});

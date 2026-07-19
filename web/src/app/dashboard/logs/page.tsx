@@ -9,7 +9,7 @@ import { LogLine } from "@/components/ui/LogLine";
 import { QueryBar } from "@/components/ui/QueryBar";
 import { SavedViewChip } from "@/components/ui/SavedViewChip";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { useLogsExplorerController } from "@/controllers/logs";
+import { useLogLineKeys, useLogsExplorerController } from "@/controllers/logs";
 
 /**
  * B4 logs explorer (Figma 128:1236) — FacetSidebar + QueryBar + LogLine
@@ -19,6 +19,8 @@ import { useLogsExplorerController } from "@/controllers/logs";
 export default function LogsPage() {
   const ctrl = useLogsExplorerController();
   const listRef = useRef<HTMLDivElement>(null);
+  // §5: j/k walk the log lines; Enter expands (MI-17 cheatsheet rows)
+  useLogLineKeys(listRef);
 
   const facets = ctrl.base.data?.facets ?? {};
   const histogram = ctrl.base.data?.histogram ?? [];
