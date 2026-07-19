@@ -1,7 +1,9 @@
 "use client";
 
 import { clsx } from "clsx";
+import { useState } from "react";
 import type { UptimeDay } from "@/models";
+import { ChartDataTable, ChartTableToggle } from "./ChartTable";
 import { StatusPill, type StatusPillStatus } from "./StatusPill";
 import { Tooltip } from "./Tooltip";
 
@@ -46,6 +48,8 @@ export function UptimeCard({
   status,
   className,
 }: UptimeCardProps) {
+  // §5: every chart exposes a data-table alternative (newest day first)
+  const [showTable, setShowTable] = useState(false);
   return (
     <div
       className={clsx(
@@ -57,42 +61,65 @@ export function UptimeCard({
         <span className="truncate text-[13px] font-medium text-text">
           {name}
         </span>
-        <StatusPill status={status ?? deriveStatus(days)} dotOnly />
+        <span className="flex shrink-0 items-center gap-1.5">
+          {/* §5: the 90-day strip exposes its data-table alternative */}
+          <ChartTableToggle
+            active={showTable}
+            onToggle={() => setShowTable((v) => !v)}
+          />
+          <StatusPill status={status ?? deriveStatus(days)} dotOnly />
+        </span>
       </div>
 
-      {/* overflow-x-auto: the 90 fixed-width bars scroll inside the card on
-          narrow viewports (375w); desktop rendering is unchanged */}
-      <div
-        className="flex items-stretch gap-px overflow-x-auto"
-        role="img"
-        aria-label={`${name} 90-day uptime`}
-      >
-        {days.map((day, i) => (
-          <Tooltip
-            key={day.date}
-            content={[
-              {
-                label: day.date,
-                value:
-                  day.uptime_pct === null ? "no data" : `${day.uptime_pct}%`,
-              },
-              ...(day.down_minutes > 0
-                ? [{ label: "downtime", value: `${day.down_minutes}m` }]
-                : []),
-            ]}
-          >
-            <span
-              data-date={day.date}
-              style={{ animationDelay: `${(i / days.length) * 400}ms` }}
-              className={clsx(
-                "block h-6 w-[3px] origin-bottom rounded-[1px]",
-                barTint(day),
-                "animate-[bar-fill_var(--duration-entrance)_var(--ease-standard)_both] motion-reduce:animate-none",
-              )}
-            />
-          </Tooltip>
-        ))}
-      </div>
+      {showTable ? (
+        <ChartDataTable
+          columns={[
+            { key: "date", label: "Date" },
+            { key: "uptime", label: "Uptime", numeric: true },
+            { key: "down", label: "Downtime", numeric: true },
+          ]}
+          rows={[...days].reverse().map((day) => ({
+            date: day.date,
+            uptime: day.uptime_pct === null ? null : `${day.uptime_pct}%`,
+            down: day.down_minutes > 0 ? `${day.down_minutes}m` : "—",
+          }))}
+          maxHeight={168}
+        />
+      ) : (
+        // overflow-x-auto: the 90 fixed-width bars scroll inside the card on
+        // narrow viewports (375w); desktop rendering is unchanged
+        <div
+          className="flex items-stretch gap-px overflow-x-auto"
+          role="img"
+          aria-label={`${name} 90-day uptime`}
+        >
+          {days.map((day, i) => (
+            <Tooltip
+              key={day.date}
+              content={[
+                {
+                  label: day.date,
+                  value:
+                    day.uptime_pct === null ? "no data" : `${day.uptime_pct}%`,
+                },
+                ...(day.down_minutes > 0
+                  ? [{ label: "downtime", value: `${day.down_minutes}m` }]
+                  : []),
+              ]}
+            >
+              <span
+                data-date={day.date}
+                style={{ animationDelay: `${(i / days.length) * 400}ms` }}
+                className={clsx(
+                  "block h-6 w-[3px] origin-bottom rounded-[1px]",
+                  barTint(day),
+                  "animate-[bar-fill_var(--duration-entrance)_var(--ease-standard)_both] motion-reduce:animate-none",
+                )}
+              />
+            </Tooltip>
+          ))}
+        </div>
+      )}
 
       <div className="font-data flex items-center justify-between gap-2 text-[12px] tabular-nums">
         <span className="text-text">

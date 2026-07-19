@@ -8,6 +8,7 @@ import {
   seriesDash,
   useColorVision,
 } from "@/design/ColorVisionProvider";
+import { ChartDataTable, ChartTableToggle } from "./ChartTable";
 import { EmptyState } from "./EmptyState";
 import { Skeleton } from "./Skeleton";
 
@@ -107,6 +108,8 @@ export function TimeseriesPanel({
   const { patterns } = useColorVision();
   const uid = useId();
   const barPatternId = (i: number) => `${uid}-bar-${i}`;
+  // §5: every chart exposes a data-table alternative
+  const [showTable, setShowTable] = useState(false);
   /** MI-3 drag selection, fractions of the plot width. */
   const [drag, setDrag] = useState<{ from: number; to: number } | null>(null);
   const dragging = useRef(false);
@@ -189,11 +192,32 @@ export function TimeseriesPanel({
     !loading &&
     (series.length === 0 || series.every((s) => s.points.length === 0));
 
+  // §5 data-table alternative — time column + one column per visible
+  // series (legend labels); hidden series stay hidden here too
+  const tableColumns = [
+    { key: "ts", label: "Time" },
+    ...visible.map((s, si) => ({
+      key: `s${si}`,
+      label: legendLabel(s.name),
+      numeric: true,
+    })),
+  ];
+  const tableRows = (visible[0]?.points ?? []).map((p, ri) => {
+    const row: Record<string, string | number | null> = {
+      ts: formatTime(p.ts),
+    };
+    visible.forEach((s, si) => {
+      const v = s.points[ri]?.value;
+      row[`s${si}`] = v === null || v === undefined ? null : formatValue(v);
+    });
+    return row;
+  });
+
   return (
     <section
       data-mode={mode}
       className={clsx(
-        "font-ui flex w-full flex-col gap-2",
+        "font-ui relative flex w-full flex-col gap-2",
         chrome && "rounded-(--radius) border border-border bg-bg-elev p-3",
         className,
       )}
@@ -202,9 +226,17 @@ export function TimeseriesPanel({
           instance put the query chip on its own line under the title */}
       {chrome && (
         <header className="flex flex-col items-start gap-2">
-          <TitleTag className="text-[16px] font-semibold text-text">
-            {title}
-          </TitleTag>
+          <div className="flex w-full items-center gap-2">
+            <TitleTag className="min-w-0 flex-1 truncate text-[16px] font-semibold text-text">
+              {title}
+            </TitleTag>
+            {!loading && !empty && (
+              <ChartTableToggle
+                active={showTable}
+                onToggle={() => setShowTable((v) => !v)}
+              />
+            )}
+          </div>
           {query && (
             // max-w-full + truncate: long queries clip inside the panel in
             // narrow contexts (375w home hero); fixed-width panels unchanged
@@ -215,7 +247,23 @@ export function TimeseriesPanel({
         </header>
       )}
 
-      {loading ? (
+      {/* bare plots (dashboard widgets — WidgetShell owns the chrome) keep
+          the affordance as a floating corner control over the plot */}
+      {!chrome && !loading && !empty && (
+        <ChartTableToggle
+          active={showTable}
+          onToggle={() => setShowTable((v) => !v)}
+          className="absolute right-0 top-0 z-10"
+        />
+      )}
+
+      {showTable && !loading && !empty ? (
+        <ChartDataTable
+          columns={tableColumns}
+          rows={tableRows}
+          maxHeight={plotH}
+        />
+      ) : loading ? (
         // height via style — a template-built `h-[…]` class never reaches
         // Tailwind's scanner, so it emitted no CSS
         <Skeleton kind="panel-axis" style={{ height: plotH }} />
@@ -419,7 +467,7 @@ export function TimeseriesPanel({
       )}
 
       {/* crosshair tooltip values */}
-      {!loading && !empty && cursorIndex !== null && (
+      {!loading && !empty && !showTable && cursorIndex !== null && (
         <div className="font-data flex flex-wrap gap-x-4 gap-y-0.5 text-[11px] tabular-nums text-text-2">
           {visible.map((s) => (
             <span
