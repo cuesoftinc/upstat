@@ -187,6 +187,43 @@ test("768 — sanity sweep, no route side-scrolls", async ({ page }) => {
   }
 });
 
+// [Directive 2026-07-19] with the rail EXPANDED (240px), every dashboard
+// route's content column must reflow cleanly at 1280 and 1440 — charts,
+// tables, widget grids and filter bars adapt; nothing overflows.
+test.describe("expanded rail — dashboard content reflows", () => {
+  const DASH_ROUTES = ROUTES.filter((r) => r.startsWith("/dashboard"));
+
+  for (const width of [1280, 1440]) {
+    test(`${width} sweep with the rail expanded`, async ({ page }, testInfo) => {
+      test.setTimeout(240_000);
+      await page.addInitScript(() => window.localStorage.setItem("nav.rail.expanded", "1"));
+      await page.setViewportSize({ width, height: 900 });
+      for (const route of DASH_ROUTES) {
+        await open(page, route);
+        await expect(
+          page.getByRole("navigation", { name: "Product navigation" }),
+        ).toHaveAttribute("data-expanded", "true");
+        await assertNoOverflow(page, `${route} @${width} rail-expanded`);
+      }
+      // densest layouts, both rail states, for the visual record
+      for (const route of ["/dashboard/dashboards/dash_overview", "/dashboard/logs"]) {
+        await open(page, route);
+        await page.screenshot({
+          path: testInfo.outputPath(`${slug(route)}--${width}-expanded.png`),
+        });
+        await page.getByTestId("rail-toggle").click();
+        await page.waitForTimeout(350);
+        await page.screenshot({
+          path: testInfo.outputPath(`${slug(route)}--${width}-collapsed.png`),
+        });
+        // restore for the next route (the desktop toggle persists)
+        await page.getByTestId("rail-toggle").click();
+        await page.waitForTimeout(350);
+      }
+    });
+  }
+});
+
 test("390 — span drawer opens as a full-width sheet inside the viewport", async ({ page }) => {
   await page.setViewportSize(MOBILE);
   await open(page, "/dashboard/traces/explorer");

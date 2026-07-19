@@ -19,12 +19,29 @@ import { defaultWidget } from "@/controllers/widgets";
  */
 export default function DashboardsPage() {
   const router = useRouter();
-  const { data, loading, create, toggleFavorite } = useDashboardsController();
+  const { data, loading, create, toggleFavorite, importJson } = useDashboardsController();
   const [createOpen, setCreateOpen] = useState(false);
   const [name, setName] = useState("");
   const [type, setType] = useState<WidgetType | null>("timeseries");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // B2 portable JSON import (api.md §6)
+  const [importOpen, setImportOpen] = useState(false);
+  const [importText, setImportText] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+
+  const submitImport = async () => {
+    setImporting(true);
+    setImportError(null);
+    try {
+      const dashboard = await importJson(importText);
+      router.push(`/dashboard/dashboards/${dashboard.id}`);
+    } catch (e) {
+      setImportError(e instanceof Error ? e.message : "could not import the dashboard");
+      setImporting(false);
+    }
+  };
 
   const submit = async () => {
     if (!name.trim()) return;
@@ -41,11 +58,16 @@ export default function DashboardsPage() {
 
   return (
     <div className="flex flex-col gap-6 px-6 py-5" data-testid="dashboards-list">
-      <header className="flex items-center justify-between">
+      <header className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-[20px] font-semibold">Dashboards</h1>
-        <Button onClick={() => setCreateOpen(true)} data-testid="new-dashboard">
-          New dashboard
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button kind="quiet" onClick={() => setImportOpen(true)} data-testid="import-dashboard">
+            Import JSON
+          </Button>
+          <Button onClick={() => setCreateOpen(true)} data-testid="new-dashboard">
+            New dashboard
+          </Button>
+        </div>
       </header>
 
       {loading ? (
@@ -123,6 +145,48 @@ export default function DashboardsPage() {
               {error}
             </p>
           )}
+        </div>
+      </Modal>
+
+      {/* B2 portable JSON import (api.md §6) */}
+      <Modal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        title="Import dashboard JSON"
+        variant="lg"
+        footer={
+          <>
+            <Button kind="quiet" onClick={() => setImportOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => void submitImport()}
+              disabled={importing || importText.trim() === ""}
+              data-testid="confirm-import"
+            >
+              {importing ? "Importing…" : "Import"}
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-3">
+          <label className="flex flex-col gap-1 text-[13px]">
+            <span className="text-text-2">
+              Paste a portable dashboard definition (the Export JSON output)
+            </span>
+            <textarea
+              value={importText}
+              onChange={(e) => setImportText(e.target.value)}
+              rows={12}
+              spellCheck={false}
+              placeholder='{"version": 1, "name": "…", "widgets": […]}'
+              data-testid="import-json"
+              className="font-data w-full resize-y rounded-(--radius) border border-border bg-bg px-2.5 py-2 text-[12px] leading-[1.45] text-text placeholder:text-text-2 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+            />
+          </label>
+          <p role="alert" className="text-[13px] text-crit">
+            {importError}
+          </p>
         </div>
       </Modal>
     </div>

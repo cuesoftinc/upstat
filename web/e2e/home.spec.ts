@@ -84,7 +84,7 @@ test("nav + footer carry the canonical parity links (SKILL.md canon)", async ({ 
 
   const nav = page.getByRole("navigation", { name: "Marketing" });
   for (const [label, href] of [
-    ["Features", "/#pillars"],
+    ["Features", "/#features"], // differentiated 2026-07-19
     ["Platform", "/#pillars"],
     ["Docs", "https://cuesoft.gitbook.io/upstat"],
     // the GitHub item renders as the star badge (canon revision 2026-07-19)
@@ -101,7 +101,7 @@ test("nav + footer carry the canonical parity links (SKILL.md canon)", async ({ 
     [
       "Product",
       [
-        ["Features", "/#pillars"],
+        ["Features", "/#features"], // differentiated 2026-07-19
         ["Try Cloud", "/signin"],
         ["Self Host", "/#self-host"],
         ["Platform", "/#pillars"],
@@ -319,7 +319,7 @@ test("mobile nav is a menu-button disclosure at 390w (SKILL.md mobile clause)", 
 
   // every canonical link is reachable from the panel — no dead ends <md
   for (const [label, href] of [
-    ["Features", "/#pillars"],
+    ["Features", "/#features"], // differentiated 2026-07-19
     ["Platform", "/#pillars"],
     ["Docs", "https://cuesoft.gitbook.io/upstat"],
     // the GitHub item renders as the star badge (canon revision 2026-07-19)

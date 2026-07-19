@@ -8,7 +8,11 @@ import { QueryBar } from "@/components/ui/QueryBar";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { TraceWaterfall } from "@/components/ui/TraceWaterfall";
 import { initialQueryFromUrl, joinQuery, useQueryPills } from "@/controllers/explorer";
-import { useTraceController, useTracesController } from "@/controllers/telemetry";
+import {
+  useTraceController,
+  useTraceLogsController,
+  useTracesController,
+} from "@/controllers/telemetry";
 import { useTimeRange } from "@/controllers/time-range";
 import { PageTabs } from "../../page-tabs";
 import { apmTabs } from "../apm-tabs";
@@ -43,6 +47,8 @@ export default function TraceExplorerPage() {
   // guard the stale-data window while the detail request is in flight
   const selected =
     selectedId && trace.data && trace.data.trace_id === selectedId ? trace.data : null;
+  // logs-in-span (pages.md B5): correlated lines for the drawer's logs tab
+  const traceLogs = useTraceLogsController(selected);
 
   return (
     <div className="flex flex-col gap-4 px-6 py-5" data-testid="trace-explorer">
@@ -136,7 +142,7 @@ export default function TraceExplorerPage() {
                   View {selected.root_service} in service map →
                 </Link>
               </header>
-              <TraceWaterfall trace={selected} />
+              <TraceWaterfall trace={selected} logs={traceLogs.data ?? []} />
               <p className="font-data mt-2 text-[11px] tabular-nums text-text-2">
                 trace_id {selected.trace_id.slice(0, 16)} · {selected.span_count} spans ·{" "}
                 {fmtMs(selected.duration_ms)} total

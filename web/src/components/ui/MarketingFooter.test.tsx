@@ -5,7 +5,7 @@ import { MarketingFooter } from "./MarketingFooter";
 /** The ratified column/link set (SKILL.md parity canon, 2026-07-19). */
 const CANON: Record<string, [string, string][]> = {
   Product: [
-    ["Features", "/#pillars"],
+    ["Features", "/#features"], // differentiated 2026-07-19
     ["Try Cloud", "/signin"],
     ["Self Host", "/#self-host"],
     ["Platform", "/#pillars"],

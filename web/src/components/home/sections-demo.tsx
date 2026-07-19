@@ -127,8 +127,11 @@ export function UseCasesSection({
   visitorsSparkline,
   lcpSparkline,
 }: UseCasesSectionProps) {
+  // id="features": the nav/footer Features links anchor here — the feature
+  // highlights band; Platform keeps /#pillars (differentiated 2026-07-19,
+  // the two previously shared one anchor)
   return (
-    <Section title="How teams actually use it.">
+    <Section id="features" title="How teams actually use it.">
       <div className="flex flex-col gap-16">
         {/* 1 — dashboards */}
         <div className="grid items-center gap-12 md:grid-cols-[1fr_480px]">

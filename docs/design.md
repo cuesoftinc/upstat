@@ -71,7 +71,12 @@ verified in both themes) — the one extra constraint the teal brand imposes.
   Platform); sections = pillars (§pages.md B). Chevron toggle at the rail foot
   switches state; the choice persists per user across sessions
   (`nav.rail.expanded` in localStorage). Default: expanded on desktop ≥1280px,
-  collapsed below. Active item = brand accent bar + brand icon in both states.
+  collapsed below. **[Clarified 2026-07-19]** Below `md` expansion must never
+  squeeze the content: the persisted state does not apply (mobile always
+  boots the 56px rail) and the foot chevron opens a 240px **overlay drawer**
+  over a scrim instead — content keeps full width beneath; scrim tap,
+  Escape, and item selection close it. Active item = brand accent bar +
+  brand icon in both states.
   Top bar: org/env switcher · **global time picker** · search (`/`) ·
   theme toggle · incidents bell (**[Directive 2026-07-19]** the toggle joins
   the utility cluster; see the parity canon below).
@@ -98,9 +103,11 @@ verified in both themes) — the one extra constraint the teal brand imposes.
   "Marketing nav, footer & theme parity canon", ratified 2026-07-19): all
   three products share ONE link inventory — same sections, counts and
   destinations; upstat renders it in its own dark visual design.
-  - **Nav** **[Revised 2026-07-19]**: 4 text links Features · Platform
-    (upstat product slot — anchors to the landing pillar-grid section) ·
-    Docs (GitBook root) · GitHub — the GitHub item
+  - **Nav** **[Revised 2026-07-19]**: 4 text links Features (anchors the
+    landing feature-highlights band, `/#features` — differentiated from
+    Platform, which anchors the pillar grid; the two previously shared one
+    anchor) · Platform (upstat product slot — anchors to the landing
+    pillar-grid section) · Docs (GitBook root) · GitHub — the GitHub item
     renders as a compact star badge (star glyph + neutral "Star" label; no
     count on canvas — the live star count is runtime behavior) — +
     ThemeToggle control + **"Sign in" text link** (`/signin`) + **"Try

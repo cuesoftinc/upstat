@@ -138,6 +138,25 @@ export default function RumPage() {
             </section>
           </div>
 
+          {/* B6: devices + geo breakdowns (pages.md "top pages/referrers/
+              devices/geo" — the last two were generated but unrendered) */}
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <section aria-labelledby="devices-heading" className="rounded-(--radius) border border-border bg-bg-elev p-4">
+              <h2 id="devices-heading" className="mb-3 text-[13px] text-text-2">Devices</h2>
+              <TopList
+                loading={summary.loading}
+                entries={(s?.devices ?? []).map((d) => ({ label: d.value, value: d.count, display: fmtK(d.count) }))}
+              />
+            </section>
+            <section aria-labelledby="countries-heading" className="rounded-(--radius) border border-border bg-bg-elev p-4">
+              <h2 id="countries-heading" className="mb-3 text-[13px] text-text-2">Countries</h2>
+              <TopList
+                loading={summary.loading}
+                entries={(s?.countries ?? []).map((c) => ({ label: c.value, value: c.count, display: fmtK(c.count) }))}
+              />
+            </section>
+          </div>
+
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
             <section aria-labelledby="vitals-heading" className="rounded-(--radius) border border-border bg-bg-elev p-4">
               <h2 id="vitals-heading" className="mb-3 text-[13px] text-text-2">

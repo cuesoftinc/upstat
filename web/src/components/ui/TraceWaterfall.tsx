@@ -2,14 +2,29 @@
 
 import { clsx } from "clsx";
 import { useMemo, useState } from "react";
-import type { Span, Trace } from "@/models";
+import type { LogEvent, Span, Trace } from "@/models";
 import { SpanDrawer } from "./SpanDrawer";
 import { SpanRow } from "./SpanRow";
 import { TraceMinimap } from "./TraceMinimap";
 
 export interface TraceWaterfallProps {
   trace: Trace;
+  /** Logs correlated to the trace — the span drawer's logs-in-span tab
+   *  shows the lines inside the selected span's service + time window. */
+  logs?: LogEvent[];
   className?: string;
+}
+
+/** Lines within the span's window (±1.5s skew — the correlation window
+ *  the log stream uses) on the span's service. */
+function logsForSpan(logs: LogEvent[], span: Span): LogEvent[] {
+  const start = Date.parse(span.start) - 1_500;
+  const end = Date.parse(span.start) + span.duration_ns / 1e6 + 1_500;
+  return logs.filter((log) => {
+    if (log.service !== span.service) return false;
+    const ts = Date.parse(log.ts);
+    return ts >= start && ts <= end;
+  });
 }
 
 interface PlacedSpan {
@@ -23,7 +38,7 @@ interface PlacedSpan {
  * TraceWaterfall — §3/§8.2: span rows on a shared time axis + time-axis
  * header + SpanDrawer; hover highlights the service in the minimap (MI-7).
  */
-export function TraceWaterfall({ trace, className }: TraceWaterfallProps) {
+export function TraceWaterfall({ trace, logs = [], className }: TraceWaterfallProps) {
   const [selected, setSelected] = useState<Span | null>(null);
   const [hoverService, setHoverService] = useState<string | null>(null);
 
@@ -105,7 +120,11 @@ export function TraceWaterfall({ trace, className }: TraceWaterfallProps) {
         </div>
       </div>
       {selected && (
-        <SpanDrawer span={selected} onClose={() => setSelected(null)} />
+        <SpanDrawer
+          span={selected}
+          logs={logsForSpan(logs, selected)}
+          onClose={() => setSelected(null)}
+        />
       )}
     </div>
   );

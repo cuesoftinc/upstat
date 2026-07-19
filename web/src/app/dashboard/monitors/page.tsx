@@ -7,7 +7,9 @@ import { AlertFeedRow } from "@/components/ui/AlertFeedRow";
 import { AlertRuleCard } from "@/components/ui/AlertRuleCard";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
+import type { AlertEvent } from "@/models";
 import { useAlertsController, useRuleTest } from "@/controllers/alerts";
+import { DeclareIncidentModal } from "../incidents/DeclareIncidentModal";
 import { RuleEditor, type RuleInput } from "./rule-editor";
 import { ReplayPanel } from "../replay-panel";
 
@@ -23,6 +25,8 @@ export default function MonitorsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(ruleParam);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  // pages.md B9 [Directive]: declare-incident reachable FROM an alert row
+  const [declareFrom, setDeclareFrom] = useState<AlertEvent | null>(null);
 
   const rules = ctrl.rules.data ?? [];
   const selected = rules.find((r) => r.id === selectedId) ?? rules[0] ?? null;
@@ -118,7 +122,14 @@ export default function MonitorsPage() {
               <ul aria-label="Triggered feed">
                 {(ctrl.feed.data ?? []).map((event) => (
                   <li key={event.id}>
-                    <AlertFeedRow event={event} />
+                    {/* clicking an active alert opens declare-incident
+                        prefilled (pages.md B9 [Directive]) */}
+                    <AlertFeedRow
+                      event={event}
+                      onClick={
+                        event.sev === "resolved" ? undefined : () => setDeclareFrom(event)
+                      }
+                    />
                   </li>
                 ))}
               </ul>
@@ -157,6 +168,13 @@ export default function MonitorsPage() {
           )}
         </section>
       </div>
+
+      <DeclareIncidentModal
+        open={declareFrom !== null}
+        onClose={() => setDeclareFrom(null)}
+        initialTitle={declareFrom ? `${declareFrom.monitor_name} — ${declareFrom.message}` : ""}
+        initialSev={declareFrom?.sev === "sev1" ? "1" : "2"}
+      />
     </div>
   );
 }

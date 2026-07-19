@@ -24,7 +24,9 @@ export function FAQItem({ question, answer, expanded, onToggle, className }: FAQ
     <div
       data-expanded={expanded}
       className={clsx(
-        "font-ui w-full max-w-[720px] rounded-[8px] border border-border bg-bg-elev px-[18px] py-4",
+        // foundations restyle (adjudicated 2026-07-19): product radius +
+        // 4px-grid padding — the Figma master converges to the same values
+        "font-ui w-full max-w-[720px] rounded-(--radius) border border-border bg-bg-elev px-4 py-4",
         "flex flex-col",
         expanded && "gap-2.5",
         className,
