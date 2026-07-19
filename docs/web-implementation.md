@@ -169,11 +169,10 @@ widths, `e2e/navrail.spec.ts` covers toggle + persistence + viewport
 defaults.
 
 **Nav/footer parity + theme toggle as-built (2026-07-19, SKILL.md
-"Marketing nav, footer & theme parity canon").** MarketingNav converged to
-the canonical shape — Features(/#pillars) · Dashboards(/dashboard) ·
-Docs(GitBook root) · GitHub(repo) + ThemeToggle + Sign in CTA; the pillar
-dropdown and standalone star badge retired (the runtime star count now
-rides the GitHub link, still never static). MarketingFooter owns the
+"Marketing nav, footer & theme parity canon").** MarketingNav carries the
+canonical shape — Features(/#features) · Platform(/#pillars) ·
+Docs(GitBook root) · GitHub star badge (live runtime count, never
+static) + ThemeToggle + Sign in link + Try Cloud CTA. MarketingFooter owns the
 canonical column set (Product / Docs / Community / Legal, ratified URLs)
 plus the legal bar: verbatim "© Cuesoft Inc. 2026. Upstat. CueLABS™
 Division. MIT License." with linked marks, an English-only language
@@ -314,6 +313,24 @@ desktop state does not apply (mobile boots collapsed), scrim/Escape/item
 selection dismiss (`e2e/navrail.spec.ts`). Known spec gap deliberately
 deferred: the A1 Features pillar-map dropdown (pending adjudication
 against the 4-text-links parity canon).
+
+**Code-quality pass as-built (2026-07-19).** The documented dead-dependency
+prune landed: `styled-components` (+ its `next.config.ts` compiler flag),
+`chart.js`, `react-chartjs-2`, `recharts`, `@tanstack/react-query`,
+`js-cookie` (+ `@types/js-cookie`), `@iconify/react`,
+`@react-oauth/google`, and `@floating-ui/react-dom` are removed — zero
+live imports verified first; the X-8 gRPC control-plane pair
+(`grpc-web`, `google-protobuf` + `src/proto`/`src/client.ts`/
+`components/libs/grpc`) stays until monitors-v2 per §8. Dead code:
+MarketingFooter's unused `inline` variant axis removed (no consumer; the
+footer renders the one canonical stacked shape). The docs now describe
+only the current system (api.md §2 states the HTTP alert surface without
+the struck-through gRPC sketch; stale nav enumerations corrected).
+`package.json` scripts already carry the ecosystem-canonical names
+(`dev/build/start/lint/typecheck/test/test:watch/test:e2e/
+check:boundaries`); remaining cross-repo config divergence (vitest plugin
+pattern, playwright port-isolation vars, lint composition) is catalogued
+for the parity pass rather than changed unilaterally.
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
@@ -499,11 +516,9 @@ dedicated `chore(web): retire legacy <area>` PR once its replacement
 passes QA — and it is **currently empty**. The guardrails stay armed:
 `scripts/check-boundaries.mjs` (wired into `npm run lint`) and the
 ESLint `no-restricted-imports` boundary fail any live import of
-`src/legacy/**`. Retired trees' dependencies (`styled-components`,
-`chart.js`, `react-chartjs-2`, `recharts`, `@tanstack/react-query`,
-`js-cookie`, `@iconify/react`, `@react-oauth/google`,
-`@floating-ui/react-dom`) remain in `package.json` unused, pending
-their own prune PR.
+`src/legacy/**`. `package.json` carries no unused dependencies — the
+only intentional exception is the X-8 gRPC pair below (`grpc-web`,
+`google-protobuf`), which backs the kept control-plane tree.
 
 One tree stays live by design: the gRPC-Web control plane. `src/proto/*`,
 `src/client.ts`, and the gRPC libs (`components/libs/grpc`) are

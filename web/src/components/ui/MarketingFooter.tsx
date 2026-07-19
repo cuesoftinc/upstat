@@ -2,7 +2,6 @@
 
 import { clsx } from "clsx";
 import { ShieldCheck } from "lucide-react";
-import { Fragment } from "react";
 
 export interface FooterLink {
   label: string;
@@ -17,11 +16,6 @@ export interface FooterColumn {
 export interface MarketingFooterProps {
   /** Column set — defaults to the canonical parity columns (SKILL.md). */
   columns?: FooterColumn[];
-  /**
-   * Landing v2 rendering (Figma 135:770): links inline, dot-joined.
-   * Defaults keep the stacked-column shape.
-   */
-  inline?: boolean;
   showBrand?: boolean;
   className?: string;
 }
@@ -80,7 +74,6 @@ const LICENSE_URL = "https://github.com/cuesoftinc/upstat/blob/main/LICENSE";
  */
 export function MarketingFooter({
   columns = COLUMNS,
-  inline = false,
   showBrand = true,
   className,
 }: MarketingFooterProps) {
@@ -91,16 +84,9 @@ export function MarketingFooter({
           Sibling-parity mobile structure (2026-07-19): brand + 4 columns in
           ONE responsive grid — full-width brand row at 390, 2-col link
           columns, one 5-col row at md+ (apparule/expendit stacking) */}
-      <div
-        className={clsx(
-          "mx-auto max-w-[1152px]",
-          inline
-            ? "flex flex-wrap justify-between gap-8"
-            : "grid grid-cols-2 gap-8 md:grid-cols-5",
-        )}
-      >
+      <div className="mx-auto grid max-w-[1152px] grid-cols-2 gap-8 md:grid-cols-5">
         {showBrand && (
-          <div className={clsx("flex max-w-56 flex-col gap-2", !inline && "col-span-2 md:col-span-1")}>
+          <div className="col-span-2 flex max-w-56 flex-col gap-2 md:col-span-1">
             <span className="flex items-center gap-2 text-[16px] font-semibold text-text">
               <span
                 aria-hidden="true"
@@ -117,41 +103,18 @@ export function MarketingFooter({
         )}
         {columns.map((col) => (
           <nav key={col.heading} aria-label={col.heading} className="flex flex-col gap-1.5">
-            <span
-              className={
-                inline
-                  ? // landing v2 headings (135:770): sentence case, text ink
-                    "text-[13px] font-semibold text-text"
-                  : "text-[12px] font-semibold uppercase tracking-wide text-text-2"
-              }
-            >
+            <span className="text-[12px] font-semibold uppercase tracking-wide text-text-2">
               {col.heading}
             </span>
-            {inline ? (
-              <span className="text-[13px] text-text-2">
-                {col.links.map((link, i) => (
-                  <Fragment key={link.label}>
-                    {i > 0 && " · "}
-                    <a
-                      href={link.href}
-                      className="transition-colors duration-[var(--duration-fast)] hover:text-text"
-                    >
-                      {link.label}
-                    </a>
-                  </Fragment>
-                ))}
-              </span>
-            ) : (
-              col.links.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  className="text-[13px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
-                >
-                  {link.label}
-                </a>
-              ))
-            )}
+            {col.links.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                className="text-[13px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
+              >
+                {link.label}
+              </a>
+            ))}
           </nav>
         ))}
       </div>

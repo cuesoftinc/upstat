@@ -5,9 +5,9 @@ import { GoogleAuthButton } from "@/components/ui/GoogleAuthButton";
 
 /**
  * /signin — the single auth screen (X-1: Google sign-in only, product-wide;
- * flows/auth.md; route standard: /signin is the only auth route). One CTA,
- * nothing else. /signup is retired; the /login stub is gone too (user
- * decision 2026-07-19) — stale links 404 on the branded page.
+ * flows/auth.md; route standard: /signin is the ONLY auth route — no
+ * /login or /signup exists, and stale links 404 on the branded page
+ * [Directive 2026-07-19]). One CTA, nothing else.
  */
 export default function SignInPage() {
   const { signInWithGoogle, loading, error } = useAuthController();
