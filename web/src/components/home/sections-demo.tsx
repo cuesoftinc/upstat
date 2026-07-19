@@ -40,9 +40,10 @@ export function DemoBandSection({
 }: DemoBandSectionProps) {
   return (
     <Section id="demo" title="It looks like this — with your data.">
-      <div className="grid items-start gap-10 lg:grid-cols-[480px_1fr]">
+      <div className="grid items-start gap-12 lg:grid-cols-[1fr_480px]">
         <TimeseriesPanel
           title="p95 latency — api-common"
+          titleAs="p"
           query={query}
           series={series}
           height={190}
@@ -129,7 +130,7 @@ export function UseCasesSection({
     <Section title="How teams actually use it.">
       <div className="flex flex-col gap-16">
         {/* 1 — dashboards */}
-        <div className="grid items-center gap-10 md:grid-cols-2">
+        <div className="grid items-center gap-12 md:grid-cols-[1fr_480px]">
           <QuadCard
             title="Dashboards that stay in sync"
             body="11 widget types on one grid — timeseries, heatmaps, top lists, log streams, even markdown. Hover anywhere and every panel's crosshair lands on the same moment. Drag, resize, ship."
@@ -137,6 +138,7 @@ export function UseCasesSection({
           />
           <TimeseriesPanel
             title="p95 latency — api-common"
+            titleAs="p"
             query={query}
             series={series}
             height={140}
@@ -145,7 +147,7 @@ export function UseCasesSection({
         </div>
 
         {/* 2 — alerting → incidents (visual left, copy right) */}
-        <div className="grid items-center gap-10 md:grid-cols-2">
+        <div className="grid items-center gap-12 md:grid-cols-[1fr_480px]">
           <div className="min-w-0 flex flex-col gap-4 md:order-1">
             <AlertRuleCard rule={alertRule} />
             <IncidentHistoryEntry
@@ -164,7 +166,7 @@ export function UseCasesSection({
         </div>
 
         {/* 3 — status pages */}
-        <div className="grid items-center gap-10 md:grid-cols-2">
+        <div className="grid items-center gap-12 md:grid-cols-[1fr_480px]">
           <QuadCard
             title="Status pages people believe"
             body="Publish uptime and incident history to a page you control at your own slug. Subscribers get updates as your responders post them — the same timeline, no PR filter."
@@ -188,7 +190,7 @@ export function UseCasesSection({
         </div>
 
         {/* 4 — cookieless RUM (visual left, copy right) */}
-        <div className="grid items-center gap-10 md:grid-cols-2">
+        <div className="grid items-center gap-12 md:grid-cols-[1fr_480px]">
           <div className="min-w-0 flex flex-wrap gap-6 md:order-1">
             <QueryValue
               label="visitors · 24h"

@@ -49,9 +49,7 @@ export function HomeView() {
     <div className="font-ui min-h-screen bg-bg text-text">
       <MarketingNav starCount={stars} onSignIn={onSignIn} onTryCloud={onTryCloud} />
 
-      {/* block + min-w-0: the legacy layer styles bare `main` as a
-          100vw flex row (globals.css @layer legacy) — utilities win */}
-      <main className="block min-w-0">
+      <main>
         <HeroSection
           series={demo.latencySeries}
           query={demo.latencyQuery}

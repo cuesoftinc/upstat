@@ -67,6 +67,7 @@ export function HeroSection({
         <div className="min-w-0 flex flex-col gap-5">
           <TimeseriesPanel
             title="p95 latency — api-common"
+            titleAs="p"
             query={query}
             series={series}
             height={190}
@@ -91,7 +92,9 @@ export function HeroSection({
 export function PillarsSection() {
   return (
     <Section id="pillars" title="Eight pillars. One query grammar.">
-      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+      {/* canon (design.md §2): 270px cards / 24px gaps on the 1152 container
+          (cols x144/438/732/1026 at 1440) */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {MARKETING_PILLARS.map((pillar) => (
           <PillarCard key={pillar.pillar} {...pillar} />
         ))}
@@ -124,7 +127,7 @@ export function OtelSection() {
       title="Point your OpenTelemetry SDK at us. Done."
       sub="Point your existing OTel SDKs at one endpoint — gRPC 4317 / HTTP 4318. Nothing proprietary in your code."
     >
-      <div className="grid items-center gap-12 lg:grid-cols-[420px_1fr]">
+      <div className="grid items-center gap-12 lg:grid-cols-[1fr_480px]">
         <CodeSnippet tabs={OTEL_SNIPPETS} />
         <div className="flex flex-col gap-5">
           <div className="flex flex-wrap items-center gap-3" aria-label="Ingest flow">
@@ -193,7 +196,8 @@ function Step({
 export function HowItWorksSection({ series }: HowItWorksSectionProps) {
   return (
     <Section title="How it works">
-      <div className="grid gap-10 md:grid-cols-3">
+      {/* canon (design.md §2): 3×368px cols / 24px gaps on the 1152 container */}
+      <div className="grid gap-6 md:grid-cols-3">
         <Step
           n={1}
           title="Point your SDK at us"
@@ -218,6 +222,7 @@ export function HowItWorksSection({ series }: HowItWorksSectionProps) {
         >
           <TimeseriesPanel
             title="p95 latency — api-common"
+            titleAs="p"
             series={series}
             height={130}
           />

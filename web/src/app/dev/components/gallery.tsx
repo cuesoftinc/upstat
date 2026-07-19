@@ -929,14 +929,20 @@ export function ComponentGallery() {
         </p>
       </header>
 
-      <GalleryAll />
-
-      <div data-theme="light">
-        <div className="border-y border-border bg-bg-elev px-[var(--space-6)] py-[var(--space-3)]">
-          <h2 className="text-[16px] font-semibold text-text">Light mode</h2>
-        </div>
+      {/* Semantic landmark: the gallery body is the page's single <main>
+          (live-QA sweep: this page had zero). Component instances inside
+          keep their own semantics — StatusPageHeader demos legitimately
+          render <h1>, so this dev-only page has extra h1s by design. */}
+      <main>
         <GalleryAll />
-      </div>
+
+        <div data-theme="light">
+          <div className="border-y border-border bg-bg-elev px-[var(--space-6)] py-[var(--space-3)]">
+            <h2 className="text-[16px] font-semibold text-text">Light mode</h2>
+          </div>
+          <GalleryAll />
+        </div>
+      </main>
     </div>
   );
 }

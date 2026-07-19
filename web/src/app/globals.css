@@ -151,15 +151,15 @@
     font-family: "Poppins", sans-serif;
   }
 
-  main {
-    display: flex;
-    min-width: 100vw;
-  }
-
-  .content {
-    width: 100%;
-    overflow: auto;
-  }
+  /*
+   * The legacy app-shell rules (`main { display: flex; min-width: 100vw }`
+   * and `.content`) are GONE, not just layered: `min-width` beats
+   * `max-width` as a property conflict regardless of cascade layers, so the
+   * old `main` rule forced every live <main> (signin's 360px column,
+   * dashboard's 960px column) to viewport width. Nothing routed uses them —
+   * the legacy tree is quarantined in src/legacy (its own dashboard.css
+   * keeps an inert copy for W3 reference).
+   */
 
   a {
     color: inherit;
