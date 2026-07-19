@@ -109,11 +109,10 @@ verified in both themes) — the one extra constraint the teal brand imposes.
   - **Footer**: brand block (wordmark + tagline) + 4 pinned columns — Product
     (Features · Try Cloud · Self Host · Dashboards) / Docs (Docs · Quickstart
     · API reference · Self-host guide) / Community (GitHub · Discord ·
-    Roadmap · CueLABS) / Legal (Privacy · Terms · Status) — + legal bar
+    Roadmap · CueLABS™) / Legal (Privacy · Terms · Status) — + legal bar
     verbatim **"© Cuesoft Inc. 2026. Upstat. CueLABS™ Division. MIT
     License."** with a language selector (English-only, ships ahead of i18n
     by ratified decision) and a security-policy affordance (SECURITY.md).
-    Replaces the 3-column Product/Open source/Company footer.
   - **Theme toggle everywhere**: marketing nav AND dashboard chrome (TopBar)
     and settings; `data-theme` on `<html>`, persisted at localStorage
     `upstat.theme`, falling back to dark (upstat's design default). Every
@@ -202,14 +201,13 @@ ecosystem change, PR'd to all three design.md files together.
 ## 7. Figma Style Guide (source of truth for tokens)
 
 The design system lives in the product's Figma file on a dedicated **Style
-Guide** page, backed by a variable collection **`upstat/tokens`** with **true Light and Dark modes** (migrated 2026-07-16 after the pro upgrade; the earlier light/dark-group workaround is retired — components bind one token and switch by mode). The collection also carries the foundations as variables: spacing scale, radii, durations, z-index, series palette (8). Every color token in §2 exists as a Figma
+Guide** page, backed by a variable collection **`upstat/tokens`** with **true Light and Dark modes** (components bind one token and switch by mode). The collection also carries the foundations as variables: spacing scale, radii, durations, z-index, series palette (8). Every color token in §2 exists as a Figma
 variable (scopes: frame/shape/text fills + strokes) so designs bind to tokens,
 never raw hexes; the Style Guide page renders swatches (both modes), the type
 scale, and status/accent samples. Token changes happen in Figma first, then
 sync back into this document — the two must never diverge. Type styles are
 built (12 local styles, `Axis/11` through `PageTitle/20` plus three Mono
-styles) — the earlier "next iteration" note is retired; the remaining
-iteration is the Style Guide *page* refresh below.
+styles); the remaining iteration is the Style Guide *page* refresh below.
 
 Additions (2026-07-16): (1) the new `on-brand` token (§2) now exists in the
 `upstat/tokens` collection — components placing labels/knobs on `brand`
@@ -287,10 +285,8 @@ Google 'G' and GitHub are built; Discord and Slack are in build now
 recorded here since the file never stated it: component sets are
 **PascalCase**; variant property names are **lowercase**; icons are named
 `icon/<lucide-slug>` (e.g. `icon/chevron-down`); brand glyphs are
-`icon/brand-<name>` — the built `brand/google-g` and `brand/github` are
-renamed to `icon/brand-google` and `icon/brand-github` to match. The single
-auth CTA component is named **GoogleAuthButton** in every product; the
-earlier `GoogleSignInCTA` set is renamed accordingly (§8.2b).
+`icon/brand-<name>` (`icon/brand-google`, `icon/brand-github`). The single
+auth CTA component is named **GoogleAuthButton** in every product (§8.2b).
 
 **Canvas hygiene [Directive 2026-07-18]** — design canvases carry **product
 copy only**: spec annotations (MI references, requirement IDs,
@@ -397,10 +393,10 @@ project license, the copy reads **MIT**.
 | WidgetTypePicker | layout: row (the in-shell "Choose a visualization" strip) / grid (create-flow modal overlay, pages.md B2) · 11 widget types (the pages.md B2 list) · composes WidgetTypeCell — iteration-1 addition **[built 2026-07-18]** |
 | **Marketing (Stage 5)** | |
 | MarketingNav + PillarDropdown | default / pillar-dropdown open (mini feature map ×8, reuses PillarCard) · 4 text links pinned to the parity canon: Features · Dashboards · Docs · GitHub — the GitHub item renders as a compact star badge (star glyph + neutral "Star" label — no count, no invented figure; the pages.md A13 live star count is runtime behavior) · ThemeToggle · "Sign in" text link (`/signin`) + "Try Cloud" brand CTA **[Revised 2026-07-19]** (the pillar mini feature map remains as the dropdown-open preview under Features) |
-| MarketingFooter | brand block (wordmark + tagline) + 4 pinned columns Product / Docs / Community / Legal (4·4·4·3 links, parity canon) + legal bar verbatim "© Cuesoft Inc. 2026. Upstat. CueLABS™ Division. MIT License." · language selector (English-only pre-i18n) · security-policy affordance — replaces the 3-column Product/Open source/Company footer (old footer parked on Deprecated) — **[Directive 2026-07-19]** |
+| MarketingFooter | brand block (wordmark + tagline) + 4 pinned columns Product / Docs / Community / Legal (4·4·4·3 links, parity canon) + legal bar verbatim "© Cuesoft Inc. 2026. Upstat. CueLABS™ Division. MIT License." · language selector (English-only pre-i18n) · security-policy affordance — **[Directive 2026-07-19]** |
 | PillarCard | pillar ×8 (icon + pillar color accent) · default / hover (lift + accent) |
 | CodeSnippet + Tabs | tab: Go / Python / Node / k8s (active/inactive) · copy: idle / copied-check · mono block on `bg-elev` — **as built (2026-07-17):** the tab axis is the variant set; copy idle/copied-check is handled via instance overrides, not a variant dimension |
-| CloudVsSelfHostTable | 2 plan columns × feature rows (check / dash) · per-column CTA footer — **as built (2026-07-18):** the row "Managed upgrades & backups" replaced an invented SLA figure |
+| CloudVsSelfHostTable | 2 plan columns × feature rows (check / dash) · per-column CTA footer — **as built (2026-07-18):** carries a "Managed upgrades & backups" row; no invented SLA figures |
 | FAQItem | state: expanded / collapsed · 720w accordion, single-open (pages.md A15 FAQ) — iteration-1 addition **[built 2026-07-18]** |
 
 ### 8.3 Design-prep needed from content

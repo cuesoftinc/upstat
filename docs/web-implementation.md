@@ -3,7 +3,7 @@
 > How `web/` gets rebuilt: the **CueLABS™ Web Implementation Standard**
 > (ratified 2026-07-18, org-wide **[Directive]**) carried in full, plus the
 > Upstat-specific addendum — stage plan, token mapping, route map, TEST_MODE
-> contract, mock server, test strategy, legacy quarantine plan. Markers as in
+> contract, mock server, test strategy, legacy quarantine policy. Markers as in
 > [design.md](design.md): **[Directive]** = user-stated direction,
 > **[Proposed]** = ratifiable decision, **[Decided <date>]** = ratified.
 > Companion contracts: [engineering.md](engineering.md) (errors, authz,
@@ -14,10 +14,9 @@
 ## 1. The standard (ecosystem, shared across the three products)
 
 - **Stack**: Next.js 16 App Router + React 19 + TypeScript; Tailwind maps to
-  the token CSS variables (§3). Upstat's `web/` is **not** greenfield — the
-  existing styled-components + chart-library + gRPC-Web tree is the current
-  product; new-system components are token/Tailwind-based, and the existing
-  tree survives only under the legacy policy (§8) until retired.
+  the token CSS variables (§3). All live UI is token/Tailwind-based; the one
+  non-UI holdover is the gRPC-Web control-plane client, live per X-8 until
+  monitors-v2 (§8).
 - **Design tokens**: `web/src/design/tokens.css` — CSS custom properties
   mirroring design.md §2 exactly (light on `:root`, dark on
   `[data-theme="dark"]`, honoring `prefers-color-scheme` with manual
@@ -69,8 +68,7 @@
   shadcn/DaisyUI skins) and **no chart libraries** — a rule with teeth here,
   since charts are Upstat's product: TimeseriesPanel, LogHistogram, Heatmap,
   TopList, UptimeCard strips, sparklines, the TraceWaterfall time axis, and
-  the ServiceMap are bespoke SVG built to the Figma chart specs (the
-  existing chart-library pages are legacy, retired with their tree, §8).
+  the ServiceMap are bespoke SVG built to the Figma chart specs.
   Reuse is allowed only where it is invisible: headless behavior primitives
   (Radix/Base UI class — dialog, popover, select, tabs, switch, checkbox,
   tooltip, accordion semantics with focus traps, keyboard nav, ARIA),
@@ -91,10 +89,10 @@ design-phase QA loops, design.md §8).
 
 | Stage | Scope | Closes when |
 | --- | --- | --- |
-| **W0 Foundations** | `tokens.css` (§3) + Tailwind mapping · Inter/JetBrains Mono via `next/font` + the §2 type ramp in the Tailwind theme · MVC skeleton (`models/`, `controllers/`, `components/ui/`) · `AuthProvider` interface + `TestModeAuthProvider` · new `/signin` (single GoogleAuthButton screen; the ONLY auth route per the route standard) with the legacy login/signup pages quarantined per X-1 (§8) · mock server + seed dataset (§5–6) · Vitest + Playwright harnesses wired into CI build+test (UX-5) | tokens render both themes correctly vs the Style Guide page (dark default); TEST_MODE boots to a stubbed `/dashboard` against the mock server; `/signup` gone from routing (flows/auth.md); CI green |
+| **W0 Foundations** | `tokens.css` (§3) + Tailwind mapping · Inter/JetBrains Mono via `next/font` + the §2 type ramp in the Tailwind theme · MVC skeleton (`models/`, `controllers/`, `components/ui/`) · `AuthProvider` interface + `TestModeAuthProvider` · new `/signin` (single GoogleAuthButton screen; the ONLY auth route per the route standard, X-1) · mock server + seed dataset (§5–6) · Vitest + Playwright harnesses wired into CI build+test (UX-5) | tokens render both themes correctly vs the Style Guide page (dark default); TEST_MODE boots to a stubbed `/dashboard` against the mock server; `/signup` gone from routing (flows/auth.md); CI green |
 | **W1 Components** | `components/ui/*` per the design.md §8.1 build order (Stage 1 atoms → Stage 2 molecules → Stage 3 panels/chrome) and the §8.2/§8.2b contract rows — the bespoke-SVG chart set included · MI specs MI-1…MI-18 · unit tests per component. The §8.2b Marketing (Stage 5) rows land at the top of W2 instead — they have no consumer before it | every built component passes QA vs its Figma component set (variants, states, both themes, motion specs) |
 | **W2 Home — DONE (as built 2026-07-19, PR #146)** | Marketing kit (§8.2b Stage-5 rows) · Part A screens (§4): A1–A10 + iteration rows A11–A16 · demo cards on §8.3 synthetic data (U0-3) · live GitHub star fetch at runtime (A1 badge + A13 — no static count, per the as-built MarketingNav note) · dogfood instrumentation: `page_view` per the api.md §3.4 registry row, env-gated until the events layer (Phase 1) is live; CTA-click events are registered in the §3.4 master registry **before** W2 instruments them (registry-first discipline, api.md §3.4a) | QA vs the Stage-5 Figma page; Playwright covers the landing flow (§8.4) incl. the cross-page CTA handoff into the app |
-| **W3 Dashboards — DONE (as built 2026-07-19, PR #152)** | Part B routes (§4) under the `/dashboard` IA: NavRail (12 pillars) + TopBar chrome · first-run onboarding (create-org → send-your-first-data, MI-16) · B1–B12 screens with their create flows (dashboard + widget picker, monitor type-picker → rule editor, RUM property, declare-incident modal) and drill-ins · public status page route · feature controllers per pillar · legacy dashboard quarantine on close (§8) | QA vs the Stage-4 Figma frames + §8.4 prototype flows; Playwright covers the §8.4 "Login" journey (§7); remaining legacy component trees + mock `/api/dashboard/*` quarantined (the legacy `/dashboard/*` routes moved to `src/legacy` at W1, §8) |
+| **W3 Dashboards — DONE (as built 2026-07-19, PR #152)** | Part B routes (§4) under the `/dashboard` IA: NavRail (12 pillars) + TopBar chrome · first-run onboarding (create-org → send-your-first-data, MI-16) · B1–B12 screens with their create flows (dashboard + widget picker, monitor type-picker → rule editor, RUM property, declare-incident modal) and drill-ins · public status page route · feature controllers per pillar | QA vs the Stage-4 Figma frames + §8.4 prototype flows; Playwright covers the §8.4 "Login" journey (§7) |
 
 **W2 as-built (2026-07-19, PR #146).** Radix convergence complete — Modal/Sheet,
 Tooltip, Select type-ahead, Switch, Checkbox, NotificationPopover, and the
@@ -122,13 +120,9 @@ store. MI coverage closed out: MI-1 URL-synced global time, MI-3 zoom stack
 grid editor, MI-10 slash-command incident composer, and MI-18 saved views.
 Mock endpoints added: `orgs/{id}/activate`, `rules/{id}/test` +
 `monitors/{id}/test` (MI-9 replay), `channels/{id}/verify`, `status/{slug}`,
-`views` CRUD, and a `/v1/reset` test seam. The legacy orphan tranche
-quarantined 72 files (`git mv` only, zero deletions) to `src/legacy`; the
-gRPC/proto control-plane tree stays live per X-8 until monitors-v2, and the
-retirement-PR dependency candidates (`styled-components`, `chart.js`,
-`react-chartjs-2`, `recharts`, `@tanstack/react-query`, `js-cookie`,
-`@iconify/react`, `@react-oauth/google`, `@floating-ui/react-dom`) are
-listed, not removed here. `scripts/check-boundaries.mjs` — legacy
+`views` CRUD, and a `/v1/reset` test seam. The gRPC/proto control-plane
+tree stays live per X-8 until monitors-v2 (§8).
+`scripts/check-boundaries.mjs` — legacy
 quarantine, views-never-fetch, no-raw-hex — is wired into `npm run lint`.
 Un-ignoring the registry from ESLint surfaced a stale negation pattern in
 the old ignore list (it didn't reach nested files, so the registry had been
@@ -231,14 +225,13 @@ values, latencies, counts — per the §2 `tnum` rule.
 
 The new IA mounts at **`/dashboard`** **[Directive 2026-07-18, route
 standard]** — `/` home · `/signin` the only auth route · all app surfaces
-under `/dashboard/<area>`, canonical across the CueLABS™ products. The
-legacy dashboard tree quarantined to `src/legacy/app/dashboard` at W1 to
-free the path (§8). Rail order per pages.md Part B.
+under `/dashboard/<area>`, canonical across the CueLABS™ products. Rail
+order per pages.md Part B.
 
 | pages.md | Route | Screen |
 | --- | --- | --- |
 | Part A (A1–A16) | `/` | Public home page |
-| flows/auth.md · design.md §8.1 Stage 4 | `/signin` | Single auth screen — GoogleAuthButton + legal links (X-1; `/signup` retires, §8; `/login` 308-redirects here) |
+| flows/auth.md · design.md §8.1 Stage 4 | `/signin` | Single auth screen — GoogleAuthButton + legal links (X-1; `/login` 308-redirects here; there is no `/signup`) |
 | B1 | `/dashboard` | Home — org health: incidents banner (MI-14), triggered monitors, SLO burn (MI-15), watched dashboards |
 | B1 first-run | `/dashboard/onboarding` | create-org (name + IANA timezone, X-10) → send-your-first-data (ingestion key + snippet + MI-16 waiting-for-data; resolves to `/dashboard` on first datapoint) |
 | B2 | `/dashboard/dashboards` · `/dashboard/dashboards/{id}` | List (org-shared, favorites) · grid editor (MI-11/12); create flow = name → widget-picker overlay → edit mode |
@@ -365,41 +358,30 @@ here too: Playwright walks real user paths (the empty-org onboarding path
 included); empty/loading states are asserted at unit/integration level
 (screen-state parity, §2).
 
-## 8. Legacy quarantine plan
+## 8. Legacy quarantine
 
-`web/` is a **live legacy system** — password-auth screens, a
-styled-components dashboard shell with mock-data analytics pages, and a
-gRPC-Web control-plane client. The §1 policy applies in three tranches,
-each timed to the decision that obsoletes the code:
+Live paths carry zero dead code. `web/src/legacy/` is the standing
+quarantine mechanism — a dead tree is `git mv`-ed there (structure
+preserved; excluded from build, routing, and lint), then deleted in a
+dedicated `chore(web): retire legacy <area>` PR once its replacement
+passes QA — and it is **currently empty**. The guardrails stay armed:
+`scripts/check-boundaries.mjs` (wired into `npm run lint`) and the
+ESLint `no-restricted-imports` boundary fail any live import of
+`src/legacy/**`. Retired trees' dependencies (`styled-components`,
+`chart.js`, `react-chartjs-2`, `recharts`, `@tanstack/react-query`,
+`js-cookie`, `@iconify/react`, `@react-oauth/google`,
+`@floating-ui/react-dom`) remain in `package.json` unused, pending
+their own prune PR.
 
-1. **W0 — auth (X-1).** `src/app/login/` and `src/app/signup/` (the
-   username/password screens) `git mv` → `src/legacy/` in the W0 PR;
-   the new `/signin` (single GoogleAuthButton, §4; renamed from `/login` at W1 per the route standard, with a 308 redirect kept) replaces them —
-   flows/auth.md: `/signup` retires, Google-only product-wide. Retirement
-   PR after the W0 QA loop passes.
-2. **W1/W3 — the dashboard IA (ANA-002).** The legacy `/dashboard/*` route
-   tree (traffic, bounce, seo, pageloadtime, error, uptime, help, settings)
-   plus the legacy `NavBar`/`MenuBar`/`ProtectedRoute` (they linked the
-   retired `/login` with the old auth context) quarantined →
-   `src/legacy/` **at W1** — the route standard mounts the new IA at
-   `/dashboard` (§4), so the legacy tree had to vacate the path early.
-   The remaining legacy component trees (`components/uptime`,
-   `components/traffic`, `components/pages`, `shared-layouts`, the
-   styled-components theme/registry — the live `/` home still renders
-   some) and the mock `/api/dashboard/*` route handlers (api.md §1:
-   scaffolding, not product surface) quarantine when W3 closes its QA
-   loop, then retire in dedicated `chore(web): retire legacy <area>` PRs;
-   the styled-components and chart-library dependencies drop with the
-   retirement PRs.
-3. **monitors-v2 (OBS-006) — the gRPC-Web client (X-8).** `src/proto/*`,
-   `src/client.ts`, and the gRPC libs (`components/libs/grpc`) are
-   monitor/user **control-plane code, not UI** — X-8 keeps the existing
-   control plane on gRPC until monitors-v2, so this code stays **live**
-   past W3. At backend-integration time the monitor repository may wrap
-   the gRPC-Web client *inside* the models seam (views stay HTTP-shaped,
-   §5); when monitors-v2 flips the dashboard fully HTTP and Envoy retires
-   from the cloud topology, the proto tree quarantines and retires in its
-   own PR — synchronized with the backend migration, not the W stages.
+One tree stays live by design: the gRPC-Web control plane. `src/proto/*`,
+`src/client.ts`, and the gRPC libs (`components/libs/grpc`) are
+monitor/user **control-plane code, not UI** — X-8 keeps the existing
+control plane on gRPC until monitors-v2 (OBS-006). At backend-integration
+time the monitor repository may wrap the gRPC-Web client *inside* the
+models seam (views stay HTTP-shaped, §5); when monitors-v2 flips the
+dashboard fully HTTP and Envoy retires from the cloud topology, the
+proto tree quarantines and retires in its own PR — synchronized with
+the backend migration, not the W stages.
 
 `mobile/` (Part C companion) is untouched by W0–W3 and gets its own
 implementation standard — including its own application of the quarantine
@@ -423,6 +405,6 @@ policy — when that phase opens.
       X-8 cleanliness, enforced by review + lint rule)
 - [ ] Playwright §8.4 journeys green in CI; merge-to-main never deploys
       (X-6)
-- [ ] Legacy tranches land on schedule: auth at W0, `/dashboard` tree at
-      W3, proto/gRPC only at monitors-v2 — nothing outside `src/legacy/`
-      is dead code at any point
+- [ ] No dead code in live paths at any point: `src/legacy/` is the only
+      quarantine location and trends to empty (§8); the proto/gRPC
+      control plane retires only at monitors-v2

@@ -144,9 +144,9 @@ as the ecosystem's standardized event tracker **[PRD §4.2]**.
 - **Aggregation**: the observability service gains a rollup worker (hour/day
   buckets, approximate uniques via the daily-rotating `visitor_hash`).
   Dashboards and the stats API read rollups, never raw events.
-- **Dashboards**: the existing traffic page moves from mock
-  `/api/dashboard/*` routes onto `GET /v1/stats` (ANA-002); bounce/SEO/
-  page-load pages follow only where honest data exists (prd.md §4).
+- **Dashboards**: the B6 RUM pillar reads `GET /v1/stats` rollups
+  (ANA-002); bounce/SEO/page-load views ship only where honest data
+  exists (prd.md §4).
 
 ```mermaid
 sequenceDiagram

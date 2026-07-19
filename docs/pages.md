@@ -101,8 +101,8 @@ design.md §8.1.
   visitor model per data-model.md), core web vitals (LCP/CLS/INP from the
   browser SDK), top pages/referrers/devices/geo; error tracking (JS errors
   grouped by fingerprint).
-- Existing traffic dashboard pages fold into this pillar (mock routes die
-  as planned, ANA-002).
+- Website-traffic analytics live in this pillar — B6 is the product's
+  analytics surface (ANA-002).
 - Property create **[Directive 2026-07-18]**: RUM property-create screen
   (site/domain → property key issuance + browser-SDK snippet; keys managed
   in B12).
