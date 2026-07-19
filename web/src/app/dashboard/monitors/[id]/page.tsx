@@ -21,6 +21,9 @@ export default function RuleReplayPage() {
   const router = useRouter();
   const { rules, rule, testResult, testing, runTest } = useRuleController(id);
   const [toast, setToast] = useState<string | null>(null);
+  // replay toast derives from the result (no setState-in-effect) —
+  // dismissing hides it until the next replay run
+  const [dismissedResult, setDismissedResult] = useState<object | null>(null);
 
   // the replay runs on entry — this screen IS the replay frame
   useEffect(() => {
@@ -28,9 +31,10 @@ export default function RuleReplayPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once per rule
   }, [rule?.id]);
 
-  useEffect(() => {
-    if (testResult) setToast(`Replay complete — ${testResult.would_have_fired} firings in the last 24h`);
-  }, [testResult]);
+  const replayToast =
+    testResult && dismissedResult !== testResult
+      ? `Replay complete — ${testResult.would_have_fired} firings in the last 24h`
+      : null;
 
   if (rules.loading) {
     return (
@@ -60,7 +64,15 @@ export default function RuleReplayPage() {
     <div className="flex flex-col gap-4 px-6 py-5" data-testid="rule-replay-page">
       <header className="flex items-center justify-between gap-3">
         <h1 className="text-[20px] font-semibold">Monitor rule — test replay</h1>
-        {toast && <Toast kind="success" message={toast} onDismiss={() => setToast(null)} />}
+        {replayToast ? (
+          <Toast
+            kind="success"
+            message={replayToast}
+            onDismiss={() => setDismissedResult(testResult)}
+          />
+        ) : (
+          toast && <Toast kind="success" message={toast} onDismiss={() => setToast(null)} />
+        )}
       </header>
 
       <ul aria-label="Rule query" className="flex flex-wrap items-center gap-2">

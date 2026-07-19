@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -36,7 +36,8 @@ interface DragState {
  */
 export default function DashboardViewPage() {
   const { id } = useParams<{ id: string }>();
-  const ctrl = useDashboardController(id);
+  const searchParams = useSearchParams();
+  const ctrl = useDashboardController(id, searchParams.get("edit") === "1");
   const time = useTimeRange();
   const dashboard = ctrl.data;
 
@@ -294,11 +295,12 @@ function WidgetEditor({
   const [query, setQuery] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // reset per-open (key on target identity)
+  // reset per-open — the React "derive state from props" pattern (render-
+  // phase setState behind a change guard; no refs during render)
   const openKey = target === null ? "closed" : isNew ? "new" : (target as Widget).id;
-  const lastKey = useRef(openKey);
-  if (lastKey.current !== openKey) {
-    lastKey.current = openKey;
+  const [lastKey, setLastKey] = useState(openKey);
+  if (lastKey !== openKey) {
+    setLastKey(openKey);
     setType(null);
     setTitle(null);
     setQuery(null);

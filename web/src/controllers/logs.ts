@@ -34,24 +34,30 @@ export function useLogsExplorerController() {
   const [buffered, setBuffered] = useState<LogEvent[]>([]);
   const seen = useRef<Set<string>>(new Set());
   const pausedRef = useRef(false);
-  pausedRef.current = paused;
+
+  // effect-mirrored (never written during render — react-hooks/refs)
+  useEffect(() => {
+    pausedRef.current = paused;
+  }, [paused]);
 
   useEffect(() => {
-    if (!live) {
-      setTail([]);
-      setBuffered([]);
-      setPaused(false);
-      seen.current = new Set();
-      return;
-    }
+    if (!live) return;
     let stopped = false;
-    const poll = async () => {
+    seen.current = new Set();
+    const poll = async (first: boolean) => {
       try {
         const page = await logsRepo.query({ q: activeQuery, live: 1, limit: 60 });
         if (stopped) return;
         const fresh = page.events.filter((e) => !seen.current.has(e.id));
-        if (fresh.length === 0) return;
         for (const e of fresh) seen.current.add(e.id);
+        if (first) {
+          // entering live tail: fresh window, unpaused
+          setTail(fresh.slice(0, TAIL_MAX));
+          setBuffered([]);
+          setPaused(false);
+          return;
+        }
+        if (fresh.length === 0) return;
         if (pausedRef.current) {
           setBuffered((prev) => [...fresh, ...prev]);
         } else {
@@ -61,8 +67,8 @@ export function useLogsExplorerController() {
         // live tail is best-effort; the next poll retries
       }
     };
-    void poll();
-    const timer = window.setInterval(() => void poll(), TAIL_POLL_MS);
+    void poll(true);
+    const timer = window.setInterval(() => void poll(false), TAIL_POLL_MS);
     return () => {
       stopped = true;
       window.clearInterval(timer);

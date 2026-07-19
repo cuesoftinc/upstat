@@ -3,7 +3,7 @@
 import * as Popover from "@radix-ui/react-popover";
 import { clsx } from "clsx";
 import { Check, ChevronDown } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 
 export interface SelectOption {
   value: string;
@@ -45,6 +45,8 @@ export function Select({
   ...aria
 }: SelectProps) {
   const [open, setOpen] = useState(false);
+  // combobox → listbox wiring (jsx-a11y: combobox requires aria-controls)
+  const listboxId = useId();
   const [filter, setFilter] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -93,8 +95,11 @@ export function Select({
         <Popover.Trigger asChild>
           <button
             type="button"
+            // ARIA 1.2 select-only combobox pattern (semantic-landmark pass)
+            role="combobox"
             aria-haspopup="listbox"
             aria-expanded={open}
+            aria-controls={listboxId}
             aria-label={aria["aria-label"]}
             disabled={disabled}
             onKeyDown={onKeyDown}
@@ -135,8 +140,11 @@ export function Select({
           >
             <div
               className={clsx(
-                // font-ui: portaled content no longer inherits it from the wrapper
-                "font-ui z-[var(--z-dropdown)]",
+                // font-ui: portaled content no longer inherits it from the wrapper.
+                // z-toast (not z-dropdown): the menu portals to <body>, so a
+                // Select inside a Modal/Sheet (declare-incident, save-to-
+                // dashboard) must clear the z-modal overlay to stay clickable.
+                "font-ui z-[var(--z-toast)]",
                 "rounded-(--radius) border border-border bg-bg-elev shadow-lg",
               )}
               style={{ width: "var(--radix-popover-trigger-width)" }}
@@ -155,7 +163,7 @@ export function Select({
                   className="font-ui h-8 w-full border-b border-border bg-transparent px-2 text-[13px] text-text placeholder:text-text-2 focus:outline-none"
                 />
               )}
-              <ul role="listbox" className="max-h-56 overflow-y-auto py-1">
+              <ul id={listboxId} role="listbox" className="max-h-56 overflow-y-auto py-1">
                 {filtered.length === 0 && (
                   <li className="px-2 py-1.5 text-[13px] text-text-2">No matches</li>
                 )}

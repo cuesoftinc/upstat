@@ -11,11 +11,6 @@ import { SavedViewChip } from "@/components/ui/SavedViewChip";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useLogsExplorerController } from "@/controllers/logs";
 
-function formatCount(n: number): string {
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
-  return String(n);
-}
-
 /**
  * B4 logs explorer (Figma 128:1236) — FacetSidebar + QueryBar + LogLine
  * list + histogram header (MI-6); live tail with PAUSED pill + buffered
@@ -27,14 +22,6 @@ export default function LogsPage() {
 
   const facets = ctrl.base.data?.facets ?? {};
   const histogram = ctrl.base.data?.histogram ?? [];
-  const totals = histogram.reduce(
-    (acc, b) => {
-      for (const [level, count] of Object.entries(b.counts)) acc[level] = (acc[level] ?? 0) + count;
-      return acc;
-    },
-    {} as Record<string, number>,
-  );
-  const totalEvents = Object.values(totals).reduce((a, b) => a + b, 0);
 
   // display ascending (oldest → newest); the tail pins to the bottom
   const ascending = [...ctrl.events].reverse();
@@ -109,10 +96,7 @@ export default function LogsPage() {
         <section aria-label="Log stream" className="flex min-w-0 flex-1 flex-col gap-3">
           <header className="flex items-start gap-4">
             <div className="w-96 max-w-full rounded-(--radius) border border-border bg-bg-elev p-3">
-              <p className="font-data mb-2 text-[12px] tabular-nums text-text-2">
-                <span className="text-text">{formatCount(totalEvents)} events</span>
-                {"  "}error {formatCount(totals.ERROR ?? 0)} · warn {formatCount(totals.WARN ?? 0)}
-              </p>
+              {/* LogHistogram renders its own totals header (events · error · warn) */}
               {ctrl.base.loading ? (
                 <Skeleton kind="panel-axis" style={{ height: 64 }} />
               ) : (

@@ -7,7 +7,7 @@
  * explorer itself (query run + save-to-dashboard).
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { QueryFilter } from "@/components/ui/QueryBar";
 import {
   ApiError,
@@ -188,8 +188,11 @@ export function useMetricsExplorerController() {
   );
 
   // MI-1/MI-3: the active query re-runs whenever the global range moves.
+  // Deferred a tick (use-request pattern): keeps setState out of the
+  // synchronous effect body, no cascading renders.
   useEffect(() => {
-    void runQuery(activeQuery, time.fromIso, time.toIso);
+    const t = window.setTimeout(() => void runQuery(activeQuery, time.fromIso, time.toIso), 0);
+    return () => window.clearTimeout(t);
   }, [activeQuery, time.fromIso, time.toIso, runQuery]);
 
   const submit = useCallback(() => {

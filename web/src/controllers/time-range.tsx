@@ -15,7 +15,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -91,7 +90,8 @@ export function TimeRangeProvider({ children }: { children: ReactNode }) {
   const [preset, setPresetState] = useState<TimePreset | "custom">(init.preset);
   const [live, setLiveState] = useState(init.live);
   const [zoom, setZoom] = useState<Window | null>(init.window);
-  const stack = useRef<Window[]>([]);
+  // MI-3 zoom stack — state (not a ref): its depth renders in the chip.
+  const [stack, setStack] = useState<Window[]>([]);
   // Snapshot "now" once per preset selection so ranges stay stable across
   // renders (panels re-query on range change, not on every render).
   const [anchor, setAnchor] = useState(() => Date.now());
@@ -133,7 +133,7 @@ export function TimeRangeProvider({ children }: { children: ReactNode }) {
       setPresetState(parsed.preset);
       setZoom(parsed.window);
       setLiveState(parsed.live);
-      if (!parsed.window) stack.current = [];
+      if (!parsed.window) setStack([]);
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
@@ -141,7 +141,7 @@ export function TimeRangeProvider({ children }: { children: ReactNode }) {
 
   const setPreset = useCallback(
     (p: TimePreset) => {
-      stack.current = [];
+      setStack([]);
       setZoom(null);
       setPresetState(p);
       setAnchor(Date.now());
@@ -167,7 +167,7 @@ export function TimeRangeProvider({ children }: { children: ReactNode }) {
         toMs: Math.round(current.fromMs + toFrac * span),
       };
       if (next.toMs - next.fromMs < 10_000) return; // sanity floor: 10s
-      stack.current = [...stack.current, current];
+      setStack((prev) => [...prev, current]);
       setZoom(next);
       writeUrl({ preset, window: next, live }, true);
     },
@@ -175,7 +175,7 @@ export function TimeRangeProvider({ children }: { children: ReactNode }) {
   );
 
   const resetZoom = useCallback(() => {
-    stack.current = [];
+    setStack([]);
     setZoom(null);
     writeUrl({ preset, window: null, live }, true);
   }, [preset, live, writeUrl]);
@@ -188,14 +188,14 @@ export function TimeRangeProvider({ children }: { children: ReactNode }) {
       fromIso: new Date(current.fromMs).toISOString(),
       toIso: new Date(current.toMs).toISOString(),
       live,
-      zoomDepth: zoom ? stack.current.length || 1 : 0,
+      zoomDepth: zoom ? stack.length || 1 : 0,
       zoomLabel: `${hhmm(current.fromMs)} – ${hhmm(current.toMs)}`,
       setPreset,
       setLive,
       zoomBy,
       resetZoom,
     }),
-    [zoom, preset, current, live, setPreset, setLive, zoomBy, resetZoom],
+    [zoom, stack.length, preset, current, live, setPreset, setLive, zoomBy, resetZoom],
   );
 
   return <TimeRangeContext.Provider value={value}>{children}</TimeRangeContext.Provider>;

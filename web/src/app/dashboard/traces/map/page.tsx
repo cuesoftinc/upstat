@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ServiceMapNode } from "@/components/ui/ServiceMapNode";
@@ -27,11 +28,16 @@ function edgeLabel(edge: MapEdge): string {
  */
 export default function ServiceMapPage() {
   const { services, nodes, edges } = useServiceMapController();
-  const [selected, setSelected] = useState<string | null>(() =>
-    typeof window === "undefined"
-      ? null
-      : new URLSearchParams(window.location.search).get("service"),
-  );
+  // reactive search params — reading window.location races client navigation
+  const serviceParam = useSearchParams().get("service");
+  const [selected, setSelected] = useState<string | null>(serviceParam);
+  // same-route param changes (crosslinks) re-derive the highlight — the
+  // render-adjust pattern, not an effect (react-hooks/set-state-in-effect)
+  const [lastParam, setLastParam] = useState(serviceParam);
+  if (serviceParam !== lastParam) {
+    setLastParam(serviceParam);
+    if (serviceParam) setSelected(serviceParam);
+  }
   const [hoverEdge, setHoverEdge] = useState<MapEdge | null>(null);
 
   const nodeAt = (name: string) => nodes.find((n) => n.stats.service === name);

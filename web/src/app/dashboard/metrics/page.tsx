@@ -49,10 +49,13 @@ export default function MetricsExplorerPage() {
       .slice(0, 8);
   }, [summary.data, services.data]);
 
-  const serviceFacets = (services.data ?? []).map((s) => ({
-    value: s.service,
-    count: Math.round(s.req_per_s * 60),
-  }));
+  // ranked by count (MI-13's cardinality discipline applies to facets too)
+  const serviceFacets = (services.data ?? [])
+    .map((s) => ({
+      value: s.service,
+      count: Math.round(s.req_per_s * 60),
+    }))
+    .sort((a, b) => b.count - a.count);
   const selectedServices = ctrl.queryState.pills
     .filter((p) => p.facet === "service")
     .map((p) => p.value);
@@ -123,7 +126,7 @@ export default function MetricsExplorerPage() {
             values={serviceFacets}
             selected={selectedServices}
             onToggle={(value) => ctrl.pivot("service", value)}
-            topN={5}
+            topN={8}
           />
           <FacetGroup
             name="env"

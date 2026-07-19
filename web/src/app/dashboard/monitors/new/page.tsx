@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { clsx } from "clsx";
 import { Button } from "@/components/ui/Button";
@@ -22,11 +22,11 @@ export default function NewMonitorPage() {
   const router = useRouter();
   const alerts = useAlertsController();
   const monitors = useMonitorsController();
-  const [signal, setSignal] = useState<AlertSignal>(() => {
-    if (typeof window === "undefined") return "uptime";
-    const fromUrl = new URLSearchParams(window.location.search).get("signal");
-    return SIGNALS.includes(fromUrl as AlertSignal) ? (fromUrl as AlertSignal) : "uptime";
-  });
+  // reactive search params — reading window.location races client navigation
+  const signalParam = useSearchParams().get("signal");
+  const [signal, setSignal] = useState<AlertSignal>(
+    SIGNALS.includes(signalParam as AlertSignal) ? (signalParam as AlertSignal) : "uptime",
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

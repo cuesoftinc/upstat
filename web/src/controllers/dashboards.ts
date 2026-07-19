@@ -55,15 +55,14 @@ function isTypingTarget(target: EventTarget | null): boolean {
 }
 
 /** Single-dashboard controller — grid editing + widget CRUD (MI-11/12). */
-export function useDashboardController(id: string) {
+export function useDashboardController(id: string, initialEdit = false) {
   const state = useRequest(() => dashboardsRepo.get(id), [id]);
 
   // MI-11: `e` toggles edit mode; ?edit=1 lands in it (the create flow).
-  const [editMode, setEditMode] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      new URLSearchParams(window.location.search).get("edit") === "1",
-  );
+  // `initialEdit` comes from the view's reactive useSearchParams, so it is
+  // correct at mount — no effect needed (window.location would race
+  // client-side navigation).
+  const [editMode, setEditMode] = useState(initialEdit);
   const [savedPulse, setSavedPulse] = useState(false);
 
   useEffect(() => {
@@ -125,10 +124,12 @@ export function useDashboardController(id: string) {
 
   const duplicateWidget = useCallback(
     async (widget: Widget) => {
-      const { id: _id, dashboard_id: _did, ...rest } = widget;
       await dashboardsRepo.addWidget(id, {
-        ...rest,
+        type: widget.type,
         title: `${widget.title} (copy)`,
+        query: widget.query,
+        query_string: widget.query_string,
+        viz_options: widget.viz_options,
         layout: { ...widget.layout, y: widget.layout.y + widget.layout.h },
       });
       await state.reload();

@@ -60,7 +60,7 @@ export default function DashboardHomePage() {
               .
             </p>
           ) : (
-            <ul>
+            <ul aria-label="Dashboards">
               {watched.slice(0, 5).map((d) => (
                 <li key={d.id}>
                   <DashboardListRow

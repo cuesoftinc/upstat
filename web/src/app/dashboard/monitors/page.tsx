@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { AlertChannelCard } from "@/components/ui/AlertChannelCard";
 import { AlertFeedRow } from "@/components/ui/AlertFeedRow";
@@ -18,11 +18,9 @@ import { ReplayPanel } from "../replay-panel";
 export default function MonitorsPage() {
   const router = useRouter();
   const ctrl = useAlertsController();
-  const [selectedId, setSelectedId] = useState<string | null>(() =>
-    typeof window === "undefined"
-      ? null
-      : new URLSearchParams(window.location.search).get("rule"),
-  );
+  // reactive search params — reading window.location races client navigation
+  const ruleParam = useSearchParams().get("rule");
+  const [selectedId, setSelectedId] = useState<string | null>(ruleParam);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 

@@ -8,7 +8,7 @@
  */
 
 import { usePathname, useRouter } from "next/navigation";
-import { useMemo, useState, type ReactNode } from "react";
+import { Suspense, useMemo, useState, type ReactNode } from "react";
 import { CommandPalette, type CommandItem } from "@/components/ui/CommandPalette";
 import { IncidentBanner } from "@/components/ui/IncidentBanner";
 import { NavRail, NAV_PILLARS } from "@/components/ui/NavRail";
@@ -186,7 +186,10 @@ function ShellChrome({ children }: { children: ReactNode }) {
         )}
 
         <main id="main" className="min-w-0 flex-1 overflow-y-auto">
-          {children}
+          {/* Suspense above every page: screens read useSearchParams (deep
+              links, ?edit=1, ?service=…) and static prerender requires a
+              boundary (missing-suspense-with-csr-bailout). */}
+          <Suspense fallback={null}>{children}</Suspense>
         </main>
       </div>
 

@@ -17,7 +17,7 @@ import type {
   UptimeDay,
 } from "@/models";
 import type { IncidentHistoryUpdate } from "@/components/ui/IncidentHistoryEntry";
-import { analytics } from "@/models/analytics";
+import { track, usePageView } from "./use-analytics";
 import { githubRepo } from "@/models/repositories";
 import { buildTimeseries, type OutageWindow, type ParsedQuery } from "@/mocks/series";
 import { monitorHistory } from "@/mocks/uptime-data";
@@ -276,9 +276,7 @@ export function useHomeController() {
   );
 
   // page_view — registered dogfood event, env-gated (no-op in TEST_MODE)
-  useEffect(() => {
-    analytics.track("page_view", { path: "/" });
-  }, []);
+  usePageView("/");
 
   const onSignIn = useCallback(() => {
     setNavigating(true);
@@ -286,23 +284,23 @@ export function useHomeController() {
   }, [router]);
 
   const onTryCloud = useCallback(() => {
-    analytics.track("try_cloud_click", { path: "/" });
+    track("try_cloud_click", { path: "/" });
     setNavigating(true);
     router.push("/signin");
   }, [router]);
 
   const onSelfHost = useCallback(() => {
-    analytics.track("self_host_click", { path: "/" });
+    track("self_host_click", { path: "/" });
     document.getElementById("self-host")?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
   // docs-link variant: tracks the CTA but lets the anchor navigate
   const onSelfHostDocs = useCallback(() => {
-    analytics.track("self_host_click", { path: "/" });
+    track("self_host_click", { path: "/" });
   }, []);
 
   const onGithub = useCallback(() => {
-    analytics.track("github_click", { path: "/" });
+    track("github_click", { path: "/" });
   }, []);
 
   return {

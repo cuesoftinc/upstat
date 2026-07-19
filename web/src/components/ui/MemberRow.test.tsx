@@ -16,7 +16,7 @@ describe("MemberRow", () => {
       />,
     );
     expect(screen.getByText("kemi@cuesoft.io")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Role for Kemi" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Role for Kemi" })).toBeInTheDocument();
   });
 
   it("badges invited members and locks the owner role", () => {
@@ -26,6 +26,6 @@ describe("MemberRow", () => {
       />,
     );
     expect(screen.getByText("invited")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Role for Sade" })).toBeDisabled();
+    expect(screen.getByRole("combobox", { name: "Role for Sade" })).toBeDisabled();
   });
 });

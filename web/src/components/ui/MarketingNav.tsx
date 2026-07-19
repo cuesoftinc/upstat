@@ -1,6 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
+import Link from "next/link";
 import { ChevronDown, Star, Zap } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./Button";
@@ -47,7 +48,7 @@ export function MarketingNav({
         className="mx-auto flex h-14 w-full max-w-[1200px] items-center gap-3 px-6 md:gap-4"
       >
         {/* landing v2 brand mark (135:2): filled bolt glyph + lowercase wordmark */}
-        <a
+        <Link
           href="/"
           className="flex items-center gap-2 text-[16px] font-semibold text-text"
         >
@@ -58,7 +59,7 @@ export function MarketingNav({
             className="size-5 text-brand"
           />
           upstat
-        </a>
+        </Link>
 
         <div
           className="relative hidden md:block"

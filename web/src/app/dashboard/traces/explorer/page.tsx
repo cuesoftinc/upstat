@@ -40,7 +40,9 @@ export default function TraceExplorerPage() {
     setActiveQuery(joinQuery(queryState.pills, queryState.text));
   }, [queryState.pills, queryState.text]);
 
-  const selected = selectedId ? trace.data : null;
+  // guard the stale-data window while the detail request is in flight
+  const selected =
+    selectedId && trace.data && trace.data.trace_id === selectedId ? trace.data : null;
 
   return (
     <div className="flex flex-col gap-4 px-6 py-5" data-testid="trace-explorer">

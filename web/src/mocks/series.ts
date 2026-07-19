@@ -76,8 +76,9 @@ function baseRate(service: string): number {
 /**
  * Value generator for a (metric, fn, service) triple at a time bucket.
  * Shapes: duration metrics honor p50/p95/p99 ordering; count/rate metrics
- * follow the daily cycle; the INC-42 window spikes latency ~5x and errors
- * ~25x on the implicated services.
+ * follow the daily cycle; the INC-42 window spikes latency ~8x (checkout
+ * p95 peaks ~2.4s — the alert-feed narrative's "p95 2,412 ms breached crit
+ * 1,500 ms") and errors ~25x on the implicated services.
  */
 export function metricValue(
   metric: string,
@@ -98,7 +99,7 @@ export function metricValue(
     const quantile =
       fn === "p99" ? spread * 2.6 : fn === "p95" ? spread : fn === "p50" || fn === "avg" ? 1 : 1;
     let v = p50 * quantile * (0.9 + 0.2 * cycle) + noise(`${metric}:${fn}:${service}`, tMs, p50 * 0.08);
-    if (ramp > 0) v *= 1 + 4 * ramp; // ~5x at peak
+    if (ramp > 0) v *= 1 + 7 * ramp; // ~8x at peak (over the 1.5s crit line)
     return Math.max(1, Math.round(v * 100) / 100);
   }
 

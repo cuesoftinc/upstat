@@ -112,7 +112,7 @@ export default function IncidentsPage() {
               kind="destructive"
               onClick={() => void submit()}
               disabled={declaring}
-              data-testid="declare-submit"
+              data-testid="confirm-declare"
             >
               {declaring ? "Declaring…" : "Declare"}
             </Button>

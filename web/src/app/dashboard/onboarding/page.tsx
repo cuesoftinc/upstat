@@ -38,7 +38,7 @@ export default function OnboardingPage() {
   const [name, setName] = useState("");
   const [timezone, setTimezone] = useState<string | null>("UTC");
   const [error, setError] = useState<string | null>(null);
-  const options = useMemo(timezoneOptions, []);
+  const options = useMemo(() => timezoneOptions(), []);
 
   // Step 2 while the active org waits for data; step 1 otherwise.
   const waiting = !!onboarding && onboarding.org_created && !onboarding.has_data;

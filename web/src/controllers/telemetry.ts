@@ -76,7 +76,11 @@ export function useTracesController(params: { q?: string; from?: string; to?: st
 }
 
 export function useTraceController(traceId: string) {
-  return useRequest(() => tracesRepo.get(traceId), [traceId]);
+  return useRequest(
+    // no id yet → no fetch (the explorer renders the list only)
+    () => (traceId ? tracesRepo.get(traceId) : Promise.resolve(null)),
+    [traceId],
+  );
 }
 
 /** APM service list (pages.md B5). */
