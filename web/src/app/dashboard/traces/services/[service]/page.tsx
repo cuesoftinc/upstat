@@ -75,7 +75,7 @@ export default function ServiceDetailPage() {
         )}
       </header>
 
-      <div className="grid gap-5 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <section
           aria-labelledby="endpoints-heading"
           className="rounded-(--radius) border border-border bg-bg-elev p-4"
@@ -92,7 +92,10 @@ export default function ServiceDetailPage() {
           ) : endpoints.length === 0 ? (
             <p className="text-[13px] text-text-2">No traced endpoints in this range.</p>
           ) : (
-            <table className="w-full border-collapse text-[13px]">
+            // overflow-x-auto: the endpoints table scrolls inside the panel
+            // on narrow viewports (390 support)
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[420px] border-collapse text-[13px]">
               <thead>
                 <tr className="text-left text-[11px] uppercase tracking-wide text-text-2">
                   <th scope="col" className="px-2 py-1.5 font-medium">Endpoint</th>
@@ -125,6 +128,7 @@ export default function ServiceDetailPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </section>
 

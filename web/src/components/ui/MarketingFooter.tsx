@@ -87,10 +87,20 @@ export function MarketingFooter({
   return (
     <footer className={clsx("font-ui border-t border-border bg-bg px-6 py-10", className)}>
       {/* marketing container (design.md §2): footer band is full-bleed, its
-          content sits on the 1152 rails (outer px-6 supplies the gutters) */}
-      <div className="mx-auto flex max-w-[1152px] flex-wrap justify-between gap-8">
+          content sits on the 1152 rails (outer px-6 supplies the gutters).
+          Sibling-parity mobile structure (2026-07-19): brand + 4 columns in
+          ONE responsive grid — full-width brand row at 390, 2-col link
+          columns, one 5-col row at md+ (apparule/expendit stacking) */}
+      <div
+        className={clsx(
+          "mx-auto max-w-[1152px]",
+          inline
+            ? "flex flex-wrap justify-between gap-8"
+            : "grid grid-cols-2 gap-8 md:grid-cols-5",
+        )}
+      >
         {showBrand && (
-          <div className="flex max-w-56 flex-col gap-2">
+          <div className={clsx("flex max-w-56 flex-col gap-2", !inline && "col-span-2 md:col-span-1")}>
             <span className="flex items-center gap-2 text-[16px] font-semibold text-text">
               <span
                 aria-hidden="true"
@@ -148,8 +158,9 @@ export function MarketingFooter({
 
       {/* legal bar — verbatim copyright (linked marks), language selector
           (English-only, a real control — no i18n yet, ratified) and the
-          security-policy affordance */}
-      <div className="mx-auto mt-8 flex max-w-[1152px] flex-wrap items-center gap-x-6 gap-y-3 border-t border-border pt-4">
+          security-policy affordance. Sibling-parity stacking: © line first,
+          utilities as ONE grouped cluster that wraps beneath it at 390 */}
+      <div className="mx-auto mt-8 flex max-w-[1152px] flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-border pt-4">
         <p className="text-[12px] text-text-2">
           ©{" "}
           <a
@@ -174,24 +185,25 @@ export function MarketingFooter({
           </a>
           .
         </p>
-        <span className="flex-1" />
-        <a
-          href={SECURITY_URL}
-          className="flex items-center gap-1.5 text-[12px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
-        >
-          <ShieldCheck aria-hidden="true" className="size-3.5" />
-          Security
-        </a>
-        <label className="flex items-center gap-1.5 text-[12px] text-text-2">
-          <span className="sr-only">Language</span>
-          <select
-            aria-label="Language"
-            defaultValue="en"
-            className="rounded-(--radius) border border-border bg-bg-elev px-1.5 py-0.5 text-[12px] text-text-2"
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          <a
+            href={SECURITY_URL}
+            className="flex items-center gap-1.5 text-[12px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
           >
-            <option value="en">English</option>
-          </select>
-        </label>
+            <ShieldCheck aria-hidden="true" className="size-3.5" />
+            Security
+          </a>
+          <label className="flex items-center gap-1.5 text-[12px] text-text-2">
+            <span className="sr-only">Language</span>
+            <select
+              aria-label="Language"
+              defaultValue="en"
+              className="rounded-(--radius) border border-border bg-bg-elev px-1.5 py-0.5 text-[12px] text-text-2"
+            >
+              <option value="en">English</option>
+            </select>
+          </label>
+        </div>
       </div>
     </footer>
   );

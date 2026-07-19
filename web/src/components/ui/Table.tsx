@@ -19,7 +19,10 @@ export interface TableProps {
 /** Table — §8.2: header + rows, numeric right-aligned mono, compact density. */
 export function Table({ columns, rows, onRowClick, className }: TableProps) {
   return (
-    <table className={clsx("font-ui w-full border-collapse text-[13px]", className)}>
+    // overflow-x-auto: tables never shrink below their content min-width —
+    // on narrow viewports the table scrolls inside this wrapper (390 support)
+    <div className="overflow-x-auto">
+      <table className={clsx("font-ui w-full border-collapse text-[13px]", className)}>
       <thead>
         <tr className="border-b border-border">
           {columns.map((col) => (
@@ -60,6 +63,7 @@ export function Table({ columns, rows, onRowClick, className }: TableProps) {
           </tr>
         ))}
       </tbody>
-    </table>
+      </table>
+    </div>
   );
 }

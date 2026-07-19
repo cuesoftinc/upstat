@@ -68,10 +68,11 @@ function StarBadge({
  * marketing container (design.md §2: 1152px content at 1440, rails
  * x144/x1296).
  *
- * Mobile (SKILL.md mobile clause): below `md` the text links collapse into
- * a menu-button disclosure (hamburger, `aria-expanded`) opening a panel
- * with the same 4 links + ThemeToggle + Sign in + Try Cloud — no canonical
- * link may be unreachable at any viewport.
+ * Mobile (SKILL.md mobile clause, [Revised 2026-07-19]): below `md` the
+ * bar keeps the Try Cloud CTA beside the hamburger; the menu-button
+ * disclosure (`aria-expanded`) opens a panel carrying the 4 links +
+ * ThemeToggle + Sign in — no canonical link may be unreachable at any
+ * viewport, and the always-visible bar CTA is not duplicated in the panel.
  */
 export function MarketingNav({
   onSignIn,
@@ -138,9 +139,20 @@ export function MarketingNav({
         >
           Sign in
         </Link>
-        <Button kind="brand" onClick={onTryCloud} className="hidden md:inline-flex">
-          Try Cloud
-        </Button>
+        {/* Try Cloud stays in the bar at every viewport ([Revised
+            2026-07-19]) — compact below md, standard size on md+. Display
+            control lives on wrapper spans: a `hidden` on the Button itself
+            fights its base `inline-flex` (same-property utility conflict) */}
+        <span className="shrink-0 md:hidden">
+          <Button kind="brand" size="sm" onClick={onTryCloud}>
+            Try Cloud
+          </Button>
+        </span>
+        <span className="hidden shrink-0 md:block">
+          <Button kind="brand" onClick={onTryCloud}>
+            Try Cloud
+          </Button>
+        </span>
 
         {/* mobile disclosure trigger — the panel below carries the links */}
         <button
@@ -181,29 +193,20 @@ export function MarketingNav({
               </a>
             ),
           )}
+          {/* Try Cloud lives in the always-visible bar, not the panel
+              ([Revised 2026-07-19] — no duplication) */}
           <div className="mt-2 flex items-center justify-between border-t border-border pt-3">
             <ThemeToggle />
-            <div className="flex items-center gap-4">
-              <Link
-                href="/signin"
-                onClick={() => {
-                  setMenuOpen(false);
-                  onSignIn?.();
-                }}
-                className="text-[14px] font-medium text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
-              >
-                Sign in
-              </Link>
-              <Button
-                kind="brand"
-                onClick={() => {
-                  setMenuOpen(false);
-                  onTryCloud?.();
-                }}
-              >
-                Try Cloud
-              </Button>
-            </div>
+            <Link
+              href="/signin"
+              onClick={() => {
+                setMenuOpen(false);
+                onSignIn?.();
+              }}
+              className="text-[14px] font-medium text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
+            >
+              Sign in
+            </Link>
           </div>
         </div>
       )}

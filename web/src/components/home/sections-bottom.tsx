@@ -248,7 +248,7 @@ export function CommunitySection() {
           <FlaskConical aria-hidden="true" className="mt-1 size-7 shrink-0 text-brand" />
           <span className="flex min-w-0 flex-1 flex-col gap-1">
             <span className="text-[14px] font-semibold text-text">
-              CueLABS™ — more open source from Cuesoft
+              CueLABS™ — more open-source software from Cuesoft
             </span>
             <span className="text-[13px] text-text-2">
               The division upstat ships from — see what else is built in the open.

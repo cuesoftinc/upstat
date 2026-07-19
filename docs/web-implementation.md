@@ -218,6 +218,45 @@ horizontal document scroll, every TopBar control visible/operable
 in-viewport, TimePicker sheet + bell popover + org menu bounding boxes
 inside the viewport. Desktop (md+) is untouched.
 
+**Mobile content as-built (2026-07-19).** Beyond the TopBar, every pillar
+screen's CONTENT fits the 390 viewport (768 sanity-checked): explorer
+facet sidebars (logs, metrics) stack above their streams below `lg`;
+stat-tile and card grids start single-column and widen at `sm`/`lg`/`xl`;
+the B2 12-col widget grid stacks single-column in reading order below
+`md` (drag/resize affordances stay desktop-only — positions are 12-col
+coordinates); wide visualizations scroll horizontally *inside* their
+panels, never the document — `Table`, the bespoke APM service/endpoint
+tables and trace-result rows, `TraceWaterfall` (560px min canvas),
+`Heatmap`, `LogHistogram`, the service-map topology (880px min canvas)
+and `UptimeCard`'s 90-day strip; `SpanDrawer` becomes a full-width fixed
+sheet below `lg`; `Modal`/`Sheet` clamp to the viewport. Two
+intrinsic-sizing traps are codified from this pass: percentage
+`max-w-full` is ignored during intrinsic width computation (grids need
+explicit `grid-cols-1` / `minmax(0,…)` tracks and flex items `min-w-0`
+for truncation to actually bound a track), and the UA default
+`min-inline-size: min-content` on `<fieldset>` requires `min-w-0`.
+`e2e/mobile-responsive.spec.ts` sweeps every §4 route at 390 in both
+themes (with screenshots) plus a 768 pass — asserting the document never
+side-scrolls, `<main>` never pans, and any element wider than the
+viewport sits inside a horizontal-scroll container — and covers the
+span-drawer sheet, stacked widget grid + widget editor, and log-line
+expansion at 390.
+
+Marketing surfaces in the same pass (user-ratified, 2026-07-19): below
+`md` the MarketingNav bar keeps the **Try Cloud** CTA (compact size)
+beside the hamburger — always visible, so it is not duplicated in the
+disclosure panel, which carries the 4 canonical links + ThemeToggle +
+Sign in. MarketingFooter converges to the sibling mobile structure:
+brand block + 4 link columns render as ONE responsive grid
+(`grid-cols-2 gap-8 md:grid-cols-5`, brand `col-span-2 md:col-span-1` —
+full-width brand row at 390, orderly 2-col link columns, one 5-col row
+at md+), and the legal bar is `flex flex-wrap justify-between` with the
+© line first and the Security + language utilities as one grouped
+cluster wrapping beneath it at 390. The root layout carries
+`suppressHydrationWarning` on `<html>` (apparule ThemeProvider
+contract) — the pre-paint theme script sets `data-theme` before React
+hydrates.
+
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the

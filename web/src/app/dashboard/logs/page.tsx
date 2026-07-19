@@ -77,9 +77,10 @@ export default function LogsPage() {
         placeholder="service:api-common level:ERROR free text…"
       />
 
-      <div className="flex min-h-0 flex-1 gap-5">
+      {/* facets stack above the stream below lg (390 support) */}
+      <div className="flex min-h-0 flex-1 flex-col gap-5 lg:flex-row">
         {/* FacetSidebar (MI-6) */}
-        <aside aria-label="Facets" className="w-52 shrink-0 overflow-y-auto">
+        <aside aria-label="Facets" className="w-full shrink-0 lg:w-52 lg:overflow-y-auto">
           {(["service", "level", "host"] as const).map((facet) => (
             <FacetGroup
               key={facet}
@@ -94,8 +95,8 @@ export default function LogsPage() {
         </aside>
 
         <section aria-label="Log stream" className="flex min-w-0 flex-1 flex-col gap-3">
-          <header className="flex items-start gap-4">
-            <div className="w-96 max-w-full rounded-(--radius) border border-border bg-bg-elev p-3">
+          <header className="flex flex-wrap items-start gap-4">
+            <div className="w-96 min-w-0 max-w-full rounded-(--radius) border border-border bg-bg-elev p-3">
               {/* LogHistogram renders its own totals header (events · error · warn) */}
               {ctrl.base.loading ? (
                 <Skeleton kind="panel-axis" style={{ height: 64 }} />

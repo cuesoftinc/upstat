@@ -54,7 +54,10 @@ export default function ApmServicesPage() {
             arrive.
           </p>
         ) : (
-          <table className="w-full border-collapse text-[13px]">
+          // overflow-x-auto: the seven-column stats table scrolls inside the
+          // panel on narrow viewports (390 support)
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[560px] border-collapse text-[13px]">
             <thead>
               <tr className="text-left text-[11px] uppercase tracking-wide text-text-2">
                 <th scope="col" className="px-2 py-2 font-medium">Service</th>
@@ -92,6 +95,7 @@ export default function ApmServicesPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </section>
     </div>

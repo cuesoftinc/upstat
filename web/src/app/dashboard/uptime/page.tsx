@@ -65,7 +65,7 @@ export default function UptimePage() {
       </header>
 
       {/* UptimeCard strips */}
-      <section aria-label="Uptime overview" className="grid gap-4 lg:grid-cols-3">
+      <section aria-label="Uptime overview" className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {cards.loading || ctrl.loading ? (
           Array.from({ length: 3 }, (_, i) => (
             <Skeleton key={i} kind="panel-axis" style={{ height: 96 }} />

@@ -42,7 +42,7 @@ export function UptimeCard({ name, days, uptimePct, p95Ms, status, className }: 
   return (
     <div
       className={clsx(
-        "font-ui flex w-full max-w-xl flex-col gap-2.5 rounded-(--radius) border border-border bg-bg-elev p-4",
+        "font-ui flex w-full min-w-0 max-w-xl flex-col gap-2.5 rounded-(--radius) border border-border bg-bg-elev p-4",
         className,
       )}
     >

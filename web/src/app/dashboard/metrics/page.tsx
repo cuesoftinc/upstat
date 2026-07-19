@@ -68,7 +68,7 @@ export default function MetricsExplorerPage() {
 
   return (
     <div className="flex min-h-full flex-col gap-4 px-6 py-5" data-testid="metrics-explorer">
-      <header className="flex items-center gap-6">
+      <header className="flex flex-wrap items-center gap-x-6 gap-y-2">
         <h1 className="text-[20px] font-semibold">Metrics</h1>
         <PageTabs
           label="Metrics views"
@@ -121,9 +121,10 @@ export default function MetricsExplorerPage() {
         placeholder="metric:… facet:value | fn() by facet"
       />
 
-      <div className="flex min-h-0 flex-1 gap-5">
+      {/* facets stack above the chart below lg (390 support) */}
+      <div className="flex min-h-0 flex-1 flex-col gap-5 lg:flex-row">
         {/* FacetSidebar (MI-6) */}
-        <aside aria-label="Facets" className="w-52 shrink-0">
+        <aside aria-label="Facets" className="w-full shrink-0 lg:w-52">
           <FacetGroup
             name="service"
             values={serviceFacets}

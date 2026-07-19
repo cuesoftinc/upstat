@@ -57,9 +57,11 @@ export function Modal({
             }}
             className={clsx(
               "font-ui flex flex-col border-border bg-bg-elev shadow-xl outline-none",
+              // sheets and modals clamp to the viewport — full-width sheet /
+              // full-width dialog below their design widths (390 support)
               variant === "sheet"
-                ? "h-full w-[480px] animate-[sheet-in_var(--duration-entrance)_var(--ease-standard)] border-l motion-reduce:animate-none"
-                : "max-h-[85vh] rounded-(--radius) border",
+                ? "h-full w-full max-w-[480px] animate-[sheet-in_var(--duration-entrance)_var(--ease-standard)] border-l motion-reduce:animate-none"
+                : "max-h-[85vh] max-w-full rounded-(--radius) border",
               variant === "sm" && "w-[400px]",
               variant === "lg" && "w-[640px]",
               className,

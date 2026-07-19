@@ -26,7 +26,9 @@ export function Heatmap({ columns, rows, values, className }: HeatmapProps) {
     [0, 0.25, 0.5, 0.75, 1].map((t) => Math.round(t * (columns.length - 1))),
   );
   return (
-    <div className={clsx("font-ui flex w-fit gap-1.5", className)}>
+    // overflow-x-auto: the fixed-cell grid scrolls inside its panel on
+    // narrow viewports (390 support); desktop rendering is unchanged
+    <div className={clsx("font-ui flex w-fit max-w-full gap-1.5 overflow-x-auto", className)}>
       <div
         className="flex flex-col justify-between py-0.5 text-right"
         style={{ height: rows.length * (CELL + 1) }}

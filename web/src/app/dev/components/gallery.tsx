@@ -355,7 +355,7 @@ function MonitorRowDemo({ status, muted: initialMuted }: { status: StatusPillSta
 function FAQDemo() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const faqs = [
-    { q: "Is everything open source?", a: "Yes — the whole platform is MIT licensed; cloud runs the same code." },
+    { q: "Is everything open-source?", a: "Yes — the whole platform is MIT licensed; cloud runs the same code." },
     { q: "Do you use cookies for analytics?", a: "No. RUM is cookieless by design — the event schema is the privacy boundary." },
   ];
   return (

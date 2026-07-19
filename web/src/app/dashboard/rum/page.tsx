@@ -94,7 +94,7 @@ export default function RumPage() {
       ) : (
         <>
           {/* stat tiles */}
-          <section aria-label="Traffic and vitals" className="grid grid-cols-2 gap-4 lg:grid-cols-3 2xl:grid-cols-6">
+          <section aria-label="Traffic and vitals" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
             {summary.loading || vitals.loading ? (
               Array.from({ length: 6 }, (_, i) => <Skeleton key={i} kind="value" />)
             ) : (
@@ -109,7 +109,7 @@ export default function RumPage() {
             )}
           </section>
 
-          <div className="grid gap-5 xl:grid-cols-[1.2fr_1fr_1fr]">
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]">
             <TimeseriesPanel
               title={`Sessions — ${propertyName}`}
               query={`rum:sessions{property:${propertyName}} by device`}
@@ -136,7 +136,7 @@ export default function RumPage() {
             </section>
           </div>
 
-          <div className="grid gap-5 xl:grid-cols-[1fr_1.4fr]">
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
             <section aria-labelledby="vitals-heading" className="rounded-(--radius) border border-border bg-bg-elev p-4">
               <h2 id="vitals-heading" className="mb-3 text-[13px] text-text-2">
                 Web vitals — LCP distribution

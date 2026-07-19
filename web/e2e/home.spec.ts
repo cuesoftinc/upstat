@@ -62,7 +62,7 @@ test("home renders every Part A section", async ({ page }) => {
   // CTA-dedupe canon: the one GitHub+Discord pair lives in A13; A8 carries
   // the CueLABS™ card + docs links
   await expect(page.getByText("Discord — #upstat-lab on the CueLABS™ server")).toBeVisible();
-  await expect(page.getByText("CueLABS™ — more open source from Cuesoft")).toBeVisible();
+  await expect(page.getByText("CueLABS™ — more open-source software from Cuesoft")).toBeVisible();
 
   // A15 FAQ · A16 CTA band · A10 footer
   await expect(page.getByText("Questions, answered.")).toBeVisible();
@@ -94,7 +94,7 @@ test("nav + footer carry the canonical parity links (SKILL.md canon)", async ({ 
   }
   await expect(nav.getByTestId("theme-toggle")).toBeVisible();
   await expect(nav.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/signin");
-  await expect(nav.getByRole("button", { name: "Try Cloud" })).toBeVisible();
+  await expect(nav.getByRole("button", { name: "Try Cloud" }).filter({ visible: true })).toBeVisible();
 
   const footer = page.getByRole("contentinfo"); // panel legends are scoped <footer>s — the landmark is the page footer
   const columns: [string, [string, string][]][] = [
@@ -210,7 +210,7 @@ test("CTAs hand off into the app: Try Cloud → /signin (§8.4 cross-page)", asy
   const nav = page.getByRole("navigation", { name: "Marketing" });
 
   // nav Try Cloud primary CTA (back per the canon revision 2026-07-19)
-  await nav.getByRole("button", { name: "Try Cloud" }).click();
+  await nav.getByRole("button", { name: "Try Cloud" }).filter({ visible: true }).click();
   await page.waitForURL("**/signin");
   await expect(page.getByTestId("signin-screen")).toBeVisible();
 
@@ -279,7 +279,7 @@ test("enabled controls carry the pointer cursor (Directive 2026-07-19)", async (
   const cursorOf = (locator: ReturnType<typeof page.locator>) =>
     locator.evaluate((el) => getComputedStyle(el).cursor);
   // a rendered button — the base-layer rule, not a per-component class
-  expect(await cursorOf(nav.getByRole("button", { name: "Try Cloud" }))).toBe("pointer");
+  expect(await cursorOf(nav.getByRole("button", { name: "Try Cloud" }).filter({ visible: true }))).toBe("pointer");
   // a nav link — links keep the native pointer
   expect(await cursorOf(nav.getByRole("link", { name: "Docs" }))).toBe("pointer");
 });
@@ -296,6 +296,14 @@ test("mobile nav is a menu-button disclosure at 390w (SKILL.md mobile clause)", 
   await expect(menuButton).toBeVisible();
   await expect(menuButton).toHaveAttribute("aria-expanded", "false");
   await expect(panel).toBeHidden();
+
+  // [Revised 2026-07-19] the bar keeps the Try Cloud CTA beside the
+  // hamburger at every viewport — visible and inside the viewport at 390
+  const barCta = nav.getByRole("button", { name: "Try Cloud" }).filter({ visible: true });
+  await expect(barCta).toBeVisible();
+  const ctaBox = (await barCta.boundingBox())!;
+  expect(ctaBox.x).toBeGreaterThanOrEqual(0);
+  expect(ctaBox.x + ctaBox.width).toBeLessThanOrEqual(390);
 
   // open — retry until React's handler is attached (dev hydrates slowly)
   await expect(async () => {
@@ -332,8 +340,10 @@ test("mobile nav is a menu-button disclosure at 390w (SKILL.md mobile clause)", 
   await panel.getByTestId("theme-toggle").click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 
-  // Sign in text link is present; the Try Cloud CTA hands off into the app
+  // Sign in text link is present; Try Cloud lives in the bar, NOT the
+  // panel ([Revised 2026-07-19] — no duplication), and hands off to the app
   await expect(panel.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/signin");
-  await panel.getByRole("button", { name: "Try Cloud" }).click();
+  await expect(panel.getByRole("button", { name: "Try Cloud" })).toHaveCount(0);
+  await barCta.click();
   await page.waitForURL("**/signin");
 });

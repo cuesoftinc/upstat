@@ -28,7 +28,14 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    // suppressHydrationWarning: the pre-paint script may set data-theme
+    // before React hydrates the <html> element (apparule ThemeProvider
+    // contract — the persisted-light boot flagged a dev hydration warning)
+    <html
+      lang="en"
+      className={`${inter.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
+    >
       <body>
         {/* pre-paint: applies the persisted `upstat.theme` override before
             first paint (theme-parity canon) — a static literal script */}

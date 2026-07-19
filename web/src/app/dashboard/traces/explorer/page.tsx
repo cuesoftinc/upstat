@@ -74,9 +74,11 @@ export default function TraceExplorerPage() {
         ) : (traces.data ?? []).length === 0 ? (
           <EmptyState pillar="traces" className="border-0" />
         ) : (
-          <ul aria-label="Trace results" className="max-h-72 overflow-y-auto">
+          // overflow-x-auto: the fixed-column result rows scroll inside the
+          // panel on narrow viewports (390 support)
+          <ul aria-label="Trace results" className="max-h-72 overflow-y-auto overflow-x-auto">
             {(traces.data ?? []).map((t) => (
-              <li key={t.trace_id}>
+              <li key={t.trace_id} className="min-w-max">
                 <button
                   type="button"
                   data-testid={`trace-${t.trace_id.slice(0, 8)}`}
@@ -124,7 +126,7 @@ export default function TraceExplorerPage() {
             <Skeleton kind="panel-axis" style={{ height: 200 }} />
           ) : (
             <>
-              <header className="mb-2 flex items-center justify-between gap-3">
+              <header className="mb-2 flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-[16px] font-semibold">Trace — {selected.root_name}</h2>
                 <Link
                   href={`/dashboard/traces/map?service=${selected.root_service}`}
