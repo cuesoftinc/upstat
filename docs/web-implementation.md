@@ -242,6 +242,21 @@ viewport sits inside a horizontal-scroll container — and covers the
 span-drawer sheet, stacked widget grid + widget editor, and log-line
 expansion at 390.
 
+Marketing surfaces in the same pass (user-ratified, 2026-07-19): below
+`md` the MarketingNav bar keeps the **Try Cloud** CTA (compact size)
+beside the hamburger — always visible, so it is not duplicated in the
+disclosure panel, which carries the 4 canonical links + ThemeToggle +
+Sign in. MarketingFooter converges to the sibling mobile structure:
+brand block + 4 link columns render as ONE responsive grid
+(`grid-cols-2 gap-8 md:grid-cols-5`, brand `col-span-2 md:col-span-1` —
+full-width brand row at 390, orderly 2-col link columns, one 5-col row
+at md+), and the legal bar is `flex flex-wrap justify-between` with the
+© line first and the Security + language utilities as one grouped
+cluster wrapping beneath it at 390. The root layout carries
+`suppressHydrationWarning` on `<html>` (apparule ThemeProvider
+contract) — the pre-paint theme script sets `data-theme` before React
+hydrates.
+
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the

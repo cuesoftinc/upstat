@@ -31,7 +31,9 @@ describe("MarketingNav (parity canon, SKILL.md 2026-07-19, revised same day)", (
     renderNav();
     expect(screen.getByTestId("theme-toggle")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/signin");
-    expect(screen.getByRole("button", { name: "Try Cloud" })).toBeInTheDocument();
+    // two renderings of the one CTA ([Revised 2026-07-19]): compact below
+    // md (the bar keeps it beside the hamburger) + standard on md+
+    expect(screen.getAllByRole("button", { name: "Try Cloud" })).toHaveLength(2);
   });
 
   it("shows the runtime star count on the star badge when provided (never static)", () => {
