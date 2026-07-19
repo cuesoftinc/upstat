@@ -39,7 +39,8 @@ export default function MetricsSummaryPage() {
         />
       </header>
 
-      <div className="flex gap-5">
+      {/* tag explorer stacks under the catalog below xl (390 support) */}
+      <div className="flex flex-col gap-5 xl:flex-row">
         <section
           aria-label="Metric catalog"
           className="min-w-0 flex-[2] rounded-(--radius) border border-border bg-bg-elev p-3"
@@ -73,7 +74,7 @@ export default function MetricsSummaryPage() {
         {/* tag explorer */}
         <aside
           aria-label="Tag explorer"
-          className="w-80 shrink-0 rounded-(--radius) border border-border bg-bg-elev p-4"
+          className="w-full shrink-0 rounded-(--radius) border border-border bg-bg-elev p-4 xl:w-80"
         >
           <h2 className="mb-3 text-[16px] font-semibold">
             Tag explorer{active ? ` — ${active.name}` : ""}

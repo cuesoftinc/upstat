@@ -57,7 +57,10 @@ export function TraceWaterfall({ trace, className }: TraceWaterfallProps) {
 
   return (
     <div className={clsx("font-ui flex w-full", className)}>
-      <div className="min-w-0 flex-1">
+      {/* overflow-x-auto: the fixed-column waterfall (name · service · time
+          axis · duration) scrolls inside its panel on narrow viewports */}
+      <div className="min-w-0 flex-1 overflow-x-auto">
+        <div className="min-w-[560px]">
         <TraceMinimap
           spans={trace.spans}
           durationMs={trace.duration_ms}
@@ -98,6 +101,7 @@ export function TraceWaterfall({ trace, className }: TraceWaterfallProps) {
               onHover={(hovering) => setHoverService(hovering ? span.service : null)}
             />
           ))}
+          </div>
         </div>
       </div>
       {selected && (

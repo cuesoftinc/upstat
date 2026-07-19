@@ -23,7 +23,7 @@ export default function DashboardHomePage() {
       <h1 className="text-[20px] font-semibold">Home — org health</h1>
 
       {/* stat tiles */}
-      <section aria-label="Org health stats" className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <section aria-label="Org health stats" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {tiles.loading || !tiles.data
           ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} kind="value" />)
           : tiles.data.map((tile) => (
@@ -39,7 +39,7 @@ export default function DashboardHomePage() {
             ))}
       </section>
 
-      <div className="grid gap-10 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
         {/* watched dashboards */}
         <section aria-labelledby="watched-heading" className="min-w-0">
           <h2 id="watched-heading" className="mb-3 text-[16px] font-semibold">

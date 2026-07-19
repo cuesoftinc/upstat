@@ -58,13 +58,17 @@ export function LogHistogram({ buckets, height = 64, className }: LogHistogramPr
         </span>
       </div>
 
-      <div
-        role="img"
-        aria-label="log volume histogram"
-        className="flex items-end gap-0.5"
-        style={{ height }}
-      >
-        {buckets.map((bucket, i) => (
+      {/* overflow-x-auto: the fixed-width bars (and their axis labels)
+          scroll inside the card on narrow viewports (390 support) */}
+      <div className="overflow-x-auto">
+        <div className="w-max min-w-full">
+          <div
+            role="img"
+            aria-label="log volume histogram"
+            className="flex items-end gap-0.5"
+            style={{ height }}
+          >
+            {buckets.map((bucket, i) => (
           <Tooltip
             key={bucket.ts}
             content={STACK.filter(({ level }) => (bucket.counts[level] ?? 0) > 0)
@@ -97,17 +101,19 @@ export function LogHistogram({ buckets, height = 64, className }: LogHistogramPr
               <span className="sr-only">{totals[i]} lines</span>
             </span>
           </Tooltip>
-        ))}
-      </div>
+            ))}
+          </div>
 
-      <div className="flex justify-between">
-        {buckets
-          .filter((_, i) => labelIdx.has(i))
-          .map((b) => (
-            <span key={b.ts} className="font-data text-[11px] tabular-nums text-text-2">
-              {b.ts.slice(11, 16)}
-            </span>
-          ))}
+          <div className="mt-2 flex justify-between">
+            {buckets
+              .filter((_, i) => labelIdx.has(i))
+              .map((b) => (
+                <span key={b.ts} className="font-data text-[11px] tabular-nums text-text-2">
+                  {b.ts.slice(11, 16)}
+                </span>
+              ))}
+          </div>
+        </div>
       </div>
     </div>
   );

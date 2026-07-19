@@ -45,7 +45,8 @@ export function ErrorGroupRow({ group, onClick, className }: ErrorGroupRowProps)
         preserveAspectRatio="none"
         aria-hidden="true"
         style={{ width: 72, height: 16 }}
-        className="shrink-0"
+        // the sparkline yields to the fingerprint message below sm (390)
+        className="hidden shrink-0 sm:block"
       >
         {group.sparkline.map((v, i) => (
           <rect

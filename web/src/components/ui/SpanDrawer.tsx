@@ -24,7 +24,11 @@ export function SpanDrawer({ span, logs = [], onClose, className }: SpanDrawerPr
     <aside
       aria-label={`Span ${span.name}`}
       className={clsx(
-        "font-ui flex h-full w-[480px] flex-col border-l border-border bg-bg-elev",
+        "font-ui flex flex-col border-l border-border bg-bg-elev",
+        // §2 detail drawer (480px right panel) on lg+; below lg it becomes a
+        // full-width fixed sheet so the waterfall never side-scrolls the page
+        "fixed inset-y-0 right-0 z-[var(--z-modal)] w-full max-w-[480px] shadow-xl",
+        "lg:static lg:inset-auto lg:z-auto lg:h-full lg:w-[480px] lg:shadow-none",
         className,
       )}
     >

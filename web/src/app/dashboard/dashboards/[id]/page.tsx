@@ -12,6 +12,7 @@ import { WidgetTypePicker } from "@/components/ui/WidgetTypePicker";
 import type { Widget, WidgetLayout, WidgetType } from "@/models";
 import { useDashboardController } from "@/controllers/dashboards";
 import { defaultWidget, substituteVars } from "@/controllers/widgets";
+import { useMediaQuery } from "@/controllers/use-media-query";
 import { useTimeRange } from "@/controllers/time-range";
 import { WidgetBody } from "./widget-body";
 
@@ -52,6 +53,9 @@ export default function DashboardViewPage() {
   // MI-11 drag ghost
   const [drag, setDrag] = useState<DragState | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  // below md the 12-col grid stacks single-column in reading order (390
+  // support); drag/resize affordances follow the desktop layout only
+  const stacked = useMediaQuery("(max-width: 767px)");
 
   const effectiveVars = useMemo(() => {
     const out: Record<string, string> = {};
@@ -121,7 +125,7 @@ export default function DashboardViewPage() {
     return (
       <div className="flex flex-col gap-4 px-6 py-5">
         <Skeleton kind="line" className="w-64" />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {Array.from({ length: 4 }, (_, i) => (
             <Skeleton key={i} kind="panel-axis" style={{ height: 220 }} />
           ))}
@@ -193,8 +197,10 @@ export default function DashboardViewPage() {
           data-testid="widget-grid"
           className="grid"
           style={{
-            gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))`,
-            gridAutoRows: ROW_H,
+            gridTemplateColumns: stacked ? "minmax(0, 1fr)" : `repeat(${COLS}, minmax(0, 1fr))`,
+            // stacked rows size to content: the plot keeps its layout.h
+            // height and the legend renders below it unclipped
+            gridAutoRows: stacked ? "auto" : ROW_H,
             gap: GUTTER,
           }}
           onPointerMove={onDragMove}
@@ -212,8 +218,8 @@ export default function DashboardViewPage() {
                 data-widget-id={widget.id}
                 className="relative min-w-0"
                 style={{
-                  gridColumn: `${layout.x + 1} / span ${layout.w}`,
-                  gridRow: `${layout.y + 1} / span ${layout.h}`,
+                  gridColumn: stacked ? "1 / -1" : `${layout.x + 1} / span ${layout.w}`,
+                  gridRow: stacked ? "auto" : `${layout.y + 1} / span ${layout.h}`,
                   opacity: drag?.widgetId === widget.id ? 0.85 : 1,
                 }}
               >
@@ -239,7 +245,7 @@ export default function DashboardViewPage() {
                     height={mode === "fullscreen" ? 480 : Math.max(plotH, 64)}
                   />
                 </WidgetShell>
-                {ctrl.editMode && mode !== "fullscreen" && (
+                {ctrl.editMode && mode !== "fullscreen" && !stacked && (
                   <>
                     {/* MI-11 drag strip — grabs the header band */}
                     <div

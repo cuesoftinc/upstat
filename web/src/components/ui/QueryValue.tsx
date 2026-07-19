@@ -48,7 +48,9 @@ export function QueryValue({
     <div
       data-threshold={threshold}
       className={clsx(
-        "font-ui relative flex w-fit min-w-44 flex-col items-start gap-1.5 overflow-hidden",
+        // max-w-full + min-w-0: the tile clamps to its widget/grid cell on
+        // narrow layouts instead of overflowing (390/768 support)
+        "font-ui relative flex w-fit min-w-0 max-w-full flex-col items-start gap-1.5 overflow-hidden",
         "rounded-(--radius) border border-border bg-bg-elev p-4",
         className,
       )}
@@ -79,7 +81,7 @@ export function QueryValue({
           viewBox={`0 0 ${sparkline.length - 1} 28`}
           preserveAspectRatio="none"
           aria-hidden="true"
-          className="relative"
+          className="relative max-w-full"
           style={{ width: 200, height: 28 }}
         >
           <polyline

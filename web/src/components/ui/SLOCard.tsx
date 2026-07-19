@@ -19,7 +19,9 @@ export function SLOCard({ slo, className }: SLOCardProps) {
     <div
       data-state={slo.state}
       className={clsx(
-        "font-ui flex w-64 flex-col gap-2 rounded-(--radius) border border-border bg-bg-elev p-4",
+        // w-full capped at the Figma 256px card — shrinks with its grid cell
+        // instead of overflowing narrow viewports (390/768 support)
+        "font-ui flex w-full max-w-64 flex-col gap-2 rounded-(--radius) border border-border bg-bg-elev p-4",
         className,
       )}
     >

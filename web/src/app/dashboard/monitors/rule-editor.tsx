@@ -114,7 +114,8 @@ export function RuleEditor({
         </label>
       </div>
 
-      <fieldset className="grid grid-cols-3 gap-4 border-0 p-0">
+      {/* min-w-0 beats the UA fieldset min-inline-size:min-content (390) */}
+      <fieldset className="grid min-w-0 grid-cols-1 gap-4 border-0 p-0 sm:grid-cols-3">
         <legend className="mb-1 text-[13px] text-text-2">Thresholds · evaluation window</legend>
         <label className="flex flex-col gap-1 text-[13px]">
           <span className="text-warn">warn &gt;</span>
@@ -135,7 +136,7 @@ export function RuleEditor({
         </label>
       </fieldset>
 
-      <fieldset className="border-0 p-0">
+      <fieldset className="min-w-0 border-0 p-0">
         <legend className="mb-1 text-[13px] text-text-2">Notification channels</legend>
         <ul className="flex flex-col gap-1.5">
           {channels.map((ch) => (
@@ -145,7 +146,7 @@ export function RuleEditor({
                 onCheckedChange={() => toggleChannel(ch.id)}
                 aria-label={`Notify ${ch.target}`}
               />
-              <span className="font-data truncate text-text-2">{ch.target}</span>
+              <span className="font-data min-w-0 truncate text-text-2">{ch.target}</span>
               {ch.health !== "verified" && (
                 <span className="text-[11px] text-warn">({ch.health})</span>
               )}

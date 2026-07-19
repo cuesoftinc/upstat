@@ -44,7 +44,7 @@ export default function ServiceMapPage() {
 
   return (
     <div className="flex flex-col gap-4 px-6 py-5" data-testid="service-map">
-      <header className="flex items-center gap-6">
+      <header className="flex flex-wrap items-center gap-x-6 gap-y-2">
         <h1 className="text-[20px] font-semibold">Service map</h1>
         <PageTabs label="APM views" tabs={apmTabs("map")} />
         {selected && (
@@ -68,7 +68,10 @@ export default function ServiceMapPage() {
           their edge appears here.
         </section>
       ) : (
-        <section aria-label="Service topology" className="relative" style={{ height: H }}>
+        // overflow-x-auto: the %-positioned topology needs a minimum canvas
+        // width — it pans inside the section on narrow viewports (390)
+        <section aria-label="Service topology" className="overflow-x-auto">
+          <div className="relative min-w-[880px]" style={{ height: H }}>
           {/* edges */}
           <svg
             viewBox={`0 0 ${W} ${H}`}
@@ -161,6 +164,7 @@ export default function ServiceMapPage() {
               </li>
             ))}
           </ul>
+          </div>
         </section>
       )}
     </div>
