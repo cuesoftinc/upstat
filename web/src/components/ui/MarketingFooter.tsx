@@ -55,7 +55,7 @@ const COLUMNS: FooterColumn[] = [
       { label: "GitHub", href: "https://github.com/cuesoftinc/upstat" },
       { label: "Discord", href: "https://discord.gg/CDfZxxrxbb" },
       { label: "Roadmap", href: "https://cuesoft.gitbook.io/upstat/product/roadmap" },
-      { label: "CueLABS", href: "https://cuelabs.cuesoft.io" },
+      { label: "CueLABS™", href: "https://cuelabs.cuesoft.io" },
     ],
   },
   {
@@ -101,7 +101,7 @@ export function MarketingFooter({
               Upstat
             </span>
             <span className="text-[12px] leading-[1.45] text-text-2">
-              Open-source observability by CueLABS. MIT licensed.
+              Open-source observability by CueLABS™. MIT licensed.
             </span>
           </div>
         )}

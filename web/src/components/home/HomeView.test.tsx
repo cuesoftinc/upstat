@@ -58,7 +58,7 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
       screen.getByText("Go gRPC services · Next.js + React/TS · ClickHouse · OpenTelemetry"),
     ).toBeInTheDocument();
     // A8 community
-    expect(screen.getByText("CueLABS Discord — #upstat-lab")).toBeInTheDocument();
+    expect(screen.getByText("CueLABS™ Discord — #upstat-lab")).toBeInTheDocument();
     // A15 FAQ + A16 CTA band
     expect(screen.getByText("Questions, answered.")).toBeInTheDocument();
     expect(screen.getByText("OTLP in. Answers out.")).toBeInTheDocument();

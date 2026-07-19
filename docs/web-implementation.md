@@ -1,6 +1,6 @@
 # Upstat — Web Implementation Standard
 
-> How `web/` gets rebuilt: the **CueLABS Web Implementation Standard**
+> How `web/` gets rebuilt: the **CueLABS™ Web Implementation Standard**
 > (ratified 2026-07-18, org-wide **[Directive]**) carried in full, plus the
 > Upstat-specific addendum — stage plan, token mapping, route map, TEST_MODE
 > contract, mock server, test strategy, legacy quarantine plan. Markers as in
@@ -231,7 +231,7 @@ values, latencies, counts — per the §2 `tnum` rule.
 
 The new IA mounts at **`/dashboard`** **[Directive 2026-07-18, route
 standard]** — `/` home · `/signin` the only auth route · all app surfaces
-under `/dashboard/<area>`, canonical across the CueLABS products. The
+under `/dashboard/<area>`, canonical across the CueLABS™ products. The
 legacy dashboard tree quarantined to `src/legacy/app/dashboard` at W1 to
 free the path (§8). Rail order per pages.md Part B.
 

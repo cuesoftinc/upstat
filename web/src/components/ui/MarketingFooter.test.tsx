@@ -20,7 +20,7 @@ const CANON: Record<string, [string, string][]> = {
     ["GitHub", "https://github.com/cuesoftinc/upstat"],
     ["Discord", "https://discord.gg/CDfZxxrxbb"],
     ["Roadmap", "https://cuesoft.gitbook.io/upstat/product/roadmap"],
-    ["CueLABS", "https://cuelabs.cuesoft.io"],
+    ["CueLABS™", "https://cuelabs.cuesoft.io"],
   ],
   Legal: [
     ["Privacy", "https://privacy.cuesoft.io"],

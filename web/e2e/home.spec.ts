@@ -59,7 +59,7 @@ test("home renders every Part A section", async ({ page }) => {
   await expect(
     page.getByText("Go gRPC services · Next.js + React/TS · ClickHouse · OpenTelemetry"),
   ).toBeVisible();
-  await expect(page.getByText("CueLABS Discord — #upstat-lab")).toBeVisible();
+  await expect(page.getByText("CueLABS™ Discord — #upstat-lab")).toBeVisible();
 
   // A15 FAQ · A16 CTA band · A10 footer
   await expect(page.getByText("Questions, answered.")).toBeVisible();
@@ -119,7 +119,7 @@ test("nav + footer carry the canonical parity links (SKILL.md canon)", async ({ 
         ["GitHub", "https://github.com/cuesoftinc/upstat"],
         ["Discord", "https://discord.gg/CDfZxxrxbb"],
         ["Roadmap", "https://cuesoft.gitbook.io/upstat/product/roadmap"],
-        ["CueLABS", "https://cuelabs.cuesoft.io"],
+        ["CueLABS™", "https://cuelabs.cuesoft.io"],
       ],
     ],
     [
