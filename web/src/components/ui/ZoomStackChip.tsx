@@ -25,7 +25,10 @@ export function ZoomStackChip({ depth, label, onReset, className }: ZoomStackChi
     >
       <ZoomIn aria-hidden="true" className="size-3 text-text-2" />
       <span className="tabular-nums text-text-2">×{depth}</span>
-      <span className="tabular-nums">{label}</span>
+      {/* the range label is the wide part — it collapses with the mobile
+          TopBar treatment (<md) so a zoomed chart can't re-overflow the
+          bar; depth + reset stay (PR 164 review) */}
+      <span className="hidden tabular-nums md:inline">{label}</span>
       {onReset && (
         <button
           type="button"
