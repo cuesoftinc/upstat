@@ -5,6 +5,7 @@
  * embed (A6). Render-only; data from the home controller.
  */
 
+import Link from "next/link";
 import type { AlertRule, Series } from "@/models";
 import { AlertRuleCard } from "@/components/ui/AlertRuleCard";
 import {
@@ -254,12 +255,12 @@ export function StatusEmbedSection({ rows, updatedAt }: StatusEmbedSectionProps)
       </div>
       {/* the REAL status page is the in-app B7 route — the imagined
           status.upstat.cuesoft.io host was a dead link (sweep 2026-07-19) */}
-      <a
+      <Link
         href="/status/upstat"
         className="mt-4 inline-block font-data text-[12px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
       >
         /status/upstat — our own public status page
-      </a>
+      </Link>
     </Section>
   );
 }
