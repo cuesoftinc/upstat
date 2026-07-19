@@ -39,10 +39,8 @@ const COLUMNS: FooterColumn[] = [
     links: [
       { label: "Docs", href: "https://cuesoft.gitbook.io/upstat" },
       { label: "Quickstart", href: "https://cuesoft.gitbook.io/upstat/setup" },
-      {
-        label: "API reference",
-        href: "https://cuesoft.gitbook.io/upstat/system/api-surface",
-      },
+      // In-product Scalar reference (X-2) — renders docs/api/openapi.yaml.
+      { label: "API reference", href: "/docs/api" },
       {
         label: "Self-host guide",
         href: "https://cuesoft.gitbook.io/upstat/system/deployment",

@@ -332,6 +332,21 @@ check:boundaries`); the web tooling (boundary gate, prettier config,
 vitest/playwright/tsconfig shapes, `PW_PORT` port isolation) is converged
 with apparule and expendit.
 
+**Public API reference as-built (2026-07-20, ratified).** `/docs/api` is
+the public Scalar reference (X-2): the `@scalar/api-reference-react`
+embed (`ScalarApiReference` view inside `DocsApiView`) under the
+marketing nav with a minimal legal strip; nav wiring (star count,
+`try_cloud_click` → `/signin`, `page_view`) comes from
+`useDocsApiController`. It renders `docs/api/openapi.yaml` — the single
+spec source — served by the `/docs/api/openapi.yaml` route handler from
+a build-time string asset (`npm run generate:openapi`, wired as
+`predev`/`prebuild`/`pretypecheck`; output gitignored under
+`src/generated/`). Theme follows ThemeProvider (Scalar `darkMode`
+config; its own toggle hidden); remote default fonts are disabled
+(self-host ethos). The footer Docs column's "API reference" links
+`/docs/api`; `e2e/docs-api.spec.ts` pins route 200, a rendered operation
+from the spec, the served document, and the footer handoff.
+
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the
@@ -381,6 +396,7 @@ order per pages.md Part B.
 | --- | --- | --- |
 | Part A (A1–A16) | `/` | Public home page |
 | flows/auth.md · design.md §8.1 Stage 4 | `/signin` | Single auth screen — GoogleAuthButton + legal links (X-1; the only auth route — stale `/login` links 404 on the branded page (stub removed 2026-07-19); there is no `/signup`) |
+| X-2 | `/docs/api` | Public API reference — Scalar embed rendering `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); marketing nav chrome, minimal legal strip **[Ratified 2026-07-20]** |
 | B1 | `/dashboard` | Home — org health: incidents banner (MI-14), triggered monitors, SLO burn (MI-15), watched dashboards |
 | B1 first-run | `/dashboard/onboarding` | create-org (name + IANA timezone, X-10) → send-your-first-data (ingestion key + snippet + MI-16 waiting-for-data; resolves to `/dashboard` on first datapoint) |
 | B2 | `/dashboard/dashboards` · `/dashboard/dashboards/{id}` | List (org-shared, favorites) · grid editor (MI-11/12); create flow = name → widget-picker overlay → edit mode |
