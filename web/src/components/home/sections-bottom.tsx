@@ -37,7 +37,7 @@ export interface SelfHostSectionProps {
 export function SelfHostSection({ onSelfHostDocs }: SelfHostSectionProps) {
   return (
     <Section id="self-host" title="Self-host — own your telemetry.">
-      <div className="grid items-start gap-12 lg:grid-cols-2">
+      <div className="grid items-start gap-12 lg:grid-cols-[1fr_480px]">
         <div className="min-w-0 flex flex-col gap-6">
           <p className="max-w-[520px] text-[14px] leading-normal text-text-2">
             Telemetry is your most sensitive exhaust — queries, user paths,
@@ -110,7 +110,7 @@ export function CloudSelfHostSection({
 }: CloudSelfHostSectionProps) {
   return (
     <Section title="Cloud when you want it. Yours when you need it.">
-      <div className="grid items-start gap-12 lg:grid-cols-[560px_1fr]">
+      <div className="grid items-start gap-12 lg:grid-cols-[1fr_480px]">
         <CloudVsSelfHostTable
           rows={PLAN_ROWS}
           featureHeader=""
@@ -224,7 +224,7 @@ export function DevelopersSection({ onGithub }: DevelopersSectionProps) {
 export function CommunitySection() {
   return (
     <Section id="community" title="Community">
-      <div className="grid items-start gap-12 lg:grid-cols-[520px_1fr]">
+      <div className="grid items-start gap-12 lg:grid-cols-[1fr_480px]">
         <a
           href={DISCORD_URL}
           className="flex items-start gap-4 rounded-(--radius) border border-border bg-bg-elev p-4 transition-colors duration-[var(--duration-base)] hover:border-text-2"
@@ -296,7 +296,7 @@ export interface FinalCtaSectionProps {
 export function FinalCtaSection({ onTryCloud, onSelfHost }: FinalCtaSectionProps) {
   return (
     <section aria-label="Get started" className="border-y border-border bg-bg-elev">
-      <div className="mx-auto flex max-w-[1148px] flex-col items-center gap-4 px-6 py-14 text-center">
+      <div className="mx-auto flex max-w-[1200px] flex-col items-center gap-4 px-6 py-14 text-center">
         <h2 className="text-[26px] font-semibold text-text md:text-[32px]">
           OTLP in. Answers out.
         </h2>

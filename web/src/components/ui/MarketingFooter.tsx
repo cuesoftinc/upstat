@@ -66,7 +66,10 @@ export function MarketingFooter({
 }: MarketingFooterProps) {
   return (
     <footer className={clsx("font-ui border-t border-border bg-bg px-6 py-10", className)}>
-      <div className="mx-auto flex max-w-5xl flex-wrap justify-between gap-8">
+      {/* marketing container (design.md §2): footer band is full-bleed, its
+          content sits on the 1152 rails (outer px-6 supplies the gutters —
+          the old generic max-w-5xl (1024) drifted 64px off the rail). */}
+      <div className="mx-auto flex max-w-[1152px] flex-wrap justify-between gap-8">
         {showBrand && (
           <div className="flex flex-col gap-2">
             <span className="flex items-center gap-2 text-[16px] font-semibold text-text">
@@ -124,7 +127,7 @@ export function MarketingFooter({
         ))}
       </div>
       {copyright && (
-        <p className="mx-auto mt-8 max-w-5xl text-[12px] text-text-2">{copyright}</p>
+        <p className="mx-auto mt-8 max-w-[1152px] text-[12px] text-text-2">{copyright}</p>
       )}
     </footer>
   );
