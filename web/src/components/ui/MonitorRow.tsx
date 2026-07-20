@@ -38,7 +38,10 @@ export function MonitorRow({
         className,
       )}
     >
-      <StatusPill status={status} dotOnly />
+      {/* full labeled pill per the MonitorRow master (status ×6) — dot-only
+          is reserved for the §5 colorblind rendering, not a row default
+          (adjudicated 2026-07-20) */}
+      <StatusPill status={status} />
       <button
         type="button"
         onClick={onClick}

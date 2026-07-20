@@ -19,7 +19,7 @@ describe("APIKeyRow", () => {
         onRevoke={() => undefined}
       />,
     );
-    expect(screen.getByText("revoked")).toBeInTheDocument();
+    expect(screen.getByText("REVOKED")).toBeInTheDocument();
     expect(screen.queryByLabelText("Revoke Old collector")).toBeNull();
   });
 
@@ -38,7 +38,8 @@ describe("APIKeyRow", () => {
         }}
       />,
     );
-    expect(screen.getByText("rotation grace (24h)")).toBeInTheDocument();
+    // full StatusPill construction per the master (ACTIVE / ROTATING)
+    expect(screen.getByText("ROTATING")).toBeInTheDocument();
     expect(screen.getByText("431 rejected")).toBeInTheDocument();
   });
 });

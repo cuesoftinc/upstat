@@ -3,6 +3,7 @@
 import { clsx } from "clsx";
 import { Mail, Trash2, Webhook } from "lucide-react";
 import type { AlertChannel } from "@/models";
+import { StatusPill, type StatusPillStatus } from "./StatusPill";
 
 export interface AlertChannelCardProps {
   channel: AlertChannel;
@@ -10,6 +11,13 @@ export interface AlertChannelCardProps {
   onDelete?: () => void;
   className?: string;
 }
+
+/** Health → pill status (master chips: VERIFIED ok · DEGRADED crit). */
+const HEALTH_PILL: Record<AlertChannel["health"], StatusPillStatus> = {
+  verified: "ok",
+  unverified: "warn",
+  degraded: "crit",
+};
 
 /** AlertChannelCard — §8.2 alert forms: webhook/email · unverified/verified/degraded. */
 export function AlertChannelCard({
@@ -37,16 +45,14 @@ export function AlertChannelCard({
           {channel.target}
         </span>
       </div>
-      <span
-        className={clsx(
-          "shrink-0 text-[12px] font-medium",
-          channel.health === "verified" && "text-ok",
-          channel.health === "unverified" && "text-warn",
-          channel.health === "degraded" && "text-crit",
-        )}
-      >
-        {channel.health}
-      </span>
+      {/* health renders as a full StatusPill per the master (VERIFIED /
+          DEGRADED chips, B8 130:2621) — lowercase colored text was drift
+          (adjudicated 2026-07-20) */}
+      <StatusPill
+        status={HEALTH_PILL[channel.health]}
+        label={channel.health.toUpperCase()}
+        className="shrink-0"
+      />
       {channel.health === "unverified" && onVerify && (
         <button
           type="button"

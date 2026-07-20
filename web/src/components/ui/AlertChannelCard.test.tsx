@@ -45,6 +45,7 @@ describe("AlertChannelCard", () => {
       />,
     );
     expect(screen.getByText("oncall@upstat.dev")).toBeInTheDocument();
-    expect(screen.getByText("degraded")).toBeInTheDocument();
+    // full StatusPill construction per the master (VERIFIED / DEGRADED)
+    expect(screen.getByText("DEGRADED")).toBeInTheDocument();
   });
 });

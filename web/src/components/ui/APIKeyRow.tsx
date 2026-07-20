@@ -4,6 +4,7 @@ import { clsx } from "clsx";
 import { Check, Copy, Trash2 } from "lucide-react";
 import { useState } from "react";
 import type { ApiKey } from "@/models";
+import { StatusPill, type StatusPillStatus } from "./StatusPill";
 
 export interface APIKeyRowProps {
   apiKey: ApiKey;
@@ -11,10 +12,15 @@ export interface APIKeyRowProps {
   className?: string;
 }
 
-const STATUS_LABEL: Record<ApiKey["status"], string> = {
-  active: "active",
-  rotation_grace: "rotation grace (24h)",
-  revoked: "revoked",
+// Full StatusPill per the APIKeyRow master (ACTIVE / ROTATING chips,
+// B12 132:3237) — lowercase colored text was drift (adjudicated 2026-07-20).
+const STATUS_PILL: Record<
+  ApiKey["status"],
+  { status: StatusPillStatus; label: string }
+> = {
+  active: { status: "ok", label: "ACTIVE" },
+  rotation_grace: { status: "warn", label: "ROTATING" },
+  revoked: { status: "nodata", label: "REVOKED" },
 };
 
 /**
@@ -70,22 +76,17 @@ export function APIKeyRow({ apiKey, onRevoke, className }: APIKeyRowProps) {
           </button>
         </span>
       </div>
-      <span
-        className={clsx(
-          "shrink-0 text-[12px]",
-          apiKey.status === "active" && "text-ok",
-          apiKey.status === "rotation_grace" && "text-warn",
-          apiKey.status === "revoked" && "text-nodata",
-        )}
-      >
-        {STATUS_LABEL[apiKey.status]}
-      </span>
       {/* Trailing stat clips in narrow compositions (368px how-it-works
           column) — the Figma master hides it there, so the row hides it
           below 416px of its own width (container query, not viewport). */}
       <span className="hidden w-24 shrink-0 text-right text-[12px] tabular-nums text-text-2 @[26rem]:block">
         {apiKey.rejected_count} rejected
       </span>
+      <StatusPill
+        status={STATUS_PILL[apiKey.status].status}
+        label={STATUS_PILL[apiKey.status].label}
+        className="shrink-0"
+      />
       {onRevoke && apiKey.status !== "revoked" && (
         <button
           type="button"
