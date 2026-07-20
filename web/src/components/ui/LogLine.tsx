@@ -28,6 +28,18 @@ function formatTs(ts: string): string {
   return ts.slice(11, 23); // HH:MM:SS.mmm
 }
 
+// Level ×5 row construction per the master (47:163, ratified §8.2):
+// full-row level tint + 3px left level bar on collapsed rows. Colors
+// follow the LevelChip mapping [Decided 2026-07-16] (INFO → brand,
+// DEBUG → text-2, TRACE → nodata); hover deepens the same tint.
+const ROW_TINT: Record<LogEvent["level"], string> = {
+  ERROR: "border-l-crit bg-crit/8 hover:bg-crit/15",
+  WARN: "border-l-warn bg-warn/8 hover:bg-warn/15",
+  INFO: "border-l-brand bg-brand/8 hover:bg-brand/15",
+  DEBUG: "border-l-text-2 bg-text-2/8 hover:bg-text-2/15",
+  TRACE: "border-l-nodata bg-nodata/8 hover:bg-nodata/15",
+};
+
 /** LogLine — §8.2: collapsed / expanded (JSON tree) / level ×5 tints (MI-5). */
 export function LogLine({
   event,
@@ -91,7 +103,10 @@ export function LogLine({
           // fixed h-7 (LOG_LINE_ROW_PX): the B4 window relies on one
           // deterministic collapsed height
           "flex h-7 w-full items-center gap-2 px-2 text-left",
-          "transition-colors duration-[var(--duration-fast)] ease-standard hover:bg-bg-elev",
+          "transition-colors duration-[var(--duration-fast)] ease-standard",
+          // level tint-bg + 3px left bar (master 47:163)
+          "border-l-[3px]",
+          ROW_TINT[event.level],
         )}
       >
         <ChevronRight
