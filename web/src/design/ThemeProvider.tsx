@@ -6,8 +6,9 @@
  * expendit and upstat):
  *
  * - `preference` is what the user chose; persisted at `upstat.theme`
- *   ("light"/"dark" stored explicitly; KEY ABSENT = system — the
- *   cross-product storage convention).
+ *   ("light"/"dark"/"system" stored explicitly; KEY ABSENT = the
+ *   product's design default, dark — system is an explicit choice, the
+ *   cross-product storage convention since e43f01c).
  * - `data-theme` on <html> always carries the RESOLVED theme ("light" or
  *   "dark"): explicit preferences resolve to themselves; system resolves
  *   via `prefers-color-scheme` and tracks it LIVE (matchMedia listener —
