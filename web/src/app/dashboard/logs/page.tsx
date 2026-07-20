@@ -39,8 +39,14 @@ export default function LogsPage() {
   // §5: j/k walk the log lines; Enter expands (MI-17 cheatsheet rows)
   useLogLineKeys(listRef);
 
-  // B4 Patterns tab ([Designed 2026-07-20]) beside the explorer list
-  const [tab, setTab] = useState<LogsTab>(tabFromUrl);
+  // B4 Patterns tab ([Designed 2026-07-20]) beside the explorer list.
+  // Server renders the Logs tab; ?tab= resolves after mount, deferred a
+  // tick (the NavRail/use-request pattern) so SSR stays deterministic.
+  const [tab, setTab] = useState<LogsTab>("logs");
+  useEffect(() => {
+    const t = window.setTimeout(() => setTab(tabFromUrl()), 0);
+    return () => window.clearTimeout(t);
+  }, []);
   const switchTab = (next: LogsTab) => {
     setTab(next);
     const params = new URLSearchParams(window.location.search);
