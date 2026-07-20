@@ -1,5 +1,6 @@
 "use client";
 
+import { Zap } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { IncidentHistoryEntry } from "@/components/ui/IncidentHistoryEntry";
@@ -58,12 +59,14 @@ export default function StatusPage() {
     >
       <header className="flex flex-col gap-2">
         <h1 className="flex items-center gap-2 text-[24px] font-semibold">
-          <span
+          {/* brand mark = the filled zap glyph (adjudicated 2026-07-20;
+              frame 132:3530 header) */}
+          <Zap
             aria-hidden="true"
-            className="inline-flex size-7 items-center justify-center rounded-(--radius) bg-brand text-[14px] font-semibold text-on-brand"
-          >
-            U
-          </span>
+            fill="currentColor"
+            strokeWidth={0}
+            className="size-6 text-brand"
+          />
           {page.org_name.toLowerCase()} status
         </h1>
         {/* no subscribe affordance yet (pages.md B7 subscribe = Later) —

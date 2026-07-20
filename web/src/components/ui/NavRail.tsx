@@ -17,6 +17,7 @@ import {
   ScrollText,
   Settings,
   Target,
+  Zap,
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
@@ -205,8 +206,16 @@ function RailBody({
           expanded ? "px-1" : "justify-center",
         )}
       >
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-(--radius) bg-brand text-[14px] font-semibold text-on-brand">
-          U
+        {/* brand mark = the filled zap glyph (adjudicated 2026-07-20: the
+            zap IS the brand across NavRail/signin/status/footer — the "U"
+            tile was code drift; masters 284:2/285:2) */}
+        <span className="flex size-8 shrink-0 items-center justify-center">
+          <Zap
+            aria-hidden="true"
+            fill="currentColor"
+            strokeWidth={0}
+            className="size-6 text-brand"
+          />
         </span>
         {expanded && (
           <span className="text-[14px] font-semibold text-text">upstat</span>

@@ -1,7 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Zap } from "lucide-react";
 
 export interface FooterLink {
   label: string;
@@ -101,12 +101,14 @@ export function MarketingFooter({
         {showBrand && (
           <div className="col-span-2 flex max-w-56 flex-col gap-2 md:col-span-1">
             <span className="flex items-center gap-2 text-[16px] font-semibold text-text">
-              <span
+              {/* brand mark = the filled zap glyph (adjudicated 2026-07-20;
+                  the "U" tile was code drift) */}
+              <Zap
                 aria-hidden="true"
-                className="flex size-6 items-center justify-center rounded-(--radius) bg-brand text-[12px] font-semibold text-on-brand"
-              >
-                U
-              </span>
+                fill="currentColor"
+                strokeWidth={0}
+                className="size-5 text-brand"
+              />
               Upstat
             </span>
             <span className="text-[12px] leading-[1.45] text-text-2">
