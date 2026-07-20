@@ -102,7 +102,10 @@ export const GOOD_FIRST_ISSUES = [
 
 export const SELF_HOST_CHECKLIST = [
   "Every pillar ships: uptime, RUM, metrics, logs, traces, dashboards, alerts, SLOs, status pages",
-  "ClickHouse for telemetry, Postgres for the control plane — batteries included",
+  // Current-system truth: the compose stack runs on MongoDB (architecture.md);
+  // the ratified ClickHouse telemetry store (decisions.md U-1) lands with
+  // OBS-001 and stays out of shipping claims until it ships.
+  "MongoDB ships in the box — one datastore, nothing else to stand up",
   "Helm chart for Kubernetes when you outgrow compose",
 ];
 
