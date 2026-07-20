@@ -62,20 +62,27 @@ export function useSyntheticCheckController(id: string | null) {
 
 /**
  * Run view read model — the check, its run list (newest first) and the
- * selected run (`runId` from the URL; latest when absent). Deep-linkable
- * state rides the query string per the §4 route-map rule.
+ * selected run (`runRef` from the URL; latest when absent). Deep-linkable
+ * state rides the query string per the §4 route-map rule. `?run=` accepts
+ * SHAREABLE refs: the internal id (`synrun_0007`) or the visible run
+ * number (`482` / `#482`) — the frame addresses runs by #number (audit
+ * 2026-07-20; a wrong ref used to silently render the empty state).
  */
 export function useSyntheticRunController(
   checkId: string,
-  runId: string | null,
+  runRef: string | null,
 ) {
   const check = useRequest(() => syntheticsRepo.get(checkId), [checkId]);
   const runs = useRequest(() => syntheticsRepo.runs(checkId), [checkId]);
-  const selected =
-    (runId
-      ? (runs.data ?? []).find((r) => r.id === runId)
-      : (runs.data ?? [])[0]) ?? null;
-  return { check, runs, selected };
+  const list = runs.data ?? [];
+  const selected = runRef
+    ? (list.find((r) => r.id === runRef) ??
+      list.find((r) => String(r.number) === runRef.replace(/^#/, "")) ??
+      null)
+    : (list[0] ?? null);
+  /** True when a `?run=` ref was given but matches no run (runs exist). */
+  const refNotFound = runRef !== null && selected === null && list.length > 0;
+  return { check, runs, selected, refNotFound };
 }
 
 /**

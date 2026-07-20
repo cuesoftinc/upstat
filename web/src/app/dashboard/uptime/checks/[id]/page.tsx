@@ -28,13 +28,17 @@ function viewportLabel(viewport: string): string {
  * B7 synthetic run view (Figma "B7 — Synthetic check run (multi-step
  * results)") — per-step pass/fail timeline (StepResultRow), stop-at-first-
  * failure copy, UptimeCard context and the failure-screenshot card.
- * `?run=` selects a run; the latest renders by default.
+ * `?run=` selects a run (internal id or visible #number — shareable refs);
+ * the latest renders by default.
  */
 export default function SyntheticRunPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const runId = useSearchParams().get("run");
-  const { check, runs, selected } = useSyntheticRunController(id, runId);
+  const { check, runs, selected, refNotFound } = useSyntheticRunController(
+    id,
+    runId,
+  );
   const context = useSyntheticContext(check.data);
   const synthetics = useSyntheticsController();
 
@@ -173,6 +177,12 @@ export default function SyntheticRunPage() {
             )}
           </div>
         </>
+      ) : refNotFound ? (
+        // a bad ?run= ref must never claim "No runs yet" while the run
+        // history below shows runs (audit 2026-07-20)
+        <p className="text-[13px] text-text-2" data-testid="run-not-found">
+          Run not found — pick a run from the history below.
+        </p>
       ) : (
         <p className="text-[13px] text-text-2">
           No runs yet — Run once to execute the steps now.

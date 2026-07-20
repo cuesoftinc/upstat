@@ -72,6 +72,16 @@ describe("buildUsageReport (honest sums from the seed)", () => {
     expect(traces.value).toBeLessThanOrEqual(traces.peak);
   });
 
+  it("display compact-scales past 1000M (audit 2026-07-20: no “5551.4M”)", () => {
+    for (const row of report.rows) {
+      // never a 4+ digit mantissa on the M scale — billions promote to B
+      expect(row.display).not.toMatch(/\d{4,}(\.\d+)?M$/);
+      if (row.value >= 1_000_000_000 && /[MB]$/.test(row.display)) {
+        expect(row.display).toMatch(/B$/);
+      }
+    }
+  });
+
   it("every row carries the verbatim plan copy and a usable bar scale", () => {
     for (const row of report.rows) {
       expect(row.plan).toBe("Self-host: unlimited · Cloud: announced at GA");
