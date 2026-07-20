@@ -129,8 +129,10 @@ verified in both themes) — the one extra constraint the teal brand imposes.
     License."** with a language selector (English-only, ships ahead of i18n
     by ratified decision) and a security-policy affordance (SECURITY.md).
   - **Theme toggle everywhere**: marketing nav AND dashboard chrome (TopBar)
-    and settings; `data-theme` on `<html>`, persisted at localStorage
-    `upstat.theme`, falling back to dark (upstat's design default). Every
+    and settings; three-state cycle light → dark → system (system follows
+    live `prefers-color-scheme`) **[Revised 2026-07-20]**; `data-theme` on
+    `<html>`, persisted at localStorage `upstat.theme`, falling back to dark
+    (upstat's design default). Every
     canonical href must return HTTP 200; Playwright asserts the inventory on
     both surfaces.
 
@@ -384,7 +386,7 @@ project license, the copy reads **MIT**.
 | **App chrome** | |
 | NavRail / NavRailItem | pillar icon ×12 · item: default / hover (flyout label) / active (brand accent) · rail chrome 56px: flyout-open / collapsed — **as built (2026-07-17):** NavRailItem is the variant set; NavRail ships as a single chrome component with rail states documented in its description — **[Directive 2026-07-19]:** rail is expandable; NavRail is now a variant set `state=collapsed` (56px) / `state=expanded` (240px icon+label rows, pillar section groups, foot chevron toggle, `upstat` wordmark); NavRailItem gains a `layout=rail/expanded` axis (expanded row 228px: default / hover raised bg / active accent bar); toggle persists per user, default expanded ≥1280px; exemplar `B1 — Home (rail expanded)` |
 | TopBar | org/env switcher closed/open · global TimePicker slot · search (`/`) field · bell: idle / unread-badge / flash (MI-14) — **as built (2026-07-17):** single chrome component, switcher/bell states documented in its description; bell badge states are CountBadge instances — **[Directive 2026-07-19]:** utility cluster now search · ThemeToggle · bell (theme parity canon); the master's flex spacer right-pins the cluster at any instance width |
-| ThemeToggle | theme: dark (moon) / light (sun) — lucide `icon/moon`/`icon/sun`, 26px hairline button, token-bound · lives on the marketing nav AND the TopBar utility cluster (parity canon) · persists at localStorage `upstat.theme`, default dark — **[Directive 2026-07-19]** |
+| ThemeToggle | theme: dark (moon) / light (sun) / system (lucide `icon/monitor`) — 26px hairline button, the variant shows the state you are ON, token-bound · cycle order light → dark → system; system follows live `prefers-color-scheme` · lives on the marketing nav AND the TopBar utility cluster (parity canon) · persists at localStorage `upstat.theme`, default dark when unset — **[Revised 2026-07-20]** |
 | Modal / Sheet | modal sm/lg · right sheet · header + body slot + footer actions · z `sheet/modal 40` (§2 layers) |
 | CommandPalette / SearchOverlay | empty / results / no-results · result row: icon + label + kbd hint (`/` search, MI-17) |
 | **Primitives** | |
