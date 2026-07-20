@@ -85,3 +85,30 @@ test("?view=state deep-links the grouped view", async ({ page }) => {
   await expect(page.getByTestId("rules-by-state")).toBeHidden();
   await expect(page).toHaveURL(/\/dashboard\/monitors$/);
 });
+
+test("rule editor panel hugs its content — no dead panel below the form (130:2621; crosscheck 2026-07-20)", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signIn(page);
+  await page.goto("/dashboard/monitors");
+  await page.getByTestId("rule-rule_checkout_p95").click();
+  await expect(
+    page.getByRole("heading", { name: /Edit rule — Checkout p95 latency/ }),
+  ).toBeVisible();
+  const form = page.getByTestId("rule-editor");
+  await expect(form).toBeVisible();
+  // let the async replay slot settle before measuring
+  await page.waitForTimeout(600);
+
+  const panelBox = (await page
+    .locator('section[aria-labelledby="editor-heading"]')
+    .boundingBox())!;
+  const formBox = (await form.boundingBox())!;
+  // the frame shows the panel at content height: form bottom + p-5 (20px)
+  // + 1px border. More slack than that = the grid-stretch dead-whitespace
+  // class (the panel used to pin to the rules column's full height).
+  const slack = panelBox.y + panelBox.height - (formBox.y + formBox.height);
+  expect(slack).toBeGreaterThanOrEqual(19);
+  expect(slack).toBeLessThanOrEqual(23);
+});
