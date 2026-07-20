@@ -535,6 +535,26 @@ Figma templates (EmptyState/MI-16 + first-run copy; Skeleton loading; a
 demo-data toggle where the screen's spec calls for one — first application
 B1/B2/B4/B5), and the QA loop checks all three.
 
+**Self-host tabbed snippet as-built (2026-07-20, PR #184).** A14's static
+compose-output `pre` is now the user-approved Docker Compose | Helm tab
+pair (Figma proposal 413:2), an extension of the §8.2b `CodeSnippet` +
+Tabs kit component: new `tabsLabel` (tablist accessible name — "Install
+method" here; the §8.2b "Language" default stands) and `prompt`
+(decorative select-none `$ ` prompts in the brand command color; the copy
+payload stays the raw commands) props, plus roving tabindex +
+Arrow/Home/End on the tablist — A5's OTel tabs inherit the keyboard
+semantics. Mirrored two-line commands: `git clone
+https://github.com/cuesoftinc/upstat` shared; `cd upstat && docker
+compose up --build -d` (the repo's `make up`) vs `cd upstat && helm
+install upstat deploy/helm` (the real chart path). The shared muted
+caption renders once under the block — "Compose ships MongoDB; the Helm
+chart expects yours (MONGO_URI). All 8 pillars come up on :3000." —
+visible in both tab states, so switching never shifts layout. The
+`COMPOSE_OUTPUT` seed lines retire with the `pre` they decorated. Unit:
+`CodeSnippet.test.tsx` (tabsLabel, prompt payload, per-tab copy, roving
+focus, copied-morph reset); e2e: `home.spec.ts` pins helm-tab copy → the
+clipboard payload, caption persistence and the 1440/390 container fit.
+
 ## 3. Token mapping — design.md §2 → `web/src/design/tokens.css`
 
 One custom property per Figma variable in the `upstat/tokens` collection
