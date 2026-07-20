@@ -622,3 +622,70 @@ test("mobile nav is a menu-button disclosure at 390w (SKILL.md mobile clause)", 
   await barCta.click();
   await page.waitForURL("**/signin");
 });
+
+// Type contract — the landing's key roles render the Figma Home frame's
+// (135:2) computed type (fleet font-weight audit 2026-07-20): Display/44
+// Semi Bold hero, 28/600 section headings, 16/600 pillar titles, and the
+// fleet font-smoothing standard (grayscale antialiasing — Figma rasterizes
+// grayscale; subpixel reads heavier than the approved canvas).
+test.describe("type contract — Figma Home frame roles", () => {
+  test("per-role computed family/weight/size and smoothing match", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 1200 });
+    await page.goto("/");
+
+    const roles = [
+      {
+        role: "hero H1 (Display/44 Semi Bold)",
+        locator: page.getByRole("heading", { level: 1 }),
+        family: /^Inter\b/,
+        weight: "600",
+        size: "44px",
+      },
+      {
+        role: "pillars heading (28 Semi Bold)",
+        locator: page.getByRole("heading", {
+          name: "Eight pillars. One query grammar.",
+        }),
+        family: /^Inter\b/,
+        weight: "600",
+        size: "28px",
+      },
+      {
+        role: "pillar title (16 Semi Bold)",
+        locator: page
+          .getByRole("link", { name: /Uptime & Synthetics/ })
+          .getByText("Uptime & Synthetics"),
+        family: /^Inter\b/,
+        weight: "600",
+        size: "16px",
+      },
+      {
+        role: "query value (Mono 28 Regular)",
+        locator: page.getByText("99.98%", { exact: true }).first(),
+        family: /^"?JetBrains Mono\b/,
+        weight: "400",
+        size: "28px",
+      },
+    ] as const;
+
+    for (const r of roles) {
+      const cs = await r.locator.evaluate((el) => {
+        const s = getComputedStyle(el);
+        return {
+          fontFamily: s.fontFamily,
+          fontWeight: s.fontWeight,
+          fontSize: s.fontSize,
+          webkitFontSmoothing: s.getPropertyValue("-webkit-font-smoothing"),
+        };
+      });
+      expect.soft(cs.fontFamily, `${r.role} family`).toMatch(r.family);
+      expect.soft(cs.fontWeight, `${r.role} weight`).toBe(r.weight);
+      expect.soft(cs.fontSize, `${r.role} size`).toBe(r.size);
+      expect
+        .soft(cs.webkitFontSmoothing, `${r.role} smoothing`)
+        .toBe("antialiased");
+    }
+  });
+});
