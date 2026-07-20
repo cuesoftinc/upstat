@@ -8,6 +8,7 @@ import type {
   Dashboard,
   ErrorGroup,
   Incident,
+  LogPatternsResult,
   LogQueryPage,
   Member,
   MemberRole,
@@ -21,6 +22,7 @@ import type {
   QueryRequest,
   QueryResult,
   RuleTestResult,
+  RumDrilldown,
   RumSummary,
   RumVitals,
   SavedView,
@@ -29,9 +31,14 @@ import type {
   ServiceStats,
   Slo,
   StatusPage,
+  StatusPageConfig,
+  SyntheticCheck,
+  SyntheticCheckInput,
+  SyntheticRun,
   TimelineEntry,
   Trace,
   TraceSummary,
+  UsageReport,
   Widget,
 } from "..";
 
@@ -93,6 +100,9 @@ export const logsRepo = {
     limit?: number;
     live?: 1;
   }) => http.get<LogQueryPage>(`/v1/logs${qs(params)}`),
+  /** B4 Patterns tab — clustered templates over the range (OBS-012). */
+  patterns: (params: { q?: string; from?: string; to?: string }) =>
+    http.get<LogPatternsResult>(`/v1/logs/patterns${qs(params)}`),
 };
 
 /** Traces / APM (pages.md B5). */
@@ -110,6 +120,9 @@ export const rumRepo = {
   vitals: (params: { from?: string; to?: string } = {}) =>
     http.get<RumVitals>(`/v1/rum/vitals${qs(params)}`),
   errors: () => http.get<ErrorGroup[]>("/v1/rum/errors"),
+  /** U6-2 drill-down — funnel + weekly-cohort retention. */
+  drilldown: (params: { from?: string; to?: string } = {}) =>
+    http.get<RumDrilldown>(`/v1/rum/drilldown${qs(params)}`),
 };
 
 /** Monitors / uptime checks (api.md §1 semantics over HTTP for the new IA). */
@@ -126,6 +139,22 @@ export const monitorsRepo = {
     http.get<MonitorHistory>(`/v1/monitors/${id}/checks`),
   /** MI-9: 24h response-time replay against timeout-derived thresholds. */
   test: (id: string) => http.post<RuleTestResult>(`/v1/monitors/${id}/test`),
+};
+
+/** Synthetic multi-step/browser checks (pages.md B7, OBS-011). */
+export const syntheticsRepo = {
+  list: () => http.get<SyntheticCheck[]>("/v1/synthetics"),
+  get: (id: string) => http.get<SyntheticCheck>(`/v1/synthetics/${id}`),
+  create: (input: SyntheticCheckInput) =>
+    http.post<SyntheticCheck>("/v1/synthetics", input),
+  update: (id: string, patch: Partial<SyntheticCheckInput>) =>
+    http.patch<SyntheticCheck>(`/v1/synthetics/${id}`, patch),
+  remove: (id: string) => http.delete(`/v1/synthetics/${id}`),
+  runs: (id: string) => http.get<SyntheticRun[]>(`/v1/synthetics/${id}/runs`),
+  run: (id: string, runId: string) =>
+    http.get<SyntheticRun>(`/v1/synthetics/${id}/runs/${runId}`),
+  /** "Run once" — executes the steps, returns the per-step results. */
+  runOnce: (id: string) => http.post<SyntheticRun>(`/v1/synthetics/${id}/runs`),
 };
 
 /** Alert channels + signal-generic rules (api.md §1a/§6; pages.md B8). */
@@ -160,6 +189,10 @@ export const viewsRepo = {
 /** Public status page read (pages.md B7 — unauthenticated by design). */
 export const statusRepo = {
   bySlug: (slug: string) => http.get<StatusPage>(`/v1/status/${slug}`),
+  /** B7 builder document — branding + ordered component list. */
+  config: () => http.get<StatusPageConfig>("/v1/status-page"),
+  updateConfig: (config: StatusPageConfig) =>
+    http.put<StatusPageConfig>("/v1/status-page", config),
 };
 
 /** Incidents + timeline (api.md §6; pages.md B9; MI-10). */
@@ -220,6 +253,11 @@ export const keysRepo = {
   }) => http.post<ApiKeyWithSecret>("/v1/keys", input),
   rotate: (id: string) => http.post<ApiKeyWithSecret>(`/v1/keys/${id}/rotate`),
   revoke: (id: string) => http.delete(`/v1/keys/${id}`),
+};
+
+/** Usage metering per pillar (pages.md B12, OBS-012). */
+export const usageRepo = {
+  report: () => http.get<UsageReport>("/v1/usage"),
 };
 
 /** Members & roles (pages.md B12). */

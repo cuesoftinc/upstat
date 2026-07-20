@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { keysRepo, membersRepo } from "@/models/repositories";
+import { keysRepo, membersRepo, usageRepo } from "@/models/repositories";
 import type { ApiKey, MemberRole } from "@/models";
 import { useRequest } from "./use-request";
 
@@ -65,4 +65,12 @@ export function useSettingsController() {
     inviteMember,
     setMemberRole,
   };
+}
+
+/**
+ * B12 usage metering ([Designed 2026-07-20], OBS-012) — the month-to-date
+ * per-pillar meters, computed by the mock from the seeded telemetry.
+ */
+export function useUsageController() {
+  return useRequest(() => usageRepo.report(), []);
 }

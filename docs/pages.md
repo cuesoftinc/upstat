@@ -87,11 +87,17 @@ design.md §8.1.
   URL-addressable `?limit=` up to 10k; MI-4 pause/buffer and MI-5
   expansion semantics preserved, expansion lifted to the list) + histogram
   header (MI-6); live tail (MI-4); expand pivots (MI-5).
-- Patterns view **[Designed 2026-07-20]**: a "Patterns" tab beside the
-  explorer list — LogPatternRow per clustered template (expand chevron ·
-  count · 7-bucket trend sparkline · Mono template with `<placeholders>`),
-  expanding to indented sample LogLines (Figma "B4 — Logs (patterns)");
-  implementation stays scheduled with OBS-012.
+- Patterns view **[Designed 2026-07-20; as built 2026-07-20]**: a
+  "Patterns" tab beside the explorer list (`?tab=patterns`, deep-linkable)
+  — LogPatternRow per clustered template (expand chevron · count ·
+  7-bucket trend sparkline · Mono template with `<placeholders>` ·
+  dominant-level chip), expanding to indented sample LogLines (Figma "B4 —
+  Logs (patterns)"). As built the clustering runs in the mock over the
+  same per-second line generator as the stream; shares the QueryBar/facet
+  chrome and the global time range (LIVE clusters the last 15 minutes);
+  **[Decided 2026-07-20]** ranges wider than the enumeration budget sample
+  every nth second with stride-scaled counts (rendered with a `~`). The
+  real backend clustering lands with OBS-012.
 - Retention/indexing settings per source; archive-to-object-storage
   **[Later]**.
 
@@ -113,11 +119,16 @@ design.md §8.1.
 - Property create **[Directive 2026-07-18]**: RUM property-create screen
   (site/domain → property key issuance + browser-SDK snippet; keys managed
   in B12).
-- Deeper analytics drill-down (U6-2) **[Designed 2026-07-20]**: funnel row
-  (FunnelStageCard chain — page views → sessions → conversions, per-stage
-  conversion %), retention weekly-cohort grid (the Heatmap construction
-  re-axised to cohort weeks), top pages / top referrers TopLists (Figma
-  "B6 — RUM analytics drill-down (U6-2)").
+- Deeper analytics drill-down (U6-2) **[Designed 2026-07-20; as built
+  2026-07-20]**: `/dashboard/rum/drilldown`, routed from the pillar header
+  — funnel row (FunnelStageCard chain — page views → sessions →
+  conversions, per-stage conversion %), retention weekly-cohort grid (the
+  Heatmap construction re-axised to 8 Monday-aligned cohorts × wk 0–6),
+  top pages / top referrers TopLists (Figma "B6 — RUM analytics drill-down
+  (U6-2)"). **[Decided 2026-07-20]** the conversion stage counts the
+  registered signup event (`auth_signin_completed`, api.md §3.4) and the
+  definition is labeled in-page (accuracy canon); page views/sessions are
+  the B6 summary's own numbers.
 
 ### B7 Synthetics / Uptime (the current core, absorbed)
 - **Coexistence contract [Decided]**: existing gRPC monitors ARE the uptime
@@ -127,22 +138,35 @@ design.md §8.1.
   view.
 - Monitors (existing CRUD) → "Uptime checks" within Synthetics: HTTP checks
   (existing), multi-step API checks and browser checks **[Designed
-  2026-07-20]** — the builder composes SyntheticStepRow steps (HTTP request /
-  assertion / wait; add, reorder, delete) plus a browser-check panel (URL ·
-  viewport Select · screenshot-on-failure Switch); the run view is a per-step
-  pass/fail timeline (StepResultRow + UptimeCard context + failure-screenshot
-  card). Figma "B7 — Synthetic check builder (multi-step)" and "B7 —
-  Synthetic check run (multi-step results)"; implementation stays OBS-011.
+  2026-07-20; as built 2026-07-20]** — the builder
+  (`/dashboard/uptime/new`, type tabs HTTP / Multi-step / Browser) composes
+  SyntheticStepRow steps (HTTP request / assertion / wait; add, reorder —
+  keyboard grip + pointer drag —, delete) plus a browser-check panel (URL ·
+  viewport Select · screenshot-on-failure Switch); the run view
+  (`/dashboard/uptime/checks/{id}`, `?run=` selects) is a per-step
+  pass/fail timeline (StepResultRow + UptimeCard context + failure-
+  screenshot card) with stop-at-first-failure semantics. Figma "B7 —
+  Synthetic check builder (multi-step)" and "B7 — Synthetic check run
+  (multi-step results)". **[Decided 2026-07-20]** the HTTP tab stays the
+  classic Monitor create; multi-step/browser checks are a separate
+  `/v1/synthetics` entity until monitors-v2 unifies signals; the run
+  view's UptimeCard context is derived — the monitor watching the first
+  HTTP step's host — not a configured link. The real runner lands with
+  OBS-011.
 - UptimeCards + per-monitor page: check history, response-time chart,
   incidents, insight panel (existing ML insight surfaces here).
 - Public status pages: URL scheme **[Decided]** `status.upstat.cuesoft.io/{slug}`
   (owner-chosen slug, unique; never raw owner ids in URLs); upstat's own page
   = slug `upstat` (U0-5 config = create the slugged page over the existing
-  `GetStatusPage` data). Builder **[Designed 2026-07-20]**: settings surface — branding rows (page
-  name · slug), StatusPageBuilderRow component list (add/rename/reorder,
-  monitor mapping via Select) and a public-URL preview row; the public page
-  it produces is the existing `/status/{slug}` construction (Figma "B7 —
-  Status page builder"). Subscribe affordance **[Later]**.
+  `GetStatusPage` data). Builder **[Designed 2026-07-20; as built
+  2026-07-20]**: settings surface (`/dashboard/settings/status-page`,
+  linked from the overview) — branding rows (page name · slug),
+  StatusPageBuilderRow component list (add/rename/reorder, monitor mapping
+  via Select) and a public-URL preview row; the public page it produces is
+  the existing `/status/{slug}` construction — saved names, order and the
+  page-name header render there directly (orgs without a saved document
+  keep deriving components from their live monitors). Subscribe affordance
+  **[Later]**.
 
 ### B8 Monitors (alerting on any signal)
 - Monitor types: uptime state (exists conceptually), metric threshold,
@@ -188,11 +212,15 @@ design.md §8.1.
 ### B12 Settings
 - Org/members/roles; **API keys & ingestion tokens** (per-pillar scopes);
   property keys (RUM); integrations (webhooks, Slack); retention per signal;
-  usage metering per pillar **[Designed 2026-07-20]** — /settings/usage:
-  UsageMeterRow per pillar (measure · MTD value · MTD bar scaled to the
-  largest meter · plan column verbatim "Self-host: unlimited · Cloud:
-  announced at GA", accuracy canon; Figma "B12 — Settings (usage
-  metering)"); privacy/data controls.
+  usage metering per pillar **[Designed 2026-07-20; as built 2026-07-20]**
+  — /settings/usage: UsageMeterRow per pillar (measure · MTD value · MTD
+  bar · plan column verbatim "Self-host: unlimited · Cloud: announced at
+  GA", accuracy canon; Figma "B12 — Settings (usage metering)"); values
+  computed from the seeded telemetry volumes, month boundaries in the org
+  timezone (X-10). **[Decided 2026-07-20]** the bar denominators are
+  per-pillar trailing-3-month peaks (the design.md §8.2b contract) — the
+  earlier "scaled to the largest meter" phrasing is cross-unit and
+  unimplementable as stated; privacy/data controls.
 - **Organization profile**: name, **timezone (IANA)** — all report rendering
   and time-bucketing (dashboards, uptime day boundaries, rollup display,
   scheduled reports) resolve in the org timezone; storage stays UTC

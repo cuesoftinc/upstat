@@ -217,7 +217,35 @@ export function useLogsExplorerController() {
     selectedFacets,
     views,
     applyView,
+    /** The submitted query — the Patterns tab clusters the same stream. */
+    activeQuery,
   };
+}
+
+/** Live tail has no fixed [from,to] — Patterns clusters the last 15m. */
+const LIVE_PATTERN_WINDOW_MS = 15 * 60_000;
+
+/**
+ * B4 Patterns tab ([Designed 2026-07-20], OBS-012) — clustered templates
+ * over the explorer's active query + time range. Time-range aware: LIVE
+ * clusters the last 15 minutes; presets/custom cluster [from, to].
+ */
+export function useLogPatternsController(
+  activeQuery: string,
+  enabled: boolean,
+) {
+  const time = useTimeRange();
+  const live = time.live;
+  return useRequest(async () => {
+    if (!enabled) return null;
+    const toMs = live ? Date.now() : time.toMs;
+    const fromMs = live ? toMs - LIVE_PATTERN_WINDOW_MS : time.fromMs;
+    return logsRepo.patterns({
+      q: activeQuery,
+      from: new Date(fromMs).toISOString(),
+      to: new Date(toMs).toISOString(),
+    });
+  }, [activeQuery, enabled, live, time.fromMs, time.toMs]);
 }
 
 /**

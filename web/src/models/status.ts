@@ -39,3 +39,29 @@ export interface StatusPage {
   /** Open incident first (when any), then resolved history, newest-first. */
   incidents: StatusPageIncident[];
 }
+
+/* ------------------------------------------------------------------ */
+/* Builder (pages.md B7 [Designed 2026-07-20] — settings surface)       */
+/* ------------------------------------------------------------------ */
+
+/** One builder row — row order IS the public page order (design.md §8.2b). */
+export interface StatusPageComponentConfig {
+  id: string;
+  /** Public display name (inline rename). */
+  name: string;
+  /** Mapped uptime check (monitor-mapping Select); null = unmapped. */
+  monitor_id: string | null;
+}
+
+/**
+ * The status-page builder document: branding (page name · slug) + the
+ * ordered component list. The public page it produces is the existing
+ * `/status/{slug}` construction.
+ */
+export interface StatusPageConfig {
+  /** Shown in the public page header. */
+  name: string;
+  /** Public at /status/{slug} — owner-chosen, unique (pages.md B7). */
+  slug: string;
+  components: StatusPageComponentConfig[];
+}
