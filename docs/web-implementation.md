@@ -466,8 +466,8 @@ a build-time string asset (`npm run generate:openapi`, wired as
 Scalar's `forceDarkModeState` (a creation-time override — the view
 mounts after hydration and remounts on theme change, since
 `updateConfiguration` never re-applies it); Scalar's own toggle is
-hidden, its floating dev toolbar is off (`showToolbar: "never"` — the
-default shows it on localhost) and its remote default fonts are
+hidden, its floating dev toolbar is off (`showDeveloperTools: "never"`
+— the default shows it on localhost) and its remote default fonts are
 disabled (self-host ethos).
 Header construction: the sticky marketing nav (h-14 + border = 57px)
 and Scalar's sticky layout coexist via `--scalar-custom-header-height`
@@ -507,7 +507,8 @@ updated canvas (public-status card promoted; docs deep-link rows;
 label-copy links, no raw URLs). Nits: `?run=` accepts the internal id
 or the visible #number and an unmatched ref says "Run not found" (never
 "No runs yet" while runs exist); the usage formatter compact-scales past
-1000M (5.55B); Scalar's dev toolbar is off on `/docs/api`.
+1000M (5.55B); Scalar's dev toolbar is off on `/docs/api`
+(`showDeveloperTools: "never"`).
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
