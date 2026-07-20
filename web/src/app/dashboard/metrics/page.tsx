@@ -171,6 +171,8 @@ export default function MetricsExplorerPage() {
                 ? `p95 latency — ${metricName}`
                 : metricName
             }
+            // unit-suffixed y labels where the metric name declares one
+            unit={metricName.endsWith("_ms") ? "ms" : undefined}
             query={ctrl.activeQuery}
             series={ts?.series ?? []}
             loading={ctrl.running}

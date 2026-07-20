@@ -45,6 +45,7 @@ export function DemoBandSection({
         <TimeseriesPanel
           title="p95 latency — api-common"
           titleAs="p"
+          unit="ms"
           query={query}
           series={series}
           height={190}
@@ -143,6 +144,7 @@ export function UseCasesSection({
           <TimeseriesPanel
             title="p95 latency — api-common"
             titleAs="p"
+            unit="ms"
             query={query}
             series={series}
             height={140}

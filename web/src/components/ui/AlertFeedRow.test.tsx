@@ -21,6 +21,19 @@ describe("AlertFeedRow", () => {
     expect(row).toHaveAttribute("data-unread", "true");
   });
 
+  it("renders the master's single-line construction: dot · chip · title · age", () => {
+    render(<AlertFeedRow event={EVENT} />);
+    const row = screen.getByRole("button");
+    // sev chip + title on ONE line; the message detail rides the tooltip
+    expect(screen.getByText("SEV-1")).toBeInTheDocument();
+    expect(screen.getByText("Checkout p95 latency")).toBeInTheDocument();
+    expect(screen.queryByText(EVENT.message)).toBeNull();
+    expect(row).toHaveAttribute("title", EVENT.message);
+    // relative age, unread dot
+    expect(screen.getByText(/ago$/)).toBeInTheDocument();
+    expect(screen.getByLabelText("unread")).toBeInTheDocument();
+  });
+
   it("renders the resolved tint calm (decided 2026-07-17)", () => {
     render(
       <AlertFeedRow event={{ ...EVENT, sev: "resolved", unread: false }} />,
@@ -28,6 +41,9 @@ describe("AlertFeedRow", () => {
     const row = screen.getByRole("button");
     expect(row).toHaveAttribute("data-sev", "resolved");
     expect(row).not.toHaveAttribute("data-unread");
+    // resolved rows chip OK and drop the unread dot
+    expect(screen.getByText("OK")).toBeInTheDocument();
+    expect(screen.queryByLabelText("unread")).toBeNull();
   });
 });
 

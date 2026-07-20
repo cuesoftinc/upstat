@@ -30,6 +30,26 @@ describe("TimeseriesPanel", () => {
     expect(legend).toHaveAttribute("aria-pressed", "false");
   });
 
+  it("crosshair renders the floating timestamp-led tooltip (master 50:407)", () => {
+    const { container } = render(
+      <TimeseriesPanel title="t" unit="ms" series={SERIES} cursor={0} />,
+    );
+    const tooltip = screen.getByTestId("crosshair-tooltip");
+    // led by the hh:mm:ss timestamp of the hovered bucket
+    expect(tooltip).toHaveTextContent(SERIES[0].points[0].ts.slice(11, 19));
+    // values carry the unit suffix
+    expect(tooltip).toHaveTextContent("100 ms");
+    // the tooltip floats INSIDE the plot wrapper, not below it
+    expect(tooltip.parentElement!.querySelector("svg")).not.toBeNull();
+    // four y ticks with the unit suffix, zero rendered bare
+    const labels = Array.from(container.querySelectorAll("svg g text")).map(
+      (t) => t.textContent,
+    );
+    expect(labels).toHaveLength(4);
+    expect(labels).toContain("0");
+    expect(labels.filter((l) => l?.endsWith(" ms"))).toHaveLength(3);
+  });
+
   it("shows axis-first loading and radar empty states (MI-16)", () => {
     const { container, rerender } = render(
       <TimeseriesPanel title="t" series={[]} loading />,
@@ -57,8 +77,10 @@ describe("TimeseriesPanel", () => {
     }));
     render(<TimeseriesPanel title="t" series={grouped} />);
     // right-truncating the full names rendered N identical legend entries;
-    // the discriminating suffix is the label, the full name is the tooltip
-    const label = screen.getByText("service:api-common");
+    // the discriminating suffix is the label — with the shared `service:`
+    // key trimmed off (master 50:407 legends carry values only) — and the
+    // full name is the tooltip
+    const label = screen.getByText("api-common");
     expect(label).toBeInTheDocument();
     expect(label.closest("button")).toHaveAttribute(
       "title",

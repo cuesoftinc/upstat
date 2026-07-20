@@ -19,4 +19,7 @@ export interface Slo {
   /** Burn rate multiple (1 = burning exactly at budget). */
   burn_rate: number;
   state: SloState;
+  /** When the budget hit zero — drives the exhausted caption ("budget
+   *  exhausted 3d ago", SLOCard master per-state captions). */
+  exhausted_at?: string;
 }

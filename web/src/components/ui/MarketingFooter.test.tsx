@@ -33,7 +33,11 @@ const CANON: Record<string, [string, string][]> = {
 describe("MarketingFooter (parity canon, SKILL.md 2026-07-19)", () => {
   it("renders the brand block and every canonical column link", () => {
     render(<MarketingFooter />);
-    expect(screen.getByText(/MIT licensed/)).toBeInTheDocument();
+    // bolt + lowercase wordmark and the master 290:2 tagline
+    expect(screen.getByText("upstat")).toBeInTheDocument();
+    expect(
+      screen.getByText("All your telemetry. One open platform."),
+    ).toBeInTheDocument();
     for (const [heading, links] of Object.entries(CANON)) {
       const column = screen.getByRole("navigation", { name: heading });
       for (const [label, href] of links) {

@@ -63,7 +63,11 @@ export function useSyntheticCheckController(id: string | null) {
 /**
  * Run view read model — the check, its run list (newest first) and the
  * selected run (`runId` from the URL; latest when absent). Deep-linkable
- * state rides the query string per the §4 route-map rule.
+ * state rides the query string per the §4 route-map rule. `?run=` accepts
+ * the internal id (synrun_0007) OR the visible run number ("482" / "#482")
+ * — the frame addresses runs by number; a value that matches neither
+ * reports `notFound` so the page never claims "No runs yet" while runs
+ * exist (audit fix 2026-07-20).
  */
 export function useSyntheticRunController(
   checkId: string,
@@ -71,11 +75,15 @@ export function useSyntheticRunController(
 ) {
   const check = useRequest(() => syntheticsRepo.get(checkId), [checkId]);
   const runs = useRequest(() => syntheticsRepo.runs(checkId), [checkId]);
-  const selected =
-    (runId
-      ? (runs.data ?? []).find((r) => r.id === runId)
-      : (runs.data ?? [])[0]) ?? null;
-  return { check, runs, selected };
+  const list = runs.data ?? [];
+  const selected = runId
+    ? (list.find((r) => r.id === runId) ??
+      list.find((r) => String(r.number) === runId.replace(/^#/, "")) ??
+      null)
+    : (list[0] ?? null);
+  const notFound =
+    runId !== null && !runs.loading && list.length > 0 && selected === null;
+  return { check, runs, selected, notFound };
 }
 
 /**

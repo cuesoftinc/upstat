@@ -10,9 +10,11 @@ test("signin → dashboard home via the single Google CTA", async ({ page }) => 
 
   const screen = page.getByTestId("signin-screen");
   await expect(screen).toBeVisible();
+  // frame 124:6: centered bolt + wordmark over the org subline
   await expect(
-    screen.getByRole("heading", { name: "Sign in to Upstat" }),
+    screen.getByRole("heading", { name: "Sign in to your organization" }),
   ).toBeVisible();
+  await expect(screen.getByText("upstat", { exact: true })).toBeVisible();
 
   // X-1: a single auth affordance, Google only (scoped to the screen —
   // the Next dev overlay injects its own buttons in dev mode).

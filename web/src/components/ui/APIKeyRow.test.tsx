@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { APIKeyRow } from "./APIKeyRow";
 
 describe("APIKeyRow", () => {
-  it("hides revoke on revoked keys", () => {
+  it("hides revoke on revoked keys (REVOKED pill)", () => {
     render(
       <APIKeyRow
         apiKey={{
@@ -19,11 +19,17 @@ describe("APIKeyRow", () => {
         onRevoke={() => undefined}
       />,
     );
-    expect(screen.getByText("revoked")).toBeInTheDocument();
+    // entity status renders as a labeled pill, not lowercase text
+    expect(screen.getByText("REVOKED")).toBeInTheDocument();
+    expect(screen.queryByText("revoked")).toBeNull();
     expect(screen.queryByLabelText("Revoke Old collector")).toBeNull();
+    // OTLP ingestion tokens carry per-signal scope chips (master anatomy)
+    for (const signal of ["logs", "metrics", "traces"]) {
+      expect(screen.getByText(signal)).toBeInTheDocument();
+    }
   });
 
-  it("shows the rotation-grace state + rejection counter", () => {
+  it("shows the ROTATING pill + grace copy on rotation-grace keys", () => {
     render(
       <APIKeyRow
         apiKey={{
@@ -38,7 +44,32 @@ describe("APIKeyRow", () => {
         }}
       />,
     );
-    expect(screen.getByText("rotation grace (24h)")).toBeInTheDocument();
-    expect(screen.getByText("431 rejected")).toBeInTheDocument();
+    expect(screen.getByText("ROTATING")).toBeInTheDocument();
+    expect(screen.getByText("grace ends in 24h")).toBeInTheDocument();
+    // property keys chip their single RUM signal
+    expect(screen.getByText("rum")).toBeInTheDocument();
+  });
+
+  it("shows the ACTIVE pill + 24h rejects counter on active keys", () => {
+    render(
+      <APIKeyRow
+        apiKey={{
+          id: "key_3",
+          kind: "ingestion_token",
+          name: "prod ingest — api-common",
+          scope: "otlp",
+          key_masked: "uk_live_9f2c…3d1a",
+          status: "active",
+          created_at: "2026-01-01T00:00:00Z",
+          rejected_count: 0,
+        }}
+        onRevoke={() => undefined}
+      />,
+    );
+    expect(screen.getByText("ACTIVE")).toBeInTheDocument();
+    expect(screen.getByText("0 rejects (24h)")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Revoke prod ingest — api-common"),
+    ).toBeInTheDocument();
   });
 });

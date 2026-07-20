@@ -107,6 +107,8 @@ function integratedRequests(db: MockDb, fromMs: number, toMs: number): number {
 }
 
 function fmtCount(n: number): string {
+  // promote past 1000M — "5.6B", never "5551.4M" (compact-unit canon)
+  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`;
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
   return String(Math.round(n));

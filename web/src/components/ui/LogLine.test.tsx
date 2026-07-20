@@ -16,6 +16,14 @@ const LOG: LogEvent = {
 };
 
 describe("LogLine", () => {
+  it("collapsed rows carry the level row tint + left bar (master 47:163)", () => {
+    const { container } = render(<LogLine event={LOG} />);
+    const row = container.querySelector('[data-level="ERROR"]')!;
+    expect(row.className).toContain("bg-crit/8");
+    // the 3px left level bar
+    expect(row.querySelector(".w-\\[3px\\].bg-crit")).not.toBeNull();
+  });
+
   it("expands into the JSON tree (MI-5)", async () => {
     render(<LogLine event={LOG} />);
     expect(screen.queryByText("attrs.env")).toBeNull();

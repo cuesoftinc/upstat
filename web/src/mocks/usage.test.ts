@@ -70,6 +70,11 @@ describe("buildUsageReport (honest sums from the seed)", () => {
     // the derivation produced a plausibly large, peak-bounded figure
     expect(traces.value).toBeGreaterThan(1_000_000);
     expect(traces.value).toBeLessThanOrEqual(traces.peak);
+    // compact units promote past 1000M ("5.6B", never "5551.4M")
+    expect(traces.display).not.toMatch(/\d{4,}(\.\d+)?M$/);
+    if (traces.value >= 1_000_000_000) {
+      expect(traces.display).toMatch(/B$/);
+    }
   });
 
   it("every row carries the verbatim plan copy and a usable bar scale", () => {

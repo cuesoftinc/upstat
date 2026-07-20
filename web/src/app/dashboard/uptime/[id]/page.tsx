@@ -99,6 +99,7 @@ export default function MonitorDetailPage() {
 
           <TimeseriesPanel
             title="Response time — recent checks"
+            unit="ms"
             query={`uptime(check:${m.name.toLowerCase().replace(/\s+/g, "-")}) response_ms`}
             series={responseSeries}
             loading={history.loading}

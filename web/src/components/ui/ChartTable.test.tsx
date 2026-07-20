@@ -39,8 +39,9 @@ describe("chart data-table toggle (§5)", () => {
     expect(
       screen.getByRole("columnheader", { name: "Time" }),
     ).toBeInTheDocument();
+    // legendLabel trims the shared tag key — the column is the value part
     expect(
-      screen.getByRole("columnheader", { name: "service:web" }),
+      screen.getByRole("columnheader", { name: "web" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("cell", { name: "100" })).toBeInTheDocument();
 

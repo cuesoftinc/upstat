@@ -7,20 +7,22 @@ import {
   BarChart3,
   Bell,
   BookOpen,
-  ChevronsLeft,
-  ChevronsRight,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
   Flame,
-  Gauge,
+  Globe,
   House,
   LayoutDashboard,
-  Radio,
-  ScrollText,
+  Route,
   Settings,
   Target,
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "@/controllers/use-media-query";
+import { Avatar } from "./Avatar";
+import { BrandMark } from "./BrandMark";
 
 export interface NavRailItemProps {
   icon: LucideIcon;
@@ -93,15 +95,26 @@ export function NavRailItem({
   );
 }
 
-/** The pages.md Part B pillar order. */
+/**
+ * The pages.md Part B pillar order. Icons are the reconciled §8.1 list
+ * (adjudicated 2026-07-20, master 284:2 vs code): the master's glyph wins
+ * where it is in the ratified Stage-0 set (pillar glyphs + extended list) —
+ * bar-chart-3 (metrics), file-text (logs), globe (RUM), activity
+ * (synthetics/uptime), bell, target, house, layout-dashboard, settings;
+ * code's glyph stays where the master's is unratified — flame (incidents;
+ * master's alert-triangle is not in §8.1), book-open (catalog; master's
+ * layers is not in §8.1). Traces takes `route` — the ratified APM/Traces
+ * pillar glyph — because code's activity moved to Synthetics per the
+ * master and the master's git-branch is unratified.
+ */
 export const NAV_PILLARS: { key: string; label: string; icon: LucideIcon }[] = [
   { key: "home", label: "Home", icon: House },
   { key: "dashboards", label: "Dashboards", icon: LayoutDashboard },
-  { key: "metrics", label: "Metrics", icon: Gauge },
-  { key: "logs", label: "Logs", icon: ScrollText },
-  { key: "traces", label: "Traces", icon: Activity },
-  { key: "rum", label: "RUM / Analytics", icon: BarChart3 },
-  { key: "uptime", label: "Synthetics / Uptime", icon: Radio },
+  { key: "metrics", label: "Metrics", icon: BarChart3 },
+  { key: "logs", label: "Logs", icon: FileText },
+  { key: "traces", label: "Traces", icon: Route },
+  { key: "rum", label: "RUM / Analytics", icon: Globe },
+  { key: "uptime", label: "Synthetics / Uptime", icon: Activity },
   { key: "monitors", label: "Monitors", icon: Bell },
   { key: "incidents", label: "Incidents", icon: Flame },
   { key: "slos", label: "SLOs", icon: Target },
@@ -110,15 +123,15 @@ export const NAV_PILLARS: { key: string; label: string; icon: LucideIcon }[] = [
 ];
 
 /**
- * Pillar section groups (design.md §2 Telemetry / Respond / Platform,
- * [Directive 2026-07-19]) — B-order preserved; Home stays ungrouped at
- * the top of the rail.
+ * Pillar section groups (design.md §2 Telemetry / Respond / Platform) —
+ * B-order preserved; Home AND Dashboards ungrouped above TELEMETRY per
+ * the master (284:2, adjudicated 2026-07-20).
  */
 export const NAV_SECTIONS: { title: string | null; keys: string[] }[] = [
-  { title: null, keys: ["home"] },
+  { title: null, keys: ["home", "dashboards"] },
   {
     title: "Telemetry",
-    keys: ["dashboards", "metrics", "logs", "traces", "rum", "uptime"],
+    keys: ["metrics", "logs", "traces", "rum", "uptime"],
   },
   { title: "Respond", keys: ["monitors", "incidents", "slos"] },
   { title: "Platform", keys: ["catalog", "settings"] },
@@ -173,11 +186,14 @@ function useRailExpanded(): [boolean, () => void] {
 export interface NavRailProps {
   activeKey: string;
   onNavigate?: (key: string) => void;
+  /** Signed-in user for the foot avatar (master 284:2 foot construction). */
+  userName?: string | null;
   className?: string;
 }
 
-/** Rail brand mark + section groups + foot toggle (shared by the inline
- *  rail and the <md overlay drawer). */
+/** Rail brand mark + section groups + foot (chevron square toggle + user
+ *  avatar per master 284:2), shared by the inline rail and the <md
+ *  overlay drawer. */
 function RailBody({
   expanded,
   activeKey,
@@ -186,6 +202,7 @@ function RailBody({
   footExpanded,
   footTestId = "rail-toggle",
   onToggle,
+  userName,
 }: {
   expanded: boolean;
   activeKey: string;
@@ -194,23 +211,21 @@ function RailBody({
   footExpanded: boolean;
   footTestId?: string;
   onToggle: () => void;
+  userName?: string | null;
 }) {
   const byKey = new Map(NAV_PILLARS.map((p) => [p.key, p]));
   return (
     <>
+      {/* head: bolt + wordmark (BrandMark — systemic adjudication
+          2026-07-20; the "U" tile is retired) */}
       <span
         aria-hidden="true"
         className={clsx(
-          "font-ui mb-2 flex h-8 items-center gap-2",
-          expanded ? "px-1" : "justify-center",
+          "font-ui mb-2 flex h-8 items-center",
+          expanded ? "px-1.5" : "justify-center",
         )}
       >
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-(--radius) bg-brand text-[14px] font-semibold text-on-brand">
-          U
-        </span>
-        {expanded && (
-          <span className="text-[14px] font-semibold text-text">upstat</span>
-        )}
+        <BrandMark wordmark={expanded} className="text-[14px]" />
       </span>
 
       {NAV_SECTIONS.map((section) => (
@@ -248,27 +263,37 @@ function RailBody({
         </div>
       ))}
 
-      <button
-        type="button"
-        data-testid={footTestId}
-        aria-label={footLabel}
-        aria-expanded={footExpanded}
-        onClick={onToggle}
+      {/* foot per master 284:2: bordered chevron square + user avatar
+          (replaces the "« Collapse" text button — adjudicated 2026-07-20) */}
+      <div
         className={clsx(
-          "mt-auto flex h-9 items-center rounded-(--radius) text-text-2",
-          "transition-colors duration-[var(--duration-fast)] ease-standard hover:bg-bg-elev hover:text-text",
-          expanded ? "w-full gap-3 px-2.5" : "size-9 justify-center",
+          "mt-auto flex flex-col gap-2",
+          expanded ? "items-start px-1" : "items-center",
         )}
       >
-        {expanded ? (
-          <>
-            <ChevronsLeft aria-hidden="true" className="size-4.5 shrink-0" />
-            <span className="truncate text-[12px]">Collapse</span>
-          </>
-        ) : (
-          <ChevronsRight aria-hidden="true" className="size-4.5" />
+        <button
+          type="button"
+          data-testid={footTestId}
+          aria-label={footLabel}
+          aria-expanded={footExpanded}
+          onClick={onToggle}
+          className={clsx(
+            "flex size-8 items-center justify-center rounded-(--radius) border border-border text-text-2",
+            "transition-colors duration-[var(--duration-fast)] ease-standard hover:bg-bg-elev hover:text-text",
+          )}
+        >
+          {footExpanded ? (
+            <ChevronLeft aria-hidden="true" className="size-4" />
+          ) : (
+            <ChevronRight aria-hidden="true" className="size-4" />
+          )}
+        </button>
+        {userName && (
+          <span title={userName} aria-label={`Signed in as ${userName}`}>
+            <Avatar name={userName} size={24} />
+          </span>
         )}
-      </button>
+      </div>
     </>
   );
 }
@@ -287,7 +312,12 @@ function RailBody({
  * and item selection close it; focus moves into the drawer and returns
  * to the toggle on close.
  */
-export function NavRail({ activeKey, onNavigate, className }: NavRailProps) {
+export function NavRail({
+  activeKey,
+  onNavigate,
+  userName,
+  className,
+}: NavRailProps) {
   const [expanded, toggleExpanded] = useRailExpanded();
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -323,6 +353,7 @@ export function NavRail({ activeKey, onNavigate, className }: NavRailProps) {
           }
           footExpanded={isMobile ? drawerOpen : inlineExpanded}
           onToggle={() => (isMobile ? setDrawerOpen(true) : toggleExpanded())}
+          userName={userName}
         />
       </nav>
 
@@ -358,6 +389,7 @@ export function NavRail({ activeKey, onNavigate, className }: NavRailProps) {
               footTestId="rail-drawer-close"
               footExpanded
               onToggle={() => setDrawerOpen(false)}
+              userName={userName}
             />
           </Dialog.Content>
         </Dialog.Portal>
