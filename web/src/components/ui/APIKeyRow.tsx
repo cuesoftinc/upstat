@@ -74,15 +74,18 @@ export function APIKeyRow({ apiKey, onRevoke, className }: APIKeyRowProps) {
       <span className="min-w-0 shrink truncate text-[13px] font-medium text-text">
         {apiKey.name}
       </span>
-      <span className="flex shrink-0 items-center gap-1.5 rounded-(--radius) border border-border px-1.5 py-0.5">
-        <code className="font-data text-[12px] text-text-2">
+      {/* the key chip shares the shrink budget with the name (mobile-width
+          canon: no horizontal document pan at 390 — the masked key
+          truncates; the full value was only ever visible at creation) */}
+      <span className="flex min-w-0 shrink items-center gap-1.5 rounded-(--radius) border border-border px-1.5 py-0.5">
+        <code className="font-data min-w-0 truncate text-[12px] text-text-2">
           {apiKey.key_masked}
         </code>
         <button
           type="button"
           aria-label={`Copy key ${apiKey.name}`}
           onClick={() => void copy()}
-          className="text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
+          className="shrink-0 text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
         >
           {copied ? (
             <Check className="size-3 text-ok" />
@@ -110,7 +113,12 @@ export function APIKeyRow({ apiKey, onRevoke, className }: APIKeyRowProps) {
           {meta}
         </span>
       )}
-      <StatusPill status={pill.status} label={pill.label} />
+      {/* the pill keeps its label at every width (labels-not-dots canon) */}
+      <StatusPill
+        status={pill.status}
+        label={pill.label}
+        className="shrink-0"
+      />
       {onRevoke && apiKey.status !== "revoked" && (
         <button
           type="button"
