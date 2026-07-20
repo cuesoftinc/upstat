@@ -177,7 +177,9 @@ export function RuleEditor({
         e.preventDefault();
         submit();
       }}
-      className="grid gap-5 lg:grid-cols-[1.5fr_1fr]"
+      // minmax(0,…) tracks: fr defaults to minmax(auto,…), letting the mono
+      // query Select's min-content width pan <main> at 1280/1440 rail-expanded
+      className="grid gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]"
       data-testid="rule-editor"
     >
       {/* left column (frame 130:2621): Query + the inline test replay */}
@@ -191,7 +193,9 @@ export function RuleEditor({
               value={query}
               onValueChange={setQuery}
               aria-label="Query"
-              className="font-data"
+              // w-full: the Select shell is inline-block (content-sized) —
+              // a long mono query must truncate, not widen the column
+              className="font-data w-full"
             />
           ) : (
             <Input
@@ -228,12 +232,14 @@ export function RuleEditor({
           />
         </label>
 
-        {/* min-w-0 beats the UA fieldset min-inline-size:min-content (390) */}
-        <fieldset className="grid min-w-0 grid-cols-1 gap-4 border-0 p-0 sm:grid-cols-3">
+        {/* min-w-0 beats the UA fieldset min-inline-size:min-content (390);
+            warn/crit pair + full-width window row — the Select's min-w-40
+            overflowed a third-of-column cell at 1280/1440 rail-expanded */}
+        <fieldset className="grid min-w-0 grid-cols-2 gap-4 border-0 p-0">
           <legend className="mb-1 text-[13px] text-text-2">
             Thresholds · evaluation window
           </legend>
-          <label className="flex flex-col gap-1 text-[13px]">
+          <label className="flex min-w-0 flex-col gap-1 text-[13px]">
             <span className="text-warn">warn &gt;</span>
             <Input
               mono
@@ -243,7 +249,7 @@ export function RuleEditor({
               data-testid="rule-warn"
             />
           </label>
-          <label className="flex flex-col gap-1 text-[13px]">
+          <label className="flex min-w-0 flex-col gap-1 text-[13px]">
             <span className="text-crit">crit &gt;</span>
             <Input
               mono
@@ -252,7 +258,7 @@ export function RuleEditor({
               data-testid="rule-crit"
             />
           </label>
-          <label className="flex flex-col gap-1 text-[13px]">
+          <label className="col-span-2 flex min-w-0 flex-col gap-1 text-[13px]">
             <span className="text-text-2">window</span>
             <Select
               options={["3 checks", "5m", "10m", "30m", "1h", "2h"].map(
@@ -264,6 +270,7 @@ export function RuleEditor({
               value={window_}
               onValueChange={setWindow}
               aria-label="Evaluation window"
+              className="w-full"
             />
           </label>
         </fieldset>
