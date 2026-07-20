@@ -419,6 +419,58 @@ test("home is responsive at 375w (mobile)", async ({ page }) => {
   ).toBeHidden();
 });
 
+// A14 tabbed snippet (Figma 413:2): tab switch is instant with no layout
+// shift, the shared MONGO_URI caption persists in both tab states, copy
+// targets the ACTIVE tab's full two-line block, and the block fits the
+// 1440/390 container canons.
+test("A14 self-host tabs — helm copy + caption persists", async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  const block = page.getByTestId("selfhost-snippet");
+  await block.scrollIntoViewIfNeeded();
+  const caption = block.getByText(
+    "Compose ships MongoDB; the Helm chart expects yours (MONGO_URI). All 8 pillars come up on :3000.",
+  );
+  await expect(caption).toBeVisible();
+  const tablist = block.getByRole("tablist", { name: "Install method" });
+
+  const before = await block.boundingBox();
+  await tablist.getByRole("tab", { name: "Helm" }).click();
+  await expect(
+    block.getByText("cd upstat && helm install upstat deploy/helm"),
+  ).toBeVisible();
+  await expect(caption).toBeVisible();
+  // no layout shift — mirrored two-line block + always-rendered caption
+  const after = await block.boundingBox();
+  expect(after!.height).toBe(before!.height);
+  expect(after!.width).toBe(before!.width);
+
+  await block.getByRole("button", { name: "Copy snippet" }).click();
+  const clip = await page.evaluate(() => navigator.clipboard.readText());
+  expect(clip).toBe(
+    "git clone https://github.com/cuesoftinc/upstat\ncd upstat && helm install upstat deploy/helm",
+  );
+
+  // 390 canon: block inside the viewport, no document overflow
+  await page.setViewportSize({ width: 390, height: 844 });
+  await block.scrollIntoViewIfNeeded();
+  await expect(caption).toBeVisible();
+  const mobile = await block.boundingBox();
+  expect(mobile!.width).toBeLessThanOrEqual(390);
+  const mobileOverflow = await page.evaluate(
+    () =>
+      Math.max(
+        document.documentElement.scrollWidth,
+        document.body.scrollWidth,
+      ) - document.documentElement.clientWidth,
+  );
+  expect(mobileOverflow).toBeLessThanOrEqual(0);
+});
+
 test("enabled controls carry the pointer cursor (Directive 2026-07-19)", async ({
   page,
 }) => {

@@ -10,11 +10,11 @@ import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { CloudVsSelfHostTable } from "@/components/ui/CloudVsSelfHostTable";
+import { CodeSnippet } from "@/components/ui/CodeSnippet";
 import { FAQItem } from "@/components/ui/FAQItem";
 import { DiscordIcon, GithubIcon } from "./BrandIcons";
 import {
   ARCHITECTURE_FLOW,
-  COMPOSE_OUTPUT,
   CUELABS_URL,
   DISCORD_URL,
   SELF_HOST_DOCS_URL,
@@ -25,7 +25,9 @@ import {
   PROBLEM_CHIPS,
   QUERY_GRAMMAR_DOCS_URL,
   ROADMAP_URL,
+  SELF_HOST_CAPTION,
   SELF_HOST_CHECKLIST,
+  SELF_HOST_SNIPPET_TABS,
   STACK_LINE,
 } from "./content";
 import { Section } from "./Section";
@@ -73,17 +75,22 @@ export function SelfHostSection({ onSelfHostDocs }: SelfHostSectionProps) {
         </div>
 
         <div className="min-w-0 flex flex-col gap-6">
-          <div className="overflow-x-auto rounded-(--radius) border border-border bg-bg-elev p-4">
-            <pre className="font-data text-[13px] leading-[1.6]">
-              <span className="text-brand">$ docker compose up -d</span>
-              {"\n"}
-              {COMPOSE_OUTPUT.map((line) => (
-                <span key={line} className="text-text-2">
-                  {line}
-                  {"\n"}
-                </span>
-              ))}
-            </pre>
+          {/* A14 tabbed snippet (Figma 413:2): Docker Compose | Helm,
+              mirrored two-line commands; copy targets the active tab. The
+              caption is shared — rendered once, outside the tab panel, so
+              both tab states keep it and switching never shifts layout. */}
+          <div
+            className="min-w-0 flex flex-col gap-2"
+            data-testid="selfhost-snippet"
+          >
+            <CodeSnippet
+              tabs={SELF_HOST_SNIPPET_TABS}
+              tabsLabel="Install method"
+              prompt
+            />
+            <p className="text-[12px] leading-normal text-text-2">
+              {SELF_HOST_CAPTION}
+            </p>
           </div>
           <div
             className="flex flex-wrap items-center gap-2"
