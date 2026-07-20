@@ -210,22 +210,33 @@ design.md §8.1.
   presence indicators per pillar; feeds the map + QueryBar autocomplete.
 
 ### B12 Settings
-- Org/members/roles; **API keys & ingestion tokens** (per-pillar scopes);
-  property keys (RUM); integrations (webhooks, Slack); retention per signal;
-  usage metering per pillar **[Designed 2026-07-20; as built 2026-07-20]**
-  — /settings/usage: UsageMeterRow per pillar (measure · MTD value · MTD
-  bar · plan column verbatim "Self-host: unlimited · Cloud: announced at
-  GA", accuracy canon; Figma "B12 — Settings (usage metering)"); values
-  computed from the seeded telemetry volumes, month boundaries in the org
-  timezone (X-10). **[Decided 2026-07-20]** the bar denominators are
-  per-pillar trailing-3-month peaks (the design.md §8.2b contract) — the
-  earlier "scaled to the largest meter" phrasing is cross-unit and
-  unimplementable as stated; privacy/data controls.
-- **Organization profile**: name, **timezone (IANA)** — all report rendering
-  and time-bucketing (dashboards, uptime day boundaries, rollup display,
-  scheduled reports) resolve in the org timezone; storage stays UTC
-  (analytics-math.md §3). Deliberately the entire upstat identity
-  requirement per X-10 tier-1-minimal (decisions.md).
+- **[Ratified 2026-07-20]** Route-backed tabs: a settings-local underline
+  tab bar (the §8.2b tab grammar) under the page title; each tab is a
+  real sub-route, deep-linkable, and the bare `/dashboard/settings`
+  redirects to the first tab (`/general`). Seven tabs: **General**
+  (`/general`) · **Members** (`/members` — members/roles) · **Keys &
+  properties** (`/keys` — API keys & ingestion tokens (per-pillar scopes)
+  + property keys (RUM)) · **Integrations** (`/integrations` — webhooks,
+  Slack; carries the status-page builder handoff — the B7 builder stays a
+  focused sub-screen at `/dashboard/settings/status-page` outside the tab
+  shell) · **Data & privacy** (`/retention`, its pre-tab URL — retention
+  per signal; privacy/data controls) · **Appearance** (`/appearance` —
+  tri-state theme, colorblind mode) · **Usage** (`/usage`, its pre-tab
+  URL).
+- **General — organization profile**: name, **timezone (IANA)** — all
+  report rendering and time-bucketing (dashboards, uptime day boundaries,
+  rollup display, scheduled reports) resolve in the org timezone; storage
+  stays UTC (analytics-math.md §3). Deliberately the entire upstat
+  identity requirement per X-10 tier-1-minimal (decisions.md).
+- **Usage — metering per pillar** **[Designed 2026-07-20; as built
+  2026-07-20]** — /dashboard/settings/usage: UsageMeterRow per pillar
+  (measure · MTD value · MTD bar · plan column verbatim "Self-host:
+  unlimited · Cloud: announced at GA", accuracy canon; Figma "B12 —
+  Settings (usage metering)"); values computed from the seeded telemetry
+  volumes, month boundaries in the org timezone (X-10). **[Decided
+  2026-07-20]** the bar denominators are per-pillar trailing-3-month
+  peaks (the design.md §8.2b contract) — the earlier "scaled to the
+  largest meter" phrasing is cross-unit and unimplementable as stated.
 
 ## Part C — Mobile companion (later; parity direction **[Directive]**)
 
