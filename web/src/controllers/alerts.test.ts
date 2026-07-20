@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AlertRule } from "@/models";
-import {
-  MONITOR_STATE_GROUPS,
-  groupRulesByState,
-  ruleMuted,
-} from "./alerts";
+import { MONITOR_STATE_GROUPS, groupRulesByState, ruleMuted } from "./alerts";
 
 function rule(
   id: string,

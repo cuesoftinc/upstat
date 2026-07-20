@@ -93,7 +93,11 @@ export function PostmortemSection({
             Edit postmortem
           </Button>
         ) : (
-          <Button size="sm" onClick={openComposer} data-testid="start-postmortem">
+          <Button
+            size="sm"
+            onClick={openComposer}
+            data-testid="start-postmortem"
+          >
             Start postmortem
           </Button>
         )}
@@ -105,9 +109,7 @@ export function PostmortemSection({
             {postmortem.author} · updated {postmortem.updated_at.slice(0, 10)}
           </p>
           <div>
-            <h3 className="mb-1 text-[13px] font-semibold text-text">
-              Impact
-            </h3>
+            <h3 className="mb-1 text-[13px] font-semibold text-text">Impact</h3>
             <p className="text-[13px] leading-[1.45] text-text-2">
               {postmortem.impact}
             </p>

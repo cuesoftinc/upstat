@@ -37,9 +37,7 @@ test("seeded resolved incident lists its postmortem on the detail", async ({
   await expect(
     postmortem.getByRole("heading", { name: "Root cause" }),
   ).toBeVisible();
-  await expect(
-    postmortem.getByText(/origin-shield route/),
-  ).toBeVisible();
+  await expect(postmortem.getByText(/origin-shield route/)).toBeVisible();
   // frozen timeline rendered inside the doc
   await expect(
     postmortem.getByText("Rolled back CDN config; all checks green for 15m.", {
@@ -98,9 +96,7 @@ test("resolve → Start postmortem → composed doc lands on the detail", async 
       exact: false,
     }),
   ).toBeVisible();
-  await expect(
-    postmortem.getByText("Cap ingest-gw retries"),
-  ).toBeVisible();
+  await expect(postmortem.getByText("Cap ingest-gw retries")).toBeVisible();
   await expect(
     postmortem.getByRole("button", { name: "Edit postmortem" }),
   ).toBeVisible();

@@ -57,7 +57,8 @@ function indexAt(y: number, rowHeight: number, extras: WindowExtra[]) {
   for (const e of extras) {
     const top = e.index * rowHeight + extraAbove;
     if (top + rowHeight + e.extra <= y) extraAbove += e.extra;
-    else if (top <= y) return e.index; // y lands inside this expanded row
+    else if (top <= y)
+      return e.index; // y lands inside this expanded row
     else break;
   }
   return Math.max(0, Math.floor((y - extraAbove) / rowHeight));
@@ -86,6 +87,9 @@ export function computeVirtualWindow({
     indexAt(scrollTop + viewportHeight, rowHeight, inRange) + 1 + overscan,
   );
   const padTop = offsetOf(start, rowHeight, inRange);
-  const padBottom = Math.max(0, totalHeight - offsetOf(end, rowHeight, inRange));
+  const padBottom = Math.max(
+    0,
+    totalHeight - offsetOf(end, rowHeight, inRange),
+  );
   return { start, end, padTop, padBottom, totalHeight };
 }

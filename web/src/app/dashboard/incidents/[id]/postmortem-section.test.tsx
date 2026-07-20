@@ -135,9 +135,7 @@ describe("PostmortemSection (pages.md B9 postmortem template)", () => {
     expect(
       screen.getByText("Vary header dropped at the edge."),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("Pin Vary at the edge config"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Pin Vary at the edge config")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Edit postmortem" }),
     ).toBeInTheDocument();

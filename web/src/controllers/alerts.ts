@@ -14,11 +14,7 @@ import { useRequest } from "./use-request";
  * = muted).
  */
 export type MonitorStateGroup =
-  | "triggered"
-  | "warn"
-  | "ok"
-  | "nodata"
-  | "muted";
+  "triggered" | "warn" | "ok" | "nodata" | "muted";
 
 export const MONITOR_STATE_GROUPS: {
   key: MonitorStateGroup;

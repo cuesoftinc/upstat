@@ -28,9 +28,7 @@ const MAX_LIMIT = 10_000;
  *  virtualized list (B4) keeps even MAX_LIMIT results smooth. */
 function limitFromUrl(): number {
   if (typeof window === "undefined") return DEFAULT_LIMIT;
-  const raw = Number(
-    new URLSearchParams(window.location.search).get("limit"),
-  );
+  const raw = Number(new URLSearchParams(window.location.search).get("limit"));
   if (!Number.isFinite(raw) || raw < 1) return DEFAULT_LIMIT;
   return Math.min(Math.floor(raw), MAX_LIMIT);
 }

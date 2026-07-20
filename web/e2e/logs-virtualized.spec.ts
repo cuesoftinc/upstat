@@ -76,9 +76,7 @@ test("MI-5 expansion survives being windowed out and back", async ({
   await list.evaluate((el) => {
     el.scrollTop = 0;
   });
-  const rowText = await firstRow
-    .locator("button[aria-expanded]")
-    .textContent();
+  const rowText = await firstRow.locator("button[aria-expanded]").textContent();
   await firstRow.locator("button[aria-expanded]").click();
   await expect(
     lines.locator('div[data-level][data-expanded="true"]'),

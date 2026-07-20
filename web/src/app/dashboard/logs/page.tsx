@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BufferedCountChip } from "@/components/ui/CountBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FacetGroup } from "@/components/ui/FacetGroup";
@@ -33,7 +33,7 @@ export default function LogsPage() {
   const histogram = ctrl.base.data?.histogram ?? [];
 
   // display ascending (oldest → newest); the tail pins to the bottom
-  const ascending = [...ctrl.events].reverse();
+  const ascending = useMemo(() => [...ctrl.events].reverse(), [ctrl.events]);
 
   /* ---- B4 windowing (bespoke, controllers/virtual-window) — spacers keep
      scrollHeight truthful so the MI-4 pause/buffer semantics are untouched */
@@ -44,8 +44,11 @@ export default function LogsPage() {
   const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
-  const measured = useRef(new Map<string, number>());
-  const [measureVersion, bumpMeasure] = useReducer((n: number) => n + 1, 0);
+  // measured heights of expanded rows — state (not a ref): it is read
+  // during render for the spacer math (react-hooks/refs)
+  const [measured, setMeasured] = useState<ReadonlyMap<string, number>>(
+    () => new Map(),
+  );
 
   useEffect(() => {
     const el = listRef.current;
@@ -61,13 +64,11 @@ export default function LogsPage() {
     const list: WindowExtra[] = [];
     ascending.forEach((event, index) => {
       if (!expandedIds.has(event.id)) return;
-      const px = measured.current.get(event.id) ?? EXPANDED_FALLBACK_PX;
+      const px = measured.get(event.id) ?? EXPANDED_FALLBACK_PX;
       list.push({ index, extra: Math.max(0, px - LOG_LINE_ROW_PX) });
     });
     return list;
-    // measureVersion invalidates when a row's measured height changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ascending, expandedIds, measureVersion]);
+  }, [ascending, expandedIds, measured]);
 
   const win = computeVirtualWindow({
     count: ascending.length,
@@ -227,10 +228,11 @@ export default function LogsPage() {
                           ? (el) => {
                               if (!el) return;
                               const px = el.offsetHeight;
-                              if (measured.current.get(event.id) !== px) {
-                                measured.current.set(event.id, px);
-                                bumpMeasure();
-                              }
+                              setMeasured((prev) =>
+                                prev.get(event.id) === px
+                                  ? prev
+                                  : new Map(prev).set(event.id, px),
+                              );
                             }
                           : undefined
                       }
