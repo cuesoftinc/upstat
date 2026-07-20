@@ -11,8 +11,18 @@ export interface LogLineProps {
   /** MI-5 signature pivot: ⌘click a value adds `key:value` to the QueryBar. */
   onPivot?: (key: string, value: string) => void;
   defaultExpanded?: boolean;
+  /**
+   * Controlled expansion (B4 virtualized list: rows unmount when windowed
+   * out, so the list owns the expanded set; uncontrolled elsewhere).
+   */
+  expanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
   className?: string;
 }
+
+/** Fixed collapsed row height: h-7 button (28px) + 1px border — the B4
+ *  windowing constant (`LOG_LINE_ROW_PX` in the logs explorer). */
+export const LOG_LINE_ROW_PX = 29;
 
 function formatTs(ts: string): string {
   return ts.slice(11, 23); // HH:MM:SS.mmm
@@ -23,9 +33,16 @@ export function LogLine({
   event,
   onPivot,
   defaultExpanded = false,
+  expanded: expandedProp,
+  onExpandedChange,
   className,
 }: LogLineProps) {
-  const [expanded, setExpanded] = useState(defaultExpanded);
+  const [internalExpanded, setInternalExpanded] = useState(defaultExpanded);
+  const expanded = expandedProp ?? internalExpanded;
+  const toggleExpanded = () => {
+    if (onExpandedChange) onExpandedChange(!expanded);
+    else setInternalExpanded((x) => !x);
+  };
   const [copiedPath, setCopiedPath] = useState<string | null>(null);
 
   const fields: [string, string][] = [
@@ -68,10 +85,12 @@ export function LogLine({
             onPivot("service", event.service);
             return;
           }
-          setExpanded((x) => !x);
+          toggleExpanded();
         }}
         className={clsx(
-          "flex w-full items-center gap-2 px-2 py-1 text-left",
+          // fixed h-7 (LOG_LINE_ROW_PX): the B4 window relies on one
+          // deterministic collapsed height
+          "flex h-7 w-full items-center gap-2 px-2 text-left",
           "transition-colors duration-[var(--duration-fast)] ease-standard hover:bg-bg-elev",
         )}
       >

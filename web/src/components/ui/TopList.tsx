@@ -1,6 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
+import { patternFillStyle, useColorVision } from "@/design/ColorVisionProvider";
 import { Skeleton } from "./Skeleton";
 
 export interface TopListEntry {
@@ -18,6 +19,8 @@ export interface TopListProps {
 
 /** TopList — §8.2: ranked horizontal bars ×5 (series palette) + right values. */
 export function TopList({ entries, loading = false, className }: TopListProps) {
+  // §5 colorblind mode: bars gain stripe overlays (angle/pitch by index)
+  const { patterns } = useColorVision();
   if (loading) {
     return (
       <div className={clsx("flex flex-col gap-2", className)}>
@@ -47,7 +50,9 @@ export function TopList({ entries, loading = false, className }: TopListProps) {
               className="absolute inset-y-0 left-0 rounded-[1px]"
               style={{
                 width: `${(entry.value / max) * 100}%`,
-                background: `var(--color-series-${(i % 8) + 1})`,
+                ...(patterns
+                  ? patternFillStyle(`var(--color-series-${(i % 8) + 1})`, i)
+                  : { background: `var(--color-series-${(i % 8) + 1})` }),
               }}
             />
           </span>

@@ -21,6 +21,7 @@ import type { ApiKeyWithSecret, KeyScope, MemberRole } from "@/models";
 import { useAlertsController } from "@/controllers/alerts";
 import { useOrgController } from "@/controllers/onboarding";
 import { useSettingsController } from "@/controllers/settings";
+import { useColorVision } from "@/design/ColorVisionProvider";
 import { useTheme, type Theme } from "@/design/ThemeProvider";
 
 function SectionHeading({
@@ -437,6 +438,7 @@ const PRIVACY_ROWS = [
 
 export function AppearanceSection() {
   const { theme, setTheme } = useTheme();
+  const { patterns, setMode } = useColorVision();
   return (
     <section
       aria-labelledby="appearance-heading"
@@ -454,6 +456,24 @@ export function AppearanceSection() {
           onValueChange={(v) => setTheme(v as Theme)}
           aria-label="Theme"
           className="min-w-36"
+        />
+      </div>
+      {/* §5 colorblind mode — persisted at `upstat.colorvision` like the
+          theme contract; charts add pattern fills/dashes, dot-only status
+          pills gain glyphs */}
+      <div className="flex items-center justify-between gap-4 rounded-(--radius) border border-border bg-bg-elev px-3 py-2">
+        <span className="flex min-w-0 flex-col">
+          <span className="text-[13px] font-medium text-text">
+            Color vision
+          </span>
+          <span className="text-[12px] leading-[1.45] text-text-2">
+            Differentiate chart series with patterns and dashes, not color alone
+          </span>
+        </span>
+        <Switch
+          checked={patterns}
+          onCheckedChange={(on) => setMode(on ? "patterns" : "default")}
+          aria-label="Color vision patterns"
         />
       </div>
     </section>

@@ -1,6 +1,8 @@
 "use client";
 
 import { clsx } from "clsx";
+import { useState } from "react";
+import { ChartDataTable, ChartTableToggle } from "./ChartTable";
 import { Tooltip } from "./Tooltip";
 
 export interface HeatmapProps {
@@ -21,19 +23,56 @@ const CELL = 14; // px — fixed cell size; Tooltip wrappers hug content
  */
 export function Heatmap({ columns, rows, values, className }: HeatmapProps) {
   const max = Math.max(...values.flat(), 1);
+  // §5: every chart exposes a data-table alternative — one row per time
+  // bucket, one numeric column per value bucket
+  const [showTable, setShowTable] = useState(false);
   // sparse x labels: first / quarter / mid / three-quarter / last
   const labelIdx = new Set(
     [0, 0.25, 0.5, 0.75, 1].map((t) => Math.round(t * (columns.length - 1))),
   );
+
+  if (showTable) {
+    const tableColumns = [
+      { key: "ts", label: "Time" },
+      ...rows.map((row, ri) => ({ key: `r${ri}`, label: row, numeric: true })),
+    ];
+    const tableRows = columns.map((col, ci) => {
+      const row: Record<string, string | number | null> = { ts: col };
+      rows.forEach((_, ri) => {
+        row[`r${ri}`] = values[ri]?.[ci] ?? 0;
+      });
+      return row;
+    });
+    return (
+      <div className={clsx("font-ui relative w-full max-w-full", className)}>
+        <ChartTableToggle
+          active
+          onToggle={() => setShowTable(false)}
+          className="absolute right-0 top-0 z-10 bg-bg-elev"
+        />
+        <ChartDataTable
+          columns={tableColumns}
+          rows={tableRows}
+          maxHeight={rows.length * (CELL + 1) + 96}
+        />
+      </div>
+    );
+  }
+
   return (
     // overflow-x-auto: the fixed-cell grid scrolls inside its panel on
     // narrow viewports (390 support); desktop rendering is unchanged
     <div
       className={clsx(
-        "font-ui flex w-fit max-w-full gap-1.5 overflow-x-auto",
+        "font-ui relative flex w-fit max-w-full gap-1.5 overflow-x-auto",
         className,
       )}
     >
+      <ChartTableToggle
+        active={false}
+        onToggle={() => setShowTable(true)}
+        className="absolute right-0 top-0 z-10"
+      />
       <div
         className="flex flex-col justify-between py-0.5 text-right"
         style={{ height: rows.length * (CELL + 1) }}

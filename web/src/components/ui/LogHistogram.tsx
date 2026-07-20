@@ -1,7 +1,10 @@
 "use client";
 
 import { clsx } from "clsx";
+import { useState } from "react";
 import type { LogLevel } from "@/models";
+import { patternFillStyle, useColorVision } from "@/design/ColorVisionProvider";
+import { ChartDataTable, ChartTableToggle } from "./ChartTable";
 import { Tooltip } from "./Tooltip";
 
 export interface LogHistogramProps {
@@ -37,6 +40,11 @@ export function LogHistogram({
   height = 64,
   className,
 }: LogHistogramProps) {
+  // §5 colorblind mode: level stacks gain stripe overlays (INFO stays
+  // solid; the other levels get distinct angles/pitches)
+  const { patterns } = useColorVision();
+  // §5: every chart exposes a data-table alternative
+  const [showTable, setShowTable] = useState(false);
   const totals = buckets.map((b) =>
     STACK.reduce((s, { level }) => s + (b.counts[level] ?? 0), 0),
   );
@@ -55,77 +63,105 @@ export function LogHistogram({
         className,
       )}
     >
-      <div className="font-data flex gap-3 text-[12px]">
+      <div className="font-data flex items-center gap-3 text-[12px]">
         <span className="text-text tabular-nums">
           {formatCount(grandTotal)} events
         </span>
         <span className="text-text-2 tabular-nums">
           error {formatCount(errorTotal)} · warn {formatCount(warnTotal)}
         </span>
+        <ChartTableToggle
+          active={showTable}
+          onToggle={() => setShowTable((v) => !v)}
+          className="ml-auto"
+        />
       </div>
 
-      {/* overflow-x-auto: the fixed-width bars (and their axis labels)
-          scroll inside the card on narrow viewports (390 support) */}
-      <div className="overflow-x-auto">
-        <div className="w-max min-w-full">
-          <div
-            role="img"
-            aria-label="log volume histogram"
-            className="flex items-end gap-0.5"
-            style={{ height }}
-          >
-            {buckets.map((bucket, i) => (
-              <Tooltip
-                key={bucket.ts}
-                content={STACK.filter(
-                  ({ level }) => (bucket.counts[level] ?? 0) > 0,
-                )
-                  .reverse()
-                  .map(({ level }) => ({
-                    label: level,
-                    value: String(bucket.counts[level]),
-                  }))}
-              >
-                <span
-                  data-ts={bucket.ts}
-                  className="flex flex-col-reverse"
-                  style={{ width: 6, height }}
+      {showTable ? (
+        <ChartDataTable
+          columns={[
+            { key: "ts", label: "Time" },
+            ...STACK.map(({ level }) => ({
+              key: level,
+              label: level,
+              numeric: true,
+            })),
+          ]}
+          rows={buckets.map((b) => ({
+            ts: b.ts.slice(11, 16),
+            ...Object.fromEntries(
+              STACK.map(({ level }) => [level, b.counts[level] ?? 0]),
+            ),
+          }))}
+          maxHeight={height + 96}
+        />
+      ) : (
+        // overflow-x-auto: the fixed-width bars (and their axis labels)
+        // scroll inside the card on narrow viewports (390 support)
+        <div className="overflow-x-auto">
+          <div className="w-max min-w-full">
+            <div
+              role="img"
+              aria-label="log volume histogram"
+              className="flex items-end gap-0.5"
+              style={{ height }}
+            >
+              {buckets.map((bucket, i) => (
+                <Tooltip
+                  key={bucket.ts}
+                  content={STACK.filter(
+                    ({ level }) => (bucket.counts[level] ?? 0) > 0,
+                  )
+                    .reverse()
+                    .map(({ level }) => ({
+                      label: level,
+                      value: String(bucket.counts[level]),
+                    }))}
                 >
-                  {STACK.map(({ level, color }) => {
-                    const v = bucket.counts[level] ?? 0;
-                    if (v === 0) return null;
-                    return (
-                      <span
-                        key={level}
-                        style={{
-                          height: `${(v / max) * 100}%`,
-                          background: color,
-                          opacity: 0.9,
-                        }}
-                        className="block w-full"
-                      />
-                    );
-                  })}
-                  <span className="sr-only">{totals[i]} lines</span>
-                </span>
-              </Tooltip>
-            ))}
-          </div>
-
-          <div className="mt-2 flex justify-between">
-            {buckets
-              .filter((_, i) => labelIdx.has(i))
-              .map((b) => (
-                <span
-                  key={b.ts}
-                  className="font-data text-[11px] tabular-nums text-text-2"
-                >
-                  {b.ts.slice(11, 16)}
-                </span>
+                  <span
+                    data-ts={bucket.ts}
+                    className="flex flex-col-reverse"
+                    style={{ width: 6, height }}
+                  >
+                    {STACK.map(({ level, color }, li) => {
+                      const v = bucket.counts[level] ?? 0;
+                      if (v === 0) return null;
+                      return (
+                        <span
+                          key={level}
+                          data-level={level}
+                          style={{
+                            height: `${(v / max) * 100}%`,
+                            opacity: 0.9,
+                            ...(patterns
+                              ? patternFillStyle(color, li)
+                              : { background: color }),
+                          }}
+                          className="block w-full"
+                        />
+                      );
+                    })}
+                    <span className="sr-only">{totals[i]} lines</span>
+                  </span>
+                </Tooltip>
               ))}
+            </div>
+
+            <div className="mt-2 flex justify-between">
+              {buckets
+                .filter((_, i) => labelIdx.has(i))
+                .map((b) => (
+                  <span
+                    key={b.ts}
+                    className="font-data text-[11px] tabular-nums text-text-2"
+                  >
+                    {b.ts.slice(11, 16)}
+                  </span>
+                ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -16,6 +16,8 @@ import type {
   MonitorHistory,
   OnboardingState,
   Org,
+  Postmortem,
+  PostmortemInput,
   QueryRequest,
   QueryResult,
   RuleTestResult,
@@ -174,6 +176,11 @@ export const incidentsRepo = {
     id: string,
     entry: { phase?: string; body: string; author: string },
   ) => http.post<TimelineEntry>(`/v1/incidents/${id}/timeline`, entry),
+  /** B9 postmortem template — resolved incidents only; 404 until composed. */
+  postmortem: (id: string) =>
+    http.get<Postmortem>(`/v1/incidents/${id}/postmortem`),
+  savePostmortem: (id: string, input: PostmortemInput) =>
+    http.put<Postmortem>(`/v1/incidents/${id}/postmortem`, input),
 };
 
 /** SLOs (pages.md B10). */

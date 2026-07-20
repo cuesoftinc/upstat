@@ -96,7 +96,12 @@ export function PillarsSection() {
           (cols x144/438/732/1026 at 1440) */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {MARKETING_PILLARS.map((pillar) => (
-          <PillarCard key={pillar.pillar} {...pillar} />
+          // id: the A1 nav pillar dropdown deep-links each card (/#pillar-n)
+          <PillarCard
+            key={pillar.pillar}
+            {...pillar}
+            id={`pillar-${pillar.pillar}`}
+          />
         ))}
       </div>
     </Section>

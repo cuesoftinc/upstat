@@ -17,7 +17,7 @@ community-driven") remains the visual base, extended for the new pillars.
 
 | # | Section | Content | Interactions |
 | --- | --- | --- | --- |
-| A1 | Nav | logo · Features (anchors the A11 feature-highlights band, `/#features` — differentiated from Platform 2026-07-19; the pillar-map dropdown preview remains specced, unbuilt) · Platform (anchors to the A3 pillar grid) · Docs (GitBook) · GitHub star badge (neutral "Star") · ThemeToggle · Sign in text link · **Try Cloud** CTA **[Revised 2026-07-19]** | Features dropdown = mini feature map **[gap — pending adjudication vs the 4-text-links canon]** |
+| A1 | Nav | logo · Features (anchors the A11 feature-highlights band, `/#features` — differentiated from Platform 2026-07-19) · Platform (anchors to the A3 pillar grid) · Docs (GitBook) · GitHub star badge (neutral "Star") · ThemeToggle · Sign in text link · **Try Cloud** CTA **[Revised 2026-07-19]** | Features dropdown = mini feature map ×8 — as built 2026-07-20 per the Figma `dropdown-open` variant: desktop hover/chevron-click disclosure reusing the PillarCard set (series-accent icons, Figma short labels), rows deep-link `/#pillar-n` on the A3 grid; Escape/focus-out close; the mobile panel keeps the plain link. **[Decided 2026-07-20]** the dropdown supplements the 4-text-links canon — the link inventory is unchanged (Features keeps `/#features`) |
 | A2 | Hero | H1 (from Figma pillars); dual CTA **Try Cloud** / **Self Host**; hero visual: live-looking dashboard with animated timeseries + synced crosshair demo | crosshair demo animates on an 8s loop |
 | A3 | Pillar grid | 8 cards: Uptime & Synthetics · Website Analytics/RUM · Metrics · Logs · APM/Traces · Dashboards · Alerting · Incidents & SLOs | hover lifts + pillar color accent |
 | A4 | Demo strip | **static demo cards** (synthetic data, U0-3) — the interactive embedded demo org is descoped to a post-Phase-3 enhancement **[Decided]** | — |
@@ -82,8 +82,11 @@ design.md §8.1.
 
 ### B4 Logs
 - Explorer: FacetSidebar (service, level, host, custom) + QueryBar + LogLine
-  list (virtualized) + histogram header (MI-6); live tail (MI-4); expand
-  pivots (MI-5).
+  list (virtualized — as built 2026-07-20: bespoke spacer windowing over
+  fixed 29px rows, `controllers/virtual-window.ts`; page size is
+  URL-addressable `?limit=` up to 10k; MI-4 pause/buffer and MI-5
+  expansion semantics preserved, expansion lifted to the list) + histogram
+  header (MI-6); live tail (MI-4); expand pivots (MI-5).
 - Patterns view **[Designed 2026-07-20]**: a "Patterns" tab beside the
   explorer list — LogPatternRow per clustered template (expand chevron ·
   count · 7-bucket trend sparkline · Mono template with `<placeholders>`),
@@ -147,7 +150,14 @@ design.md §8.1.
 - Rule editor: query + thresholds (warn/crit) + evaluation window + MI-9
   test-replay; notification channels (email, webhook, Slack **[phased]**),
   cooldown/renotify, mute windows.
-- Triggered feed with MI-14; monitor status page (grouped by state).
+- Triggered feed with MI-14; monitor status page (grouped by state) —
+  **[Decided 2026-07-20]** read literally as a grouped view of the
+  monitors list: the B8 rules list carries a List | By state toggle
+  (URL-addressable `?view=state`); By state groups rules worst-first —
+  Triggered (alert) / Warn / OK / No data / Muted — with counts, any mute
+  window winning over evaluation state (the rule editor's mute
+  semantics). Uptime checks remain surfaced on B7 until monitors-v2
+  unifies them as MONITOR_RULEs (the B7 coexistence contract).
 - Create-monitor form **[Directive 2026-07-18]**: monitor type picker →
   rule editor as a dedicated create screen.
 - Rule test/replay state **[Directive 2026-07-18]**: the MI-9 replay
@@ -158,7 +168,10 @@ design.md §8.1.
 - Existing incident records grow into incident management: declare (from
   alert or manual), sev levels, roles (commander/responders), timeline
   composer (MI-10), status page linkage, postmortem doc template on resolve
-  **[Proposed]**.
+  **[Decided 2026-07-20, built]** — resolved incidents gain **Start
+  postmortem**: a composer modal with the incident timeline auto-filled
+  (frozen into the doc) plus impact / root-cause / action-items sections;
+  the saved doc lists on the incident detail and stamps `postmortem_key`.
 - Declare-incident modal state **[Directive 2026-07-18]**: modal (sev
   picker, title, commander assignment) reachable from an alert row or
   manually.

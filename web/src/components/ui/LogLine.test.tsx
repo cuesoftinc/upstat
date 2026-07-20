@@ -35,4 +35,30 @@ describe("LogLine", () => {
     await user.keyboard("{/Meta}");
     expect(onPivot).toHaveBeenCalledWith("service", "checkout");
   });
+
+  it("supports controlled expansion (B4 virtualized list owns the set)", async () => {
+    const onExpandedChange = vi.fn();
+    const { rerender } = render(
+      <LogLine
+        event={LOG}
+        expanded={false}
+        onExpandedChange={onExpandedChange}
+      />,
+    );
+    // controlled: clicking reports the intent, it does not self-expand
+    await userEvent.click(
+      screen.getByRole("button", { name: /insert failed/ }),
+    );
+    expect(onExpandedChange).toHaveBeenCalledWith(true);
+    expect(screen.queryByText("attrs.env")).toBeNull();
+
+    rerender(
+      <LogLine event={LOG} expanded onExpandedChange={onExpandedChange} />,
+    );
+    expect(screen.getByText("attrs.env")).toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole("button", { name: /insert failed/ }),
+    );
+    expect(onExpandedChange).toHaveBeenLastCalledWith(false);
+  });
 });

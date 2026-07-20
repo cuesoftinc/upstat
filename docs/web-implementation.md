@@ -310,9 +310,7 @@ document side-scroll and no element outside a scroll container, both
 widths, rail expanded); below `md` rail expansion renders as a 240px
 **overlay drawer** over a scrim — content keeps full width, the persisted
 desktop state does not apply (mobile boots collapsed), scrim/Escape/item
-selection dismiss (`e2e/navrail.spec.ts`). Known spec gap deliberately
-deferred: the A1 Features pillar-map dropdown (pending adjudication
-against the 4-text-links parity canon).
+selection dismiss (`e2e/navrail.spec.ts`).
 
 **Code-quality pass as-built (2026-07-19).** The documented dead-dependency
 prune landed: `styled-components` (+ its `next.config.ts` compiler flag),
@@ -331,6 +329,65 @@ the struck-through gRPC sketch; stale nav enumerations corrected).
 check:boundaries`); the web tooling (boundary gate, prettier config,
 vitest/playwright/tsconfig shapes, `PW_PORT` port isolation) is converged
 with apparule and expendit.
+
+**Wave A as-built (2026-07-20) — A1 dropdown · §5 colorblind mode · §5
+data-table toggle.** (1) **A1 Features pillar-map dropdown** — built per
+the Figma MarketingNav `state=dropdown-open` variant (set 98:1710),
+adjudicated as a supplement to the 4-text-links canon (inventory
+unchanged): the desktop Features item keeps `/#features` and gains a
+disclosure chevron (`FeaturesDropdown` in `MarketingNav.tsx`) opening the
+mini feature map ×8 — two 4-row columns reusing the PillarCard
+construction (`MARKETING_PILLARS` + `pillarAccent` + Figma short labels),
+rows deep-linking `/#pillar-n` (PillarCard grew an anchor `id` +
+`scroll-mt`); hover opens with a 150ms close grace bridging the 8px gap,
+chevron click toggles, Escape closes restoring trigger focus, focus-out
+closes; the mobile panel keeps the plain link (`e2e/home.spec.ts`).
+(2) **§5 colorblind mode** — `web/src/design/ColorVisionProvider.tsx`
+mirrors the ThemeProvider contract (localStorage `upstat.colorvision`,
+`data-colorvision` on `<html>`, pre-paint init script; safe without a
+provider so leaf charts render alone); Settings → Appearance gains the
+"Color vision" Switch; pattern rendering per the design.md §5 as-built
+note (TimeseriesPanel dashes + bar hatch defs, TopList/LogHistogram
+stripe overlays via the shared `patternFillStyle`, dot-only StatusPill
+glyphs). (3) **§5 chart data-table toggle** — shared
+`ChartTableToggle`/`ChartDataTable` (`components/ui/ChartTable.tsx`, not
+a Figma set: an accessibility behavior rendering the §8.2 Table in a
+scroll-bounded container) wired on TimeseriesPanel (header control with
+chrome; floating corner control on bare widget plots), Heatmap,
+LogHistogram and UptimeCard; hidden in loading/empty states; hidden
+legend series stay hidden in the table. Both §5 features are covered by
+`e2e/chart-accessibility.spec.ts` (toggle persistence across reload,
+dashed strokes + pill glyphs on the seeded narrative, widget table
+flip).
+
+**Wave A as-built (2026-07-20) — B4 virtualized logs · B9 postmortem ·
+B8 grouped monitors.** (4) **B4 virtualized log stream** — the explorer's
+LogLine list is windowed bespoke (no virtualization dependency;
+`controllers/virtual-window.ts` is pure, unit-tested spacer math): a
+bounded slice renders between top/bottom spacers that keep scrollHeight
+truthful, which is what preserves MI-4's bottom-pin auto-scroll and
+scroll-up pause/buffer exactly; LogLine has one fixed 29px collapsed row
+(`LOG_LINE_ROW_PX`) and controlled expansion so the list owns the MI-5
+expanded set (expanded rows are measured for exact spacers and survive
+being windowed out and back); the page size is URL-addressable
+(`?limit=`, capped 10k — the mock generator fills it over a 1h window);
+`e2e/logs-virtualized.spec.ts` asserts 10k lines render <300 DOM rows
+with interactive scroll jumps. (5) **B9 postmortem on resolve** —
+resolved incidents gain **Start postmortem** (`postmortem-section.tsx`):
+a composer modal auto-fills the incident timeline (frozen into the doc
+server-side), plus impact / root-cause / action-items sections; saved
+via `PUT /v1/incidents/{id}/postmortem` (422 `incident_not_resolved`
+before resolve), listed on the incident detail, stamping
+`postmortem_key` per the data-model.md §5 layout; seeded INC-41 boots
+with a composed doc (`e2e/incident-postmortem.spec.ts` walks resolve →
+compose → listed → reload). (6) **B8 grouped monitors** — the rules list
+gains a List | By state toggle (`?view=state`); By state groups
+worst-first Triggered / Warn / OK / No data / Muted with plain tabular
+counts (status colors stay reserved — no CountBadge), mute winning over
+state per the rule editor's recurrence-window semantics; the seeded
+homepage-uptime rule carries a weekend maintenance mute so the bucket is
+visible from boot (`e2e/monitors-grouped.spec.ts`). Interpretation
+recorded as the pages.md B8 **[Decided 2026-07-20]** line.
 
 **Public API reference as-built (2026-07-20, ratified).** `/docs/api` is
 the public Scalar reference (X-2): the `@scalar/api-reference-react`

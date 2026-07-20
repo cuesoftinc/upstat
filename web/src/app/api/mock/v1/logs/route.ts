@@ -14,7 +14,9 @@ export async function GET(req: Request) {
   const q = url.searchParams.get("q") ?? "";
   const live = url.searchParams.get("live") === "1";
   const cursor = url.searchParams.get("cursor");
-  const limit = Math.min(Number(url.searchParams.get("limit") ?? 100), 500);
+  // cap 10k — the B4 virtualized explorer's max page (`?limit=`); the
+  // generator emits 3 lines/s, so a 1h window can fill it
+  const limit = Math.min(Number(url.searchParams.get("limit") ?? 100), 10_000);
   const now = Date.now();
 
   // minimal facet extraction from the shared grammar (service:/level:)

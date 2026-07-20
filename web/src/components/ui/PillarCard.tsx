@@ -20,19 +20,28 @@ export interface PillarCardProps {
   title: string;
   description: string;
   href?: string;
+  /** Anchor id — the A1 pillar dropdown deep-links `/#pillar-n` here. */
+  id?: string;
   /** Compact variant for the MarketingNav pillar dropdown (A1). */
   compact?: boolean;
   className?: string;
 }
 
+/** Pillar accent — series-palette color by pillar index (shared with the
+ *  A1 nav dropdown, which reuses this construction per pages.md A1). */
+export function pillarAccent(pillar: number): string {
+  return `var(--color-series-${((pillar - 1) % 8) + 1})`;
+}
+
 /**
  * The pages.md A3 pillar set (8) — copy + icons per the landing v2 masters
- * (Figma 91:1517 instances on frame 135:2, W2 QA loop).
+ * (Figma 91:1517 instances on frame 135:2, W2 QA loop). `shortTitle` is the
+ * compact label the A1 Features dropdown renders (Figma 98:1709).
  */
-export const MARKETING_PILLARS: Omit<
+export const MARKETING_PILLARS: (Omit<
   PillarCardProps,
   "compact" | "className"
->[] = [
+> & { shortTitle?: string })[] = [
   {
     pillar: 1,
     icon: Activity,
@@ -43,6 +52,7 @@ export const MARKETING_PILLARS: Omit<
     pillar: 2,
     icon: Globe,
     title: "Website Analytics / RUM",
+    shortTitle: "Analytics / RUM",
     description: "Real-user vitals & errors, cookieless",
   },
   {
@@ -94,15 +104,19 @@ export function PillarCard({
   title,
   description,
   href = "#",
+  id,
   compact = false,
   className,
 }: PillarCardProps) {
-  const accent = `var(--color-series-${((pillar - 1) % 8) + 1})`;
+  const accent = pillarAccent(pillar);
   return (
     <a
       href={href}
+      id={id}
       data-pillar={pillar}
+      // scroll-mt clears the sticky marketing nav when anchor-targeted
       className={clsx(
+        "scroll-mt-20",
         "font-ui group flex flex-col gap-2 rounded-(--radius) border border-border bg-bg-elev",
         compact ? "p-3" : "p-4",
         "transition-[transform,border-color] duration-[var(--duration-base)] ease-standard",
