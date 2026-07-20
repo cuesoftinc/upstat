@@ -22,6 +22,8 @@ import type {
   SavedView,
   ServiceCatalogEntry,
   Slo,
+  SyntheticCheck,
+  SyntheticRun,
   TimelineEntry,
   Trace,
   TraceSummary,
@@ -37,6 +39,7 @@ import {
   nextId,
 } from "./util";
 import { SERVICES, type OutageWindow } from "./series";
+import { seedSynthetics } from "./synthetics";
 
 export const HERO_TRACE_ID = "9f86d081884c7d659a2feaa0c55ad015";
 
@@ -57,6 +60,9 @@ export interface MockDb {
   members: Member[];
   dashboards: Dashboard[];
   monitors: Monitor[];
+  synthetics: SyntheticCheck[];
+  /** Run history per synthetic check id, newest first. */
+  syntheticRuns: Record<string, SyntheticRun[]>;
   channels: AlertChannel[];
   rules: AlertRule[];
   alertFeed: AlertEvent[];
@@ -1045,6 +1051,11 @@ export function buildSeed(now: number): MockDb {
     },
   ];
 
+  const { checks: synthetics, runs: syntheticRuns } = seedSynthetics(
+    now,
+    outage,
+  );
+
   return {
     seededAt: now,
     outage,
@@ -1059,6 +1070,8 @@ export function buildSeed(now: number): MockDb {
     members,
     dashboards,
     monitors,
+    synthetics,
+    syntheticRuns,
     channels,
     rules,
     alertFeed,
@@ -1152,6 +1165,8 @@ export function buildEmptySeed(
     ],
     dashboards: [],
     monitors: [],
+    synthetics: [],
+    syntheticRuns: {},
     channels: [],
     rules: [],
     alertFeed: [],

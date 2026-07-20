@@ -29,6 +29,9 @@ import type {
   ServiceStats,
   Slo,
   StatusPage,
+  SyntheticCheck,
+  SyntheticCheckInput,
+  SyntheticRun,
   TimelineEntry,
   Trace,
   TraceSummary,
@@ -126,6 +129,22 @@ export const monitorsRepo = {
     http.get<MonitorHistory>(`/v1/monitors/${id}/checks`),
   /** MI-9: 24h response-time replay against timeout-derived thresholds. */
   test: (id: string) => http.post<RuleTestResult>(`/v1/monitors/${id}/test`),
+};
+
+/** Synthetic multi-step/browser checks (pages.md B7, OBS-011). */
+export const syntheticsRepo = {
+  list: () => http.get<SyntheticCheck[]>("/v1/synthetics"),
+  get: (id: string) => http.get<SyntheticCheck>(`/v1/synthetics/${id}`),
+  create: (input: SyntheticCheckInput) =>
+    http.post<SyntheticCheck>("/v1/synthetics", input),
+  update: (id: string, patch: Partial<SyntheticCheckInput>) =>
+    http.patch<SyntheticCheck>(`/v1/synthetics/${id}`, patch),
+  remove: (id: string) => http.delete(`/v1/synthetics/${id}`),
+  runs: (id: string) => http.get<SyntheticRun[]>(`/v1/synthetics/${id}/runs`),
+  run: (id: string, runId: string) =>
+    http.get<SyntheticRun>(`/v1/synthetics/${id}/runs/${runId}`),
+  /** "Run once" — executes the steps, returns the per-step results. */
+  runOnce: (id: string) => http.post<SyntheticRun>(`/v1/synthetics/${id}/runs`),
 };
 
 /** Alert channels + signal-generic rules (api.md §1a/§6; pages.md B8). */
