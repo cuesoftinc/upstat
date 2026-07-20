@@ -19,6 +19,11 @@ describe("AlertFeedRow", () => {
     const row = screen.getByRole("button");
     expect(row).toHaveAttribute("data-sev", "sev1");
     expect(row).toHaveAttribute("data-unread", "true");
+    // master construction (94:1513): one line with a SevChip — the message
+    // detail line was drift (it survives as the row tooltip)
+    expect(screen.getByText("SEV-1")).toBeInTheDocument();
+    expect(screen.queryByText(EVENT.message)).toBeNull();
+    expect(row).toHaveAttribute("title", EVENT.message);
   });
 
   it("renders the resolved tint calm (decided 2026-07-17)", () => {
@@ -28,6 +33,8 @@ describe("AlertFeedRow", () => {
     const row = screen.getByRole("button");
     expect(row).toHaveAttribute("data-sev", "resolved");
     expect(row).not.toHaveAttribute("data-unread");
+    // resolved rows carry the OK chip per the master
+    expect(screen.getByText("OK")).toBeInTheDocument();
   });
 });
 

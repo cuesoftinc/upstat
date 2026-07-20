@@ -16,7 +16,14 @@ export interface IncidentBannerProps {
   className?: string;
 }
 
-/** IncidentBanner — §8.2: sev1 / sev2 (persistent) · resolved (transient). */
+/**
+ * IncidentBanner — §8.2: sev1 / sev2 (persistent) · resolved (transient).
+ * Placement adjudicated 2026-07-20: the full-width chrome strip under the
+ * TopBar stays (docs §3 "global banner"); the CONSTRUCTION follows the
+ * master (48:141): SEV chip · title · "open 12m" age · avatars · explicit
+ * "View incident →" link. The whole strip remains one button (the link
+ * text is the visual affordance, not a nested control).
+ */
 export function IncidentBanner({
   sev,
   title,
@@ -49,13 +56,17 @@ export function IncidentBanner({
       ) : (
         <SevChip sev={sev} />
       )}
-      <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-text">
+      <span className="min-w-0 truncate text-[13px] font-medium text-text">
         {title}
       </span>
       <span className="shrink-0 text-[12px] tabular-nums text-text-2">
-        {age}
+        {resolved ? age : `open ${age}`}
       </span>
+      <span className="flex-1" aria-hidden="true" />
       <AvatarStack names={responders} size={20} />
+      <span className="shrink-0 text-[12px] font-medium text-brand">
+        View incident →
+      </span>
     </button>
   );
 }

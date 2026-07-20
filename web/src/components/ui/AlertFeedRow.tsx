@@ -4,32 +4,18 @@ import * as Popover from "@radix-ui/react-popover";
 import { clsx } from "clsx";
 import type { ReactNode } from "react";
 import type { AlertEvent } from "@/models";
-
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+import { SevChip } from "./SevChip";
 
 /**
- * Feed timestamp — HH:mm for today's events, "MMM d" for older ones (a
- * bare "16:00" on a 4-day-old event read as today; UX walk 2026-07-19).
- * Derived from the ISO string so it renders UTC like every other data
- * surface (the TimeseriesPanel X-10 note), independent of host timezone.
+ * Feed age — the master's relative idiom ("2m ago" / "18m ago" / "1h ago",
+ * 94:1513). Relative ages stay honest across days (the earlier bare-HH:mm
+ * form read 4-day-old events as today; UX walk 2026-07-19).
  */
-function feedTime(ts: string): string {
-  if (ts.slice(0, 10) === new Date().toISOString().slice(0, 10))
-    return ts.slice(11, 16);
-  return `${MONTHS[Number(ts.slice(5, 7)) - 1]} ${Number(ts.slice(8, 10))}`;
+function feedAge(ts: string): string {
+  const min = Math.max(Math.round((Date.now() - Date.parse(ts)) / 60_000), 0);
+  if (min < 60) return `${min}m ago`;
+  const h = Math.round(min / 60);
+  return h < 24 ? `${h}h ago` : `${Math.round(h / 24)}d ago`;
 }
 
 export interface AlertFeedRowProps {
@@ -39,8 +25,11 @@ export interface AlertFeedRowProps {
 }
 
 /**
- * AlertFeedRow — §8.2b: sev tint sev1 / sev2 / resolved [Decided 2026-07-17]
- * · unread/read · 300ms slide-in (MI-14).
+ * AlertFeedRow — §8.2b: sev1 / sev2 / resolved · unread/read · 300ms
+ * slide-in (MI-14). Construction per the master (94:1513, adjudicated
+ * 2026-07-20): ONE line — [unread brand dot] · SevChip (OK chip when
+ * resolved) · title · relative age. The message detail line was a code
+ * extension; the message still feeds the declare-incident prefill.
  */
 export function AlertFeedRow({ event, onClick, className }: AlertFeedRowProps) {
   return (
@@ -49,49 +38,41 @@ export function AlertFeedRow({ event, onClick, className }: AlertFeedRowProps) {
       onClick={onClick}
       data-sev={event.sev}
       data-unread={event.unread || undefined}
+      title={event.message}
       className={clsx(
-        "font-ui flex w-full items-center gap-2 border-b border-border px-3 py-2 text-left",
+        "font-ui flex h-8 w-full items-center gap-2 border-b border-border px-3 text-left",
         "transition-colors duration-[var(--duration-fast)] ease-standard hover:bg-bg",
         "animate-[slide-in_var(--duration-slow)_var(--ease-standard)] motion-reduce:animate-none",
         className,
       )}
     >
-      <span
-        aria-hidden="true"
-        className={clsx(
-          "size-2 shrink-0 rounded-full",
-          event.sev === "sev1" && "bg-crit",
-          event.sev === "sev2" && "bg-warn",
-          event.sev === "resolved" && "bg-ok",
-        )}
-      />
-      <div className="flex min-w-0 flex-1 flex-col">
+      {event.unread && (
         <span
-          className={clsx(
-            "truncate text-[13px]",
-            event.unread
-              ? "font-semibold text-text"
-              : "font-normal text-text-2",
-          )}
-        >
-          {event.monitor_name}
+          aria-label="unread"
+          className="size-2 shrink-0 rounded-full bg-brand"
+        />
+      )}
+      {event.sev === "resolved" ? (
+        <span className="font-ui inline-flex h-5 shrink-0 items-center rounded-(--radius) bg-ok/14 px-1.5 text-[11px] font-semibold text-ok">
+          OK
         </span>
-        <span className="truncate text-[12px] text-text-2">
-          {event.message}
-        </span>
-      </div>
+      ) : (
+        <SevChip sev={event.sev === "sev1" ? 1 : 2} className="shrink-0" />
+      )}
+      <span
+        className={clsx(
+          "min-w-0 flex-1 truncate text-[13px]",
+          event.unread ? "font-semibold text-text" : "font-normal text-text-2",
+        )}
+      >
+        {event.monitor_name}
+      </span>
       <time
         dateTime={event.ts}
         className="shrink-0 text-[11px] tabular-nums text-text-2"
       >
-        {feedTime(event.ts)}
+        {feedAge(event.ts)}
       </time>
-      {event.unread && (
-        <span
-          aria-label="unread"
-          className="size-1.5 shrink-0 rounded-full bg-brand"
-        />
-      )}
     </button>
   );
 }

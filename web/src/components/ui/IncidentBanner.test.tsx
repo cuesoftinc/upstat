@@ -13,7 +13,9 @@ describe("IncidentBanner", () => {
       />,
     );
     expect(screen.getByText("SEV-1")).toBeInTheDocument();
-    expect(screen.getByText("3h")).toBeInTheDocument();
+    // master construction (48:141): "open 12m" age + explicit link text
+    expect(screen.getByText("open 3h")).toBeInTheDocument();
+    expect(screen.getByText("View incident →")).toBeInTheDocument();
   });
 
   it("renders resolved as transient calm state", () => {
