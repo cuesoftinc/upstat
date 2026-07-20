@@ -8,6 +8,7 @@ import type {
   Dashboard,
   ErrorGroup,
   Incident,
+  LogPatternsResult,
   LogQueryPage,
   Member,
   MemberRole,
@@ -97,6 +98,9 @@ export const logsRepo = {
     limit?: number;
     live?: 1;
   }) => http.get<LogQueryPage>(`/v1/logs${qs(params)}`),
+  /** B4 Patterns tab — clustered templates over the range (OBS-012). */
+  patterns: (params: { q?: string; from?: string; to?: string }) =>
+    http.get<LogPatternsResult>(`/v1/logs/patterns${qs(params)}`),
 };
 
 /** Traces / APM (pages.md B5). */

@@ -480,68 +480,82 @@ export function generateLogs(
   const startSec = Math.floor(beforeMs / SECOND) - 1;
   const endSec = Math.floor(fromMs / SECOND);
   for (let sec = startSec; sec >= endSec && events.length < limit; sec--) {
-    const secMs = sec * SECOND;
-    // rollout stage lines landing in this second (usually none)
-    const rollouts = SERVICES.map((s) => ({
-      service: s as string,
-      line: deployStageLine(s, secMs),
-    })).filter((x): x is { service: string; line: string } => x.line !== null);
-    const perSecond = 3;
-    for (let slot = perSecond - 1; slot >= 0 && events.length < limit; slot--) {
-      const key = `log:${sec}:${slot}`;
-      const r = mulberry32(hashSeed(key));
-      // slot-banded offsets keep newest-first ordering strict within a second
-      const tMs = secMs + slot * 300 + Math.floor(r() * 250);
-      const outageHit = tMs >= outage.start && tMs <= outage.end;
-      const rollout = slot === 0 ? rollouts[0] : undefined;
-      // during the outage, bias lines toward the implicated services
-      const service = rollout
-        ? rollout.service
-        : outageHit && r() < 0.5
-          ? outage.services[Math.floor(r() * outage.services.length)]
-          : SERVICES[Math.floor(r() * SERVICES.length)];
-      const level = rollout
-        ? "INFO"
-        : levelFor(r(), outageHit && outage.services.includes(service));
-      if (filterService && service !== filterService) continue;
-      if (filterLevel && level !== filterLevel.toUpperCase()) continue;
-      const deploy = lastDeploy(service, tMs);
-      const templates = LOG_TEMPLATES[level];
-      const message = rollout
-        ? rollout.line
-        : templates[Math.floor(r() * templates.length)];
-      const heroHit =
-        hero !== undefined &&
-        tMs >= hero.startMs - 1_500 &&
-        tMs <= hero.startMs + hero.durationMs + 1_500 &&
-        hero.services.includes(service);
-      // the line's trace id: hero window → hero id; else a per-line hex on
-      // ~25% of lines — and always on messages that print a trace_id
-      let traceId = heroHit
-        ? hero.id
-        : r() < 0.25
-          ? traceIdHex(key)
-          : undefined;
-      let finalMessage = message;
-      if (finalMessage.includes("{trace_id}")) {
-        traceId ??= traceIdHex(key);
-        finalMessage = finalMessage.replace("{trace_id}", traceId);
-      }
-      events.push({
-        id: `log_${sec}_${slot}`,
-        ts: iso(tMs),
-        service,
-        level,
-        host: HOSTS[Math.floor(r() * HOSTS.length)],
-        message: finalMessage,
-        attrs: {
-          env: "prod",
-          version: deploy.version,
-          ...(level === "ERROR" ? { "error.kind": "upstream" } : {}),
-        },
-        ...(traceId ? { trace_id: traceId } : {}),
-      });
+    for (const event of logLinesAtSecond(sec, outage, hero)) {
+      if (events.length >= limit) break;
+      if (filterService && event.service !== filterService) continue;
+      if (filterLevel && event.level !== filterLevel.toUpperCase()) continue;
+      events.push(event);
     }
+  }
+  return events;
+}
+
+/**
+ * The 3 deterministic lines of one whole second, newest-first — the single
+ * line generator behind the explorer stream AND the B4 Patterns clustering
+ * (mocks/log-patterns.ts), so both surfaces describe the same telemetry.
+ */
+export function logLinesAtSecond(
+  sec: number,
+  outage: OutageWindow,
+  hero?: HeroTraceWindow,
+): LogEvent[] {
+  const events: LogEvent[] = [];
+  const secMs = sec * SECOND;
+  // rollout stage lines landing in this second (usually none)
+  const rollouts = SERVICES.map((s) => ({
+    service: s as string,
+    line: deployStageLine(s, secMs),
+  })).filter((x): x is { service: string; line: string } => x.line !== null);
+  const perSecond = 3;
+  for (let slot = perSecond - 1; slot >= 0; slot--) {
+    const key = `log:${sec}:${slot}`;
+    const r = mulberry32(hashSeed(key));
+    // slot-banded offsets keep newest-first ordering strict within a second
+    const tMs = secMs + slot * 300 + Math.floor(r() * 250);
+    const outageHit = tMs >= outage.start && tMs <= outage.end;
+    const rollout = slot === 0 ? rollouts[0] : undefined;
+    // during the outage, bias lines toward the implicated services
+    const service = rollout
+      ? rollout.service
+      : outageHit && r() < 0.5
+        ? outage.services[Math.floor(r() * outage.services.length)]
+        : SERVICES[Math.floor(r() * SERVICES.length)];
+    const level = rollout
+      ? "INFO"
+      : levelFor(r(), outageHit && outage.services.includes(service));
+    const deploy = lastDeploy(service, tMs);
+    const templates = LOG_TEMPLATES[level];
+    const message = rollout
+      ? rollout.line
+      : templates[Math.floor(r() * templates.length)];
+    const heroHit =
+      hero !== undefined &&
+      tMs >= hero.startMs - 1_500 &&
+      tMs <= hero.startMs + hero.durationMs + 1_500 &&
+      hero.services.includes(service);
+    // the line's trace id: hero window → hero id; else a per-line hex on
+    // ~25% of lines — and always on messages that print a trace_id
+    let traceId = heroHit ? hero.id : r() < 0.25 ? traceIdHex(key) : undefined;
+    let finalMessage = message;
+    if (finalMessage.includes("{trace_id}")) {
+      traceId ??= traceIdHex(key);
+      finalMessage = finalMessage.replace("{trace_id}", traceId);
+    }
+    events.push({
+      id: `log_${sec}_${slot}`,
+      ts: iso(tMs),
+      service,
+      level,
+      host: HOSTS[Math.floor(r() * HOSTS.length)],
+      message: finalMessage,
+      attrs: {
+        env: "prod",
+        version: deploy.version,
+        ...(level === "ERROR" ? { "error.kind": "upstream" } : {}),
+      },
+      ...(traceId ? { trace_id: traceId } : {}),
+    });
   }
   return events;
 }

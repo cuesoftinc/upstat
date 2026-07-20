@@ -14,9 +14,19 @@ import {
   computeVirtualWindow,
   type WindowExtra,
 } from "@/controllers/virtual-window";
+import { PatternsPanel } from "./PatternsPanel";
 
 /** Pre-measurement estimate for an expanded row (corrected on paint). */
 const EXPANDED_FALLBACK_PX = 180;
+
+type LogsTab = "logs" | "patterns";
+
+/** `?tab=patterns` — deep-linkable tab state (design.md §1 query duality). */
+function tabFromUrl(): LogsTab {
+  if (typeof window === "undefined") return "logs";
+  const raw = new URLSearchParams(window.location.search).get("tab");
+  return raw === "patterns" ? "patterns" : "logs";
+}
 
 /**
  * B4 logs explorer (Figma 128:1236) — FacetSidebar + QueryBar + LogLine
@@ -28,6 +38,21 @@ export default function LogsPage() {
   const listRef = useRef<HTMLDivElement>(null);
   // §5: j/k walk the log lines; Enter expands (MI-17 cheatsheet rows)
   useLogLineKeys(listRef);
+
+  // B4 Patterns tab ([Designed 2026-07-20]) beside the explorer list
+  const [tab, setTab] = useState<LogsTab>(tabFromUrl);
+  const switchTab = (next: LogsTab) => {
+    setTab(next);
+    const params = new URLSearchParams(window.location.search);
+    if (next === "patterns") params.set("tab", "patterns");
+    else params.delete("tab");
+    const qsStr = params.toString();
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}${qsStr ? `?${qsStr}` : ""}`,
+    );
+  };
 
   const facets = ctrl.base.data?.facets ?? {};
   const histogram = ctrl.base.data?.histogram ?? [];
@@ -193,76 +218,109 @@ export default function LogsPage() {
             )}
           </header>
 
+          {/* Logs | Patterns tab bar (B4 [Designed 2026-07-20]) */}
           <div
-            ref={listRef}
-            onScroll={onScroll}
-            data-testid="log-list"
-            className="min-h-0 flex-1 overflow-y-auto"
+            role="tablist"
+            aria-label="Explorer view"
+            className="flex gap-5 border-b border-border"
           >
-            {ctrl.base.loading && !ctrl.live ? (
-              <div className="flex flex-col gap-1">
-                {Array.from({ length: 10 }, (_, i) => (
-                  <Skeleton key={i} kind="line" />
-                ))}
-              </div>
-            ) : empty ? (
-              <EmptyState pillar="logs" waiting={ctrl.live} />
-            ) : (
-              <ul aria-label="Log lines" data-testid="log-lines">
-                {win.padTop > 0 && (
-                  <li
-                    aria-hidden="true"
-                    data-testid="log-spacer-top"
-                    style={{ height: win.padTop }}
-                  />
-                )}
-                {ascending.slice(win.start, win.end).map((event) => {
-                  const expanded = expandedIds.has(event.id);
-                  return (
-                    <li
-                      key={event.id}
-                      // measure expanded rows for exact spacer math (an
-                      // off-screen expanded row keeps its last measurement)
-                      ref={
-                        expanded
-                          ? (el) => {
-                              if (!el) return;
-                              const px = el.offsetHeight;
-                              setMeasured((prev) =>
-                                prev.get(event.id) === px
-                                  ? prev
-                                  : new Map(prev).set(event.id, px),
-                              );
-                            }
-                          : undefined
-                      }
-                    >
-                      <LogLine
-                        event={event}
-                        onPivot={ctrl.pivot}
-                        expanded={expanded}
-                        onExpandedChange={(next) =>
-                          setExpandedIds((prev) => {
-                            const set = new Set(prev);
-                            if (next) set.add(event.id);
-                            else set.delete(event.id);
-                            return set;
-                          })
-                        }
-                      />
-                    </li>
-                  );
-                })}
-                {win.padBottom > 0 && (
-                  <li
-                    aria-hidden="true"
-                    data-testid="log-spacer-bottom"
-                    style={{ height: win.padBottom }}
-                  />
-                )}
-              </ul>
-            )}
+            {(
+              [
+                ["logs", "Logs"],
+                ["patterns", "Patterns"],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                role="tab"
+                aria-selected={tab === value}
+                onClick={() => switchTab(value)}
+                data-testid={`logs-tab-${value}`}
+                className={
+                  tab === value
+                    ? "-mb-px border-b-2 border-brand pb-2 text-[13px] font-medium text-brand"
+                    : "pb-2 text-[13px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
+                }
+              >
+                {label}
+              </button>
+            ))}
           </div>
+
+          {tab === "patterns" ? (
+            <PatternsPanel activeQuery={ctrl.activeQuery} live={ctrl.live} />
+          ) : (
+            <div
+              ref={listRef}
+              onScroll={onScroll}
+              data-testid="log-list"
+              className="min-h-0 flex-1 overflow-y-auto"
+            >
+              {ctrl.base.loading && !ctrl.live ? (
+                <div className="flex flex-col gap-1">
+                  {Array.from({ length: 10 }, (_, i) => (
+                    <Skeleton key={i} kind="line" />
+                  ))}
+                </div>
+              ) : empty ? (
+                <EmptyState pillar="logs" waiting={ctrl.live} />
+              ) : (
+                <ul aria-label="Log lines" data-testid="log-lines">
+                  {win.padTop > 0 && (
+                    <li
+                      aria-hidden="true"
+                      data-testid="log-spacer-top"
+                      style={{ height: win.padTop }}
+                    />
+                  )}
+                  {ascending.slice(win.start, win.end).map((event) => {
+                    const expanded = expandedIds.has(event.id);
+                    return (
+                      <li
+                        key={event.id}
+                        // measure expanded rows for exact spacer math (an
+                        // off-screen expanded row keeps its last measurement)
+                        ref={
+                          expanded
+                            ? (el) => {
+                                if (!el) return;
+                                const px = el.offsetHeight;
+                                setMeasured((prev) =>
+                                  prev.get(event.id) === px
+                                    ? prev
+                                    : new Map(prev).set(event.id, px),
+                                );
+                              }
+                            : undefined
+                        }
+                      >
+                        <LogLine
+                          event={event}
+                          onPivot={ctrl.pivot}
+                          expanded={expanded}
+                          onExpandedChange={(next) =>
+                            setExpandedIds((prev) => {
+                              const set = new Set(prev);
+                              if (next) set.add(event.id);
+                              else set.delete(event.id);
+                              return set;
+                            })
+                          }
+                        />
+                      </li>
+                    );
+                  })}
+                  {win.padBottom > 0 && (
+                    <li
+                      aria-hidden="true"
+                      data-testid="log-spacer-bottom"
+                      style={{ height: win.padBottom }}
+                    />
+                  )}
+                </ul>
+              )}
+            </div>
+          )}
         </section>
       </div>
     </div>
