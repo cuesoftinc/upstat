@@ -72,7 +72,11 @@ services:
   web:
     image: cuesoft/upstat-web:latest
     build:
-      context: ./web
+      # Repo-root context: web/ plus docs/api/openapi.yaml (the OpenAPI
+      # document prebuild embeds for /docs/api); pruned by
+      # web/Dockerfile.dockerignore.
+      context: .
+      dockerfile: web/Dockerfile
       # NEXT_PUBLIC_* are inlined into the standalone build, so pass them here.
       args:
         NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:8080}
