@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Full observability web application (monitors, incidents, logs, metrics, RUM,
+  and public status pages) built from the shared component registry over a
+  mock CRUD API, with multi-organization onboarding.
+- Synthetics builder (HTTP, multi-step, and browser checks) with a
+  step-by-step run view; a status-page builder; log pattern grouping; usage
+  metering; and an RUM session drill-down.
+- Portable dashboards (export/import as versioned JSON), correlated logs
+  inside the trace/span view, "declare incident" directly from an alert, and
+  a mobile navigation-rail drawer.
+- A Features pillar dropdown in the marketing nav, a colorblind-safe chart
+  mode with accompanying data tables, virtualized log streams, postmortem
+  authoring, and grouped monitor views.
+- Interactive Scalar API reference at `/docs/api`, rendered live from the
+  repository's OpenAPI spec.
+- Tri-state theme control (light / dark / system).
+
+### Changed
+- Marketing content pass: the nav/footer "Dashboards" slot became "Platform"
+  (linking to the pillar grid), duplicate community CTAs were consolidated to
+  three canonical spots, and `/login` was retired in favor of `/signin`.
+- Mobile-responsive pass across the dashboard, status pages, and home: no
+  document-level side-scroll at 390px, a collapsed top-bar utility cluster,
+  and single-column stacking for widget/stat grids.
+- Floating layers (popovers, dropdowns, menus, notification/time-picker
+  panels) never overflow the viewport.
+- Demo-realism pass: deploy-correlated telemetry, a coherent activity feed,
+  and accessible live-region announcements.
+
+### Removed
+- The legacy quarantine tree (pre-registry login/signup, dashboard, and
+  component trees).
+
+### Fixed
+- An unset theme preference now boots the design default instead of forcing
+  a theme choice; the `/docs/api` header now coexists cleanly with the rest
+  of the app shell.
+- System QA pass: usability, accuracy, and interaction fixes across the app.
+
 ### Fixed
 - Google sign-in session now works end-to-end: `ProtectedRoute`/logout/header
   read the `upstat_token`/`upstat_user` cookies the login flow sets (they read
