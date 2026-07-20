@@ -50,6 +50,16 @@ describe("TimeseriesPanel", () => {
     expect(labels.filter((l) => l?.endsWith(" ms"))).toHaveLength(3);
   });
 
+  it("y ticks step on the niceScale ladder, zero-based (master 50:407)", () => {
+    const { container } = render(<TimeseriesPanel title="t" series={SERIES} />);
+    // values 100..119 → nice ladder 0 / 50 / 100 / 150; unit sniffed from
+    // the `*_ms` metric name; the zero tick stays bare "0"
+    const labels = Array.from(container.querySelectorAll("svg g text")).map(
+      (t) => t.textContent,
+    );
+    expect(labels).toEqual(["0", "50 ms", "100 ms", "150 ms"]);
+  });
+
   it("shows axis-first loading and radar empty states (MI-16)", () => {
     const { container, rerender } = render(
       <TimeseriesPanel title="t" series={[]} loading />,

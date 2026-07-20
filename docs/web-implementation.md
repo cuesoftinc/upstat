@@ -152,7 +152,8 @@ rendered as a single bar + one-column vitals heatmap); the seeded
 dashboard wires `$service`/`$env` into widget queries and carries a
 second timeseries widget so the template-var bar governs something real
 and MI-2 cross-widget crosshair sync is observable; TimeseriesPanel
-legends label grouped series by their distinguishing tag suffix (full
+legends label grouped series by their distinguishing tag VALUE — the
+shared `service:` key prefix is dropped, the master's label idiom (full
 name on the title tooltip).
 
 **Expandable NavRail as-built (2026-07-19, [Directive] design.md §2).**
@@ -193,11 +194,11 @@ footer Product column carry the same slot. (2) CTA dedupe per the
 "Community CTA placement" canon — GitHub/Discord conversion moments live
 in exactly three spots (nav star badge · A13 developers section's
 GitHub + Discord pair with the #upstat-lab copy · footer Community
-column); the former extras now carry differentiated real destinations:
-A9 links the query-grammar GitBook page and the product's own live
-status page (`/status/upstat`, the dogfood story), A8's card is
-CueLABS™ (`cuelabs.cuesoft.io`) with the GitBook roadmap and Self-host
-guide beside it. (3) The `/login` 308 stub is deleted (user: "no one
+column); the former extras carry differentiated real destinations per
+the updated canvas: A9's column holds the docs deep-link rows
+(Self-host guide + Query grammar, label-copy links), A8's card is the
+public-status card (`/status/upstat` "we run upstat on upstat", View
+live →) with the GitBook roadmap and CueLABS™ links beside it. (3) The `/login` 308 stub is deleted (user: "no one
 needs those") — stale `/login` links 404 on the branded not-found page;
 `/signin` stays the only auth route. Root prose carries the CueLABS™
 mark (Makefile/CONTRIBUTING byte-identical to the generator templates).
@@ -271,9 +272,8 @@ sparklines cohere with their states (new = appears at first_seen;
 regressed = spike aligned to the INC-42 window; ongoing = steady band).
 The alert feed matches rule states — the warn-state SLO-burn rule has its
 sev2 entry, and the trace-latency rule carries a triggered→recovered pair
-matching its `last_triggered_at`; feed timestamps render "MMM d" once an
-event is older than today (a bare "16:00" on a 4-day-old event read as
-today), UTC-derived like every data surface. UX fixes in the same pass:
+matching its `last_triggered_at`; feed ages render the master's relative
+idiom ("2m ago" / "1h ago" / "4d ago"), honest across days. UX fixes in the same pass:
 QueryBar's syntax-error live region is always-mounted (role=alert on a
 conditionally-mounted node is unreliable in screen readers); the RUM
 uniques tile reads "unique visitors · daily avg" (analytics-math §4
@@ -466,7 +466,9 @@ a build-time string asset (`npm run generate:openapi`, wired as
 Scalar's `forceDarkModeState` (a creation-time override — the view
 mounts after hydration and remounts on theme change, since
 `updateConfiguration` never re-applies it); Scalar's own toggle is
-hidden and its remote default fonts are disabled (self-host ethos).
+hidden, its floating dev toolbar is off (`showDeveloperTools: "never"`
+— the default shows it on localhost) and its remote default fonts are
+disabled (self-host ethos).
 Header construction: the sticky marketing nav (h-14 + border = 57px)
 and Scalar's sticky layout coexist via `--scalar-custom-header-height`
 on the embed wrapper (offsets Scalar's sticky sidebar/mobile bar below
@@ -476,35 +478,53 @@ column's "API reference" links `/docs/api`; `e2e/docs-api.spec.ts` pins
 route 200, a rendered operation from the spec, the served document, the
 footer handoff, the header/scroll sanity and the embed-theme sync.
 
-**Audit convergence as-built (2026-07-20, adjudicated code-side items).**
-The Figma↔code audit's code-side items landed as one sequenced pass:
+**Audit convergence as-built (2026-07-20, adjudicated code-side items;
+two merged work lines).** The Figma↔code audit's code-side items:
 (1) A8/A9 home content per the ratified canvas — the Community card is the
 public-status dogfooding moment ("View live →" → `/status/upstat`), the A9
 docs deep-link rows read "Self-host guide — step-by-step deploy docs →"
 (file-text) + "Query grammar — one grammar across all eight pillars →"
 (search), and the A14 twin renders the same label copy (no raw URLs) at the
 GitBook deployment guide. (2) TimeseriesPanel matches the master: four
-zero-baseline y ticks with unit-suffixed labels (new `unit` prop; bare
-"0"), a floating in-plot crosshair tooltip led by the hh:mm:ss timestamp,
-and by-<tag> legend labels trimmed to the tag value; TopList drops its
-background track (r=2 bars) and the Heatmap x-axis label count adapts to
-grid width (B6 cohort collision fix). (3) Entity-status pills sweep —
-labeled StatusPills replace lowercase status text on AlertChannelCard
-(friendly `name` + masked target + degraded `failure_note`), APIKeyRow
-(per-signal scope chips, grace/rejects meta), the B7 lists (full labeled
-pills; dot-only reserved for §5 colorblind), and AlertFeedRow collapses to
-the master's single line. (4) NavRail per the adjudication — Dashboards
-ungrouped above TELEMETRY, master foot (chevron square + user avatar via
+zero-based unit-suffixed y ticks stepping on a nice-number ladder
+(`src/design/chart-scale.ts` — expendit's merged `niceScale`, the
+cross-repo chart canon, plus an upstat `plotScale` rule: zero-based min,
+5% headroom, top gridline always caps the plot; PAD_L 56, geometry
+exported so ReplayPanel's ThresholdOverlay shares the domain), a floating
+in-plot crosshair tooltip led by the hh:mm:ss timestamp, and by-<tag>
+legend labels trimmed to the tag value (`unit` prop or `*_ms` sniff; bare
+"0"); TopList drops its background track (r=2 bars) and the Heatmap
+x-axis label count adapts to grid width (B6 cohort collision fix).
+(3) Entity-status pills sweep — labeled StatusPills replace lowercase
+status text on AlertChannelCard (friendly `name` + masked target +
+degraded `failure_note`), APIKeyRow (per-signal scope chips, grace/rejects
+meta), the B7 lists (full labeled pills; dot-only reserved for §5
+colorblind), and AlertFeedRow collapses to the master's single line
+(unread dot · tinted sev chip / OK · title · relative age; message on the
+tooltip). (4) NavRail per the adjudication — Dashboards ungrouped above
+TELEMETRY, master foot (chevron square + user avatar via
 `useCurrentUserName`), the §8.1 reconciled rail-icon list. (5) The shared
 `BrandMark` (bolt + wordmark) replaces the green "U" tile at every brand
-site; /signin matches frame 124:6. (6) IncidentBanner keeps the global
-strip and gains "open Xm" + "View incident →" / "Postmortem →". (7)
-Assorted: B1 dashboard rows carry "N widgets", brand-green favorite stars,
-TopBar/TimePicker normalized to the master (43px, "prod", "Custom"/"LIVE",
-"Search"), LogLine level row tints + 3px left bars (master 47:163; code's
-timestamp format kept), SLOCard per-state captions (`Slo.exhausted_at`),
-B12 usage 64px rows + B-promotion ("5.6B") + unwrapped plan copy, and the
-B7 `?run=` deep link accepts run number or id with a "run not found" state.
+site; /signin matches frame 124:6 (centered mark over "Sign in to your
+organization"; the CTA stays the GoogleAuthButton canon). (6)
+IncidentBanner keeps the global strip and gains "open Xm" + "View
+incident →" / "Postmortem →". (7) B4 constructions per masters —
+FacetGroup (chevron LEFT of the lowercase medium-12 header, mono values
+12 / counts 11, "Show N more" at 11px) and LogLine level row tints + 3px
+left bars (master 47:163; code's timestamp format kept). (8) The B8
+edit-rule panel composes per frame 130:2621 — the MI-9 test replay
+renders INLINE under "Thresholds · test replay (last 24h)" (auto-runs on
+rule select; Test rule re-runs), Query is a mono Select over the org's
+known queries when editing, cooldown/renotify read as the caption line;
+warn/crit inputs + channel checkboxes are retained as
+function-preserving extensions. (9) Assorted: B1 dashboard rows carry
+"N widgets", brand-green favorite stars, TopBar/TimePicker normalized to
+the master (43px, "prod", "Custom"/"LIVE", "Search"), SLOCard per-state
+captions (`Slo.exhausted_at`), B12 usage 64px rows + B-promotion
+("5.6B") + unwrapped plan copy, the B7 `?run=` deep link accepts run
+number or id with a "run not found" state (never "No runs yet" while
+runs exist), and Scalar's floating dev toolbar is off on `/docs/api`
+(`showDeveloperTools: "never"`).
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the

@@ -43,6 +43,9 @@ export function ScalarApiReference() {
         forceDarkModeState: resolvedTheme,
         hideDarkModeToggle: true,
         withDefaultFonts: false,
+        // Scalar's floating dev toolbar defaults to "localhost" — never
+        // show it on the public reference (audit 2026-07-20)
+        showDeveloperTools: "never",
       }}
     />
   );

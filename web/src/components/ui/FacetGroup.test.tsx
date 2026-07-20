@@ -37,7 +37,8 @@ describe("FacetGroup", () => {
       />,
     );
     expect(screen.queryByText("svc-5")).toBeNull();
-    await userEvent.click(screen.getByRole("button", { name: "Show all 8" }));
+    // master affordance copy: remaining count ("Show 5 more")
+    await userEvent.click(screen.getByRole("button", { name: "Show 5 more" }));
     expect(screen.getByText("svc-5")).toBeInTheDocument();
   });
 });

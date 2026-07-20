@@ -39,11 +39,11 @@ describe("chart data-table toggle (§5)", () => {
     expect(
       screen.getByRole("columnheader", { name: "Time" }),
     ).toBeInTheDocument();
-    // legendLabel trims the shared tag key — the column is the value part
+    // legend-label idiom: tag VALUE only; cells carry the unit suffix
     expect(
       screen.getByRole("columnheader", { name: "web" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("cell", { name: "100" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "100 ms" })).toBeInTheDocument();
 
     await userEvent.click(toggle());
     expect(table()).not.toBeInTheDocument();

@@ -39,22 +39,23 @@ export function FacetGroup({
 
   return (
     <div className={clsx("font-ui", className)} data-expanded={expanded}>
+      {/* master construction (B4 FacetGroup): chevron LEFT of the
+          lowercase medium 12px header — the uppercase/right-chevron
+          header was drift (adjudicated 2026-07-20) */}
       <button
         type="button"
         aria-expanded={expanded}
         onClick={() => setExpanded((e) => !e)}
-        className="flex w-full items-center justify-between py-1.5 text-left"
+        className="flex w-full items-center gap-1.5 py-1.5 text-left"
       >
-        <span className="text-[12px] font-semibold uppercase tracking-wide text-text-2">
-          {name}
-        </span>
         <ChevronDown
           aria-hidden="true"
           className={clsx(
-            "size-3.5 text-text-2 transition-transform duration-[var(--duration-fast)] ease-standard",
+            "size-3.5 shrink-0 text-text-2 transition-transform duration-[var(--duration-fast)] ease-standard",
             !expanded && "-rotate-90",
           )}
         />
+        <span className="text-[12px] font-medium text-text-2">{name}</span>
       </button>
       {expanded && (
         <ul className="flex flex-col">
@@ -65,15 +66,16 @@ export function FacetGroup({
                 onCheckedChange={() => onToggle(facet.value)}
                 aria-label={`${name}: ${facet.value}`}
               />
+              {/* mono values (12) + mono counts (11) per the master */}
               <button
                 type="button"
                 onClick={() => onToggle(facet.value)}
                 className="flex flex-1 items-center justify-between gap-2 text-left"
               >
-                <span className="truncate text-[13px] text-text">
+                <span className="font-data truncate text-[12px] text-text">
                   {facet.value}
                 </span>
-                <span className="text-[11px] tabular-nums text-text-2">
+                <span className="font-data text-[11px] tabular-nums text-text-2">
                   {facet.count}
                 </span>
               </button>
@@ -81,12 +83,14 @@ export function FacetGroup({
           ))}
           {values.length > topN && (
             <li>
+              {/* master affordance copy: "Show 12 more" (remaining count,
+                  11px) — was "Show all N" at 12px */}
               <button
                 type="button"
                 onClick={() => setShowAll((s) => !s)}
-                className="py-1 text-[12px] text-brand hover:text-brand-deep"
+                className="py-1 text-[11px] text-brand hover:text-brand-deep"
               >
-                {showAll ? "Show less" : `Show all ${values.length}`}
+                {showAll ? "Show less" : `Show ${values.length - topN} more`}
               </button>
             </li>
           )}
