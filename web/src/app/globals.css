@@ -157,6 +157,12 @@
     font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
     background: var(--color-bg);
     color: var(--color-text);
+    /* Fleet font-smoothing standard (2026-07-20 type audit): grayscale
+       antialiasing everywhere — Figma rasterizes grayscale, and macOS
+       subpixel rendering reads visibly heavier than the approved canvas.
+       Same pair apparule and expendit ship. */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   a {
