@@ -524,7 +524,9 @@ test("mobile nav is a menu-button disclosure at 390w (SKILL.md mobile clause)", 
   await expect(panelBadge).toHaveText(/^Star$/);
   await expect(panelBadge.locator("svg")).toBeVisible();
 
-  // the theme toggle works from inside the panel
+  // the theme toggle works from inside the panel (dark default → system
+  // resolves light under the emulated light OS)
+  await page.emulateMedia({ colorScheme: "light" });
   await panel.getByTestId("theme-toggle").click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 

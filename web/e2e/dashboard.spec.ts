@@ -125,7 +125,9 @@ test("TopBar collapses to icon utilities at 390 — no overflow, everything oper
   ).toBeVisible();
   await page.keyboard.press("Escape");
 
-  // theme toggle still flips from the collapsed bar
+  // theme toggle still flips from the collapsed bar (dark default →
+  // system, which resolves light under the emulated light OS)
+  await page.emulateMedia({ colorScheme: "light" });
   await banner.getByTestId("theme-toggle").click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await banner.getByTestId("theme-toggle").click();
