@@ -369,10 +369,12 @@ export function buildSeed(now: number): MockDb {
     },
   ];
 
+  // friendly names lead the AlertChannelCard per the master anatomy
   const channels: AlertChannel[] = [
     {
       id: "ch_email",
       kind: "email",
+      name: "On-call email",
       target: "ops@cuesoft.io",
       health: "verified",
       created_at: iso(now - 100 * DAY),
@@ -380,6 +382,7 @@ export function buildSeed(now: number): MockDb {
     {
       id: "ch_slack",
       kind: "webhook",
+      name: "Slack #incidents webhook",
       target: "https://hooks.slack.com/services/T0UPSTAT/B0ALERTS/xxxx",
       health: "verified",
       created_at: iso(now - 90 * DAY),
@@ -387,6 +390,7 @@ export function buildSeed(now: number): MockDb {
     {
       id: "ch_pager",
       kind: "webhook",
+      name: "Ops pager webhook",
       target: "https://ops.cuesoft.io/hooks/upstat",
       health: "unverified",
       created_at: iso(now - 2 * DAY),
@@ -733,6 +737,7 @@ export function buildSeed(now: number): MockDb {
       budget_remaining_pct: 0,
       burn_rate: 2.8,
       state: "exhausted",
+      exhausted_at: iso(now - 3 * DAY),
     },
   ];
 

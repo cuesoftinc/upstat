@@ -1,8 +1,8 @@
 "use client";
 
-import { Zap } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { BrandMark } from "@/components/ui/BrandMark";
 import { IncidentHistoryEntry } from "@/components/ui/IncidentHistoryEntry";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StatusPageComponentRow } from "@/components/ui/StatusPageComponentRow";
@@ -58,15 +58,10 @@ export default function StatusPage() {
       className="mx-auto flex w-full max-w-[960px] flex-col gap-6 px-6 py-10"
     >
       <header className="flex flex-col gap-2">
+        {/* bolt brand mark per frame 132:3530 (systemic adjudication
+            2026-07-20 — the "U" tile is retired) */}
         <h1 className="flex items-center gap-2 text-[24px] font-semibold">
-          {/* brand mark = the filled zap glyph (adjudicated 2026-07-20;
-              frame 132:3530 header) */}
-          <Zap
-            aria-hidden="true"
-            fill="currentColor"
-            strokeWidth={0}
-            className="size-6 text-brand"
-          />
+          <BrandMark glyphClassName="size-6" />
           {page.org_name.toLowerCase()} status
         </h1>
         {/* no subscribe affordance yet (pages.md B7 subscribe = Later) —

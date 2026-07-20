@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { clsx } from "clsx";
 import Link from "next/link";
-import { ChevronDown, Menu, Star, X, Zap } from "lucide-react";
+import { ChevronDown, Menu, Star, X } from "lucide-react";
+import { BrandMark } from "./BrandMark";
 import { Button } from "./Button";
 import { MARKETING_PILLARS, pillarAccent } from "./PillarCard";
 import { ThemeToggle } from "./ThemeToggle";
@@ -246,18 +247,10 @@ export function MarketingNav({
         // max-w matches the Section shell (max-w-[1200px] px-6 → 1152 content).
         className="mx-auto flex h-14 w-full max-w-[1200px] items-center gap-3 px-6 md:gap-4"
       >
-        {/* landing v2 brand mark (135:2): filled bolt glyph + lowercase wordmark */}
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-[16px] font-semibold text-text"
-        >
-          <Zap
-            aria-hidden="true"
-            fill="currentColor"
-            strokeWidth={0}
-            className="size-5 text-brand"
-          />
-          upstat
+        {/* landing v2 brand mark (135:2): filled bolt glyph + lowercase
+            wordmark — the shared BrandMark construction */}
+        <Link href="/" className="flex items-center">
+          <BrandMark wordmark className="text-[16px]" />
         </Link>
 
         {NAV_LINKS.map((link) =>

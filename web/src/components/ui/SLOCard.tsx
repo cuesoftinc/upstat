@@ -9,9 +9,33 @@ export interface SLOCardProps {
   className?: string;
 }
 
+/** "3d" style age for the exhausted caption. */
+function ageOf(iso: string, now = Date.now()): string {
+  const min = Math.max(Math.round((now - Date.parse(iso)) / 60_000), 0);
+  if (min < 60) return `${min}m`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `${h}h`;
+  return `${Math.floor(h / 24)}d`;
+}
+
+/** Per-state caption per the master (48:95): healthy keeps the budget
+ *  formula; burning leads with the page-on-call escalation; exhausted
+ *  reports when the budget hit zero. */
+function stateCaption(slo: Slo): string {
+  if (slo.state === "burning")
+    return `burn rate ${slo.burn_rate.toFixed(1)}× — page on-call`;
+  if (slo.state === "exhausted")
+    return `budget exhausted${slo.exhausted_at ? ` ${ageOf(slo.exhausted_at)} ago` : ""}`;
+  const budget = Math.max(0, Math.min(100, slo.budget_remaining_pct));
+  return `error budget ${budget.toFixed(0)}% left · burn ${slo.burn_rate.toFixed(1)}×`;
+}
+
 /**
  * SLOCard — §8.2: healthy / burning (flame) / exhausted; error-budget bar
  * depletes right-to-left; burn animates on load (MI-15, reduced-motion safe).
+ * Captions are per-state (master 48:95); the burning icon stays lucide
+ * `flame` — §8.1 ratifies flame for burn-rate (the master's zap is the
+ * design-side fix).
  */
 export function SLOCard({ slo, className }: SLOCardProps) {
   const budget = Math.max(0, Math.min(100, slo.budget_remaining_pct));
@@ -74,10 +98,9 @@ export function SLOCard({ slo, className }: SLOCardProps) {
         />
       </div>
 
-      {/* single meta line (Figma 48:71) */}
+      {/* per-state caption (master 48:95) */}
       <span className="text-[12px] tabular-nums text-text-2">
-        error budget {budget.toFixed(0)}% left · burn {slo.burn_rate.toFixed(1)}
-        ×
+        {stateCaption(slo)}
       </span>
     </div>
   );

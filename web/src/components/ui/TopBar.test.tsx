@@ -14,7 +14,7 @@ describe("TopBar", () => {
   it("carries org switcher, search hint and unread bell (MI-14)", () => {
     renderBar({ orgName: "Upstat", unreadCount: 3 });
     expect(screen.getByText("Upstat")).toBeInTheDocument();
-    expect(screen.getByText("Search…")).toBeInTheDocument();
+    expect(screen.getByText("Search")).toBeInTheDocument();
     expect(
       screen.getByLabelText("Notifications (3 unread)"),
     ).toBeInTheDocument();

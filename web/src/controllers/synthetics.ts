@@ -62,27 +62,28 @@ export function useSyntheticCheckController(id: string | null) {
 
 /**
  * Run view read model — the check, its run list (newest first) and the
- * selected run (`runRef` from the URL; latest when absent). Deep-linkable
+ * selected run (`runId` from the URL; latest when absent). Deep-linkable
  * state rides the query string per the §4 route-map rule. `?run=` accepts
- * SHAREABLE refs: the internal id (`synrun_0007`) or the visible run
- * number (`482` / `#482`) — the frame addresses runs by #number (audit
- * 2026-07-20; a wrong ref used to silently render the empty state).
+ * the internal id (synrun_0007) OR the visible run number ("482" / "#482")
+ * — the frame addresses runs by number; a value that matches neither
+ * reports `notFound` so the page never claims "No runs yet" while runs
+ * exist (audit fix 2026-07-20).
  */
 export function useSyntheticRunController(
   checkId: string,
-  runRef: string | null,
+  runId: string | null,
 ) {
   const check = useRequest(() => syntheticsRepo.get(checkId), [checkId]);
   const runs = useRequest(() => syntheticsRepo.runs(checkId), [checkId]);
   const list = runs.data ?? [];
-  const selected = runRef
-    ? (list.find((r) => r.id === runRef) ??
-      list.find((r) => String(r.number) === runRef.replace(/^#/, "")) ??
+  const selected = runId
+    ? (list.find((r) => r.id === runId) ??
+      list.find((r) => String(r.number) === runId.replace(/^#/, "")) ??
       null)
     : (list[0] ?? null);
-  /** True when a `?run=` ref was given but matches no run (runs exist). */
-  const refNotFound = runRef !== null && selected === null && list.length > 0;
-  return { check, runs, selected, refNotFound };
+  const notFound =
+    runId !== null && !runs.loading && list.length > 0 && selected === null;
+  return { check, runs, selected, notFound };
 }
 
 /**

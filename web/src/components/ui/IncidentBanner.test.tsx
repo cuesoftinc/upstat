@@ -13,7 +13,7 @@ describe("IncidentBanner", () => {
       />,
     );
     expect(screen.getByText("SEV-1")).toBeInTheDocument();
-    // master construction (48:141): "open 12m" age + explicit link text
+    // master 48:141 affordances: "open Xh" age + explicit link text
     expect(screen.getByText("open 3h")).toBeInTheDocument();
     expect(screen.getByText("View incident →")).toBeInTheDocument();
   });
@@ -30,5 +30,9 @@ describe("IncidentBanner", () => {
     );
     expect(screen.getByText("RESOLVED")).toBeInTheDocument();
     expect(screen.queryByText("SEV-1")).toBeNull();
+    // resolved swaps the affordance to the postmortem link
+    expect(screen.getByText("Postmortem →")).toBeInTheDocument();
+    expect(screen.queryByText("View incident →")).toBeNull();
+    expect(screen.getByText("3h")).toBeInTheDocument();
   });
 });

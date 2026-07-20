@@ -7,7 +7,8 @@
  */
 
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { getAuthProvider } from "@/auth";
 import type { Incident } from "@/models";
 import { alertsRepo, incidentsRepo, orgsRepo } from "@/models/repositories";
 import { useRequest } from "./use-request";
@@ -18,6 +19,24 @@ export function ageLabel(iso: string, now = Date.now()): string {
   const h = Math.floor(min / 60);
   if (h < 24) return `${h}h`;
   return `${Math.floor(h / 24)}d`;
+}
+
+/**
+ * Signed-in user's display name for the rail-foot avatar (NavRail master
+ * foot construction). Resolved post-mount — the session lives in browser
+ * storage, so SSR/hydration must render without it (NavRail pattern).
+ */
+export function useCurrentUserName(): string | null {
+  const [name, setName] = useState<string | null>(null);
+  // Deferred a tick (use-request pattern): setState stays out of the
+  // synchronous effect body.
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      setName(getAuthProvider().currentUser()?.name ?? null);
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, []);
+  return name;
 }
 
 export function useShellController() {

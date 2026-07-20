@@ -61,8 +61,8 @@ export function SelfHostSection({ onSelfHostDocs }: SelfHostSectionProps) {
               </li>
             ))}
           </ul>
-          {/* label-copy hyperlink, no raw URLs ([Revised 2026-07-19] rule;
-              canvas 135:763) — destination stays the ratified GitBook guide */}
+          {/* label copy, no raw URL strings (pages.md A9/A14 [Revised
+              2026-07-19]) — the href is the ratified GitBook deployment guide */}
           <a
             href={SELF_HOST_DOCS_URL}
             onClick={onSelfHostDocs}
@@ -169,16 +169,16 @@ export function CloudSelfHostSection({
             </span>
           </code>
           {/* CTA-dedupe canon (2026-07-19): GitHub/Discord conversion lives in
-              the nav badge, A13 and the footer — this column carries the A9
-              docs deep-link rows per the canvas (135:763 + 259:3474); the
-              public-status card lives in A8 */}
+              the nav badge, A13 and the footer — these are the A9 docs
+              deep-link rows per the canvas (135:763 + 259:3474): label copy
+              with hyperlinks, no raw URL strings */}
           <a
             href={SELF_HOST_DOCS_URL}
             className="flex items-center gap-2.5 text-[13px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
           >
             <FileText
               aria-hidden="true"
-              className="size-6 shrink-0 text-text"
+              className="size-5 shrink-0 text-text"
             />
             Self-host guide — step-by-step deploy docs →
           </a>
@@ -186,7 +186,7 @@ export function CloudSelfHostSection({
             href={QUERY_GRAMMAR_DOCS_URL}
             className="flex items-center gap-2.5 text-[13px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
           >
-            <Search aria-hidden="true" className="size-6 shrink-0 text-text" />
+            <Search aria-hidden="true" className="size-5 shrink-0 text-text" />
             Query grammar — one grammar across all eight pillars →
           </a>
         </div>
@@ -273,14 +273,14 @@ export function DevelopersSection({ onGithub }: DevelopersSectionProps) {
 export function CommunitySection() {
   return (
     <Section id="community" title="Community">
-      {/* CTA-dedupe canon (2026-07-19): the GitHub/Discord pair lives in A13.
-          A8 per the UPDATED canvas (225:11191, pages.md A8 ratified): the
-          CARD is the public-status card ("we run upstat on upstat" +
-          View live →); CueLABS™ moves to a link row beside the roadmap. */}
+      {/* A8 per the canvas (225:11191, user-ratified) + pages.md A8: the
+          CARD is the public-status dogfooding moment ("View live →" → the
+          product's own status page); CueLABS™ and the roadmap ride as
+          links. CTA-dedupe canon (2026-07-19): the GitHub/Discord pair
+          lives in A13. */}
       <div className="grid items-start gap-12 lg:grid-cols-[1fr_480px]">
         <Link
           href="/status/upstat"
-          data-testid="a8-status-card"
           className="flex items-start gap-4 rounded-(--radius) border border-border bg-bg-elev p-4 transition-colors duration-[var(--duration-base)] hover:border-text-2"
         >
           <Activity
@@ -291,12 +291,12 @@ export function CommunitySection() {
             <span className="text-[14px] font-semibold text-text">
               Public status — we run upstat on upstat
             </span>
-            <span className="text-[12px] leading-[1.45] text-text-2">
+            <span className="text-[13px] text-text-2">
               Live uptime and incident history at
               upstat.cuesoft.io/status/upstat — we run upstat on upstat.
             </span>
           </span>
-          <span className="shrink-0 text-[12px] font-medium text-brand">
+          <span className="shrink-0 text-[13px] font-medium text-brand">
             View live →
           </span>
         </Link>

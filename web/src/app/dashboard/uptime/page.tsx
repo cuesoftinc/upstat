@@ -90,6 +90,8 @@ export default function UptimePage() {
                   href={`/dashboard/uptime/checks/${check.id}`}
                   className="flex h-10 items-center gap-3 border-b border-border px-3 transition-colors duration-[var(--duration-fast)] ease-standard hover:bg-bg-elev"
                 >
+                  {/* labeled pill — dot-only is the §5 colorblind rendering
+                      (systemic adjudication 2026-07-20) */}
                   <StatusPill
                     status={
                       check.last_run_status === null
@@ -98,7 +100,7 @@ export default function UptimePage() {
                           ? "ok"
                           : "crit"
                     }
-                    dotOnly
+                    className="shrink-0"
                   />
                   <span className="w-64 truncate text-[13px] font-medium text-text">
                     {check.name}

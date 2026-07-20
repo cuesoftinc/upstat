@@ -44,7 +44,8 @@ export function DashboardListRow({
         onClick={() => onFavoriteChange?.(!favorite)}
         className={clsx(
           "transition-colors duration-[var(--duration-fast)]",
-          favorite ? "text-warn" : "text-text-2 hover:text-text",
+          // brand-green favorite star per the frames (125:13 + 126:323)
+          favorite ? "text-brand" : "text-text-2 hover:text-text",
         )}
       >
         <Star className="size-4" fill={favorite ? "currentColor" : "none"} />

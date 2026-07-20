@@ -78,23 +78,43 @@ test("home renders every Part A section", async ({ page }) => {
     ),
   ).toBeVisible();
   // CTA-dedupe canon: the one GitHub+Discord pair lives in A13; A8 carries
-  // the public-status card (canvas 225:11191) + CueLABS™/roadmap links
+  // the public-status CARD (canvas 225:11191 + pages.md A8) with roadmap +
+  // CueLABS™ links beside it
   await expect(
     page.getByText("Discord — #upstat-lab on the CueLABS™ server"),
   ).toBeVisible();
+  const statusCard = page
+    .locator("#community")
+    .getByRole("link", { name: /Public status — we run upstat on upstat/ });
+  await expect(statusCard).toHaveAttribute("href", "/status/upstat");
+  await expect(statusCard).toContainText("View live →");
   await expect(
-    page.getByText("Public status — we run upstat on upstat"),
-  ).toBeVisible();
+    page.getByRole("link", {
+      name: "CueLABS™ — more open-source software from Cuesoft →",
+    }),
+  ).toHaveAttribute("href", "https://cuelabs.cuesoft.io");
+  // A9 docs deep-link rows (canvas 135:763 + 259:3474): label copy with
+  // hyperlinks, no raw URL strings. The self-host label renders twice —
+  // the A9 row and its A14 twin (164:9388) — both at the ratified GitBook
+  // deployment guide.
+  const selfHostLinks = page.getByRole("link", {
+    name: "Self-host guide — step-by-step deploy docs →",
+  });
+  await expect(selfHostLinks).toHaveCount(2);
+  for (const link of await selfHostLinks.all()) {
+    await expect(link).toHaveAttribute(
+      "href",
+      "https://cuesoft.gitbook.io/upstat/system/deployment",
+    );
+  }
   await expect(
-    page.getByTestId("a8-status-card").getByText("View live →"),
-  ).toBeVisible();
-  await expect(page.getByTestId("a8-status-card")).toHaveAttribute(
+    page.getByRole("link", {
+      name: "Query grammar — one grammar across all eight pillars →",
+    }),
+  ).toHaveAttribute(
     "href",
-    "/status/upstat",
+    "https://cuesoft.gitbook.io/upstat/system/query-grammar",
   );
-  await expect(
-    page.getByText("CueLABS™ — more open-source software from Cuesoft →"),
-  ).toBeVisible();
 
   // A15 FAQ · A16 CTA band · A10 footer
   await expect(page.getByText("Questions, answered.")).toBeVisible();

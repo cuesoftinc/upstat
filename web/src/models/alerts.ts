@@ -10,9 +10,15 @@ export type ChannelHealth = "unverified" | "verified" | "degraded";
 export interface AlertChannel {
   id: string;
   kind: ChannelKind;
+  /** Friendly display name ("Slack #incidents webhook") — the card's lead
+   *  line per the AlertChannelCard master; falls back to the kind label. */
+  name?: string;
   /** email address or webhook URL (display form). */
   target: string;
   health: ChannelHealth;
+  /** Degraded-state caption ("Last delivery failed 12m ago — 3 retries
+   *  exhausted") — rendered only while health = degraded (master anatomy). */
+  failure_note?: string;
   created_at: string;
 }
 

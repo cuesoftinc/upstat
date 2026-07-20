@@ -17,6 +17,31 @@ const SLO: Slo = {
 };
 
 describe("SLOCard", () => {
+  it("captions are per-state (master 48:95)", () => {
+    const { rerender } = render(<SLOCard slo={SLO} />);
+    // burning: escalation copy
+    expect(
+      screen.getByText("burn rate 6.2× — page on-call"),
+    ).toBeInTheDocument();
+    // healthy: the budget formula
+    rerender(<SLOCard slo={{ ...SLO, state: "healthy", burn_rate: 0.4 }} />);
+    expect(
+      screen.getByText("error budget 11% left · burn 0.4×"),
+    ).toBeInTheDocument();
+    // exhausted: when the budget hit zero
+    rerender(
+      <SLOCard
+        slo={{
+          ...SLO,
+          state: "exhausted",
+          budget_remaining_pct: 0,
+          exhausted_at: new Date(Date.now() - 3 * 86_400_000).toISOString(),
+        }}
+      />,
+    );
+    expect(screen.getByText("budget exhausted 3d ago")).toBeInTheDocument();
+  });
+
   it("renders the burning state with flame + meter (MI-15)", () => {
     render(<SLOCard slo={SLO} />);
     expect(

@@ -46,7 +46,7 @@ export function TopBar({
   return (
     <header
       className={clsx(
-        "font-ui sticky top-0 z-[var(--z-sticky)] flex h-12 items-center gap-1.5 md:gap-3",
+        "font-ui sticky top-0 z-[var(--z-sticky)] flex h-[43px] items-center gap-1.5 md:gap-3",
         "border-b border-border bg-bg px-3",
         className,
       )}
@@ -58,7 +58,7 @@ export function TopBar({
         className="flex min-w-0 items-center gap-1.5 rounded-(--radius) px-2 py-1 text-[13px] font-medium text-text transition-colors duration-[var(--duration-fast)] hover:bg-bg-elev"
       >
         <span className="max-w-[96px] truncate md:max-w-none">{orgName}</span>
-        <span className="hidden rounded-(--radius) border border-border px-1 text-[10px] uppercase tracking-wide text-text-2 md:inline-block">
+        <span className="hidden rounded-(--radius) border border-border px-1 text-[10px] tracking-wide text-text-2 md:inline-block">
           {env}
         </span>
         <ChevronDown
@@ -78,7 +78,7 @@ export function TopBar({
         className="flex h-8 w-8 items-center justify-center gap-2 rounded-(--radius) border border-border bg-bg-elev text-[13px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:border-text-2 md:w-56 md:justify-start md:px-2"
       >
         <Search aria-hidden="true" className="size-3.5 shrink-0" />
-        <span className="hidden flex-1 text-left md:block">Search…</span>
+        <span className="hidden flex-1 text-left md:block">Search</span>
         <span className="hidden md:inline-flex">
           <KbdChip keys="/" />
         </span>

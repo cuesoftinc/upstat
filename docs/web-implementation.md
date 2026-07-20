@@ -478,36 +478,52 @@ column's "API reference" links `/docs/api`; `e2e/docs-api.spec.ts` pins
 route 200, a rendered operation from the spec, the served document, the
 footer handoff, the header/scroll sanity and the embed-theme sync.
 
-**Figma↔code convergence as-built (2026-07-20, adjudicated ledger).**
-Code-side fixes from the full Figma↔code divergence audit. Systemics:
-(1) **brand mark** — the filled zap glyph IS the product mark; the green
-"U" tile renderings in the NavRail head, `/signin`, `/status/{slug}` and
-the marketing footer are replaced with the zap construction per the
-masters (`/signin` also re-composes to the Login frame: centered
-zap + wordmark over "Sign in to your organization"; the CTA stays the
-GoogleAuthButton canon). (2) **entity status = StatusPill** —
-AlertChannelCard (VERIFIED/UNVERIFIED/DEGRADED), APIKeyRow
-(ACTIVE/ROTATING/REVOKED) and MonitorRow (labeled status ×6) render full
-pills; dot-only is reserved for the §5 colorblind rendering. (3)
-**charts** — the y axis draws 4 zero-based unit-suffixed nice ticks
-(`src/design/chart-scale.ts`, expendit's merged `niceScale` + an upstat
-`plotScale` rule: zero-based min, 5% headroom, capped top gridline;
-PAD_L 56); grouped legends label by tag value. Constructions: FacetGroup
-(left chevron · lowercase medium header · mono values/counts · "Show N
-more"), LogLine collapsed rows (level tint-bg + 3px left bar, master
-47:163), the B8 edit panel (inline auto-run test replay under
-"Thresholds · test replay", Query as a mono Select when editing,
-cooldown/renotify as the caption line; warn/crit inputs + channel
-checkboxes retained as function-preserving extensions), IncidentBanner
-(chrome-strip placement stays; master content: "open 12m" age, avatars,
-explicit "View incident →") and AlertFeedRow (one line: unread dot ·
-SevChip/OK chip · monitor name · relative age; the message rides the
-tooltip and the declare-incident prefill). Content: A8/A9/A14 per the
-updated canvas (public-status card promoted; docs deep-link rows;
-label-copy links, no raw URLs). Nits: `?run=` accepts the internal id
-or the visible #number and an unmatched ref says "Run not found" (never
-"No runs yet" while runs exist); the usage formatter compact-scales past
-1000M (5.55B); Scalar's dev toolbar is off on `/docs/api`
+**Audit convergence as-built (2026-07-20, adjudicated code-side items;
+two merged work lines).** The Figma↔code audit's code-side items:
+(1) A8/A9 home content per the ratified canvas — the Community card is the
+public-status dogfooding moment ("View live →" → `/status/upstat`), the A9
+docs deep-link rows read "Self-host guide — step-by-step deploy docs →"
+(file-text) + "Query grammar — one grammar across all eight pillars →"
+(search), and the A14 twin renders the same label copy (no raw URLs) at the
+GitBook deployment guide. (2) TimeseriesPanel matches the master: four
+zero-based unit-suffixed y ticks stepping on a nice-number ladder
+(`src/design/chart-scale.ts` — expendit's merged `niceScale`, the
+cross-repo chart canon, plus an upstat `plotScale` rule: zero-based min,
+5% headroom, top gridline always caps the plot; PAD_L 56, geometry
+exported so ReplayPanel's ThresholdOverlay shares the domain), a floating
+in-plot crosshair tooltip led by the hh:mm:ss timestamp, and by-<tag>
+legend labels trimmed to the tag value (`unit` prop or `*_ms` sniff; bare
+"0"); TopList drops its background track (r=2 bars) and the Heatmap
+x-axis label count adapts to grid width (B6 cohort collision fix).
+(3) Entity-status pills sweep — labeled StatusPills replace lowercase
+status text on AlertChannelCard (friendly `name` + masked target +
+degraded `failure_note`), APIKeyRow (per-signal scope chips, grace/rejects
+meta), the B7 lists (full labeled pills; dot-only reserved for §5
+colorblind), and AlertFeedRow collapses to the master's single line
+(unread dot · tinted sev chip / OK · title · relative age; message on the
+tooltip). (4) NavRail per the adjudication — Dashboards ungrouped above
+TELEMETRY, master foot (chevron square + user avatar via
+`useCurrentUserName`), the §8.1 reconciled rail-icon list. (5) The shared
+`BrandMark` (bolt + wordmark) replaces the green "U" tile at every brand
+site; /signin matches frame 124:6 (centered mark over "Sign in to your
+organization"; the CTA stays the GoogleAuthButton canon). (6)
+IncidentBanner keeps the global strip and gains "open Xm" + "View
+incident →" / "Postmortem →". (7) B4 constructions per masters —
+FacetGroup (chevron LEFT of the lowercase medium-12 header, mono values
+12 / counts 11, "Show N more" at 11px) and LogLine level row tints + 3px
+left bars (master 47:163; code's timestamp format kept). (8) The B8
+edit-rule panel composes per frame 130:2621 — the MI-9 test replay
+renders INLINE under "Thresholds · test replay (last 24h)" (auto-runs on
+rule select; Test rule re-runs), Query is a mono Select over the org's
+known queries when editing, cooldown/renotify read as the caption line;
+warn/crit inputs + channel checkboxes are retained as
+function-preserving extensions. (9) Assorted: B1 dashboard rows carry
+"N widgets", brand-green favorite stars, TopBar/TimePicker normalized to
+the master (43px, "prod", "Custom"/"LIVE", "Search"), SLOCard per-state
+captions (`Slo.exhausted_at`), B12 usage 64px rows + B-promotion
+("5.6B") + unwrapped plan copy, the B7 `?run=` deep link accepts run
+number or id with a "run not found" state (never "No runs yet" while
+runs exist), and Scalar's floating dev toolbar is off on `/docs/api`
 (`showDeveloperTools: "never"`).
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:

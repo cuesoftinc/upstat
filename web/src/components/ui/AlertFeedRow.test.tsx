@@ -19,11 +19,19 @@ describe("AlertFeedRow", () => {
     const row = screen.getByRole("button");
     expect(row).toHaveAttribute("data-sev", "sev1");
     expect(row).toHaveAttribute("data-unread", "true");
-    // master construction (94:1513): one line with a SevChip — the message
-    // detail line was drift (it survives as the row tooltip)
+  });
+
+  it("renders the master's single-line construction: dot · chip · title · age", () => {
+    render(<AlertFeedRow event={EVENT} />);
+    const row = screen.getByRole("button");
+    // sev chip + title on ONE line; the message detail rides the tooltip
     expect(screen.getByText("SEV-1")).toBeInTheDocument();
+    expect(screen.getByText("Checkout p95 latency")).toBeInTheDocument();
     expect(screen.queryByText(EVENT.message)).toBeNull();
     expect(row).toHaveAttribute("title", EVENT.message);
+    // relative age, unread dot
+    expect(screen.getByText(/ago$/)).toBeInTheDocument();
+    expect(screen.getByLabelText("unread")).toBeInTheDocument();
   });
 
   it("renders the resolved tint calm (decided 2026-07-17)", () => {
@@ -33,8 +41,9 @@ describe("AlertFeedRow", () => {
     const row = screen.getByRole("button");
     expect(row).toHaveAttribute("data-sev", "resolved");
     expect(row).not.toHaveAttribute("data-unread");
-    // resolved rows carry the OK chip per the master
+    // resolved rows chip OK and drop the unread dot
     expect(screen.getByText("OK")).toBeInTheDocument();
+    expect(screen.queryByLabelText("unread")).toBeNull();
   });
 });
 

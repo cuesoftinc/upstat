@@ -3,7 +3,7 @@
 import { clsx } from "clsx";
 import { Check, ChevronRight, Copy } from "lucide-react";
 import { useState } from "react";
-import type { LogEvent } from "@/models";
+import type { LogEvent, LogLevel } from "@/models";
 import { LevelChip } from "./LevelChip";
 
 export interface LogLineProps {
@@ -28,16 +28,22 @@ function formatTs(ts: string): string {
   return ts.slice(11, 23); // HH:MM:SS.mmm
 }
 
-// Level ×5 row construction per the master (47:163, ratified §8.2):
-// full-row level tint + 3px left level bar on collapsed rows. Colors
-// follow the LevelChip mapping [Decided 2026-07-16] (INFO → brand,
-// DEBUG → text-2, TRACE → nodata); hover deepens the same tint.
-const ROW_TINT: Record<LogEvent["level"], string> = {
-  ERROR: "border-l-crit bg-crit/8 hover:bg-crit/15",
-  WARN: "border-l-warn bg-warn/8 hover:bg-warn/15",
-  INFO: "border-l-brand bg-brand/8 hover:bg-brand/15",
-  DEBUG: "border-l-text-2 bg-text-2/8 hover:bg-text-2/15",
-  TRACE: "border-l-nodata bg-nodata/8 hover:bg-nodata/15",
+/** Level ×5 full-row tint + 3px left bar (master 47:163; ratified §8.2
+ *  "level ×5 tints") — LevelChip color mapping [Decided 2026-07-16]. */
+const LEVEL_TINT: Record<LogLevel, string> = {
+  ERROR: "bg-crit/8",
+  WARN: "bg-warn/8",
+  INFO: "bg-brand/8",
+  DEBUG: "bg-text-2/8",
+  TRACE: "bg-nodata/8",
+};
+
+const LEVEL_BAR: Record<LogLevel, string> = {
+  ERROR: "bg-crit",
+  WARN: "bg-warn",
+  INFO: "bg-brand",
+  DEBUG: "bg-text-2",
+  TRACE: "bg-nodata",
 };
 
 /** LogLine — §8.2: collapsed / expanded (JSON tree) / level ×5 tints (MI-5). */
@@ -84,10 +90,19 @@ export function LogLine({
       data-level={event.level}
       data-expanded={expanded}
       className={clsx(
-        "font-data border-b border-border text-[13px]",
+        // master 47:163: full-row level tint + 3px left level bar
+        "font-data relative border-b border-border text-[13px]",
+        LEVEL_TINT[event.level],
         className,
       )}
     >
+      <span
+        aria-hidden="true"
+        className={clsx(
+          "absolute inset-y-0 left-0 w-[3px]",
+          LEVEL_BAR[event.level],
+        )}
+      />
       <button
         type="button"
         aria-expanded={expanded}
@@ -103,10 +118,7 @@ export function LogLine({
           // fixed h-7 (LOG_LINE_ROW_PX): the B4 window relies on one
           // deterministic collapsed height
           "flex h-7 w-full items-center gap-2 px-2 text-left",
-          "transition-colors duration-[var(--duration-fast)] ease-standard",
-          // level tint-bg + 3px left bar (master 47:163)
-          "border-l-[3px]",
-          ROW_TINT[event.level],
+          "transition-colors duration-[var(--duration-fast)] ease-standard hover:bg-bg-elev",
         )}
       >
         <ChevronRight

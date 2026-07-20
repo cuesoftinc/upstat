@@ -1,7 +1,8 @@
 "use client";
 
 import { clsx } from "clsx";
-import { ShieldCheck, Zap } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
+import { BrandMark } from "./BrandMark";
 
 export interface FooterLink {
   label: string;
@@ -100,19 +101,11 @@ export function MarketingFooter({
       <div className="mx-auto grid max-w-[1152px] grid-cols-2 gap-8 md:grid-cols-5">
         {showBrand && (
           <div className="col-span-2 flex max-w-56 flex-col gap-2 md:col-span-1">
-            <span className="flex items-center gap-2 text-[16px] font-semibold text-text">
-              {/* brand mark = the filled zap glyph (adjudicated 2026-07-20;
-                  the "U" tile was code drift) */}
-              <Zap
-                aria-hidden="true"
-                fill="currentColor"
-                strokeWidth={0}
-                className="size-5 text-brand"
-              />
-              Upstat
-            </span>
+            {/* bolt + lowercase wordmark and tagline per master 290:2
+                (systemic adjudication 2026-07-20 — "U" tile retired) */}
+            <BrandMark wordmark className="text-[16px]" />
             <span className="text-[12px] leading-[1.45] text-text-2">
-              Open-source observability by CueLABS™. MIT licensed.
+              All your telemetry. One open platform.
             </span>
           </div>
         )}

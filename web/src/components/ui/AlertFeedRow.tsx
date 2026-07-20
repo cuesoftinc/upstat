@@ -4,19 +4,30 @@ import * as Popover from "@radix-ui/react-popover";
 import { clsx } from "clsx";
 import type { ReactNode } from "react";
 import type { AlertEvent } from "@/models";
-import { SevChip } from "./SevChip";
 
 /**
- * Feed age — the master's relative idiom ("2m ago" / "18m ago" / "1h ago",
- * 94:1513). Relative ages stay honest across days (the earlier bare-HH:mm
- * form read 4-day-old events as today; UX walk 2026-07-19).
+ * Feed age — relative ("2m ago" / "3h ago" / "2d ago") per the master
+ * (94:1513: dot · SevChip · title · age). Derived from the ISO string,
+ * clock-safe at zero/negative deltas.
  */
-function feedAge(ts: string): string {
-  const min = Math.max(Math.round((Date.now() - Date.parse(ts)) / 60_000), 0);
+function feedAge(ts: string, now = Date.now()): string {
+  const min = Math.max(Math.round((now - Date.parse(ts)) / 60_000), 0);
   if (min < 60) return `${min}m ago`;
-  const h = Math.round(min / 60);
-  return h < 24 ? `${h}h ago` : `${Math.round(h / 24)}d ago`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
 }
+
+/** Tinted mono sev chip (master construction — the feed's chip is the
+ *  tint-bg mono treatment, distinct from the solid banner SevChip). */
+const SEV_CHIP: Record<
+  AlertEvent["sev"],
+  { label: string; className: string }
+> = {
+  sev1: { label: "SEV-1", className: "bg-crit/14 text-crit" },
+  sev2: { label: "SEV-2", className: "bg-warn/14 text-warn" },
+  resolved: { label: "OK", className: "bg-ok/14 text-ok" },
+};
 
 export interface AlertFeedRowProps {
   event: AlertEvent;
@@ -25,20 +36,20 @@ export interface AlertFeedRowProps {
 }
 
 /**
- * AlertFeedRow — §8.2b: sev1 / sev2 / resolved · unread/read · 300ms
- * slide-in (MI-14). Construction per the master (94:1513, adjudicated
- * 2026-07-20): ONE line — [unread brand dot] · SevChip (OK chip when
- * resolved) · title · relative age. The message detail line was a code
- * extension; the message still feeds the declare-incident prefill.
+ * AlertFeedRow — §8.2b: sev tint sev1 / sev2 / resolved [Decided 2026-07-17]
+ * · unread/read · 300ms slide-in (MI-14). Single-line construction per the
+ * master (94:1513): unread dot · sev chip · title · age; the message detail
+ * stays on the row tooltip.
  */
 export function AlertFeedRow({ event, onClick, className }: AlertFeedRowProps) {
+  const chip = SEV_CHIP[event.sev];
   return (
     <button
       type="button"
       onClick={onClick}
+      title={event.message}
       data-sev={event.sev}
       data-unread={event.unread || undefined}
-      title={event.message}
       className={clsx(
         "font-ui flex h-8 w-full items-center gap-2 border-b border-border px-3 text-left",
         "transition-colors duration-[var(--duration-fast)] ease-standard hover:bg-bg",
@@ -46,19 +57,20 @@ export function AlertFeedRow({ event, onClick, className }: AlertFeedRowProps) {
         className,
       )}
     >
-      {event.unread && (
-        <span
-          aria-label="unread"
-          className="size-2 shrink-0 rounded-full bg-brand"
-        />
-      )}
-      {event.sev === "resolved" ? (
-        <span className="font-ui inline-flex h-5 shrink-0 items-center rounded-(--radius) bg-ok/14 px-1.5 text-[11px] font-semibold text-ok">
-          OK
-        </span>
-      ) : (
-        <SevChip sev={event.sev === "sev1" ? 1 : 2} className="shrink-0" />
-      )}
+      {/* fixed slot: the brand unread dot; read rows keep the alignment */}
+      <span className="flex size-2 shrink-0 items-center justify-center">
+        {event.unread && (
+          <span aria-label="unread" className="size-2 rounded-full bg-brand" />
+        )}
+      </span>
+      <span
+        className={clsx(
+          "font-data inline-flex h-5 shrink-0 items-center rounded-(--radius) px-1.5 text-[11px] font-medium",
+          chip.className,
+        )}
+      >
+        {chip.label}
+      </span>
       <span
         className={clsx(
           "min-w-0 flex-1 truncate text-[13px]",

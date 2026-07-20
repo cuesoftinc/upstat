@@ -81,8 +81,10 @@ export function TimePicker({
               : "text-text-2 hover:text-text",
           )}
         >
-          <Calendar aria-hidden="true" className="size-3.5" />
-          <span className="hidden md:inline">custom</span>
+          {/* the calendar glyph is the <md collapse affordance; desktop is
+              the master's text-only "Custom" */}
+          <Calendar aria-hidden="true" className="size-3.5 md:hidden" />
+          <span className="hidden md:inline">Custom</span>
         </button>
         {customOpen && (
           <div
@@ -130,7 +132,7 @@ export function TimePicker({
                 : "bg-text-2",
             )}
           />
-          live
+          LIVE
         </button>
       )}
     </div>

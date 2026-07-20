@@ -73,6 +73,8 @@ export default function DashboardHomePage() {
                     updated={`updated ${ageLabel(d.updated_at)} ago`}
                     favorite={d.favorite}
                     shared={d.shared}
+                    // "N widgets" meta per the B1 frame rows (125:13)
+                    meta={`${d.widgets.length} widget${d.widgets.length === 1 ? "" : "s"}`}
                     onClick={() => router.push(`/dashboard/dashboards/${d.id}`)}
                   />
                 </li>

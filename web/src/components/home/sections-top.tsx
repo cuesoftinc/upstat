@@ -68,6 +68,7 @@ export function HeroSection({
           <TimeseriesPanel
             title="p95 latency — api-common"
             titleAs="p"
+            unit="ms"
             query={query}
             series={series}
             height={190}
@@ -239,6 +240,7 @@ export function HowItWorksSection({ series }: HowItWorksSectionProps) {
           <TimeseriesPanel
             title="p95 latency — api-common"
             titleAs="p"
+            unit="ms"
             series={series}
             height={130}
           />

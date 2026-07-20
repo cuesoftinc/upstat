@@ -70,9 +70,12 @@ function formatValue(v: number, unit?: string): string {
   const compact =
     Math.abs(v) >= 1000
       ? `${(v / 1000).toFixed(1)}k`
-      : v % 1 === 0
-        ? String(v)
-        : v.toFixed(1);
+      : // ≥100 the fractional digit is axis noise ("520 ms", not "520.2 ms")
+        Math.abs(v) >= 100
+        ? String(Math.round(v))
+        : v % 1 === 0
+          ? String(v)
+          : v.toFixed(1);
   // unit suffix per the master ladder — the zero tick stays bare "0"
   return unit && v !== 0 ? `${compact} ${unit}` : compact;
 }
@@ -86,6 +89,11 @@ function deriveUnit(series: Series[], query?: string): string | undefined {
 function formatTime(ts: string): string {
   // hh:mm in UTC — bucketing renders UTC per X-10.
   return ts.slice(11, 16);
+}
+
+function formatTimeSeconds(ts: string): string {
+  // hh:mm:ss for the crosshair tooltip header (master 50:407: "14:32:00").
+  return ts.slice(11, 19);
 }
 
 /**
@@ -306,219 +314,246 @@ export function TimeseriesPanel({
           className="border-0 bg-transparent p-0"
         />
       ) : (
-        <svg
-          ref={svgRef}
-          viewBox={`0 0 ${PLOT_W} ${plotH}`}
-          role="img"
-          aria-label={`${title} chart`}
-          // min-w-0: the viewBox's intrinsic 600px must not set the panel's
-          // min-content width (375w home); rendering at fixed widths unchanged
-          className="w-full min-w-0"
-          style={{ height: plotH }}
-          onMouseMove={handleMove}
-          onMouseLeave={handleLeave}
-          onMouseDown={handleDown}
-          onMouseUp={handleUp}
-          onDoubleClick={onZoomReset}
-          data-testid="timeseries-plot"
-        >
-          {/* y grid + axis labels (11px, §2 ramp) — 4 zero-based unit-
+        <div className="relative min-w-0">
+          <svg
+            ref={svgRef}
+            viewBox={`0 0 ${PLOT_W} ${plotH}`}
+            role="img"
+            aria-label={`${title} chart`}
+            // min-w-0: the viewBox's intrinsic 600px must not set the panel's
+            // min-content width (375w home); rendering at fixed widths unchanged
+            className="w-full min-w-0"
+            style={{ height: plotH }}
+            onMouseMove={handleMove}
+            onMouseLeave={handleLeave}
+            onMouseDown={handleDown}
+            onMouseUp={handleUp}
+            onDoubleClick={onZoomReset}
+            data-testid="timeseries-plot"
+          >
+            {/* y grid + axis labels (11px, §2 ramp) — 4 zero-based unit-
               suffixed ticks per the master (50:407) */}
-          {ticks.map((v) => (
-            <g key={v}>
-              <line
-                x1={PAD_L}
-                x2={PLOT_W - PAD_R}
-                y1={y(v)}
-                y2={y(v)}
-                stroke="var(--color-border)"
-                strokeWidth={1}
-              />
-              <text
-                x={PAD_L - 6}
-                y={y(v) + 3}
-                textAnchor="end"
-                fontSize={11}
-                fill="var(--color-text-2)"
-                className="font-data tabular-nums"
-              >
-                {formatValue(v, unit)}
-              </text>
-            </g>
-          ))}
-
-          {/* x-axis time labels (mono 11, §2 ramp — Figma 50:100) */}
-          {visible[0] &&
-            [0, 0.25, 0.5, 0.75, 1].map((t) => {
-              const pts = visible[0].points;
-              const idx = Math.round(t * (pts.length - 1));
-              const ts = pts[idx]?.ts;
-              if (!ts) return null;
-              return (
+            {ticks.map((v) => (
+              <g key={v}>
+                <line
+                  x1={PAD_L}
+                  x2={PLOT_W - PAD_R}
+                  y1={y(v)}
+                  y2={y(v)}
+                  stroke="var(--color-border)"
+                  strokeWidth={1}
+                />
                 <text
-                  key={`x${t}`}
-                  x={PAD_L + t * innerW}
-                  y={plotH - 4}
-                  textAnchor={t === 0 ? "start" : t === 1 ? "end" : "middle"}
+                  x={PAD_L - 6}
+                  y={y(v) + 3}
+                  textAnchor="end"
                   fontSize={11}
                   fill="var(--color-text-2)"
                   className="font-data tabular-nums"
                 >
-                  {formatTime(ts)}
+                  {formatValue(v, unit)}
                 </text>
-              );
-            })}
+              </g>
+            ))}
 
-          {/* §5 colorblind mode: per-series hatch patterns for bar fills —
+            {/* x-axis time labels (mono 11, §2 ramp — Figma 50:100) */}
+            {visible[0] &&
+              [0, 0.25, 0.5, 0.75, 1].map((t) => {
+                const pts = visible[0].points;
+                const idx = Math.round(t * (pts.length - 1));
+                const ts = pts[idx]?.ts;
+                if (!ts) return null;
+                return (
+                  <text
+                    key={`x${t}`}
+                    x={PAD_L + t * innerW}
+                    y={plotH - 4}
+                    textAnchor={t === 0 ? "start" : t === 1 ? "end" : "middle"}
+                    fontSize={11}
+                    fill="var(--color-text-2)"
+                    className="font-data tabular-nums"
+                  >
+                    {formatTime(ts)}
+                  </text>
+                );
+              })}
+
+            {/* §5 colorblind mode: per-series hatch patterns for bar fills —
               angle/pitch vary by index, index 0 stays solid */}
-          {patterns && mode === "bars" && (
-            <defs>
-              {series.map((s, i) => (
-                <pattern
-                  key={s.name}
-                  id={barPatternId(i)}
-                  width={5}
-                  height={5}
-                  patternUnits="userSpaceOnUse"
-                  patternTransform={`rotate(${[0, 45, 135, 90, 25, 115, 65, 155][i % 8]})`}
-                >
-                  <rect width={5} height={5} fill={seriesColor(i)} />
-                  {i % 8 !== 0 && (
-                    <line
-                      x1={0}
-                      y1={0}
-                      x2={0}
-                      y2={5}
-                      stroke="var(--color-bg-elev)"
-                      strokeWidth={1.75}
-                    />
-                  )}
-                </pattern>
-              ))}
-            </defs>
-          )}
+            {patterns && mode === "bars" && (
+              <defs>
+                {series.map((s, i) => (
+                  <pattern
+                    key={s.name}
+                    id={barPatternId(i)}
+                    width={5}
+                    height={5}
+                    patternUnits="userSpaceOnUse"
+                    patternTransform={`rotate(${[0, 45, 135, 90, 25, 115, 65, 155][i % 8]})`}
+                  >
+                    <rect width={5} height={5} fill={seriesColor(i)} />
+                    {i % 8 !== 0 && (
+                      <line
+                        x1={0}
+                        y1={0}
+                        x2={0}
+                        y2={5}
+                        stroke="var(--color-bg-elev)"
+                        strokeWidth={1.75}
+                      />
+                    )}
+                  </pattern>
+                ))}
+              </defs>
+            )}
 
-          {/* series */}
-          {visible.map((s, si) => {
-            const pts = s.points;
-            const color = seriesColor(series.indexOf(s));
-            if (mode === "bars") {
-              const bw = Math.max((innerW / Math.max(pts.length, 1)) * 0.7, 1);
-              const fill = patterns
-                ? `url(#${barPatternId(series.indexOf(s))})`
-                : color;
+            {/* series */}
+            {visible.map((s, si) => {
+              const pts = s.points;
+              const color = seriesColor(series.indexOf(s));
+              if (mode === "bars") {
+                const bw = Math.max(
+                  (innerW / Math.max(pts.length, 1)) * 0.7,
+                  1,
+                );
+                const fill = patterns
+                  ? `url(#${barPatternId(series.indexOf(s))})`
+                  : color;
+                return (
+                  <g key={s.name}>
+                    {pts.map((p, i) =>
+                      p.value === null ? null : (
+                        <rect
+                          key={i}
+                          x={x(i, pts.length) - bw / 2}
+                          y={y(p.value)}
+                          width={bw}
+                          height={Math.max(PAD_T + innerH - y(p.value), 0)}
+                          fill={fill}
+                          opacity={0.85}
+                        />
+                      ),
+                    )}
+                  </g>
+                );
+              }
+              const path = pts
+                .map((p, i) =>
+                  p.value === null
+                    ? null
+                    : `${i === 0 || pts[i - 1]?.value === null ? "M" : "L"}${x(i, pts.length)},${y(p.value)}`,
+                )
+                .filter(Boolean)
+                .join(" ");
               return (
                 <g key={s.name}>
-                  {pts.map((p, i) =>
-                    p.value === null ? null : (
-                      <rect
-                        key={i}
-                        x={x(i, pts.length) - bw / 2}
-                        y={y(p.value)}
-                        width={bw}
-                        height={Math.max(PAD_T + innerH - y(p.value), 0)}
-                        fill={fill}
-                        opacity={0.85}
-                      />
-                    ),
+                  {mode === "area" && (
+                    <path
+                      d={`${path} L${x(pts.length - 1, pts.length)},${PAD_T + innerH} L${x(0, pts.length)},${PAD_T + innerH} Z`}
+                      fill={color}
+                      opacity={0.15}
+                    />
+                  )}
+                  <path
+                    d={path}
+                    fill="none"
+                    stroke={color}
+                    strokeWidth={1.5}
+                    // §5 colorblind mode: series-index dash arrays (first
+                    // series stays solid)
+                    strokeDasharray={
+                      patterns
+                        ? seriesDash(series.indexOf(s)) || undefined
+                        : undefined
+                    }
+                  />
+                  {/* crosshair value dots (MI-2) */}
+                  {cursorIndex !== null && pts[cursorIndex]?.value !== null && (
+                    <circle
+                      cx={x(cursorIndex, pts.length)}
+                      cy={y(pts[cursorIndex].value!)}
+                      r={2.5}
+                      fill={color}
+                    />
+                  )}
+                  {si === 0 && cursorIndex !== null && (
+                    <line
+                      x1={x(cursorIndex, pts.length)}
+                      x2={x(cursorIndex, pts.length)}
+                      y1={PAD_T}
+                      y2={PAD_T + innerH}
+                      stroke="var(--color-text-2)"
+                      strokeWidth={1}
+                      strokeDasharray="2 2"
+                    />
                   )}
                 </g>
               );
-            }
-            const path = pts
-              .map((p, i) =>
-                p.value === null
-                  ? null
-                  : `${i === 0 || pts[i - 1]?.value === null ? "M" : "L"}${x(i, pts.length)},${y(p.value)}`,
-              )
-              .filter(Boolean)
-              .join(" ");
-            return (
-              <g key={s.name}>
-                {mode === "area" && (
-                  <path
-                    d={`${path} L${x(pts.length - 1, pts.length)},${PAD_T + innerH} L${x(0, pts.length)},${PAD_T + innerH} Z`}
-                    fill={color}
-                    opacity={0.15}
-                  />
-                )}
-                <path
-                  d={path}
-                  fill="none"
-                  stroke={color}
-                  strokeWidth={1.5}
-                  // §5 colorblind mode: series-index dash arrays (first
-                  // series stays solid)
-                  strokeDasharray={
-                    patterns
-                      ? seriesDash(series.indexOf(s)) || undefined
-                      : undefined
-                  }
-                />
-                {/* crosshair value dots (MI-2) */}
-                {cursorIndex !== null && pts[cursorIndex]?.value !== null && (
-                  <circle
-                    cx={x(cursorIndex, pts.length)}
-                    cy={y(pts[cursorIndex].value!)}
-                    r={2.5}
-                    fill={color}
-                  />
-                )}
-                {si === 0 && cursorIndex !== null && (
-                  <line
-                    x1={x(cursorIndex, pts.length)}
-                    x2={x(cursorIndex, pts.length)}
-                    y1={PAD_T}
-                    y2={PAD_T + innerH}
-                    stroke="var(--color-text-2)"
-                    strokeWidth={1}
-                    strokeDasharray="2 2"
-                  />
-                )}
-              </g>
-            );
-          })}
+            })}
 
-          {/* MI-3 drag-to-zoom selection region */}
-          {drag && Math.abs(drag.to - drag.from) > 0 && (
-            <rect
-              x={PAD_L + Math.min(drag.from, drag.to) * innerW}
-              y={PAD_T}
-              width={Math.abs(drag.to - drag.from) * innerW}
-              height={innerH}
-              fill="var(--color-brand)"
-              opacity={0.12}
-              stroke="var(--color-brand)"
-              strokeWidth={1}
-              data-testid="zoom-selection"
-            />
-          )}
-        </svg>
-      )}
-
-      {/* crosshair tooltip values */}
-      {!loading && !empty && !showTable && cursorIndex !== null && (
-        <div className="font-data flex flex-wrap gap-x-4 gap-y-0.5 text-[11px] tabular-nums text-text-2">
-          {visible.map((s) => (
-            <span
-              key={s.name}
-              className="inline-flex items-center gap-1"
-              title={s.name}
-            >
-              <span
-                className="size-1.5 rounded-full"
-                style={{ background: seriesColor(series.indexOf(s)) }}
+            {/* MI-3 drag-to-zoom selection region */}
+            {drag && Math.abs(drag.to - drag.from) > 0 && (
+              <rect
+                x={PAD_L + Math.min(drag.from, drag.to) * innerW}
+                y={PAD_T}
+                width={Math.abs(drag.to - drag.from) * innerW}
+                height={innerH}
+                fill="var(--color-brand)"
+                opacity={0.12}
+                stroke="var(--color-brand)"
+                strokeWidth={1}
+                data-testid="zoom-selection"
               />
-              {/* MI-2 "per-series values" — a bare number row wasn't
-                  attributable to a series; carry the short label */}
-              {visible.length > 1 && (
-                <span className="max-w-32 truncate">{legendLabel(s.name)}</span>
+            )}
+          </svg>
+
+          {/* crosshair tooltip — FLOATING at the crosshair inside the plot,
+              led by the timestamp (master 50:407 crosshair variant:
+              "14:32:00 · p50 84 ms · …"); flips sides past plot center so
+              it never leaves the panel */}
+          {cursorIndex !== null && visible[0]?.points[cursorIndex] && (
+            <div
+              data-testid="crosshair-tooltip"
+              className={clsx(
+                "font-data pointer-events-none absolute top-2 z-10 flex flex-col gap-0.5",
+                "rounded-(--radius) border border-border bg-bg-elev/95 px-2 py-1.5 text-[11px] tabular-nums shadow-lg",
               )}
-              {s.points[cursorIndex]?.value === null
-                ? "—"
-                : formatValue(s.points[cursorIndex]?.value ?? 0, unit)}
-            </span>
-          ))}
+              style={{
+                left: `${((PAD_L + (cursorIndex / Math.max(n - 1, 1)) * innerW) / PLOT_W) * 100}%`,
+                transform:
+                  cursorIndex / Math.max(n - 1, 1) > 0.55
+                    ? "translateX(calc(-100% - 8px))"
+                    : "translateX(8px)",
+              }}
+            >
+              <span className="text-text-2">
+                {formatTimeSeconds(visible[0].points[cursorIndex].ts)}
+              </span>
+              {visible.map((s) => (
+                <span
+                  key={s.name}
+                  className="inline-flex items-center gap-1.5 whitespace-nowrap text-text"
+                  title={s.name}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="size-1.5 shrink-0 rounded-full"
+                    style={{ background: seriesColor(series.indexOf(s)) }}
+                  />
+                  {/* MI-2 "per-series values" — a bare number row wasn't
+                      attributable to a series; carry the short label */}
+                  {visible.length > 1 && (
+                    <span className="max-w-32 truncate text-text-2">
+                      {legendLabel(s.name)}
+                    </span>
+                  )}
+                  {s.points[cursorIndex]?.value === null
+                    ? "—"
+                    : formatValue(s.points[cursorIndex]?.value ?? 0, unit)}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
