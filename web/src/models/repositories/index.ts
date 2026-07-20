@@ -29,6 +29,7 @@ import type {
   ServiceStats,
   Slo,
   StatusPage,
+  StatusPageConfig,
   SyntheticCheck,
   SyntheticCheckInput,
   SyntheticRun,
@@ -179,6 +180,10 @@ export const viewsRepo = {
 /** Public status page read (pages.md B7 — unauthenticated by design). */
 export const statusRepo = {
   bySlug: (slug: string) => http.get<StatusPage>(`/v1/status/${slug}`),
+  /** B7 builder document — branding + ordered component list. */
+  config: () => http.get<StatusPageConfig>("/v1/status-page"),
+  updateConfig: (config: StatusPageConfig) =>
+    http.put<StatusPageConfig>("/v1/status-page", config),
 };
 
 /** Incidents + timeline (api.md §6; pages.md B9; MI-10). */

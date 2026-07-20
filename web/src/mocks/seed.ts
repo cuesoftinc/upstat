@@ -22,6 +22,7 @@ import type {
   SavedView,
   ServiceCatalogEntry,
   Slo,
+  StatusPageConfig,
   SyntheticCheck,
   SyntheticRun,
   TimelineEntry,
@@ -57,6 +58,13 @@ export interface MockDb {
   firstDataAtMs: number | null;
   /** Public status-page slug (pages.md B7 — owner-chosen, unique). */
   statusSlug: string | null;
+  /**
+   * Status-page builder document (B7 [Designed 2026-07-20]) — branding +
+   * ordered component list; `buildStatusPage` renders it. Null until the
+   * org publishes a page. `statusSlug` mirrors `statusPage.slug` (the
+   * routing key the public read resolves).
+   */
+  statusPage: StatusPageConfig | null;
   members: Member[];
   dashboards: Dashboard[];
   monitors: Monitor[];
@@ -1067,6 +1075,23 @@ export function buildSeed(now: number): MockDb {
     },
     firstDataAtMs: null,
     statusSlug: "upstat",
+    // U0-5: the slugged page over the live monitor set — row order is the
+    // public page order (B7 builder, Figma 331:12857)
+    statusPage: {
+      name: "Upstat",
+      slug: "upstat",
+      components: [
+        { id: "spc_homepage", name: "Homepage", monitor_id: "mon_homepage" },
+        { id: "spc_api", name: "API health", monitor_id: "mon_api" },
+        { id: "spc_status", name: "Status page", monitor_id: "mon_status" },
+        {
+          id: "spc_checkout",
+          name: "Checkout flow",
+          monitor_id: "mon_checkout",
+        },
+        { id: "spc_docs", name: "Docs", monitor_id: "mon_docs" },
+      ],
+    },
     members,
     dashboards,
     monitors,
@@ -1154,6 +1179,7 @@ export function buildEmptySeed(
     onboarding: { org_created: true, has_data: false, ingest_key: ingestKey },
     firstDataAtMs: now + FIRST_DATA_DELAY_MS,
     statusSlug: null,
+    statusPage: null,
     members: [
       {
         id: "usr_ibukun",

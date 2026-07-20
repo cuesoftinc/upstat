@@ -69,3 +69,60 @@ describe("buildStatusPage (B7 public read)", () => {
     expect([...times].sort((a, b) => b - a)).toEqual(times);
   });
 });
+
+describe("buildStatusPage — builder config reflection (B7 [Designed 2026-07-20])", () => {
+  it("renders builder rows in order with builder names", () => {
+    const db = buildSeed(NOW);
+    db.statusPage = {
+      name: "Upstat",
+      slug: "upstat",
+      components: [
+        { id: "spc_1", name: "API", monitor_id: "mon_api" },
+        { id: "spc_2", name: "Dashboard", monitor_id: "mon_homepage" },
+      ],
+    };
+    const page = buildStatusPage(db, "upstat", NOW);
+    expect(page.components.map((c) => c.name)).toEqual(["API", "Dashboard"]);
+    // mapped monitor supplies status/strip/latency under the builder name
+    const api = page.components[0];
+    const monApi = db.monitors.find((m) => m.id === "mon_api")!;
+    expect(api.status).toBe(monApi.status);
+    expect(api.p95_ms).toBe(monApi.last_response_time_ms);
+    expect(api.days).toHaveLength(90);
+  });
+
+  it("reorder in the builder reorders the public page", () => {
+    const db = buildSeed(NOW);
+    const [first, ...rest] = db.statusPage!.components;
+    db.statusPage = {
+      ...db.statusPage!,
+      components: [...rest, first],
+    };
+    const page = buildStatusPage(db, "upstat", NOW);
+    expect(page.components[page.components.length - 1].name).toBe(first.name);
+  });
+
+  it("the builder page name governs the public header", () => {
+    const db = buildSeed(NOW);
+    db.statusPage = { ...db.statusPage!, name: "Upstat Cloud" };
+    expect(buildStatusPage(db, "upstat", NOW).org_name).toBe("Upstat Cloud");
+  });
+
+  it("unmapped rows publish as nodata, never crash", () => {
+    const db = buildSeed(NOW);
+    db.statusPage = {
+      ...db.statusPage!,
+      components: [{ id: "spc_x", name: "Ingestion", monitor_id: null }],
+    };
+    const page = buildStatusPage(db, "upstat", NOW);
+    expect(page.components).toEqual([
+      {
+        name: "Ingestion",
+        status: "nodata",
+        days: [],
+        uptime_pct: null,
+        p95_ms: null,
+      },
+    ]);
+  });
+});

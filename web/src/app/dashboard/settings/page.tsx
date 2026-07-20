@@ -8,6 +8,7 @@ import {
   OrgSection,
   PrivacySection,
   RetentionSection,
+  StatusPageSection,
 } from "./sections";
 
 /**
@@ -26,6 +27,7 @@ export default function SettingsPage() {
         </div>
         <div className="flex min-w-0 flex-col gap-10">
           <IntegrationsSection />
+          <StatusPageSection />
           <RetentionSection />
           <AppearanceSection />
           <PrivacySection />
