@@ -272,8 +272,8 @@ when to delete them is an owner decision, deliberately not scheduled here.
 | --- | --- | --- |
 | 0 Foundations | type ramp (§2) · series palette swatches ×8 · Lucide icons — **extended set (2026-07-16)**, see icon note below · approved brand glyphs (Google 'G', GitHub, Discord, Slack) · 12-col dashboard grid + 8px gutters | everything |
 | 1 Atoms | Button, Input, StatusPill, query pill, level chip, Toast · **primitives kit (2026-07-16)**: Switch, Checkbox, Tooltip, Avatar/AvatarStack, KbdChip, CountBadge/BufferedCountChip, SevChip, GoogleAuthButton | molecules |
-| 2 Molecules | TimePicker, QueryBar (pills+autocomplete), FacetSidebar group, MonitorRow, LogLine (collapsed/expanded), SLOCard, IncidentBanner, UptimeCard, SettingsRow · **overlay/input kit**: Select/DropdownMenu, Modal/Sheet, SavedViewChip, ZoomStackChip · **account kit**: MemberRow, APIKeyRow/PropertyKeyRow, DashboardListRow | panels |
-| 3 Panels | TimeseriesPanel (line/area/bars + legend), WidgetShell, TraceWaterfall row + span drawer, ServiceMapNode, alert channel/rule forms · **widget content kit**: QueryValue, TopList, Table, Heatmap, LogHistogram · **status page kit**: StatusPageHeader, StatusPageComponentRow, IncidentHistoryEntry · **chrome kit**: NavRail/NavRailItem, TopBar, CommandPalette/SearchOverlay, ShortcutCheatsheet · **alert/incident kit**: AlertFeedRow + NotificationPopover, IncidentComposer, ThresholdOverlay · **explorer extras**: ServiceCatalogRow, ErrorGroupRow, TraceMinimap | dashboards + status pages |
+| 2 Molecules | TimePicker, QueryBar (pills+autocomplete), FacetSidebar group, MonitorRow, LogLine (collapsed/expanded), SLOCard, IncidentBanner, UptimeCard, SettingsRow · **overlay/input kit**: Select/DropdownMenu, Modal/Sheet, SavedViewChip, ZoomStackChip · **account kit**: MemberRow, APIKeyRow/PropertyKeyRow, DashboardListRow · **Wave B kit (designed 2026-07-20)**: SyntheticStepRow, StepResultRow, StatusPageBuilderRow, LogPatternRow, UsageMeterRow | panels |
+| 3 Panels | TimeseriesPanel (line/area/bars + legend), WidgetShell, TraceWaterfall row + span drawer, ServiceMapNode, alert channel/rule forms · **widget content kit**: QueryValue, TopList, Table, Heatmap, LogHistogram · **status page kit**: StatusPageHeader, StatusPageComponentRow, IncidentHistoryEntry · **chrome kit**: NavRail/NavRailItem, TopBar, CommandPalette/SearchOverlay, ShortcutCheatsheet · **alert/incident kit**: AlertFeedRow + NotificationPopover, IncidentComposer, ThresholdOverlay · **explorer extras**: ServiceCatalogRow, ErrorGroupRow, TraceMinimap · FunnelStageCard (B6 drill-down, designed 2026-07-20) | dashboards + status pages |
 | 4 Screen templates | dashboard home, monitors list+detail, alert config, traffic (real-data layout), status page (slug public view), settings/properties, **/signin** (the single Google CTA screen per X-1) | app design |
 | 5 Landing | extend Desktop-1: pillar grid (8), ingestion diagram section, demo cards, cloud-vs-oss · **marketing kit**: MarketingNav + PillarDropdown, PillarCard, CodeSnippet + Tabs, CloudVsSelfHostTable | landing v2 |
 
@@ -362,6 +362,12 @@ never on screens. A screen frame must read as the shipped product would.
 | LogHistogram | level-stacked volume bars over time axis · hover count tooltip (logs explorer header, pages.md B4) |
 | StatusPageHeader | overall: operational / degraded / partial_outage / major_outage · last-updated ts (public status page, pages.md B7) |
 | StatusPageComponentRow | component name + StatusPill + 90-day bar strip + uptime % (UptimeCard technique, public view) |
+| SyntheticStepRow | kind: http / assertion / wait · drag grip · step index · kind chip (Mono/Micro 10) · summary (Mono/Data 13) · delete — the B7 multi-step builder list; add via the quiet "Add step" button **[Designed 2026-07-20]** |
+| StepResultRow | result: pass / fail · step index · StatusPill ("PASS" ok / "FAIL" crit) · summary · duration bar (brand fill, crit on fail; width ∝ duration) · fixed-precision ms — the B7 run timeline **[Designed 2026-07-20]** |
+| StatusPageBuilderRow | drag grip · component name (inline rename) · monitor-mapping Select · delete — row order = public page order; output is the `/status/{slug}` construction **[Designed 2026-07-20]** |
+| LogPatternRow | expand chevron · count · 7-bucket trend sparkline · Mono template with `<placeholders>` · expands to indented sample LogLines — the B4 "Patterns" tab **[Designed 2026-07-20]** |
+| UsageMeterRow | pillar measure · MTD value · MTD bar (scaled to the largest meter; per-row widths ship as detached exemplars on the B12 usage frame) · plan column verbatim "Self-host: unlimited · Cloud: announced at GA" (accuracy canon) **[Designed 2026-07-20]** |
+| FunnelStageCard | stage label · count (PageTitle/20) · % of previous stage · stages chain with "→" connectors — the B6 drill-down funnel **[Designed 2026-07-20]** |
 | IncidentHistoryEntry | phase: investigating / identified / monitoring / resolved · timestamped update list (status page history + incident timeline) |
 | SettingsRow | label + description + control slot: text / select / toggle · default / disabled (settings screens; org timezone IANA selector per X-10) |
 | EmptyState | per-pillar MI-16 (snippet + radar + docs link) ×4 minimum — **as built (2026-07-18 QA loop):** the traces variant is widened to 660 so the single-line OTLP export snippet fits copy-paste-safe (no line continuation) |
@@ -418,6 +424,13 @@ project license, the copy reads **MIT**.
 | ThresholdOverlay | warn band / crit band / would-have-fired marker — composes over TimeseriesPanel (MI-9 test replay) — **as built (2026-07-17):** exemplar single, not a variant set |
 | ServiceCatalogRow | telemetry presence dots per pillar (present/absent ×4) · owner + repo/runbook links · default / hover |
 | ErrorGroupRow | fingerprint msg (mono) + count + sparkline + last-seen · new / ongoing / regressed |
+| **Wave B rows (designed 2026-07-20)** | |
+| SyntheticStepRow | kind: http / assertion / wait · drag grip + step index + kind chip (Mono/Micro 10) + summary (Mono/Data 13) + delete — the B7 multi-step check builder row; add via quiet "Add step" |
+| StepResultRow | result: pass / fail · step index + StatusPill ("PASS"/"FAIL") + summary + duration bar (brand; crit on fail; width ∝ duration) + fixed-precision duration — the B7 run-view timeline row |
+| StatusPageBuilderRow | drag grip + component name (inline rename) + monitor-mapping Select + delete · row order = public page order — the B7 status-page builder row; output is the existing /status/{slug} construction |
+| LogPatternRow | expand chevron + count (tnum) + 7-bucket trend sparkline + template with `<placeholders>` + dominant-level meta · expands to sample LogLine rows — the B4 Patterns tab row |
+| UsageMeterRow | pillar + unit label + MTD value (tnum) + bar vs trailing-3-month peak + plan column ("Self-host: unlimited · Cloud: announced at GA" — accuracy canon, no invented quotas/pricing) — B12 usage |
+| FunnelStageCard | stage label + count (PageTitle/20 tnum) + share-of-previous meta · stages compose with "→ n%" connectors — B6 RUM drill-down funnel |
 | ZoomStackChip | depth ×n label · default / hover (reset affordance) — MI-3 zoom breadcrumb; a QueryPill re-skin is acceptable |
 | TraceMinimap | default / span-service highlight (series color) — MI-7 |
 | WidgetTypeCell | state: default / selected · icon + label tile, one per widget type — iteration-1 addition **[built 2026-07-18]** |
