@@ -74,8 +74,11 @@ export function APIKeyRow({ apiKey, onRevoke, className }: APIKeyRowProps) {
       <span className="min-w-0 shrink truncate text-[13px] font-medium text-text">
         {apiKey.name}
       </span>
-      <span className="flex shrink-0 items-center gap-1.5 rounded-(--radius) border border-border px-1.5 py-0.5">
-        <code className="font-data text-[12px] text-text-2">
+      {/* the chip may shrink — at 390 the row's fixed parts (icon · chip ·
+          pill · trash) exceeded the column and panned <main> (e2e 390 sweep);
+          the masked key truncates before anything overflows */}
+      <span className="flex min-w-0 shrink items-center gap-1.5 rounded-(--radius) border border-border px-1.5 py-0.5">
+        <code className="font-data min-w-0 truncate text-[12px] text-text-2">
           {apiKey.key_masked}
         </code>
         <button
