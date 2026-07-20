@@ -49,4 +49,75 @@ test.describe("API reference — /docs/api", () => {
       page.getByRole("heading", { name: "Upstat HTTP API" }),
     ).toBeVisible({ timeout: 20_000 });
   });
+
+  test("header behaves: nav stays visible over the embed, one scroll container", async ({
+    page,
+  }) => {
+    await page.goto("/docs/api");
+    await expect(
+      page.getByRole("heading", { name: "Upstat HTTP API" }),
+    ).toBeVisible({ timeout: 20_000 });
+
+    // One coherent scroll container: the page scrolls; no full-viewport
+    // inner scroller wraps the embed (Scalar's viewport math is offset by
+    // --scalar-custom-header-height so its sidebar fits under the nav).
+    const layout = await page.evaluate(() => ({
+      pageScrollable:
+        document.documentElement.scrollHeight > window.innerHeight,
+      fullHeightInnerScrollers: [...document.querySelectorAll("*")].filter(
+        (el) =>
+          el.scrollHeight > el.clientHeight + 10 &&
+          ["auto", "scroll"].includes(getComputedStyle(el).overflowY) &&
+          el.clientHeight >= window.innerHeight,
+      ).length,
+    }));
+    expect(layout.pageScrollable).toBe(true);
+    expect(layout.fullHeightInnerScrollers).toBe(0);
+
+    // After scrolling, the marketing nav (sticky) is still fully visible —
+    // Scalar's sticky sidebar must not paint over it (isolate + offset).
+    await page.mouse.wheel(0, 800);
+    await expect(
+      page.getByRole("link", { name: "Star cuesoftinc/upstat on GitHub" }),
+    ).toBeVisible();
+    const navTop = await page
+      .getByRole("navigation", { name: "Marketing" })
+      .evaluate((el) => el.getBoundingClientRect().top);
+    expect(navTop).toBe(0);
+  });
+
+  test("the embed follows the tri-state theme, incl. a live OS flip in system mode", async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme: "dark" });
+    await page.goto("/docs/api");
+    await expect(
+      page.getByRole("heading", { name: "Upstat HTTP API" }),
+    ).toBeVisible({ timeout: 20_000 });
+
+    // Scalar mirrors the resolved theme on body (light-mode/dark-mode);
+    // system default resolves dark here (dark-first OS emulation).
+    const body = page.locator("body");
+    await expect(body).toHaveClass(/dark-mode/);
+
+    // system mode (default) follows an OS scheme flip live.
+    await page.emulateMedia({ colorScheme: "light" });
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await expect(body).toHaveClass(/light-mode/, { timeout: 15_000 });
+
+    // Explicit choice via the nav toggle wins over the OS (the embed
+    // resyncs after cycling system → light → dark).
+    await page.getByTestId("theme-toggle").click(); // system → light
+    await page.getByTestId("theme-toggle").click(); // light → dark
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await expect(body).toHaveClass(/dark-mode/, { timeout: 15_000 });
+    await expect(
+      page.getByRole("heading", { name: "Upstat HTTP API" }),
+    ).toBeVisible({ timeout: 20_000 });
+
+    // The choice persists across reload (stored at upstat.theme).
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await expect(body).toHaveClass(/dark-mode/, { timeout: 20_000 });
+  });
 });

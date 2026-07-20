@@ -209,29 +209,54 @@ test("nav + footer carry the canonical parity links (SKILL.md canon)", async ({
   );
 });
 
-test("theme toggle flips data-theme and persists (upstat.theme)", async ({
+test("theme toggle cycles light → dark → system and persists (upstat.theme)", async ({
   page,
 }) => {
+  // Deterministic OS scheme for the system-resolution assertions.
+  await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/");
   const html = page.locator("html");
-  await expect(html).not.toHaveAttribute("data-theme", "light"); // dark default
-  await page.getByTestId("theme-toggle").click();
-  await expect(html).toHaveAttribute("data-theme", "light");
+  // Fresh visit = system (key absent), resolved from the OS (dark here).
+  await expect(html).toHaveAttribute("data-theme", "dark");
+
+  // system → light. The initial attr is applied pre-hydration (init
+  // script), so retry the click until React's handler is attached.
+  const toggle = page.getByTestId("theme-toggle");
+  await expect(async () => {
+    await toggle.click();
+    await expect(html).toHaveAttribute("data-theme", "light", {
+      timeout: 1_000,
+    });
+  }).toPass({ timeout: 15_000 });
   expect(
     await page.evaluate(() => window.localStorage.getItem("upstat.theme")),
   ).toBe("light");
   // persists across reload — applied pre-paint by the init script
   await page.reload();
   await expect(html).toHaveAttribute("data-theme", "light");
-  // back to dark: attribute clears (the default carries none). The attr
-  // assertion above is satisfied pre-hydration (init script), so retry the
-  // click until React's handler is attached (dev hydrates slowly).
+
+  // light → dark (explicit choice ignores the OS)
   await expect(async () => {
-    await page.getByTestId("theme-toggle").click();
-    await expect(html).not.toHaveAttribute("data-theme", "light", {
+    await toggle.click();
+    await expect(html).toHaveAttribute("data-theme", "dark", {
       timeout: 1_000,
     });
   }).toPass({ timeout: 15_000 });
+  expect(
+    await page.evaluate(() => window.localStorage.getItem("upstat.theme")),
+  ).toBe("dark");
+
+  // dark → system: key removed; resolved follows the OS and tracks a
+  // live flip without a reload.
+  await toggle.click();
+  expect(
+    await page.evaluate(() => window.localStorage.getItem("upstat.theme")),
+  ).toBeNull();
+  await expect(html).toHaveAttribute("data-theme", "dark"); // OS is dark
+  await page.emulateMedia({ colorScheme: "light" });
+  await expect(html).toHaveAttribute("data-theme", "light");
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expect(html).toHaveAttribute("data-theme", "dark");
 });
 
 test("FAQ is a single-open accordion (A15)", async ({ page }) => {
