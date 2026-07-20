@@ -85,6 +85,22 @@ observability-service touch, not as its own phase.
 
 ☑ Ratified
 
+## U-9 · Deferred-catalog Wave A (user-ratified; built 2026-07-20)
+
+Six deferred items from the user-ratified catalog shipped in one wave —
+the interpretation decisions live where each surface is specced:
+**A1** Features pillar-map dropdown (supplements the 4-text-links nav
+parity canon; the link inventory is unchanged — pages.md A1) · **§5**
+colorblind mode (`upstat.colorvision`, theme-contract persistence;
+design.md §5) · **§5** chart data-table toggle (design.md §5) · **B4**
+virtualized log stream (bespoke spacer windowing; pages.md B4) · **B9**
+postmortem template on resolve (pages.md B9) · **B8** monitors
+grouped-by-state view (literal-reading **[Decided 2026-07-20]** line in
+pages.md B8). As-built detail: web-implementation.md "Wave A as-built"
+blocks.
+
+☑ Ratified
+
 ## Cross-cutting
 
 - **X-1 account.cuesoft.io / identity (RATIFIED)**: interim + sandbox identity

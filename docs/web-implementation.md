@@ -360,6 +360,35 @@ legend series stay hidden in the table. Both §5 features are covered by
 dashed strokes + pill glyphs on the seeded narrative, widget table
 flip).
 
+**Wave A as-built (2026-07-20) — B4 virtualized logs · B9 postmortem ·
+B8 grouped monitors.** (4) **B4 virtualized log stream** — the explorer's
+LogLine list is windowed bespoke (no virtualization dependency;
+`controllers/virtual-window.ts` is pure, unit-tested spacer math): a
+bounded slice renders between top/bottom spacers that keep scrollHeight
+truthful, which is what preserves MI-4's bottom-pin auto-scroll and
+scroll-up pause/buffer exactly; LogLine has one fixed 29px collapsed row
+(`LOG_LINE_ROW_PX`) and controlled expansion so the list owns the MI-5
+expanded set (expanded rows are measured for exact spacers and survive
+being windowed out and back); the page size is URL-addressable
+(`?limit=`, capped 10k — the mock generator fills it over a 1h window);
+`e2e/logs-virtualized.spec.ts` asserts 10k lines render <300 DOM rows
+with interactive scroll jumps. (5) **B9 postmortem on resolve** —
+resolved incidents gain **Start postmortem** (`postmortem-section.tsx`):
+a composer modal auto-fills the incident timeline (frozen into the doc
+server-side), plus impact / root-cause / action-items sections; saved
+via `PUT /v1/incidents/{id}/postmortem` (422 `incident_not_resolved`
+before resolve), listed on the incident detail, stamping
+`postmortem_key` per the data-model.md §5 layout; seeded INC-41 boots
+with a composed doc (`e2e/incident-postmortem.spec.ts` walks resolve →
+compose → listed → reload). (6) **B8 grouped monitors** — the rules list
+gains a List | By state toggle (`?view=state`); By state groups
+worst-first Triggered / Warn / OK / No data / Muted with plain tabular
+counts (status colors stay reserved — no CountBadge), mute winning over
+state per the rule editor's recurrence-window semantics; the seeded
+homepage-uptime rule carries a weekend maintenance mute so the bucket is
+visible from boot (`e2e/monitors-grouped.spec.ts`). Interpretation
+recorded as the pages.md B8 **[Decided 2026-07-20]** line.
+
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the

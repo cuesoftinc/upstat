@@ -82,8 +82,11 @@ design.md §8.1.
 
 ### B4 Logs
 - Explorer: FacetSidebar (service, level, host, custom) + QueryBar + LogLine
-  list (virtualized) + histogram header (MI-6); live tail (MI-4); expand
-  pivots (MI-5).
+  list (virtualized — as built 2026-07-20: bespoke spacer windowing over
+  fixed 29px rows, `controllers/virtual-window.ts`; page size is
+  URL-addressable `?limit=` up to 10k; MI-4 pause/buffer and MI-5
+  expansion semantics preserved, expansion lifted to the list) + histogram
+  header (MI-6); live tail (MI-4); expand pivots (MI-5).
 - Patterns view: auto-grouped similar lines with counts **[Later]**.
 - Retention/indexing settings per source; archive-to-object-storage
   **[Later]**.
@@ -128,7 +131,14 @@ design.md §8.1.
 - Rule editor: query + thresholds (warn/crit) + evaluation window + MI-9
   test-replay; notification channels (email, webhook, Slack **[phased]**),
   cooldown/renotify, mute windows.
-- Triggered feed with MI-14; monitor status page (grouped by state).
+- Triggered feed with MI-14; monitor status page (grouped by state) —
+  **[Decided 2026-07-20]** read literally as a grouped view of the
+  monitors list: the B8 rules list carries a List | By state toggle
+  (URL-addressable `?view=state`); By state groups rules worst-first —
+  Triggered (alert) / Warn / OK / No data / Muted — with counts, any mute
+  window winning over evaluation state (the rule editor's mute
+  semantics). Uptime checks remain surfaced on B7 until monitors-v2
+  unifies them as MONITOR_RULEs (the B7 coexistence contract).
 - Create-monitor form **[Directive 2026-07-18]**: monitor type picker →
   rule editor as a dedicated create screen.
 - Rule test/replay state **[Directive 2026-07-18]**: the MI-9 replay
@@ -139,7 +149,10 @@ design.md §8.1.
 - Existing incident records grow into incident management: declare (from
   alert or manual), sev levels, roles (commander/responders), timeline
   composer (MI-10), status page linkage, postmortem doc template on resolve
-  **[Proposed]**.
+  **[Decided 2026-07-20, built]** — resolved incidents gain **Start
+  postmortem**: a composer modal with the incident timeline auto-filled
+  (frozen into the doc) plus impact / root-cause / action-items sections;
+  the saved doc lists on the incident detail and stamps `postmortem_key`.
 - Declare-incident modal state **[Directive 2026-07-18]**: modal (sev
   picker, title, commander assignment) reachable from an alert row or
   manually.
