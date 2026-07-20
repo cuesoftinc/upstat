@@ -162,7 +162,7 @@ ecosystem change, PR'd to all three design.md files together.
 | Component | Anatomy | Notes |
 | --- | --- | --- |
 | `TimePicker` | presets (15m/1h/4h/1d/1w/custom) + absolute range + live toggle | global, URL-synced; "live" pulses a dot |
-| `QueryBar` | tokenized pills (`service:api-common` `status:error`) + free text; autocomplete from facets | shared grammar across logs/metrics/traces **[Proposed]** |
+| `QueryBar` | tokenized pills (`service:api-common` `level:error`) + free text; autocomplete from facets | shared grammar across logs/metrics/traces **[Proposed; pill grammar reconciled 2026-07-20 — logs facets key on `level:`]** |
 | `TimeseriesPanel` | title · query chip · chart (line/area/bars) · legend with per-series toggle | crosshair synced across all panels in view (MI-2) |
 | `StatusPill` | dot + label (`ok/warn/crit/nodata`) | breathing animation only while state is `crit` (MI-8) |
 | `UptimeCard` | monitor name · 90-day bar strip · uptime % · latency sparkline | the classic status strip; bars tooltip per-day detail |
@@ -229,7 +229,7 @@ ecosystem change, PR'd to all three design.md files together.
 | --- | --- | --- |
 | Home (public) | `/` page + Figma landing design | pages.md Part A (Datadog-style product-led marketing) |
 | Dashboard | monitor CRUD + mock analytics pages | pages.md Part B — pillar-based observability app |
-| Mobile | — | later: on-call/incident companion app sketch (pages.md Part C) — parity direction **[Directive]** |
+| Mobile | responsive-web exemplars: `Marketing — Home @390 (menu open + footer stack)` and `B1 — Home @390 (rail overlay drawer)` | later: on-call/incident companion app sketch (pages.md Part C) — parity direction **[Directive; exemplars added 2026-07-20]** |
 
 ## 7. Figma Style Guide (source of truth for tokens)
 
@@ -367,8 +367,8 @@ never on screens. A screen frame must read as the shipped product would.
 | SyntheticStepRow | kind: http / assertion / wait · drag grip · step index · kind chip (Mono/Micro 10) · summary (Mono/Data 13) · delete — the B7 multi-step builder list; add via the quiet "Add step" button **[Designed 2026-07-20]** |
 | StepResultRow | result: pass / fail · step index · StatusPill ("PASS" ok / "FAIL" crit) · summary · duration bar (brand fill, crit on fail; width ∝ duration) · fixed-precision ms — the B7 run timeline **[Designed 2026-07-20]** |
 | StatusPageBuilderRow | drag grip · component name (inline rename) · monitor-mapping Select · delete — row order = public page order; output is the `/status/{slug}` construction **[Designed 2026-07-20]** |
-| LogPatternRow | expand chevron · count · 7-bucket trend sparkline · Mono template with `<placeholders>` · expands to indented sample LogLines — the B4 "Patterns" tab **[Designed 2026-07-20]** |
-| UsageMeterRow | pillar measure · MTD value · MTD bar (scaled to the largest meter; per-row widths ship as detached exemplars on the B12 usage frame) · plan column verbatim "Self-host: unlimited · Cloud: announced at GA" (accuracy canon) **[Designed 2026-07-20]** |
+| LogPatternRow | expand chevron · count · 7-bucket trend sparkline · Mono template with `<placeholders>` · right-aligned LevelChip (dominant level) · expands to indented sample LogLines — the B4 "Patterns" tab **[Designed 2026-07-20; reconciled 2026-07-20 — single master, LevelChip right-aligned]** |
+| UsageMeterRow | pillar measure · MTD value · MTD bar (scaled to each pillar's trailing-3-month peak — the §8.2b contract; per-row widths ship as detached exemplars on the B12 usage frame) · plan column verbatim "Self-host: unlimited · Cloud: announced at GA" (accuracy canon) **[Designed 2026-07-20; reconciled 2026-07-20]** |
 | FunnelStageCard | stage label · count (PageTitle/20) · % of previous stage · stages chain with "→" connectors — the B6 drill-down funnel **[Designed 2026-07-20]** |
 | IncidentHistoryEntry | phase: investigating / identified / monitoring / resolved · timestamped update list (status page history + incident timeline) |
 | SettingsRow | label + description + control slot: text / select / toggle · default / disabled (settings screens; org timezone IANA selector per X-10) |
@@ -438,7 +438,7 @@ project license, the copy reads **MIT**.
 | WidgetTypeCell | state: default / selected · icon + label tile, one per widget type — iteration-1 addition **[built 2026-07-18]** |
 | WidgetTypePicker | layout: row (the in-shell "Choose a visualization" strip) / grid (create-flow modal overlay, pages.md B2) · 11 widget types (the pages.md B2 list) · composes WidgetTypeCell — iteration-1 addition **[built 2026-07-18]** |
 | **Marketing (Stage 5)** | |
-| MarketingNav + PillarDropdown | default / pillar-dropdown open (mini feature map ×8, reuses PillarCard) · 4 text links pinned to the parity canon: Features · Platform (anchors to the landing pillar grid) · Docs · GitHub — the GitHub item renders as a compact star badge (star glyph + neutral "Star" label — no count, no invented figure; the pages.md A13 live star count is runtime behavior) · ThemeToggle · "Sign in" text link (`/signin`) + "Try Cloud" brand CTA **[Revised 2026-07-19]** — **as built (2026-07-20):** the dropdown ships as `FeaturesDropdown` (hover/chevron-click disclosure, Escape/focus-out close, rows deep-link `/#pillar-n`); the Features link keeps `/#features` |
+| MarketingNav + PillarDropdown | default / pillar-dropdown open (mini feature map ×8, reuses PillarCard) · 4 text links pinned to the parity canon: Features · Platform (anchors to the landing pillar grid) · Docs · GitHub — the GitHub item renders as a compact star badge (GitHubMark 14 + star glyph 12 + neutral "Star" label — no count, no invented figure; the pages.md A13 live star count is runtime behavior; construction adjudicated fleet-wide 2026-07-20) · ThemeToggle · "Sign in" text link (`/signin`) + "Try Cloud" brand CTA **[Revised 2026-07-19]** — **as built (2026-07-20):** the dropdown ships as `FeaturesDropdown` (hover/chevron-click disclosure, chevron flips ▴ while open, Escape/focus-out close, rows deep-link `/#pillar-n`); the Features link keeps `/#features` |
 | MarketingFooter | brand block (wordmark + tagline) + 4 pinned columns Product / Docs / Community / Legal (4·4·4·3 links, parity canon) + legal bar verbatim "© Cuesoft Inc. 2026. Upstat. CueLABS™ Division. MIT License." · language selector (English-only pre-i18n) · security-policy affordance — **[Directive 2026-07-19]** |
 | PillarCard | pillar ×8 (icon + pillar color accent) · default / hover (lift + accent) |
 | CodeSnippet + Tabs | tab: Go / Python / Node / k8s (active/inactive) · copy: idle / copied-check · mono block on `bg-elev` — **as built (2026-07-17):** the tab axis is the variant set; copy idle/copied-check is handled via instance overrides, not a variant dimension |
