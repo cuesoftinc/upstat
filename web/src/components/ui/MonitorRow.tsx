@@ -17,7 +17,11 @@ export interface MonitorRowProps {
   className?: string;
 }
 
-/** MonitorRow — §3/§8.2: status ×6 · muted toggle on/off. */
+/**
+ * MonitorRow — §3/§8.2: status ×6 · muted toggle on/off. Rows lead with the
+ * FULL labeled StatusPill per the master (dot-only is reserved for the §5
+ * colorblind rendering — adjudicated 2026-07-20).
+ */
 export function MonitorRow({
   status,
   name,
@@ -38,7 +42,7 @@ export function MonitorRow({
         className,
       )}
     >
-      <StatusPill status={status} dotOnly />
+      <StatusPill status={status} className="shrink-0" />
       <button
         type="button"
         onClick={onClick}
