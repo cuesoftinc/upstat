@@ -80,8 +80,27 @@ function formatValue(v: number, unit?: string): string {
   return unit && v !== 0 ? `${compact} ${unit}` : compact;
 }
 
+/**
+ * True when the query/series' OUTER aggregation is a count-type fn — `count()`
+ * (row/point count) or `uniq()` (the grammar's count-distinct, query-
+ * grammar.md §4 function table). Those return a unitless number no matter
+ * what the aggregated metric is named, so `count(http.request.duration_ms)`
+ * must not sniff "ms" off the field just because it contains `_ms`. Series
+ * names and query strings both lead with the fn (`Series.name` is
+ * `fn(field) tags…`; the query string's aggregation clause follows `|`), so
+ * matching at the start of either or right after a `|` catches the OUTER fn
+ * without tripping on an inner field name.
+ */
+const OUTER_COUNT_AGG = /(?:^|\|\s*)(?:count|count_distinct|uniq)\s*\(/i;
+
 /** Unit sniff for the default: seeded metric names carry `*_ms`. */
 function deriveUnit(series: Series[], query?: string): string | undefined {
+  if (
+    OUTER_COUNT_AGG.test(series[0]?.name ?? "") ||
+    OUTER_COUNT_AGG.test(query ?? "")
+  ) {
+    return undefined;
+  }
   const haystack = `${series[0]?.name ?? ""} ${query ?? ""}`;
   return /_ms\b/.test(haystack) ? "ms" : undefined;
 }

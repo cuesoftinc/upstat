@@ -509,9 +509,11 @@ site; /signin matches frame 124:6 (centered mark over "Sign in to your
 organization"; the CTA stays the GoogleAuthButton canon). (6)
 IncidentBanner keeps the global strip and gains "open Xm" + "View
 incident →" / "Postmortem →". (7) B4 constructions per masters —
-FacetGroup (chevron LEFT of the lowercase medium-12 header, mono values
-12 / counts 11, "Show N more" at 11px) and LogLine level row tints + 3px
-left bars (master 47:163; code's timestamp format kept). (8) The B8
+FacetGroup (chevron RIGHT of the uppercase semibold-12 tracked header,
+mono values 12 / counts 11 right-aligned, "Show all N" at 11px in
+brand — re-cut master 45:67, **[Adjudicated 2026-07-20]**) and LogLine
+level row tints + 3px left bars (master 47:163; code's timestamp format
+kept). (8) The B8
 edit-rule panel composes per frame 130:2621 — the MI-9 test replay
 renders INLINE under "Thresholds · test replay (last 24h)" (auto-runs on
 rule select; Test rule re-runs), Query is a mono Select over the org's
