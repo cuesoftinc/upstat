@@ -1,5 +1,6 @@
 // Theme provider — tri-state contract (ratified 2026-07-20): preference
-// light | dark | system persisted at upstat.theme (key absent = system);
+// light | dark | system persisted at upstat.theme (key absent = dark, the
+// design default; "system" stored explicitly);
 // data-theme always carries the RESOLVED theme; system tracks
 // prefers-color-scheme live via a matchMedia listener. Upstat stays
 // dark-first in design (tokens :root is dark), but the CONTRACT is the
@@ -63,7 +64,18 @@ describe("ThemeProvider (theme contract 2026-07-20, upstat.theme)", () => {
     systemMatches = false;
   });
 
-  it("defaults to system and reports the resolved OS theme", () => {
+  it("defaults to dark (the design default) when no key is stored", () => {
+    render(
+      <ThemeProvider>
+        <Probe />
+      </ThemeProvider>,
+    );
+    expect(screen.getByTestId("pref")).toHaveTextContent("dark");
+    expect(screen.getByTestId("resolved")).toHaveTextContent("dark");
+  });
+
+  it("stored system resolves via the OS preference (both directions)", async () => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, "system");
     render(
       <ThemeProvider>
         <Probe />
@@ -73,7 +85,8 @@ describe("ThemeProvider (theme contract 2026-07-20, upstat.theme)", () => {
     expect(screen.getByTestId("resolved")).toHaveTextContent("light");
   });
 
-  it("system resolves dark when the OS prefers dark", () => {
+  it("stored system resolves dark when the OS prefers dark", () => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, "system");
     systemMatches = true;
     render(
       <ThemeProvider>
@@ -97,7 +110,7 @@ describe("ThemeProvider (theme contract 2026-07-20, upstat.theme)", () => {
     expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("dark");
   });
 
-  it("returning to system removes the stored key (absent = system) and re-resolves", async () => {
+  it("choosing system stores it explicitly and re-resolves via the OS", async () => {
     render(
       <ThemeProvider>
         <Probe />
@@ -105,9 +118,9 @@ describe("ThemeProvider (theme contract 2026-07-20, upstat.theme)", () => {
     );
     await userEvent.click(screen.getByRole("button", { name: "dark" }));
     await userEvent.click(screen.getByRole("button", { name: "system" }));
-    // Key absent = system — the cross-product storage convention; the
-    // attribute stays populated with the RESOLVED theme.
-    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBeNull();
+    // "system" is stored like any preference (key absent = design default);
+    // the attribute stays populated with the RESOLVED theme.
+    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("system");
     expect(document.documentElement).toHaveAttribute("data-theme", "light");
     expect(screen.getByTestId("pref")).toHaveTextContent("system");
   });

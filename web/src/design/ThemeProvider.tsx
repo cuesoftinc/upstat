@@ -81,11 +81,14 @@ function emit(): void {
 function readStoredPreference(): ThemePreference {
   try {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    if (stored === "light" || stored === "dark") return stored;
+    if (stored === "light" || stored === "dark" || stored === "system")
+      return stored;
   } catch {
-    // storage unavailable (private mode etc.) — fall through to system
+    // storage unavailable (private mode etc.) — fall through to the default
   }
-  return "system";
+  // Key absent = the product's design default (dark-first, design.md §2);
+  // "system" is an explicit choice, stored like any other preference.
+  return "dark";
 }
 
 function systemPrefersDark(): boolean {
@@ -107,7 +110,7 @@ function readResolvedTheme(): ResolvedTheme {
 }
 
 function getServerPreference(): ThemePreference {
-  return "system";
+  return "dark";
 }
 
 function getServerResolved(): ResolvedTheme {
@@ -127,7 +130,7 @@ interface ThemeContextValue {
   preference: ThemePreference;
   /** The concrete theme currently applied ("system" resolved live). */
   resolvedTheme: ResolvedTheme;
-  /** Set + persist the preference; "system" removes the stored key. */
+  /** Set + persist the preference ("system" is stored explicitly). */
   setPreference: (preference: ThemePreference) => void;
 }
 
@@ -148,11 +151,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setPreference = useCallback((next: ThemePreference) => {
     applyResolved(resolveTheme(next));
     try {
-      if (next === "system") {
-        window.localStorage.removeItem(THEME_STORAGE_KEY);
-      } else {
-        window.localStorage.setItem(THEME_STORAGE_KEY, next);
-      }
+      window.localStorage.setItem(THEME_STORAGE_KEY, next);
     } catch {
       // non-fatal: preference just won't persist
     }
@@ -179,8 +178,9 @@ export function useTheme(): ThemeContextValue {
  * Pre-paint theme bootstrap (inlined by the root layout). A fully static
  * string — no runtime code construction (CodeQL js/bad-code-sanitization);
  * the literal storage key must match THEME_STORAGE_KEY (unit-tested).
- * Applies the RESOLVED theme: stored light/dark verbatim, otherwise the
- * OS preference — so system mode paints correctly on first frame (no FOUC).
+ * Applies the RESOLVED theme: stored light/dark verbatim, stored "system"
+ * via the OS preference, key absent = dark (the design default) — no FOUC
+ * in any mode.
  */
 export const themeInitScript =
-  '(function(){try{var t=localStorage.getItem("upstat.theme");if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}document.documentElement.setAttribute("data-theme",t);}catch(e){}})();';
+  '(function(){try{var t=localStorage.getItem("upstat.theme");if(t==="system"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}else if(t!=="light"&&t!=="dark"){t="dark";}document.documentElement.setAttribute("data-theme",t);}catch(e){}})();';

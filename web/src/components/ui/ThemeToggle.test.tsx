@@ -20,7 +20,13 @@ describe("ThemeToggle", () => {
       </ThemeProvider>,
     );
     const toggle = screen.getByTestId("theme-toggle");
-    // Default preference is system — the label announces the active mode.
+    // Key absent = dark, the design default — the label announces it.
+    expect(toggle).toHaveAccessibleName("Theme: dark — switch to system");
+    await userEvent.click(toggle);
+    // "system" is stored explicitly; data-theme carries the RESOLVED theme
+    // (light — the jsdom matchMedia stub reports no dark preference).
+    expect(window.localStorage.getItem("upstat.theme")).toBe("system");
+    expect(document.documentElement).toHaveAttribute("data-theme", "light");
     expect(toggle).toHaveAccessibleName("Theme: system — switch to light");
     await userEvent.click(toggle);
     expect(document.documentElement).toHaveAttribute("data-theme", "light");
@@ -30,11 +36,5 @@ describe("ThemeToggle", () => {
     expect(document.documentElement).toHaveAttribute("data-theme", "dark");
     expect(window.localStorage.getItem("upstat.theme")).toBe("dark");
     expect(toggle).toHaveAccessibleName("Theme: dark — switch to system");
-    await userEvent.click(toggle);
-    // Key absent = system; data-theme carries the RESOLVED theme (light —
-    // the jsdom matchMedia stub reports no dark preference).
-    expect(window.localStorage.getItem("upstat.theme")).toBeNull();
-    expect(document.documentElement).toHaveAttribute("data-theme", "light");
-    expect(toggle).toHaveAccessibleName("Theme: system — switch to light");
   });
 });
