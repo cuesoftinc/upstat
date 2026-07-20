@@ -75,15 +75,44 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
         "Go gRPC services · Next.js + React/TS · ClickHouse · OpenTelemetry",
       ),
     ).toBeInTheDocument();
-    // A8 community
-    // CTA-dedupe canon: A13 keeps the one GitHub+Discord pair; A8 points at
-    // the lab + docs instead
+    // A8 community — the public-status CARD (canvas 225:11191 + pages.md
+    // A8: "View live →" → the product's own status page) with roadmap +
+    // CueLABS™ links beside it. CTA-dedupe canon: A13 keeps the one
+    // GitHub+Discord pair.
     expect(
       screen.getByText("Discord — #upstat-lab on the CueLABS™ server"),
     ).toBeInTheDocument();
+    const statusCard = screen
+      .getByText("Public status — we run upstat on upstat")
+      .closest("a");
+    expect(statusCard).toHaveAttribute("href", "/status/upstat");
+    expect(statusCard).toHaveTextContent("View live →");
     expect(
-      screen.getByText("CueLABS™ — more open-source software from Cuesoft"),
-    ).toBeInTheDocument();
+      screen.getByRole("link", {
+        name: "CueLABS™ — more open-source software from Cuesoft →",
+      }),
+    ).toHaveAttribute("href", "https://cuelabs.cuesoft.io");
+    // A9 docs deep-link rows (canvas 135:763 + 259:3474): label copy with
+    // hyperlinks, no raw URL strings — the self-host label renders twice
+    // (the A9 row + its A14 twin, 164:9388), both at the GitBook guide
+    const selfHostLinks = screen.getAllByRole("link", {
+      name: "Self-host guide — step-by-step deploy docs →",
+    });
+    expect(selfHostLinks).toHaveLength(2);
+    for (const link of selfHostLinks) {
+      expect(link).toHaveAttribute(
+        "href",
+        "https://cuesoft.gitbook.io/upstat/system/deployment",
+      );
+    }
+    expect(
+      screen.getByRole("link", {
+        name: "Query grammar — one grammar across all eight pillars →",
+      }),
+    ).toHaveAttribute(
+      "href",
+      "https://cuesoft.gitbook.io/upstat/system/query-grammar",
+    );
     // A15 FAQ + A16 CTA band
     expect(screen.getByText("Questions, answered.")).toBeInTheDocument();
     expect(screen.getByText("OTLP in. Answers out.")).toBeInTheDocument();
