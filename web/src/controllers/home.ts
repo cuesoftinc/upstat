@@ -360,3 +360,26 @@ export function useHomeController() {
     onGithub,
   };
 }
+
+/**
+ * /docs/api — marketing-nav wiring for the public API reference (X-2).
+ * Same instrumentation contract as the home nav: live star count,
+ * `try_cloud_click` + `/signin` handoff, page_view on mount.
+ */
+export function useDocsApiController() {
+  const router = useRouter();
+  const stars = useGithubStars();
+
+  usePageView("/docs/api");
+
+  const onSignIn = useCallback(() => {
+    router.push("/signin");
+  }, [router]);
+
+  const onTryCloud = useCallback(() => {
+    track("try_cloud_click", { path: "/docs/api" });
+    router.push("/signin");
+  }, [router]);
+
+  return { stars, onSignIn, onTryCloud };
+}

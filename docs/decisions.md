@@ -120,7 +120,11 @@ blocks.
   project `upstat`, config `stg`** (dev* = local convenience; prd empty until
   a production exists). Redis DB index recorded when assigned. ☑
 - **X-2 Docs platform**: GitBook space per product, Git-synced; Scalar API
-  refs. ☑
+  refs. **RATIFIED 2026-07-20**: every product ships a public `/docs/api`
+  route embedding the Scalar interactive reference, rendered live from the
+  repo's `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); the
+  footer Docs column's "API reference" links it (was the GitBook
+  api-surface page). ☑
 - **X-3 Cloud deployment target (RATIFIED, directive)**: all backend
   services run on **Google Cloud Run** (per-service containers — the same
   `cuesoft/<repo>-<service>` images), following the cueprise pattern
