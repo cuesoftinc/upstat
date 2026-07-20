@@ -20,12 +20,27 @@ import { useTimeRange } from "./time-range";
 
 const TAIL_POLL_MS = 2_000;
 const TAIL_MAX = 400;
+/** Explorer page size — URL-overridable (`?limit=`, B4 virtualized list). */
+const DEFAULT_LIMIT = 100;
+const MAX_LIMIT = 10_000;
+
+/** `?limit=` — deep-linkable page size (design.md §1 query duality); the
+ *  virtualized list (B4) keeps even MAX_LIMIT results smooth. */
+function limitFromUrl(): number {
+  if (typeof window === "undefined") return DEFAULT_LIMIT;
+  const raw = Number(
+    new URLSearchParams(window.location.search).get("limit"),
+  );
+  if (!Number.isFinite(raw) || raw < 1) return DEFAULT_LIMIT;
+  return Math.min(Math.floor(raw), MAX_LIMIT);
+}
 
 export function useLogsExplorerController() {
   const time = useTimeRange();
   const [initialQuery] = useState(() => initialQueryFromUrl(""));
   const queryState = useQueryPills(initialQuery);
   const [activeQuery, setActiveQuery] = useState(initialQuery);
+  const [limit] = useState(limitFromUrl);
 
   const base = useRequest(
     () =>
@@ -33,9 +48,9 @@ export function useLogsExplorerController() {
         q: activeQuery,
         from: time.fromIso,
         to: time.toIso,
-        limit: 100,
+        limit,
       }),
-    [activeQuery, time.fromIso, time.toIso],
+    [activeQuery, time.fromIso, time.toIso, limit],
   );
 
   /* ---------------- MI-4 live tail ---------------- */

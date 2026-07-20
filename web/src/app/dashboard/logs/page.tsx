@@ -1,15 +1,22 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { BufferedCountChip } from "@/components/ui/CountBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FacetGroup } from "@/components/ui/FacetGroup";
 import { LogHistogram } from "@/components/ui/LogHistogram";
-import { LogLine } from "@/components/ui/LogLine";
+import { LOG_LINE_ROW_PX, LogLine } from "@/components/ui/LogLine";
 import { QueryBar } from "@/components/ui/QueryBar";
 import { SavedViewChip } from "@/components/ui/SavedViewChip";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useLogLineKeys, useLogsExplorerController } from "@/controllers/logs";
+import {
+  computeVirtualWindow,
+  type WindowExtra,
+} from "@/controllers/virtual-window";
+
+/** Pre-measurement estimate for an expanded row (corrected on paint). */
+const EXPANDED_FALLBACK_PX = 180;
 
 /**
  * B4 logs explorer (Figma 128:1236) — FacetSidebar + QueryBar + LogLine
@@ -28,6 +35,48 @@ export default function LogsPage() {
   // display ascending (oldest → newest); the tail pins to the bottom
   const ascending = [...ctrl.events].reverse();
 
+  /* ---- B4 windowing (bespoke, controllers/virtual-window) — spacers keep
+     scrollHeight truthful so the MI-4 pause/buffer semantics are untouched */
+  const [scrollTop, setScrollTop] = useState(0);
+  const [viewportH, setViewportH] = useState(480);
+  // MI-5 expansion is lifted here: windowed-out rows unmount, so the list
+  // owns the expanded set and each expanded row's measured height
+  const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const measured = useRef(new Map<string, number>());
+  const [measureVersion, bumpMeasure] = useReducer((n: number) => n + 1, 0);
+
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    setViewportH(el.clientHeight);
+    const ro = new ResizeObserver(() => setViewportH(el.clientHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const extras = useMemo<WindowExtra[]>(() => {
+    if (expandedIds.size === 0) return [];
+    const list: WindowExtra[] = [];
+    ascending.forEach((event, index) => {
+      if (!expandedIds.has(event.id)) return;
+      const px = measured.current.get(event.id) ?? EXPANDED_FALLBACK_PX;
+      list.push({ index, extra: Math.max(0, px - LOG_LINE_ROW_PX) });
+    });
+    return list;
+    // measureVersion invalidates when a row's measured height changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ascending, expandedIds, measureVersion]);
+
+  const win = computeVirtualWindow({
+    count: ascending.length,
+    rowHeight: LOG_LINE_ROW_PX,
+    viewportHeight: viewportH,
+    scrollTop,
+    extras,
+  });
+
   // MI-4: auto-scroll while live and not paused
   useEffect(() => {
     if (!ctrl.live || ctrl.paused) return;
@@ -36,9 +85,10 @@ export default function LogsPage() {
   }, [ascending.length, ctrl.live, ctrl.paused]);
 
   const onScroll = () => {
-    if (!ctrl.live) return;
     const el = listRef.current;
     if (!el) return;
+    setScrollTop(el.scrollTop);
+    if (!ctrl.live) return;
     const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 48;
     if (!atBottom && !ctrl.paused) ctrl.pause();
   };
@@ -157,12 +207,57 @@ export default function LogsPage() {
             ) : empty ? (
               <EmptyState pillar="logs" waiting={ctrl.live} />
             ) : (
-              <ul aria-label="Log lines">
-                {ascending.map((event) => (
-                  <li key={event.id}>
-                    <LogLine event={event} onPivot={ctrl.pivot} />
-                  </li>
-                ))}
+              <ul aria-label="Log lines" data-testid="log-lines">
+                {win.padTop > 0 && (
+                  <li
+                    aria-hidden="true"
+                    data-testid="log-spacer-top"
+                    style={{ height: win.padTop }}
+                  />
+                )}
+                {ascending.slice(win.start, win.end).map((event) => {
+                  const expanded = expandedIds.has(event.id);
+                  return (
+                    <li
+                      key={event.id}
+                      // measure expanded rows for exact spacer math (an
+                      // off-screen expanded row keeps its last measurement)
+                      ref={
+                        expanded
+                          ? (el) => {
+                              if (!el) return;
+                              const px = el.offsetHeight;
+                              if (measured.current.get(event.id) !== px) {
+                                measured.current.set(event.id, px);
+                                bumpMeasure();
+                              }
+                            }
+                          : undefined
+                      }
+                    >
+                      <LogLine
+                        event={event}
+                        onPivot={ctrl.pivot}
+                        expanded={expanded}
+                        onExpandedChange={(next) =>
+                          setExpandedIds((prev) => {
+                            const set = new Set(prev);
+                            if (next) set.add(event.id);
+                            else set.delete(event.id);
+                            return set;
+                          })
+                        }
+                      />
+                    </li>
+                  );
+                })}
+                {win.padBottom > 0 && (
+                  <li
+                    aria-hidden="true"
+                    data-testid="log-spacer-bottom"
+                    style={{ height: win.padBottom }}
+                  />
+                )}
               </ul>
             )}
           </div>
