@@ -308,7 +308,17 @@ links); `trending-up` / `trending-down` (QueryValue delta chips); `calendar`
 optional). **Added 2026-07-18** — the WidgetTypePicker tiles (§8.2b) add
 four glyphs, named per the naming standard below: `icon/table` (table
 widget), `icon/grid-3x3` (heatmap), `icon/share-2` (service map),
-`icon/type` (markdown). **Brand glyphs** — the Google 'G' for the X-1 auth CTA, the GitHub
+`icon/type` (markdown). **NavRail item icons [Adjudicated 2026-07-20]** —
+the twelve rail items carry ONE reconciled glyph list (master 284:2 vs
+code; the master's glyph wins where it is in this ratified set, code's
+stays where it isn't): `house` (Home) · `layout-dashboard` (Dashboards) ·
+`bar-chart-3` (Metrics) · `file-text` (Logs) · `route` (Traces — the
+APM/Traces pillar glyph; the rail master's git-branch is unratified and
+code's activity is vacated to Synthetics) · `globe` (RUM / Analytics) ·
+`activity` (Synthetics / Uptime) · `bell` (Monitors) · `flame` (Incidents —
+code-side keep; alert-triangle is unratified) · `target` (SLOs) ·
+`book-open` (Service Catalog — code-side keep; layers is unratified) ·
+`settings` (Settings). **Brand glyphs** — the Google 'G' for the X-1 auth CTA, the GitHub
 mark, Discord, Slack — are approved additions per the shared-foundations
 iconography rule (§2), **not Lucide**. All four stay on the approved list:
 Google 'G' and GitHub are built; Discord and Slack are in build now
@@ -349,12 +359,12 @@ never on screens. A screen frame must read as the shipped product would.
 | TimeseriesPanel | line / area / bars · with/without legend · loading (axis-first) / empty (radar sweep MI-16) / crosshair active — built ×9; the full mode × legend × state matrix is covered via instance overrides **[Decided 2026-07-16]** — **as built (2026-07-18 QA loop):** the bar variants inset their plots clear of the axis labels (bars no longer overlap the axis text) |
 | UptimeCard | all-up / with-outage-bars / nodata-gaps · % footer |
 | LogLine | collapsed / expanded (JSON tree) / level ×5 tints — level chip mapping **[Decided 2026-07-16]**: INFO → `brand` · DEBUG → `text-2` · TRACE → `nodata` (ERROR/WARN keep `crit`/`warn`) |
-| MonitorRow | status ×6 · muted toggle on/off |
-| IncidentBanner | sev1 / sev2 (persistent) · resolved (transient) |
-| SLOCard | healthy / burning (flame) / exhausted |
+| MonitorRow | status ×6 · muted toggle on/off — rows lead with the FULL labeled StatusPill; dot-only is reserved for the §5 colorblind rendering **[Adjudicated 2026-07-20]** |
+| IncidentBanner | sev1 / sev2 (persistent) · resolved (transient) — **[Adjudicated 2026-07-20, hybrid]** placement stays the GLOBAL chrome strip under the TopBar (§3); the strip carries the master's (48:141) explicit affordances: "open 12m"-style age and the "View incident →" / resolved "Postmortem →" link text |
+| SLOCard | healthy / burning (flame — §8.1 ratifies `flame` for burn-rate; the master's zap glyph is the design-side fix) / exhausted · per-state captions **[Adjudicated 2026-07-20]**: healthy "error budget N% left · burn X.X×" · burning "burn rate X.X× — page on-call" · exhausted "budget exhausted Nd ago" |
 | WidgetShell | view / edit (drag handle) / fullscreen — **as built (2026-07-18):** the edit-state body is the real "Choose a visualization" picker strip (WidgetTypePicker `layout=row`, §8.2b), not placeholder art — **as built (2026-07-18 QA loop):** the view-mode master carries a real chart body too (no placeholder in either state) |
 | ServiceMapNode | healthy / erroring (ring %) / selected |
-| Alert forms | channel: webhook / email · unverified / verified / degraded |
+| Alert forms | channel: webhook / email · unverified / verified / degraded — **[Adjudicated 2026-07-20]** the channel card leads with a friendly name over the masked target (webhook URLs keep origin + first path segment, the rest truncates); health is a labeled StatusPill (VERIFIED / UNVERIFIED / DEGRADED) with the degraded failure caption beneath |
 | AlertRuleCard | type: metric-threshold / log-pattern / trace-latency / slo-burn · mono query summary + threshold line (pages.md B "alert rules") |
 | TraceWaterfall | span row: depth indent ×3 · service color (series/n) · status ok/error · default / hover (mini-summary) / selected · chrome: time-axis header + SpanDrawer (tabs: tags / logs-in-span / process) — MI-7, pages.md B5 — **as built (2026-07-17):** SpanRow set + SpanDrawer set + a TraceWaterfall exemplar single (chrome assembled once, not a variant set) |
 | QueryValue | big tabular value + delta chip · threshold tint: none / ok / warn / crit · with/without sparkline (dashboard "query value" widget) |
@@ -400,8 +410,9 @@ project license, the copy reads **MIT**.
 | Component | Variants × states |
 | --- | --- |
 | **App chrome** | |
-| NavRail / NavRailItem | pillar icon ×12 · item: default / hover (flyout label) / active (brand accent) · rail chrome 56px: flyout-open / collapsed — **as built (2026-07-17):** NavRailItem is the variant set; NavRail ships as a single chrome component with rail states documented in its description — **[Directive 2026-07-19]:** rail is expandable; NavRail is now a variant set `state=collapsed` (56px) / `state=expanded` (240px icon+label rows, pillar section groups, foot chevron toggle, `upstat` wordmark); NavRailItem gains a `layout=rail/expanded` axis (expanded row 228px: default / hover raised bg / active accent bar); toggle persists per user, default expanded ≥1280px; exemplar `B1 — Home (rail expanded)` |
-| TopBar | org/env switcher closed/open · global TimePicker slot · search (`/`) field · bell: idle / unread-badge / flash (MI-14) — **as built (2026-07-17):** single chrome component, switcher/bell states documented in its description; bell badge states are CountBadge instances — **[Directive 2026-07-19]:** utility cluster now search · ThemeToggle · bell (theme parity canon); the master's flex spacer right-pins the cluster at any instance width |
+| BrandMark | glyph-only / glyph + lowercase `upstat` wordmark — the ONE product mark (filled bolt, brand green) **[Adjudicated 2026-07-20, systemic]**: it renders at every brand site — NavRail head, /signin (124:6), the public status page header (132:3530), marketing nav and footer brand block; the green "U" tile is retired everywhere |
+| NavRail / NavRailItem | pillar icon ×12 · item: default / hover (flyout label) / active (brand accent) · rail chrome 56px: flyout-open / collapsed — **as built (2026-07-17):** NavRailItem is the variant set; NavRail ships as a single chrome component with rail states documented in its description — **[Directive 2026-07-19]:** rail is expandable; NavRail is now a variant set `state=collapsed` (56px) / `state=expanded` (240px icon+label rows, pillar section groups, foot chevron toggle, `upstat` wordmark); NavRailItem gains a `layout=rail/expanded` axis (expanded row 228px: default / hover raised bg / active accent bar); toggle persists per user, default expanded ≥1280px; exemplar `B1 — Home (rail expanded)` — **[Adjudicated 2026-07-20]:** Home AND Dashboards sit ungrouped above the TELEMETRY group; the foot is a bordered chevron-square toggle + the signed-in user's avatar (no text button); the head is the bolt brand mark + `upstat` wordmark; item labels keep the fuller product names (RUM / Analytics · Synthetics / Uptime · Service Catalog); item icons per the §8.1 rail-icon list |
+| TopBar | org/env switcher closed/open · global TimePicker slot · search (`/`) field · bell: idle / unread-badge / flash (MI-14) — **as built (2026-07-17):** single chrome component, switcher/bell states documented in its description; bell badge states are CountBadge instances — **[Directive 2026-07-19]:** utility cluster now search · ThemeToggle · bell (theme parity canon); the master's flex spacer right-pins the cluster at any instance width — **[Adjudicated 2026-07-20]:** code matches the master's 43px bar height, lowercase `prod` env chip, "Search" placeholder (no ellipsis) and the TimePicker's "Custom" / "● LIVE" casing (the calendar glyph survives only as the <md collapse affordance) |
 | ThemeToggle | theme: dark (moon) / light (sun) / system (lucide `icon/monitor`) — 26px hairline button, the variant shows the state you are ON, token-bound · cycle order light → dark → system; system follows live `prefers-color-scheme` · lives on the marketing nav AND the TopBar utility cluster (parity canon) · persists at localStorage `upstat.theme`, default dark when unset — **[Revised 2026-07-20]** |
 | Modal / Sheet | modal sm/lg · right sheet · header + body slot + footer actions · z `sheet/modal 40` (§2 layers) |
 | CommandPalette / SearchOverlay | empty / results / no-results · result row: icon + label + kbd hint (`/` search, MI-17) |
@@ -417,11 +428,11 @@ project license, the copy reads **MIT**.
 | GoogleAuthButton | default / hover / loading · Google 'G' glyph + "Continue with Google" — the product's single auth CTA (X-1); renamed from `GoogleSignInCTA` 2026-07-17 per the §8.1 naming standard (same name in every product) |
 | Skeleton | kind: line / value / panel-axis · shimmer sweep — static (no sweep) under `prefers-reduced-motion` per §5 — the Stage-4 loading-frame primitive (§8.1 three-frame rule); iteration-1 addition **[built 2026-07-18]** |
 | **Product rows & overlays** | |
-| APIKeyRow / PropertyKeyRow | kind: ingestion-token (per-pillar scope chips) / property-key (RUM) · active / rotation-grace (24h) / revoked · mono key + copy + rejection-counter cell |
+| APIKeyRow / PropertyKeyRow | kind: ingestion-token (per-pillar scope chips) / property-key (RUM) · active / rotation-grace (24h) / revoked · mono key + copy + rejection-counter cell — **[Adjudicated 2026-07-20]** entity status is a labeled StatusPill (ACTIVE ok / ROTATING warn / REVOKED nodata), never lowercase text; the anatomy is key icon · name · masked-key chip · per-signal scope chips (otlp → logs/metrics/traces · rum · statsd → metrics · all) · "grace ends in 24h" / "N rejects (24h)" meta · pill |
 | MemberRow | avatar + name + email · role select: owner / admin / member · active / invited / disabled |
 | DashboardListRow | favorite star on/off · org-shared indicator · default / hover · name + updated ts |
 | SavedViewChip | personal / org-shared (avatar stack) · default / active (MI-18) |
-| AlertFeedRow + NotificationPopover | sev tint: sev1 / sev2 / resolved — **[Decided 2026-07-17]** the third tint is `resolved`, not sev3 (as built; standalone SevChip keeps sev1–3) · unread / read · ts + monitor name + 300ms slide-in (MI-14) · popover: empty / list |
+| AlertFeedRow + NotificationPopover | sev tint: sev1 / sev2 / resolved — **[Decided 2026-07-17]** the third tint is `resolved`, not sev3 (as built; standalone SevChip keeps sev1–3) · unread / read · 300ms slide-in (MI-14) · popover: empty / list — **[Adjudicated 2026-07-20]** the row is the master's single line (94:1513): unread brand dot · tinted mono sev chip (SEV-1 / SEV-2 / OK) · monitor name · relative age; the message detail rides the row tooltip |
 | IncidentComposer | idle / typing / slash-command autocomplete open (`/status`, `/sev`) / posting (optimistic prepend, MI-10) |
 | ThresholdOverlay | warn band / crit band / would-have-fired marker — composes over TimeseriesPanel (MI-9 test replay) — **as built (2026-07-17):** exemplar single, not a variant set |
 | ServiceCatalogRow | telemetry presence dots per pillar (present/absent ×4) · owner + repo/runbook links · default / hover |

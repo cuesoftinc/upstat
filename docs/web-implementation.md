@@ -476,6 +476,36 @@ column's "API reference" links `/docs/api`; `e2e/docs-api.spec.ts` pins
 route 200, a rendered operation from the spec, the served document, the
 footer handoff, the header/scroll sanity and the embed-theme sync.
 
+**Audit convergence as-built (2026-07-20, adjudicated code-side items).**
+The Figma↔code audit's code-side items landed as one sequenced pass:
+(1) A8/A9 home content per the ratified canvas — the Community card is the
+public-status dogfooding moment ("View live →" → `/status/upstat`), the A9
+docs deep-link rows read "Self-host guide — step-by-step deploy docs →"
+(file-text) + "Query grammar — one grammar across all eight pillars →"
+(search), and the A14 twin renders the same label copy (no raw URLs) at the
+GitBook deployment guide. (2) TimeseriesPanel matches the master: four
+zero-baseline y ticks with unit-suffixed labels (new `unit` prop; bare
+"0"), a floating in-plot crosshair tooltip led by the hh:mm:ss timestamp,
+and by-<tag> legend labels trimmed to the tag value; TopList drops its
+background track (r=2 bars) and the Heatmap x-axis label count adapts to
+grid width (B6 cohort collision fix). (3) Entity-status pills sweep —
+labeled StatusPills replace lowercase status text on AlertChannelCard
+(friendly `name` + masked target + degraded `failure_note`), APIKeyRow
+(per-signal scope chips, grace/rejects meta), the B7 lists (full labeled
+pills; dot-only reserved for §5 colorblind), and AlertFeedRow collapses to
+the master's single line. (4) NavRail per the adjudication — Dashboards
+ungrouped above TELEMETRY, master foot (chevron square + user avatar via
+`useCurrentUserName`), the §8.1 reconciled rail-icon list. (5) The shared
+`BrandMark` (bolt + wordmark) replaces the green "U" tile at every brand
+site; /signin matches frame 124:6. (6) IncidentBanner keeps the global
+strip and gains "open Xm" + "View incident →" / "Postmortem →". (7)
+Assorted: B1 dashboard rows carry "N widgets", brand-green favorite stars,
+TopBar/TimePicker normalized to the master (43px, "prod", "Custom"/"LIVE",
+"Search"), LogLine level row tints + 3px left bars (master 47:163; code's
+timestamp format kept), SLOCard per-state captions (`Slo.exhausted_at`),
+B12 usage 64px rows + B-promotion ("5.6B") + unwrapped plan copy, and the
+B7 `?run=` deep link accepts run number or id with a "run not found" state.
+
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the
