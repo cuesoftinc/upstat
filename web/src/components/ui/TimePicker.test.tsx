@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TimePicker } from "./TimePicker";
 
@@ -32,5 +32,23 @@ describe("TimePicker", () => {
     expect(
       screen.getByRole("dialog", { name: "Absolute range" }),
     ).toBeInTheDocument();
+  });
+
+  it("absolute-range panel carries the master anatomy — from/to inputs + Apply range commit (43:59)", async () => {
+    const onChange = vi.fn();
+    render(<TimePicker value="custom" onChange={onChange} />);
+    await userEvent.click(screen.getByRole("button", { name: "Custom range" }));
+    const dialog = screen.getByRole("dialog", { name: "Absolute range" });
+    // the master's row is unlabeled mono inputs — aria-only names
+    expect(within(dialog).getByLabelText("From")).toBeInTheDocument();
+    expect(within(dialog).getByLabelText("To")).toBeInTheDocument();
+    // Apply range commits "custom" and closes the panel
+    await userEvent.click(
+      within(dialog).getByRole("button", { name: "Apply range" }),
+    );
+    expect(onChange).toHaveBeenLastCalledWith("custom");
+    expect(
+      screen.queryByRole("dialog", { name: "Absolute range" }),
+    ).not.toBeInTheDocument();
   });
 });

@@ -189,6 +189,53 @@ test("right-anchored TopBar layers stay inside the viewport (review class 2026-0
   }
 });
 
+test("absolute-range panel: master anatomy (43:59) + bottom-edge safety (crosscheck 2026-07-20)", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signIn(page);
+
+  // 900 = the canonical QA height; 700 = the shallow-chrome squeeze case
+  for (const height of [900, 700]) {
+    await page.setViewportSize({ width: 1440, height });
+    const scrollHBefore = await page.evaluate(
+      () => document.documentElement.scrollHeight,
+    );
+
+    await page
+      .getByRole("banner")
+      .getByRole("button", { name: "Custom range" })
+      .click();
+    const dialog = page.getByRole("dialog", { name: "Absolute range" });
+    await expect(dialog).toBeVisible();
+
+    // the open layer never leaves the viewport on either axis, and never
+    // grows the document (no popover-induced page scrollbar)
+    const box = (await dialog.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(1440);
+    expect(box.y + box.height).toBeLessThanOrEqual(height);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollHeight),
+    ).toBe(scrollHBefore);
+
+    // master anatomy: from → to on ONE row, inset from the panel edge
+    // (p-12 — the row is not flush), commit via the brand Apply button
+    const from = (await dialog.getByLabel("From").boundingBox())!;
+    const to = (await dialog.getByLabel("To").boundingBox())!;
+    expect(Math.abs(from.y - to.y)).toBeLessThanOrEqual(2);
+    expect(to.x).toBeGreaterThan(from.x + from.width);
+    expect(from.x - box.x).toBeGreaterThanOrEqual(8);
+    expect(from.y - box.y).toBeGreaterThanOrEqual(8);
+
+    const apply = dialog.getByRole("button", { name: "Apply range" });
+    await expect(apply).toBeVisible();
+    await apply.click();
+    await expect(dialog).toBeHidden();
+  }
+});
+
 test("full journey: onboarding → B1 → dashboards → explorer → logs → trace → monitor → incident → status page", async ({
   page,
 }) => {

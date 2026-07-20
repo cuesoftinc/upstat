@@ -93,22 +93,42 @@ export function TimePicker({
             // never leaves the viewport (review class 2026-07-19, expendit):
             // <md a fixed full-width sheet under the bar; md+ right-anchored
             // to the control with the max-w clamp
-            className="fixed inset-x-2 top-14 z-[var(--z-dropdown)] flex flex-col gap-2 rounded-(--radius) border border-border bg-bg-elev p-3 shadow-lg md:absolute md:inset-x-auto md:right-0 md:top-full md:mt-1 md:w-64 md:max-w-[calc(100vw-16px)]"
+            className="fixed inset-x-2 top-14 z-[var(--z-dropdown)] flex flex-col gap-2 rounded-(--radius) border border-border bg-bg-elev p-3 shadow-lg md:absolute md:inset-x-auto md:right-0 md:top-full md:mt-1 md:w-max md:max-w-[calc(100vw-16px)]"
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setCustomOpen(false);
+            }}
           >
-            <label className="flex flex-col gap-1 text-[12px] text-text-2">
-              From
+            {/* master anatomy (43:59): one [from] → [to] row of mono
+                values — no visible field labels — over the brand commit
+                button; panel p-12 / gap-8 */}
+            <div className="flex items-center gap-2">
               <input
                 type="datetime-local"
-                className="font-data h-7 rounded-(--radius) border border-border bg-bg px-1.5 text-[12px] text-text"
+                aria-label="From"
+                className="font-data h-7 min-w-0 flex-1 rounded-(--radius) border border-border bg-bg px-1.5 text-[12px] text-text md:w-44 md:flex-none"
               />
-            </label>
-            <label className="flex flex-col gap-1 text-[12px] text-text-2">
-              To
+              <span aria-hidden="true" className="text-[12px] text-text-2">
+                →
+              </span>
               <input
                 type="datetime-local"
-                className="font-data h-7 rounded-(--radius) border border-border bg-bg px-1.5 text-[12px] text-text"
+                aria-label="To"
+                className="font-data h-7 min-w-0 flex-1 rounded-(--radius) border border-border bg-bg px-1.5 text-[12px] text-text md:w-44 md:flex-none"
               />
-            </label>
+            </div>
+            {/* the master's explicit commit affordance — Apply range
+                closes the panel and re-commits "custom" (MI-1: the
+                URL-synced screen owner reacts to the committed value) */}
+            <button
+              type="button"
+              onClick={() => {
+                setCustomOpen(false);
+                onChange("custom");
+              }}
+              className="h-7 self-start rounded-(--radius) bg-brand px-3 text-[12px] font-medium text-on-brand transition-colors duration-[var(--duration-fast)] ease-standard hover:bg-brand-deep"
+            >
+              Apply range
+            </button>
           </div>
         )}
       </div>
