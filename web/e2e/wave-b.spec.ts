@@ -131,8 +131,9 @@ test("B7: status-page builder edits reflect on the public page", async ({
   await reset(page);
   await signIn(page);
 
-  // reachable from the settings overview
-  await page.goto("/dashboard/settings");
+  // reachable from the settings Integrations tab (routed tabs,
+  // 2026-07-20); the builder itself stays a focused sub-screen
+  await page.goto("/dashboard/settings/integrations");
   await page.getByTestId("open-status-page-builder").click();
   await page.waitForURL("**/dashboard/settings/status-page");
   await expect(page.getByTestId("status-page-builder")).toBeVisible();

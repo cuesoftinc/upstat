@@ -23,8 +23,11 @@ export function UsageMeterRow({ meter, className }: UsageMeterRowProps) {
       data-pillar={meter.pillar}
       className={clsx(
         "font-ui flex flex-col gap-3 rounded-(--radius) border border-border bg-bg-elev px-4 py-4",
-        // 64px row per the master (B12 usage frame 334:14499)
-        "sm:h-16 sm:flex-row sm:items-center sm:gap-4 sm:py-0",
+        // 64px row per the master (B12 usage frame 334:14499). Single-line
+        // from lg: the fixed label/value columns + nowrap plan need ~740px,
+        // so md-and-below keeps the stacked layout (mobile canon — the
+        // 768 sweep caught <main> panning when this row went sm:).
+        "lg:h-16 lg:flex-row lg:items-center lg:gap-4 lg:py-0",
         className,
       )}
     >
@@ -48,7 +51,7 @@ export function UsageMeterRow({ meter, className }: UsageMeterRowProps) {
         />
       </span>
       {/* single line at desktop widths (1440 QA — the fixed w-64 wrapped) */}
-      <span className="shrink-0 text-[12px] text-text-2 sm:whitespace-nowrap sm:text-right">
+      <span className="shrink-0 text-[12px] text-text-2 lg:whitespace-nowrap lg:text-right">
         {meter.plan}
       </span>
     </div>

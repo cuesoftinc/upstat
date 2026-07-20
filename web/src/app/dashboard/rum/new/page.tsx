@@ -10,7 +10,7 @@ import { useRumPropertyController } from "@/controllers/rum";
 /**
  * B6 property create (Figma 175:6188) — site/domain → property-key
  * issuance + browser-SDK snippet; "verifying" resolves on the first
- * pageview (keys are managed in B12 settings/properties).
+ * pageview (keys are managed on the B12 settings Keys & properties tab).
  */
 export default function RumNewPropertyPage() {
   const ctrl = useRumPropertyController();
