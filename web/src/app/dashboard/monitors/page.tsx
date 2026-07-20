@@ -256,7 +256,10 @@ export default function MonitorsPage() {
 
         <section
           aria-labelledby="editor-heading"
-          className="min-w-0 rounded-(--radius) border border-border bg-bg-elev p-5"
+          // self-start: the frame (130:2621) shows the editor panel at
+          // content height while the rules column runs on below it — the
+          // default grid stretch left ~650px of empty panel under the form
+          className="min-w-0 self-start rounded-(--radius) border border-border bg-bg-elev p-5"
         >
           {selected ? (
             <>
