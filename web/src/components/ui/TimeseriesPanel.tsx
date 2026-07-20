@@ -239,7 +239,8 @@ export function TimeseriesPanel({
     };
     visible.forEach((s, si) => {
       const v = s.points[ri]?.value;
-      row[`s${si}`] = v === null || v === undefined ? null : formatValue(v, unit);
+      row[`s${si}`] =
+        v === null || v === undefined ? null : formatValue(v, unit);
     });
     return row;
   });

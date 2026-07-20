@@ -1,12 +1,18 @@
 "use client";
 
 /**
- * RuleEditor — the B8 signal-generic rule form (Figma 130:2621): query +
- * thresholds (warn/crit) + evaluation window, notification channels,
- * cooldown/renotify, mute toggle; Save + MI-9 Test rule.
+ * RuleEditor — the B8 signal-generic rule form, composed per the frame
+ * (130:2621, adjudicated 2026-07-20): Query as a mono Select over the
+ * org's known queries (edit) beside Rule name; the MI-9 test replay
+ * INLINE under "Thresholds · test replay" (not hidden behind Test rule);
+ * mute switch with the "cooldown 15m · renotify 30m · eval window 5m"
+ * caption where the cooldown/renotify Selects used to be. warn/crit
+ * threshold inputs and the notification-channel checkboxes are kept as
+ * function-preserving extensions beyond the frame (the thresholds feed
+ * the replay bands; channels feed notify wiring). Save + Test rule.
  */
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
@@ -84,6 +90,14 @@ export interface RuleEditorProps {
   /** MI-9 — present only when the rule already exists. */
   onTest?: () => void;
   testing?: boolean;
+  /**
+   * Known query strings for the mono Query Select (frame 130:2621).
+   * Editing renders a Select over these + the rule's own query; without
+   * an existing rule (create flow) the query stays a free-text Input.
+   */
+  queryOptions?: string[];
+  /** Inline MI-9 replay rendering (ReplayPanel), slotted by the page. */
+  replay?: ReactNode;
   error?: string | null;
 }
 
@@ -95,6 +109,8 @@ export function RuleEditor({
   onSave,
   onTest,
   testing = false,
+  queryOptions = [],
+  replay,
   error = null,
 }: RuleEditorProps) {
   const defaults = SIGNAL_DEFAULTS[signal];
@@ -114,14 +130,17 @@ export function RuleEditor({
   const [channelIds, setChannelIds] = useState<string[]>(
     initial?.notify.channel_ids ?? [],
   );
-  const [cooldown, setCooldown] = useState<string | null>(
-    String(initial?.notify.cooldown_minutes ?? 15),
-  );
-  const [renotify, setRenotify] = useState<string | null>(
-    String(initial?.notify.renotify_minutes ?? 30),
-  );
+  // cooldown/renotify render as the frame's caption (not editable inline);
+  // saving passes the rule's current values through unchanged
+  const cooldown = initial?.notify.cooldown_minutes ?? 15;
+  const renotify = initial?.notify.renotify_minutes ?? 30;
   const [muted, setMuted] = useState(
     (initial?.notify.mute_windows.length ?? 0) > 0,
+  );
+
+  // the mono Query Select's option set: known queries + the rule's own
+  const querySelectOptions = Array.from(new Set([query, ...queryOptions])).map(
+    (q) => ({ value: q, label: q }),
   );
 
   const toggleChannel = (id: string) => {
@@ -143,8 +162,8 @@ export function RuleEditor({
       },
       notify: {
         channel_ids: channelIds,
-        cooldown_minutes: Number(cooldown ?? 15),
-        renotify_minutes: Number(renotify ?? 0),
+        cooldown_minutes: cooldown,
+        renotify_minutes: renotify,
         mute_windows: muted
           ? [{ from: "SAT 00:00", to: "MON 00:00" }] // mute weekends
           : [],
@@ -158,19 +177,48 @@ export function RuleEditor({
         e.preventDefault();
         submit();
       }}
-      className="flex flex-col gap-4"
+      className="grid gap-5 lg:grid-cols-[1.5fr_1fr]"
       data-testid="rule-editor"
     >
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+      {/* left column (frame 130:2621): Query + the inline test replay */}
+      <div className="flex min-w-0 flex-col gap-4">
         <label className="flex flex-col gap-1 text-[13px]">
           <span className="text-text-2">Query</span>
-          <Input
-            mono
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            data-testid="rule-query"
-          />
+          {initial ? (
+            // editing: a mono Select over the org's known queries
+            <Select
+              options={querySelectOptions}
+              value={query}
+              onValueChange={setQuery}
+              aria-label="Query"
+              className="font-data"
+            />
+          ) : (
+            <Input
+              mono
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              data-testid="rule-query"
+            />
+          )}
         </label>
+
+        {replay !== undefined && (
+          <section
+            aria-label="Thresholds · test replay"
+            className="flex min-w-0 flex-col gap-2"
+            data-testid="rule-replay"
+          >
+            <p className="text-[13px] text-text-2">
+              Thresholds · test replay (last 24h)
+            </p>
+            {replay}
+          </section>
+        )}
+      </div>
+
+      {/* right column: name, thresholds, channels, mute + caption, CTAs */}
+      <div className="flex min-w-0 flex-col gap-4">
         <label className="flex flex-col gap-1 text-[13px]">
           <span className="text-text-2">Rule name</span>
           <Input
@@ -179,131 +227,114 @@ export function RuleEditor({
             data-testid="rule-name"
           />
         </label>
-      </div>
 
-      {/* min-w-0 beats the UA fieldset min-inline-size:min-content (390) */}
-      <fieldset className="grid min-w-0 grid-cols-1 gap-4 border-0 p-0 sm:grid-cols-3">
-        <legend className="mb-1 text-[13px] text-text-2">
-          Thresholds · evaluation window
-        </legend>
-        <label className="flex flex-col gap-1 text-[13px]">
-          <span className="text-warn">warn &gt;</span>
-          <Input
-            mono
-            value={warn}
-            onChange={(e) => setWarn(e.target.value)}
-            placeholder="—"
-            data-testid="rule-warn"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-[13px]">
-          <span className="text-crit">crit &gt;</span>
-          <Input
-            mono
-            value={crit}
-            onChange={(e) => setCrit(e.target.value)}
-            data-testid="rule-crit"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-[13px]">
-          <span className="text-text-2">window</span>
-          <Select
-            options={["3 checks", "5m", "10m", "30m", "1h", "2h"].map((w) => ({
-              value: w,
-              label: w,
-            }))}
-            value={window_}
-            onValueChange={setWindow}
-            aria-label="Evaluation window"
-          />
-        </label>
-      </fieldset>
-
-      <fieldset className="min-w-0 border-0 p-0">
-        <legend className="mb-1 text-[13px] text-text-2">
-          Notification channels
-        </legend>
-        <ul className="flex flex-col gap-1.5">
-          {channels.map((ch) => (
-            <li key={ch.id} className="flex items-center gap-2 text-[13px]">
-              <Checkbox
-                checked={channelIds.includes(ch.id)}
-                onCheckedChange={() => toggleChannel(ch.id)}
-                aria-label={`Notify ${ch.target}`}
-              />
-              <span className="font-data min-w-0 truncate text-text-2">
-                {ch.target}
-              </span>
-              {ch.health !== "verified" && (
-                <span className="text-[11px] text-warn">({ch.health})</span>
+        {/* min-w-0 beats the UA fieldset min-inline-size:min-content (390) */}
+        <fieldset className="grid min-w-0 grid-cols-1 gap-4 border-0 p-0 sm:grid-cols-3">
+          <legend className="mb-1 text-[13px] text-text-2">
+            Thresholds · evaluation window
+          </legend>
+          <label className="flex flex-col gap-1 text-[13px]">
+            <span className="text-warn">warn &gt;</span>
+            <Input
+              mono
+              value={warn}
+              onChange={(e) => setWarn(e.target.value)}
+              placeholder="—"
+              data-testid="rule-warn"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-[13px]">
+            <span className="text-crit">crit &gt;</span>
+            <Input
+              mono
+              value={crit}
+              onChange={(e) => setCrit(e.target.value)}
+              data-testid="rule-crit"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-[13px]">
+            <span className="text-text-2">window</span>
+            <Select
+              options={["3 checks", "5m", "10m", "30m", "1h", "2h"].map(
+                (w) => ({
+                  value: w,
+                  label: w,
+                }),
               )}
-            </li>
-          ))}
-        </ul>
-      </fieldset>
+              value={window_}
+              onValueChange={setWindow}
+              aria-label="Evaluation window"
+            />
+          </label>
+        </fieldset>
 
-      <div className="flex flex-wrap items-center gap-6">
-        <label className="flex items-center gap-2 text-[13px] text-text-2">
-          <Switch
-            checked={muted}
-            onCheckedChange={setMuted}
-            aria-label="Mute weekends"
-          />
-          Mute weekends
-        </label>
-        <label className="flex items-center gap-1.5 text-[13px] text-text-2">
-          cooldown
-          <Select
-            options={["5", "10", "15", "30", "60"].map((v) => ({
-              value: v,
-              label: `${v}m`,
-            }))}
-            value={cooldown}
-            onValueChange={setCooldown}
-            aria-label="Cooldown"
-            className="min-w-20"
-          />
-        </label>
-        <label className="flex items-center gap-1.5 text-[13px] text-text-2">
-          renotify
-          <Select
-            options={["0", "15", "30", "60"].map((v) => ({
-              value: v,
-              label: v === "0" ? "off" : `${v}m`,
-            }))}
-            value={renotify}
-            onValueChange={setRenotify}
-            aria-label="Renotify"
-            className="min-w-20"
-          />
-        </label>
-      </div>
+        <fieldset className="min-w-0 border-0 p-0">
+          <legend className="mb-1 text-[13px] text-text-2">
+            Notification channels
+          </legend>
+          <ul className="flex flex-col gap-1.5">
+            {channels.map((ch) => (
+              <li key={ch.id} className="flex items-center gap-2 text-[13px]">
+                <Checkbox
+                  checked={channelIds.includes(ch.id)}
+                  onCheckedChange={() => toggleChannel(ch.id)}
+                  aria-label={`Notify ${ch.target}`}
+                />
+                <span className="font-data min-w-0 truncate text-text-2">
+                  {ch.target}
+                </span>
+                {ch.health !== "verified" && (
+                  <span className="text-[11px] text-warn">({ch.health})</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </fieldset>
 
-      {error && (
-        <p role="alert" className="text-[13px] text-crit">
-          {error}
-        </p>
-      )}
+        <div className="flex flex-col gap-1.5">
+          <label className="flex items-center gap-2 text-[13px] text-text-2">
+            <Switch
+              checked={muted}
+              onCheckedChange={setMuted}
+              aria-label="Mute weekends"
+            />
+            Mute weekends
+          </label>
+          {/* frame caption — cooldown/renotify read as policy, not inline
+              Selects; eval window mirrors the Select above */}
+          <p className="text-[12px] text-text-2">
+            cooldown {cooldown}m · renotify{" "}
+            {renotify === 0 ? "off" : `${renotify}m`} · eval window{" "}
+            {window_ ?? "5m"}
+          </p>
+        </div>
 
-      <div className="flex items-center gap-2">
-        <Button
-          type="submit"
-          disabled={saving || !name.trim() || !crit.trim()}
-          data-testid="save-rule"
-        >
-          {saving ? "Saving…" : "Save rule"}
-        </Button>
-        {onTest && (
-          <Button
-            kind="quiet"
-            type="button"
-            onClick={onTest}
-            disabled={testing}
-            data-testid="test-rule"
-          >
-            {testing ? "Replaying…" : "Test rule"}
-          </Button>
+        {error && (
+          <p role="alert" className="text-[13px] text-crit">
+            {error}
+          </p>
         )}
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="submit"
+            disabled={saving || !name.trim() || !crit.trim()}
+            data-testid="save-rule"
+          >
+            {saving ? "Saving…" : "Save rule"}
+          </Button>
+          {onTest && (
+            <Button
+              kind="quiet"
+              type="button"
+              onClick={onTest}
+              disabled={testing}
+              data-testid="test-rule"
+            >
+              {testing ? "Replaying…" : "Test rule"}
+            </Button>
+          )}
+        </div>
       </div>
     </form>
   );

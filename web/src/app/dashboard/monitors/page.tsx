@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertChannelCard } from "@/components/ui/AlertChannelCard";
 import { AlertFeedRow } from "@/components/ui/AlertFeedRow";
 import { AlertRuleCard } from "@/components/ui/AlertRuleCard";
@@ -58,6 +58,19 @@ export default function MonitorsPage() {
     if (!selected) throw new Error("no rule selected");
     return ctrl.testRule(selected.id);
   });
+
+  // Frame 130:2621: the threshold test replay renders INLINE in the edit
+  // panel — auto-run it whenever the selected rule changes ("Test rule"
+  // re-runs it). runTest's identity changes per render; keep the latest
+  // in a ref so the replay effect keys on the rule alone.
+  const runTestRef = useRef(runTest);
+  useEffect(() => {
+    runTestRef.current = runTest;
+  });
+  const selectedRuleId = selected?.id ?? null;
+  useEffect(() => {
+    if (selectedRuleId) void runTestRef.current();
+  }, [selectedRuleId]);
 
   const save = async (input: RuleInput) => {
     if (!selected) return;
@@ -262,16 +275,21 @@ export default function MonitorsPage() {
                 onSave={save}
                 onTest={() => void runTest()}
                 testing={testing}
+                queryOptions={rules
+                  .filter((r) => r.signal === selected.signal)
+                  .map((r) => r.query_string)}
+                replay={
+                  testResult ? (
+                    <ReplayPanel
+                      result={testResult}
+                      title={`replay — ${selected.name}`}
+                    />
+                  ) : (
+                    <Skeleton kind="panel-axis" style={{ height: 200 }} />
+                  )
+                }
                 error={saveError}
               />
-              {testResult && (
-                <div className="mt-5" data-testid="rule-replay">
-                  <ReplayPanel
-                    result={testResult}
-                    title={`replay — ${selected.name}`}
-                  />
-                </div>
-              )}
             </>
           ) : (
             <p className="text-[13px] text-text-2">Select a rule to edit it.</p>
