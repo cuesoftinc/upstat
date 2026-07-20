@@ -39,13 +39,15 @@ const ROUTES = [
   "/dashboard/incidents/inc_42",
   "/dashboard/slos",
   "/dashboard/services",
-  "/dashboard/settings",
+  // routed settings tabs (2026-07-20): the bar itself must h-scroll in
+  // the viewport, and every pane reflows — sweep all seven tab routes.
+  "/dashboard/settings/general",
   "/dashboard/settings/members",
   "/dashboard/settings/keys",
-  "/dashboard/settings/properties",
   "/dashboard/settings/integrations",
   "/dashboard/settings/retention",
-  "/dashboard/settings/org",
+  "/dashboard/settings/appearance",
+  "/dashboard/settings/usage",
 ];
 
 interface OverflowReport {

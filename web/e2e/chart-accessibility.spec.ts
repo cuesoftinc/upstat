@@ -19,8 +19,8 @@ test("§5 colorblind mode: toggle persists (upstat.colorvision) and charts gain 
 }) => {
   await signIn(page);
 
-  // Settings → Appearance → Color vision
-  await page.goto("/dashboard/settings");
+  // Settings → Appearance tab → Color vision (routed tabs, 2026-07-20)
+  await page.goto("/dashboard/settings/appearance");
   const toggle = page.getByRole("switch", { name: "Color vision patterns" });
   await expect(toggle).toBeVisible();
   await expect(toggle).toHaveAttribute("aria-checked", "false");
@@ -57,7 +57,7 @@ test("§5 colorblind mode: toggle persists (upstat.colorvision) and charts gain 
   );
 
   // and toggles cleanly off (storage entry removed — absence is default)
-  await page.goto("/dashboard/settings");
+  await page.goto("/dashboard/settings/appearance");
   await page.getByRole("switch", { name: "Color vision patterns" }).click();
   await expect(page.locator("html")).not.toHaveAttribute("data-colorvision");
   expect(

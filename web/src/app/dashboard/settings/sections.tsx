@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * B12 settings sections (Figma 132:3237) — shared by the composed
- * /dashboard/settings overview and the focused sub-screens (§4 route map).
+ * B12 settings sections (Figma 132:3237) — the routed tab panes under
+ * /dashboard/settings/<tab> (ratified 2026-07-20, §4 route map).
  * Views render controller state only; all mutations ride the controllers.
  */
 
@@ -454,30 +454,6 @@ export function StatusPageSection() {
           data-testid="open-status-page-builder"
         >
           Open builder →
-        </Link>
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Usage metering (B12 [Designed 2026-07-20], OBS-012)                  */
-/* ------------------------------------------------------------------ */
-
-export function UsageLinkSection() {
-  return (
-    <section aria-labelledby="usage-heading" className="flex flex-col gap-3">
-      <SectionHeading id="usage-heading">Usage metering</SectionHeading>
-      <div className="flex items-center justify-between gap-4 rounded-(--radius) border border-border bg-bg-elev px-3 py-2">
-        <span className="text-[13px] leading-[1.45] text-text-2">
-          Month-to-date ingestion per pillar
-        </span>
-        <Link
-          href="/dashboard/settings/usage"
-          className="shrink-0 rounded-(--radius) border border-border px-3 py-1.5 text-[13px] text-text transition-colors duration-[var(--duration-fast)] hover:bg-bg"
-          data-testid="open-usage"
-        >
-          View usage →
         </Link>
       </div>
     </section>

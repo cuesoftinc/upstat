@@ -528,6 +528,30 @@ number or id with a "run not found" state (never "No runs yet" while
 runs exist), and Scalar's floating dev toolbar is off on `/docs/api`
 (`showDeveloperTools: "never"`).
 
+**B12 routed settings tabs as-built (2026-07-20, ratified).** Settings is
+a route-group layout (`settings/(tabs)/layout.tsx`: the
+`data-testid="settings"` shell — title + `RouteTabs`) over seven REAL
+sub-routes: General (`/general` — org profile; absorbs the old `/org`
+focused screen), Members (`/members`), Keys & properties (`/keys` —
+ingestion tokens + RUM property keys; absorbs `/properties`),
+Integrations (`/integrations` — alert channels + the status-page builder
+handoff card), Data & privacy (`/retention` — retention + privacy rows,
+URL unchanged), Appearance (`/appearance` — theme + color vision), Usage
+(`/usage` — URL unchanged). The bare route `redirect()`s to `/general`
+(live IA — no stub); the old `/org` and `/properties` paths 404 (no
+redirect stubs, route canon). `RouteTabs`
+(`components/ui/RouteTabs.tsx`) is the accessible routed-tabs pattern —
+a `role=tablist` of links with `aria-selected` + `aria-current="page"`,
+roving-tabindex Arrow/Home/End focus (manual activation), a labelled
+`tabpanel` wrapper, and viewport-contained horizontal scroll below `md`.
+The B7 status-page builder stays a focused sub-screen outside the tab
+shell; the composed two-column overview and its `UsageLinkSection`
+pointer card are retired (the tab bar is the navigation).
+`e2e/settings-tabs.spec.ts` pins redirect, tab-click URL/pane swap, deep
+links, back/forward, NavRail pillar highlight and the mobile h-scroll;
+the colorblind, theme-select, status-page and mobile sweeps migrated to
+the tab routes.
+
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the
@@ -608,7 +632,8 @@ order per pages.md Part B.
 | B9 | `/dashboard/incidents` · `/dashboard/incidents/{id}` | Incident feed · timeline composer (MI-10); declare-incident is a modal, not a route |
 | B10 | `/dashboard/slos` | SLO list + define (SLI source, target, window) |
 | B11 | `/dashboard/services` | Service catalog (telemetry-presence, owner, repo/runbook) |
-| B12 | `/dashboard/settings` + sub-screens `/dashboard/settings/members` · `/dashboard/settings/keys` · `/dashboard/settings/properties` · `/dashboard/settings/integrations` · `/dashboard/settings/retention` · `/dashboard/settings/org` · `/dashboard/settings/status-page` · `/dashboard/settings/usage` | Org/members/roles · API keys & ingestion tokens · property keys · integrations · retention per signal · org profile (IANA timezone, X-10) · status-page builder (B7) · usage metering per pillar (OBS-012) |
+| B12 | `/dashboard/settings` → `/dashboard/settings/general` (redirect, live IA) + routed tabs `/dashboard/settings/general` · `/members` · `/keys` · `/integrations` · `/retention` · `/appearance` · `/usage` **[Ratified 2026-07-20]** | Settings shell — title + underline tab bar (`RouteTabs`: tablist-of-links, `aria-current`, roving tabindex, mobile h-scroll); tabs: General (org profile — IANA timezone, X-10) · Members & roles · Keys & properties (API keys & ingestion tokens + RUM property keys) · Integrations (alert channels + status-page builder handoff) · Data & privacy (retention per signal + privacy rows; keeps the `/retention` URL) · Appearance (theme + color vision) · Usage metering per pillar (OBS-012; keeps the `/usage` URL) |
+| B12 | `/dashboard/settings/status-page` | Status-page builder (B7) — a focused sub-screen outside the tab shell, linked from the Integrations tab |
 
 Part C (mobile on-call companion) has no web routes — later phase, out of
 W0–W3 (§8). Deep-linkable state rides the query string, not new routes:

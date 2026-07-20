@@ -97,8 +97,9 @@ test("dashboard chrome theme toggle flips + persists (theme-parity canon)", asyn
   ).toBe("light");
   await page.reload();
   await expect(html).toHaveAttribute("data-theme", "light");
-  // settings carries the same control as a labelled select
-  await page.goto("/dashboard/settings");
+  // the settings Appearance tab carries the same control as a labelled
+  // select (routed tabs, 2026-07-20)
+  await page.goto("/dashboard/settings/appearance");
   await expect(page.getByRole("combobox", { name: "Theme" })).toBeVisible();
   // restore dark for the rest of the suite
   await page.getByRole("banner").getByTestId("theme-toggle").click();

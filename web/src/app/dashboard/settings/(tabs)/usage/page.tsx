@@ -5,19 +5,18 @@ import { UsageMeterRow } from "@/components/ui/UsageMeterRow";
 import { useUsageController } from "@/controllers/settings";
 
 /**
- * B12 usage metering (Figma "B12 — Settings (usage metering)", 334:14499)
- * — UsageMeterRow per pillar; month-to-date values computed from the
- * seeded telemetry volumes (accuracy canon: honest numbers), bars scaled
- * to each pillar's trailing-3-month peak, plan column verbatim.
+ * B12 — Usage tab (keeps the pre-tab /usage URL; Figma "B12 — Settings
+ * (usage metering)", 334:14499) — UsageMeterRow per pillar;
+ * month-to-date values computed from the seeded telemetry volumes
+ * (accuracy canon: honest numbers), bars scaled to each pillar's
+ * trailing-3-month peak, plan column verbatim.
  */
 export default function UsagePage() {
   const usage = useUsageController();
   const report = usage.data;
 
   return (
-    <div className="flex flex-col gap-5 px-6 py-5" data-testid="settings-usage">
-      <h1 className="text-[20px] font-semibold">Settings — usage</h1>
-
+    <div className="flex flex-col gap-5" data-testid="settings-usage">
       {usage.loading || !report ? (
         <>
           <Skeleton kind="line" className="w-72" />
