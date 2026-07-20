@@ -296,7 +296,7 @@ test("full journey: onboarding → B1 → dashboards → explorer → logs → t
   // live tail streams batches
   const liveToggle = page
     .getByRole("banner")
-    .getByRole("button", { name: "live" });
+    .getByRole("button", { name: "LIVE" });
   await liveToggle.click();
   const tailCount = await page
     .getByRole("list", { name: "Log lines" })

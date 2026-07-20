@@ -737,6 +737,7 @@ export function buildSeed(now: number): MockDb {
       budget_remaining_pct: 0,
       burn_rate: 2.8,
       state: "exhausted",
+      exhausted_at: iso(now - 3 * DAY),
     },
   ];
 

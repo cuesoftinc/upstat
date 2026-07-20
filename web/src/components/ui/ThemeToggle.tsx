@@ -33,7 +33,7 @@ export function themeToggleLabel(preference: ThemePreference): string {
  * light → dark → system with a distinct icon per mode (sun / moon /
  * monitor). Lives in the marketing nav, the dashboard TopBar utility
  * area and Settings; the choice persists via ThemeProvider
- * (`upstat.theme`; key absent = system).
+ * (`upstat.theme`; key absent = dark, the design default).
  */
 export function ThemeToggle({ className }: ThemeToggleProps) {
   const { preference, setPreference } = useTheme();

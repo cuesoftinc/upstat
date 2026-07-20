@@ -34,7 +34,10 @@ export default function SyntheticRunPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const runId = useSearchParams().get("run");
-  const { check, runs, selected } = useSyntheticRunController(id, runId);
+  const { check, runs, selected, notFound } = useSyntheticRunController(
+    id,
+    runId,
+  );
   const context = useSyntheticContext(check.data);
   const synthetics = useSyntheticsController();
 
@@ -173,6 +176,11 @@ export default function SyntheticRunPage() {
             )}
           </div>
         </>
+      ) : notFound ? (
+        // never "No runs yet" while runs exist — a bad ?run= says so
+        <p className="text-[13px] text-text-2" data-testid="run-not-found">
+          Run {runId} not found — pick one from the run history below.
+        </p>
       ) : (
         <p className="text-[13px] text-text-2">
           No runs yet — Run once to execute the steps now.

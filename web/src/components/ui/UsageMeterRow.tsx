@@ -23,7 +23,8 @@ export function UsageMeterRow({ meter, className }: UsageMeterRowProps) {
       data-pillar={meter.pillar}
       className={clsx(
         "font-ui flex flex-col gap-3 rounded-(--radius) border border-border bg-bg-elev px-4 py-4",
-        "sm:h-[72px] sm:flex-row sm:items-center sm:gap-4 sm:py-0",
+        // 64px row per the master (B12 usage frame 334:14499)
+        "sm:h-16 sm:flex-row sm:items-center sm:gap-4 sm:py-0",
         className,
       )}
     >
@@ -46,7 +47,8 @@ export function UsageMeterRow({ meter, className }: UsageMeterRowProps) {
           style={{ width: `${Math.max(pct, 1)}%` }}
         />
       </span>
-      <span className="shrink-0 text-[12px] text-text-2 sm:w-64 sm:text-right">
+      {/* single line at desktop widths (1440 QA — the fixed w-64 wrapped) */}
+      <span className="shrink-0 text-[12px] text-text-2 sm:whitespace-nowrap sm:text-right">
         {meter.plan}
       </span>
     </div>

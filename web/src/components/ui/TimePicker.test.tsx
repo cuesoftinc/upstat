@@ -17,7 +17,8 @@ describe("TimePicker", () => {
     );
     await userEvent.click(screen.getByRole("button", { name: "4h" }));
     expect(onChange).toHaveBeenCalledWith("4h");
-    await userEvent.click(screen.getByRole("button", { name: /live/ }));
+    // master casing: the live toggle reads "LIVE"
+    await userEvent.click(screen.getByRole("button", { name: "LIVE" }));
     expect(onLive).toHaveBeenCalledWith(true);
   });
 
