@@ -101,11 +101,12 @@ test.describe("API reference — /docs/api", () => {
     ).toBeVisible({ timeout: 20_000 });
 
     // Scalar mirrors the resolved theme on body (light-mode/dark-mode);
-    // system default resolves dark here (dark-first OS emulation).
+    // key absent = dark, the design default (theme contract).
     const body = page.locator("body");
     await expect(body).toHaveClass(/dark-mode/);
 
-    // system mode (default) follows an OS scheme flip live.
+    // Explicit SYSTEM mode follows an OS scheme flip live.
+    await page.getByTestId("theme-toggle").click(); // dark(default) → system
     await page.emulateMedia({ colorScheme: "light" });
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
     await expect(body).toHaveClass(/light-mode/, { timeout: 15_000 });

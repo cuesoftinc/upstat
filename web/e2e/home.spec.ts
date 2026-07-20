@@ -216,18 +216,27 @@ test("theme toggle cycles light → dark → system and persists (upstat.theme)"
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/");
   const html = page.locator("html");
-  // Fresh visit = system (key absent), resolved from the OS (dark here).
+  // Fresh visit = the dark design default (key absent — theme contract).
   await expect(html).toHaveAttribute("data-theme", "dark");
+  expect(
+    await page.evaluate(() => window.localStorage.getItem("upstat.theme")),
+  ).toBeNull();
 
-  // system → light. The initial attr is applied pre-hydration (init
-  // script), so retry the click until React's handler is attached.
+  // dark(default) → system. The initial attr is applied pre-hydration
+  // (init script), so retry the click until React's handler is attached —
+  // detected via storage (the attribute stays dark under the dark OS).
   const toggle = page.getByTestId("theme-toggle");
   await expect(async () => {
     await toggle.click();
-    await expect(html).toHaveAttribute("data-theme", "light", {
-      timeout: 1_000,
-    });
+    expect(
+      await page.evaluate(() => window.localStorage.getItem("upstat.theme")),
+    ).toBe("system");
   }).toPass({ timeout: 15_000 });
+  await expect(html).toHaveAttribute("data-theme", "dark"); // OS is dark
+
+  // system → light (explicit choice).
+  await toggle.click();
+  await expect(html).toHaveAttribute("data-theme", "light");
   expect(
     await page.evaluate(() => window.localStorage.getItem("upstat.theme")),
   ).toBe("light");
@@ -246,12 +255,13 @@ test("theme toggle cycles light → dark → system and persists (upstat.theme)"
     await page.evaluate(() => window.localStorage.getItem("upstat.theme")),
   ).toBe("dark");
 
-  // dark → system: key removed; resolved follows the OS and tracks a
-  // live flip without a reload.
+  // dark → system: stored explicitly (key absent = the dark design
+  // default); resolved follows the OS and tracks a live flip without a
+  // reload.
   await toggle.click();
   expect(
     await page.evaluate(() => window.localStorage.getItem("upstat.theme")),
-  ).toBeNull();
+  ).toBe("system");
   await expect(html).toHaveAttribute("data-theme", "dark"); // OS is dark
   await page.emulateMedia({ colorScheme: "light" });
   await expect(html).toHaveAttribute("data-theme", "light");
