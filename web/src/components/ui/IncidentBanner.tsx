@@ -62,12 +62,11 @@ export function IncidentBanner({
       </span>
       <span className="min-w-0 flex-1" />
       {/* <sm the responder stack yields its width to the title (mobile
-          truncation canon); the age + link affordances stay */}
-      <AvatarStack
-        names={responders}
-        size={20}
-        className="hidden sm:inline-flex"
-      />
+          truncation canon); the age + link affordances stay. Wrapped —
+          the stack's own inline-flex would fight a passed `hidden`. */}
+      <span className="hidden sm:inline-flex">
+        <AvatarStack names={responders} size={20} />
+      </span>
       {/* the whole strip is the button; the link text is the master's
           explicit affordance */}
       <span className="shrink-0 text-[13px] font-medium text-brand">
