@@ -42,6 +42,19 @@ describe("NavRail", () => {
     expect(NAV_SECTIONS.flatMap((s) => s.keys)).toEqual(
       NAV_PILLARS.map((p) => p.key),
     );
+    // Home AND Dashboards ungrouped above Telemetry (master 284:2,
+    // adjudicated 2026-07-20)
+    expect(NAV_SECTIONS[0].keys).toEqual(["home", "dashboards"]);
+  });
+
+  it("foot renders the chevron square + signed-in avatar (master 284:2)", () => {
+    render(<NavRail activeKey="home" userName="Ibukun Dairo" />);
+    expect(screen.getByTestId("rail-toggle")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Signed in as Ibukun Dairo"),
+    ).toBeInTheDocument();
+    // the old text foot is gone
+    expect(screen.queryByText("Collapse")).toBeNull();
   });
 
   it("foot toggle expands the rail: aria-expanded, labels + group headers", async () => {

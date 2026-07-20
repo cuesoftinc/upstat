@@ -20,7 +20,11 @@ import { ShortcutCheatsheet } from "@/components/ui/ShortcutCheatsheet";
 import { TimePicker, type TimePreset } from "@/components/ui/TimePicker";
 import { TopBar } from "@/components/ui/TopBar";
 import { ZoomStackChip } from "@/components/ui/ZoomStackChip";
-import { ageLabel, useShellController } from "@/controllers/shell";
+import {
+  ageLabel,
+  useCurrentUserName,
+  useShellController,
+} from "@/controllers/shell";
 import { SHORTCUTS, useKeyboardMap } from "@/controllers/keyboard";
 import { TimeRangeProvider, useTimeRange } from "@/controllers/time-range";
 import type { Sev } from "@/components/ui/SevChip";
@@ -90,6 +94,7 @@ function ShellChrome({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const shell = useShellController();
+  const userName = useCurrentUserName();
   const keys = useKeyboardMap();
   const [bellOpen, setBellOpen] = useState(false);
   const [orgOpen, setOrgOpen] = useState(false);
@@ -116,6 +121,7 @@ function ShellChrome({ children }: { children: ReactNode }) {
       <NavRail
         activeKey={activeKeyFor(pathname)}
         onNavigate={(key) => router.push(PILLAR_ROUTES[key] ?? "/dashboard")}
+        userName={userName}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
