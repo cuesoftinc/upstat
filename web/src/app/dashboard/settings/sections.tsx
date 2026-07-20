@@ -23,7 +23,7 @@ import { useAlertsController } from "@/controllers/alerts";
 import { useOrgController } from "@/controllers/onboarding";
 import { useSettingsController } from "@/controllers/settings";
 import { useColorVision } from "@/design/ColorVisionProvider";
-import { useTheme, type Theme } from "@/design/ThemeProvider";
+import { useTheme, type ThemePreference } from "@/design/ThemeProvider";
 
 function SectionHeading({
   id,
@@ -489,7 +489,9 @@ export function UsageLinkSection() {
 /* ------------------------------------------------------------------ */
 
 export function AppearanceSection() {
-  const { theme, setTheme } = useTheme();
+  // Tri-state theme (contract 2026-07-20) + §5 colorblind mode (Wave A) —
+  // the two Appearance controls integrate side by side.
+  const { preference, setPreference } = useTheme();
   const { patterns, setMode } = useColorVision();
   return (
     <section
@@ -499,13 +501,16 @@ export function AppearanceSection() {
       <SectionHeading id="appearance-heading">Appearance</SectionHeading>
       <div className="flex items-center justify-between gap-4 rounded-(--radius) border border-border bg-bg-elev px-3 py-2">
         <span className="text-[13px] font-medium text-text">Theme</span>
+        {/* Tri-state (theme contract 2026-07-20): System follows the OS
+            live; Dark stays the product's design default. */}
         <Select
           options={[
+            { value: "system", label: "System" },
             { value: "dark", label: "Dark (default)" },
             { value: "light", label: "Light" },
           ]}
-          value={theme}
-          onValueChange={(v) => setTheme(v as Theme)}
+          value={preference}
+          onValueChange={(v) => setPreference(v as ThemePreference)}
           aria-label="Theme"
           className="min-w-36"
         />

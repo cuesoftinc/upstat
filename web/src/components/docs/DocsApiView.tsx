@@ -23,7 +23,13 @@ export function DocsApiView() {
         onSignIn={onSignIn}
         onTryCloud={onTryCloud}
       />
-      <main className="flex-1">
+      {/* Header-fix construction (2026-07-20): the sticky marketing nav
+          (h-14 + border = 57px) and Scalar's own sticky layout coexist by
+          telling Scalar about the header — `--scalar-custom-header-height`
+          offsets its sticky sidebar/mobile bar below the nav and shrinks
+          its viewport math to match (one coherent scroll). `isolate` opens
+          a stacking context so no Scalar z-index can paint over the nav. */}
+      <main className="isolate flex-1 [--scalar-custom-header-height:57px]">
         <ScalarApiReference />
       </main>
       {/* Minimal footer strip — verbatim legal line only (parity canon). */}

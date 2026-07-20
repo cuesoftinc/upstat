@@ -2,10 +2,12 @@
  * Upstat design tokens — mirrors docs/design.md §2 exactly.
  *
  * DARK is the product default (`:root` carries the dark values — dashboards
- * and marketing default dark per the existing landing); light mode is a
- * manual override via `[data-theme="light"]`. There is deliberately no
- * `prefers-color-scheme` auto-switch: the product is dark-primary and theme
- * is an explicit user choice.
+ * and marketing default dark per the existing landing); light values live
+ * under `[data-theme="light"]`. Theme contract (2026-07-20, tri-state):
+ * `data-theme` always carries the RESOLVED theme (light | dark; system
+ * resolves live via matchMedia in ThemeProvider + the pre-paint init
+ * script). The prefers-color-scheme block below is the pre-JS/no-JS
+ * fallback only.
  *
  * No raw hex anywhere else in the app — components consume these variables
  * (documented exceptions carry a code comment, e.g. destructive-fill labels
@@ -84,4 +86,24 @@
   --color-crit: #d32f2f;
   --color-nodata: #9aa0aa;
   /* series palette is identical in both themes (validated ≥3:1 on both bg values) */
+}
+
+/* System (pre-JS/no-JS fallback only — with JS the attribute above is
+   authoritative). Values must stay identical to the [data-theme="light"]
+   block above. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
+    --color-bg: #ffffff;
+    --color-bg-elev: #f7f8fa;
+    --color-border: #e4e6eb;
+    --color-text: #1b1d22;
+    --color-text-2: #6b6f7b;
+    --color-brand: #00e09e;
+    --color-brand-deep: #00a991;
+    --color-on-brand: #0e1113;
+    --color-ok: #2e9950;
+    --color-warn: #c77d00;
+    --color-crit: #d32f2f;
+    --color-nodata: #9aa0aa;
+  }
 }

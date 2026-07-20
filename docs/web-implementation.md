@@ -462,11 +462,19 @@ marketing nav with a minimal legal strip; nav wiring (star count,
 spec source — served by the `/docs/api/openapi.yaml` route handler from
 a build-time string asset (`npm run generate:openapi`, wired as
 `predev`/`prebuild`/`pretypecheck`; output gitignored under
-`src/generated/`). Theme follows ThemeProvider (Scalar `darkMode`
-config; its own toggle hidden); remote default fonts are disabled
-(self-host ethos). The footer Docs column's "API reference" links
-`/docs/api`; `e2e/docs-api.spec.ts` pins route 200, a rendered operation
-from the spec, the served document, and the footer handoff.
+`src/generated/`). Theme: the embed is forced to the RESOLVED theme via
+Scalar's `forceDarkModeState` (a creation-time override — the view
+mounts after hydration and remounts on theme change, since
+`updateConfiguration` never re-applies it); Scalar's own toggle is
+hidden and its remote default fonts are disabled (self-host ethos).
+Header construction: the sticky marketing nav (h-14 + border = 57px)
+and Scalar's sticky layout coexist via `--scalar-custom-header-height`
+on the embed wrapper (offsets Scalar's sticky sidebar/mobile bar below
+the nav and shrinks its viewport math — one coherent page scroll) plus
+`isolate` so no Scalar z-index paints over the nav. The footer Docs
+column's "API reference" links `/docs/api`; `e2e/docs-api.spec.ts` pins
+route 200, a rendered operation from the spec, the served document, the
+footer handoff, the header/scroll sanity and the embed-theme sync.
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
@@ -479,12 +487,29 @@ B1/B2/B4/B5), and the QA loop checks all three.
 
 One custom property per Figma variable in the `upstat/tokens` collection
 (design.md §7). **Dark is the default and lives on `:root`** (design.md
-§2: dashboards + marketing default dark); light mode is the manual
-override `[data-theme="light"]` set by the theme toggle. Deliberately
-**no `prefers-color-scheme` auto-switch** — upstat is dark-primary and
-theme is an explicit user choice (a ratified deviation from the sibling
-light-`:root` arrangement; the ThemeProvider contract is otherwise
-identical).
+§2: dashboards + marketing default dark); the light values live under
+`[data-theme="light"]` (a ratified deviation from the sibling
+light-`:root` arrangement; the ThemeProvider CONTRACT is identical —
+see the theme-contract as-built in §2). `data-theme` always carries the
+RESOLVED theme; the tokens.css `prefers-color-scheme: light` block is
+the pre-JS/no-JS fallback only.
+
+**Theme contract as-built (2026-07-20, ratified — identical across
+apparule, expendit and upstat).** The preference is tri-state
+light | dark | system: `ThemeProvider` persists it at `upstat.theme`
+("light"/"dark" stored explicitly; KEY ABSENT = system — the
+cross-product storage convention), and `data-theme` on `<html>` always
+carries the RESOLVED theme — system resolves via `prefers-color-scheme`
+and tracks it live (a matchMedia listener updates `data-theme` on an OS
+flip, no reload). The pre-paint init script applies the resolved theme
+(no FOUC in any mode). `ThemeToggle` (marketing nav + dashboard TopBar)
+cycles light → dark → system with distinct icons (sun / moon / monitor);
+its aria-label announces the active mode. The B12 Appearance section's
+Select is three-way (System / Dark (default) / Light) over the same
+`setPreference`. The Scalar embed follows `resolvedTheme` (X-2 note,
+§2). Unit tests pin the storage convention, live system tracking and the
+cycle order; e2e pins the cycle, an emulated OS flip in system mode and
+reload persistence.
 
 | Group | Token names (as built in `tokens.css`) |
 | --- | --- |

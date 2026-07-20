@@ -76,9 +76,20 @@ test("dashboard chrome theme toggle flips + persists (theme-parity canon)", asyn
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
+  // Deterministic OS scheme — system-mode assertions must not depend on
+  // the runner's OS (theme contract note, SKILL.md).
+  await page.emulateMedia({ colorScheme: "light" });
   await signIn(page);
   const html = page.locator("html");
   await expect(html).not.toHaveAttribute("data-theme", "light");
+  // dark(default) → system: stored explicitly; the emulated OS is light,
+  // so the resolved attribute flips light.
+  await page.getByRole("banner").getByTestId("theme-toggle").click();
+  await expect(html).toHaveAttribute("data-theme", "light");
+  expect(
+    await page.evaluate(() => window.localStorage.getItem("upstat.theme")),
+  ).toBe("system");
+  // system → light: the explicit choice.
   await page.getByRole("banner").getByTestId("theme-toggle").click();
   await expect(html).toHaveAttribute("data-theme", "light");
   expect(

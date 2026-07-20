@@ -125,7 +125,9 @@ test("TopBar collapses to icon utilities at 390 — no overflow, everything oper
   ).toBeVisible();
   await page.keyboard.press("Escape");
 
-  // theme toggle still flips from the collapsed bar
+  // theme toggle still flips from the collapsed bar (dark default →
+  // system, which resolves light under the emulated light OS)
+  await page.emulateMedia({ colorScheme: "light" });
   await banner.getByTestId("theme-toggle").click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await banner.getByTestId("theme-toggle").click();
@@ -399,7 +401,10 @@ test("full journey: onboarding → B1 → dashboards → explorer → logs → t
   /* ---- public status page (light, outside the shell) reflects state ---- */
   await page.goto("/status/upstat");
   await expect(page.getByTestId("status-page")).toBeVisible();
-  await expect(page.locator('[data-theme="light"]')).toBeVisible();
+  // The public surface is FORCED light via its own wrapper div — scoped
+  // (tri-state contract: <html> also carries data-theme when the app
+  // theme resolves light, so a bare [data-theme="light"] is ambiguous).
+  await expect(page.locator('div[data-theme="light"]')).toBeVisible();
   await expect(page.locator("main")).toHaveCount(1);
   await expect(page.getByText("Major outage")).toBeVisible(); // the declared sev1
   await expect(

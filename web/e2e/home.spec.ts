@@ -209,13 +209,33 @@ test("nav + footer carry the canonical parity links (SKILL.md canon)", async ({
   );
 });
 
-test("theme toggle flips data-theme and persists (upstat.theme)", async ({
+test("theme toggle cycles light → dark → system and persists (upstat.theme)", async ({
   page,
 }) => {
+  // Deterministic OS scheme for the system-resolution assertions.
+  await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/");
   const html = page.locator("html");
-  await expect(html).not.toHaveAttribute("data-theme", "light"); // dark default
-  await page.getByTestId("theme-toggle").click();
+  // Fresh visit = the dark design default (key absent — theme contract).
+  await expect(html).toHaveAttribute("data-theme", "dark");
+  expect(
+    await page.evaluate(() => window.localStorage.getItem("upstat.theme")),
+  ).toBeNull();
+
+  // dark(default) → system. The initial attr is applied pre-hydration
+  // (init script), so retry the click until React's handler is attached —
+  // detected via storage (the attribute stays dark under the dark OS).
+  const toggle = page.getByTestId("theme-toggle");
+  await expect(async () => {
+    await toggle.click();
+    expect(
+      await page.evaluate(() => window.localStorage.getItem("upstat.theme")),
+    ).toBe("system");
+  }).toPass({ timeout: 15_000 });
+  await expect(html).toHaveAttribute("data-theme", "dark"); // OS is dark
+
+  // system → light (explicit choice).
+  await toggle.click();
   await expect(html).toHaveAttribute("data-theme", "light");
   expect(
     await page.evaluate(() => window.localStorage.getItem("upstat.theme")),
@@ -223,15 +243,30 @@ test("theme toggle flips data-theme and persists (upstat.theme)", async ({
   // persists across reload — applied pre-paint by the init script
   await page.reload();
   await expect(html).toHaveAttribute("data-theme", "light");
-  // back to dark: attribute clears (the default carries none). The attr
-  // assertion above is satisfied pre-hydration (init script), so retry the
-  // click until React's handler is attached (dev hydrates slowly).
+
+  // light → dark (explicit choice ignores the OS)
   await expect(async () => {
-    await page.getByTestId("theme-toggle").click();
-    await expect(html).not.toHaveAttribute("data-theme", "light", {
+    await toggle.click();
+    await expect(html).toHaveAttribute("data-theme", "dark", {
       timeout: 1_000,
     });
   }).toPass({ timeout: 15_000 });
+  expect(
+    await page.evaluate(() => window.localStorage.getItem("upstat.theme")),
+  ).toBe("dark");
+
+  // dark → system: stored explicitly (key absent = the dark design
+  // default); resolved follows the OS and tracks a live flip without a
+  // reload.
+  await toggle.click();
+  expect(
+    await page.evaluate(() => window.localStorage.getItem("upstat.theme")),
+  ).toBe("system");
+  await expect(html).toHaveAttribute("data-theme", "dark"); // OS is dark
+  await page.emulateMedia({ colorScheme: "light" });
+  await expect(html).toHaveAttribute("data-theme", "light");
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expect(html).toHaveAttribute("data-theme", "dark");
 });
 
 test("FAQ is a single-open accordion (A15)", async ({ page }) => {
@@ -489,7 +524,9 @@ test("mobile nav is a menu-button disclosure at 390w (SKILL.md mobile clause)", 
   await expect(panelBadge).toHaveText(/^Star$/);
   await expect(panelBadge.locator("svg")).toBeVisible();
 
-  // the theme toggle works from inside the panel
+  // the theme toggle works from inside the panel (dark default → system
+  // resolves light under the emulated light OS)
+  await page.emulateMedia({ colorScheme: "light" });
   await panel.getByTestId("theme-toggle").click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 
