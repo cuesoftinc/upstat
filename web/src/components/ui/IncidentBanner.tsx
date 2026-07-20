@@ -16,7 +16,12 @@ export interface IncidentBannerProps {
   className?: string;
 }
 
-/** IncidentBanner — §8.2: sev1 / sev2 (persistent) · resolved (transient). */
+/**
+ * IncidentBanner — §8.2: sev1 / sev2 (persistent) · resolved (transient).
+ * Hybrid adjudication 2026-07-20: the GLOBAL chrome-strip placement stays
+ * (docs §3), with the master's explicit affordances (48:141) — "open 12m"
+ * age copy and the "View incident →" / resolved "Postmortem →" link text.
+ */
 export function IncidentBanner({
   sev,
   title,
@@ -49,13 +54,19 @@ export function IncidentBanner({
       ) : (
         <SevChip sev={sev} />
       )}
-      <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-text">
+      <span className="min-w-0 shrink truncate text-[13px] font-medium text-text">
         {title}
       </span>
       <span className="shrink-0 text-[12px] tabular-nums text-text-2">
-        {age}
+        {resolved ? age : `open ${age}`}
       </span>
+      <span className="min-w-0 flex-1" />
       <AvatarStack names={responders} size={20} />
+      {/* the whole strip is the button; the link text is the master's
+          explicit affordance */}
+      <span className="shrink-0 text-[13px] font-medium text-brand">
+        {resolved ? "Postmortem →" : "View incident →"}
+      </span>
     </button>
   );
 }
