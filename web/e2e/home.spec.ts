@@ -411,8 +411,10 @@ test("A1 Features pillar-map dropdown — hover/click open, Escape, deep links",
   await page.mouse.move(640, 400);
   await expect(panel).toBeHidden();
 
-  // chevron click-toggles; Escape closes and restores trigger focus
-  await chevron.click();
+  // keyboard: the chevron toggles (pointer clicks ride the hover-open,
+  // so keyboard is the pure toggle path); Escape closes, restores focus
+  await chevron.focus();
+  await page.keyboard.press("Enter");
   await expect(panel).toBeVisible();
   await expect(chevron).toHaveAttribute("aria-expanded", "true");
   await page.keyboard.press("Escape");
@@ -420,7 +422,8 @@ test("A1 Features pillar-map dropdown — hover/click open, Escape, deep links",
   await expect(chevron).toBeFocused();
 
   // a pillar row deep-links its card on the landing grid and closes
-  await chevron.click();
+  await nav.getByTestId("features-nav-item").hover();
+  await expect(panel).toBeVisible();
   await panel.getByRole("link", { name: "Logs" }).click();
   await expect(panel).toBeHidden();
   await expect(page).toHaveURL(/#pillar-4$/);

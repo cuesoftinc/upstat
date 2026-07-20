@@ -71,17 +71,26 @@ test("§5 chart data-table toggle: a dashboard widget flips to the Table constru
   await signIn(page);
   await page.goto("/dashboard/dashboards/dash_overview");
 
-  // scope to the first timeseries widget so the toggle, plot and table
-  // all belong to the same panel
-  const panel = page
-    .locator("section[data-mode]")
+  // pin ONE timeseries widget by its stable id — a has-plot filter would
+  // re-resolve to a different widget once this one flips to the table
+  const firstPlotWidget = page
+    .locator("[data-widget-id]")
     .filter({ has: page.getByTestId("timeseries-plot") })
     .first();
+  await expect(firstPlotWidget).toBeVisible();
+  const widgetId = await firstPlotWidget.getAttribute("data-widget-id");
+  const panel = page.locator(`[data-widget-id="${widgetId}"]`);
   await expect(panel.getByTestId("timeseries-plot")).toBeVisible();
 
   const toggle = panel.getByRole("button", { name: "View as table" });
-  await toggle.click();
-  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  // retry the click+flip as one unit — a click landing during hydration
+  // can hit a not-yet-wired node (repo pattern for dev-server races)
+  await expect(async () => {
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "true", {
+      timeout: 1_000,
+    });
+  }).toPass({ timeout: 15_000 });
   await expect(panel.getByTestId("timeseries-plot")).toHaveCount(0);
 
   const table = panel.getByTestId("chart-data-table");
