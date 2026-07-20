@@ -26,9 +26,16 @@ export function Heatmap({ columns, rows, values, className }: HeatmapProps) {
   // §5: every chart exposes a data-table alternative — one row per time
   // bucket, one numeric column per value bucket
   const [showTable, setShowTable] = useState(false);
-  // sparse x labels: first / quarter / mid / three-quarter / last
+  // sparse x labels, density-adaptive: up to first / quarter / mid /
+  // three-quarter / last, but never more than the grid width can seat at
+  // mono-11 ("Jun 15" ≈ 40px + breathing room) — narrow grids like the B6
+  // 8-column cohort axis fall back to first + last (label-collision fix)
+  const gridW = columns.length * (CELL + 1);
+  const labelCount = Math.max(2, Math.min(5, Math.floor(gridW / 56)));
   const labelIdx = new Set(
-    [0, 0.25, 0.5, 0.75, 1].map((t) => Math.round(t * (columns.length - 1))),
+    Array.from({ length: labelCount }, (_, i) =>
+      Math.round((i / (labelCount - 1)) * (columns.length - 1)),
+    ),
   );
 
   if (showTable) {

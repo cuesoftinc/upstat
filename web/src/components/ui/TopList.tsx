@@ -45,9 +45,10 @@ export function TopList({ entries, loading = false, className }: TopListProps) {
           <span className="w-36 truncate text-[12px] text-text">
             {entry.label}
           </span>
-          <span className="relative h-3.5 flex-1 overflow-hidden rounded-[1px] bg-bg">
+          {/* master 70:599: bare bars — no background track; r=2 corners */}
+          <span className="relative h-3.5 flex-1 overflow-hidden rounded-[2px]">
             <span
-              className="absolute inset-y-0 left-0 rounded-[1px]"
+              className="absolute inset-y-0 left-0 rounded-[2px]"
               style={{
                 width: `${(entry.value / max) * 100}%`,
                 ...(patterns

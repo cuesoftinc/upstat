@@ -206,6 +206,7 @@ export default function ServiceDetailPage() {
       <section aria-label="Latency percentiles">
         <TimeseriesPanel
           title={`latency percentiles — ${service}`}
+          unit="ms"
           query={`metric:http.request.duration_ms service:${service} | p50(), p95(), p99()`}
           series={ts?.series ?? []}
           loading={latency.loading}
