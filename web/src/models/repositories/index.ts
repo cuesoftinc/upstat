@@ -22,6 +22,7 @@ import type {
   QueryRequest,
   QueryResult,
   RuleTestResult,
+  RumDrilldown,
   RumSummary,
   RumVitals,
   SavedView,
@@ -119,6 +120,9 @@ export const rumRepo = {
   vitals: (params: { from?: string; to?: string } = {}) =>
     http.get<RumVitals>(`/v1/rum/vitals${qs(params)}`),
   errors: () => http.get<ErrorGroup[]>("/v1/rum/errors"),
+  /** U6-2 drill-down — funnel + weekly-cohort retention. */
+  drilldown: (params: { from?: string; to?: string } = {}) =>
+    http.get<RumDrilldown>(`/v1/rum/drilldown${qs(params)}`),
 };
 
 /** Monitors / uptime checks (api.md §1 semantics over HTTP for the new IA). */
