@@ -15,7 +15,9 @@ export function SevChip({ sev, className }: SevChipProps) {
     <span
       data-sev={sev}
       className={clsx(
-        "font-ui inline-flex h-5 items-center rounded-(--radius) px-1.5 text-[11px] font-semibold",
+        // never wraps or shrinks — chips stay one line in tight chrome
+        // (390 banner regression fix 2026-07-20)
+        "font-ui inline-flex h-5 shrink-0 items-center whitespace-nowrap rounded-(--radius) px-1.5 text-[11px] font-semibold",
         sev === 1 && "bg-crit text-[#FFFFFF]", // raw white per the §2 on-crit note
         sev === 2 && "bg-warn text-on-brand",
         sev === 3 && "bg-bg-elev text-text-2 border border-border",
