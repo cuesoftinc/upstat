@@ -6,6 +6,7 @@
  * Views render controller state only; all mutations ride the controllers.
  */
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { APIKeyRow } from "@/components/ui/APIKeyRow";
 import { AlertChannelCard } from "@/components/ui/AlertChannelCard";
@@ -431,6 +432,57 @@ const PRIVACY_ROWS = [
   { label: "Raw IP addresses", value: "never stored" },
   { label: "Export & delete", value: "self-serve via API, org-scoped" },
 ];
+
+/* ------------------------------------------------------------------ */
+/* Status page (B7 builder handoff, [Designed 2026-07-20])              */
+/* ------------------------------------------------------------------ */
+
+export function StatusPageSection() {
+  return (
+    <section
+      aria-labelledby="status-page-heading"
+      className="flex flex-col gap-3"
+    >
+      <SectionHeading id="status-page-heading">Status page</SectionHeading>
+      <div className="flex items-center justify-between gap-4 rounded-(--radius) border border-border bg-bg-elev px-3 py-2">
+        <span className="text-[13px] leading-[1.45] text-text-2">
+          Branding, slug and the published component list
+        </span>
+        <Link
+          href="/dashboard/settings/status-page"
+          className="shrink-0 rounded-(--radius) border border-border px-3 py-1.5 text-[13px] text-text transition-colors duration-[var(--duration-fast)] hover:bg-bg"
+          data-testid="open-status-page-builder"
+        >
+          Open builder →
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Usage metering (B12 [Designed 2026-07-20], OBS-012)                  */
+/* ------------------------------------------------------------------ */
+
+export function UsageLinkSection() {
+  return (
+    <section aria-labelledby="usage-heading" className="flex flex-col gap-3">
+      <SectionHeading id="usage-heading">Usage metering</SectionHeading>
+      <div className="flex items-center justify-between gap-4 rounded-(--radius) border border-border bg-bg-elev px-3 py-2">
+        <span className="text-[13px] leading-[1.45] text-text-2">
+          Month-to-date ingestion per pillar
+        </span>
+        <Link
+          href="/dashboard/settings/usage"
+          className="shrink-0 rounded-(--radius) border border-border px-3 py-1.5 text-[13px] text-text transition-colors duration-[var(--duration-fast)] hover:bg-bg"
+          data-testid="open-usage"
+        >
+          View usage →
+        </Link>
+      </div>
+    </section>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* Appearance (theme-parity canon, SKILL.md 2026-07-19)                 */

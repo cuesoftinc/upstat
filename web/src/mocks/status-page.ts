@@ -28,21 +28,46 @@ export function buildStatusPage(
   slug: string,
   now = Date.now(),
 ): StatusPage {
-  // Public components = the active, unmuted checks (paused stays internal).
-  const components = db.monitors
-    .filter((m) => m.active && !m.muted)
-    .map((m) => {
-      const history = monitorHistory(m, now, db.outage);
-      return {
-        name: m.name,
-        status: m.status,
-        days: history.days,
-        uptime_pct: history.uptime_90d_pct,
-        // same latency source as the uptime pillar's cards — the page
-        // previously hardcoded 96ms and disagreed with /dashboard/uptime
-        p95_ms: m.last_response_time_ms,
-      };
-    });
+  // B7 builder document (Figma 331:12857): row order = public page order,
+  // display names from the builder, statuses from the mapped monitors.
+  // Orgs without a config publish their active, unmuted checks directly
+  // (the pre-builder construction — paused stays internal either way).
+  const components = db.statusPage
+    ? db.statusPage.components.map((row) => {
+        const monitor = db.monitors.find((m) => m.id === row.monitor_id);
+        if (!monitor) {
+          // unmapped row publishes as a nodata component, never a crash
+          return {
+            name: row.name,
+            status: "nodata" as const,
+            days: [],
+            uptime_pct: null,
+            p95_ms: null,
+          };
+        }
+        const history = monitorHistory(monitor, now, db.outage);
+        return {
+          name: row.name,
+          status: monitor.status,
+          days: history.days,
+          uptime_pct: history.uptime_90d_pct,
+          p95_ms: monitor.last_response_time_ms,
+        };
+      })
+    : db.monitors
+        .filter((m) => m.active && !m.muted)
+        .map((m) => {
+          const history = monitorHistory(m, now, db.outage);
+          return {
+            name: m.name,
+            status: m.status,
+            days: history.days,
+            uptime_pct: history.uptime_90d_pct,
+            // same latency source as the uptime pillar's cards — the page
+            // previously hardcoded 96ms and disagreed with /dashboard/uptime
+            p95_ms: m.last_response_time_ms,
+          };
+        });
 
   const incidents: StatusPageIncident[] = [...db.incidents]
     .sort((a, b) => {
@@ -64,7 +89,8 @@ export function buildStatusPage(
 
   return {
     slug,
-    org_name: db.org.name,
+    // the builder's "Page name" governs the public header when set
+    org_name: db.statusPage?.name ?? db.org.name,
     overall: overallFor(db),
     updated_at: iso(now),
     components,

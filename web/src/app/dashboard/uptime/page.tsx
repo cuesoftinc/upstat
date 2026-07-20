@@ -1,57 +1,30 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { Modal } from "@/components/ui/Modal";
 import { MonitorRow } from "@/components/ui/MonitorRow";
-import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { StatusPill } from "@/components/ui/StatusPill";
 import { UptimeCard } from "@/components/ui/UptimeCard";
-import type { MonitorType } from "@/models";
 import {
   monitorPillStatus,
   useMonitorsController,
   useUptimeCardsController,
 } from "@/controllers/monitors";
+import { useSyntheticsController } from "@/controllers/synthetics";
 import { ageLabel } from "@/controllers/shell";
 
 /**
  * B7 Synthetics & Uptime (Figma 130:2120) — UptimeCards + the check list
- * (MonitorRow states ×6, mute toggles); "New check" creates an HTTP check
- * (the absorbed monitor core).
+ * (MonitorRow states ×6, mute toggles) + the multi-step/browser Synthetic
+ * checks section (OBS-011); "New check" opens the B7 builder.
  */
 export default function UptimePage() {
   const router = useRouter();
   const ctrl = useMonitorsController();
   const cards = useUptimeCardsController(ctrl.data);
-  const [createOpen, setCreateOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [target, setTarget] = useState("");
-  const [type, setType] = useState<string | null>("website");
-  const [interval, setIntervalSec] = useState<string | null>("60");
-  const [error, setError] = useState<string | null>(null);
-  const [creating, setCreating] = useState(false);
-
-  const submit = async () => {
-    setCreating(true);
-    setError(null);
-    try {
-      const monitor = await ctrl.create({
-        name: name.trim(),
-        target: target.trim(),
-        type: (type ?? "website") as MonitorType,
-        interval_seconds: Number(interval ?? 60),
-      });
-      setCreateOpen(false);
-      router.push(`/dashboard/uptime/${monitor.id}`);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "could not create the check");
-    } finally {
-      setCreating(false);
-    }
-  };
+  const synthetics = useSyntheticsController();
 
   const monitorsById = new Map((ctrl.data ?? []).map((m) => [m.id, m]));
 
@@ -59,7 +32,10 @@ export default function UptimePage() {
     <div className="flex flex-col gap-6 px-6 py-5" data-testid="uptime-page">
       <header className="flex items-center justify-between">
         <h1 className="text-[20px] font-semibold">Synthetics &amp; Uptime</h1>
-        <Button onClick={() => setCreateOpen(true)} data-testid="new-check">
+        <Button
+          onClick={() => router.push("/dashboard/uptime/new")}
+          data-testid="new-check"
+        >
           New check
         </Button>
       </header>
@@ -92,6 +68,58 @@ export default function UptimePage() {
               />
             );
           })
+        )}
+      </section>
+
+      {/* B7 multi-step / browser checks (OBS-011, Figma 329:12262) */}
+      <section aria-labelledby="synthetics-heading">
+        <h2 id="synthetics-heading" className="mb-3 text-[16px] font-semibold">
+          Synthetic checks
+        </h2>
+        {synthetics.loading ? (
+          <Skeleton kind="line" />
+        ) : (synthetics.data ?? []).length === 0 ? (
+          <p className="rounded-(--radius) border border-border bg-bg-elev p-6 text-[13px] text-text-2">
+            No multi-step or browser checks yet — New check → Multi-step.
+          </p>
+        ) : (
+          <ul aria-label="Synthetic checks">
+            {(synthetics.data ?? []).map((check) => (
+              <li key={check.id} data-testid={`synthetic-${check.id}`}>
+                <Link
+                  href={`/dashboard/uptime/checks/${check.id}`}
+                  className="flex h-10 items-center gap-3 border-b border-border px-3 transition-colors duration-[var(--duration-fast)] ease-standard hover:bg-bg-elev"
+                >
+                  <StatusPill
+                    status={
+                      check.last_run_status === null
+                        ? "pending"
+                        : check.last_run_status === "pass"
+                          ? "ok"
+                          : "crit"
+                    }
+                    dotOnly
+                  />
+                  <span className="w-64 truncate text-[13px] font-medium text-text">
+                    {check.name}
+                  </span>
+                  <span className="font-data rounded-(--radius) border border-border px-1.5 py-0.5 text-[10px] tracking-wide text-text-2">
+                    {check.kind === "browser" ? "BROWSER" : "MULTI-STEP"}
+                  </span>
+                  <span className="font-data min-w-0 flex-1 truncate text-[12px] text-text-2">
+                    {check.steps.length} step
+                    {check.steps.length === 1 ? "" : "s"}
+                    {check.browser ? " · headless browser" : ""}
+                  </span>
+                  <span className="font-data text-[12px] text-text-2">
+                    {check.last_run_at
+                      ? `ran ${ageLabel(check.last_run_at)} ago`
+                      : "never run"}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         )}
       </section>
 
@@ -135,81 +163,6 @@ export default function UptimePage() {
           </ul>
         )}
       </section>
-
-      <Modal
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        title="New uptime check"
-        footer={
-          <>
-            <Button kind="quiet" onClick={() => setCreateOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => void submit()}
-              disabled={creating || !name.trim() || !target.trim()}
-              data-testid="create-check"
-            >
-              {creating ? "Creating…" : "Create check"}
-            </Button>
-          </>
-        }
-      >
-        <div className="flex flex-col gap-4">
-          <label className="flex flex-col gap-1 text-[13px]">
-            <span className="text-text-2">Name</span>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="api.cuesoft.io heartbeat"
-              data-testid="check-name"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-[13px]">
-            <span className="text-text-2">URL</span>
-            <Input
-              mono
-              value={target}
-              onChange={(e) => setTarget(e.target.value)}
-              placeholder="https://api.cuesoft.io/healthz"
-              data-testid="check-target"
-            />
-          </label>
-          <div className="grid grid-cols-2 gap-4">
-            <label className="flex flex-col gap-1 text-[13px]">
-              <span className="text-text-2">Check type</span>
-              <Select
-                options={[
-                  { value: "website", label: "Website" },
-                  { value: "api", label: "API" },
-                  { value: "server", label: "Server" },
-                ]}
-                value={type}
-                onValueChange={setType}
-                aria-label="Check type"
-              />
-            </label>
-            <label className="flex flex-col gap-1 text-[13px]">
-              <span className="text-text-2">Interval</span>
-              <Select
-                options={[
-                  { value: "30", label: "30s" },
-                  { value: "60", label: "60s" },
-                  { value: "300", label: "5m" },
-                ]}
-                value={interval}
-                onValueChange={setIntervalSec}
-                aria-label="Interval"
-              />
-            </label>
-          </div>
-          {error && (
-            <p role="alert" className="text-[13px] text-crit">
-              {error}
-            </p>
-          )}
-        </div>
-      </Modal>
     </div>
   );
 }

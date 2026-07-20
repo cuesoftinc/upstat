@@ -389,6 +389,70 @@ homepage-uptime rule carries a weekend maintenance mute so the bucket is
 visible from boot (`e2e/monitors-grouped.spec.ts`). Interpretation
 recorded as the pages.md B8 **[Decided 2026-07-20]** line.
 
+**Wave B as-built (2026-07-20) — B7 synthetics builder + status-page
+builder · B4 log patterns · B12 usage metering · B6 RUM drill-down.**
+(1) **B7 multi-step/browser checks (OBS-011)** — `/dashboard/uptime/new`
+is the check builder (type tabs HTTP / Multi-step / Browser; the HTTP tab
+stays the classic Monitor create, replacing the old modal): SyntheticStepRow
+step list (add via the quiet composer, delete, reorder via keyboard grip
+ArrowUp/Down + pointer drag) beside the browser-check panel (URL ·
+viewport Select · screenshot-on-failure Switch); "Run once" saves then
+executes. The run view (`/dashboard/uptime/checks/{id}`, `?run=` selects a
+run, latest by default) renders the StepResultRow timeline with
+stop-at-first-failure copy ("Steps n–m not run"), a failure-screenshot
+card when the browser stage captured one, a derived UptimeCard context
+(the monitor watching the first HTTP step's host) and the run history;
+edit/delete live at `…/edit`. Mock: `/v1/synthetics` CRUD +
+`/v1/synthetics/{id}/runs` deterministic replay (codes `name_required`,
+`invalid_kind`, `steps_required`, `invalid_step_kind`, `invalid_target`,
+`invalid_expression`, `invalid_wait`, `invalid_viewport`, `name_taken`);
+seeded "checkout flow — api + web" runs every 30m and its run #482 fails
+the `body.ok == true` assertion inside the INC-42 window (neighbours
+pass — MONITORING means mitigated). (2) **B7 status-page builder** —
+`/dashboard/settings/status-page` (linked from the settings overview):
+branding rows (page name · slug), StatusPageBuilderRow list (inline
+rename, monitor-mapping Select, delete, keyboard reorder; row order =
+public page order), public-URL preview + "Open public page →". Persists
+via `GET/PUT /v1/status-page` (`name_required`, `invalid_slug`,
+`slug_taken`, `component_name_required`, `monitor_not_found`);
+`buildStatusPage` renders the saved document, so names/order/page-name
+reflect on `/status/{slug}` immediately; orgs without a document keep the
+pre-builder derive-from-monitors construction; the store's `statusSlug`
+routing key mirrors the saved slug. (3) **B4 patterns tab (OBS-012)** —
+"Logs | Patterns" tabs above the stream (`?tab=patterns`, resolved
+post-mount per the NavRail pattern); LogPatternRow (count · 7-bucket
+trend sparkline · Mono template with dimmed `<placeholders>` ·
+dominant-level chip) expands to indented sample LogLines. Clustering runs
+in the mock (`GET /v1/logs/patterns`) over the SAME per-second generator
+as the stream (`logLinesAtSecond`, extracted from `generateLogs`);
+template extraction collapses numeric/hex/version values and
+known-variable `key=` values into placeholders; ranges beyond the 3600s
+enumeration budget sample every nth second with stride-scaled counts
+(`sampled: true`, rendered with `~`); shares the QueryBar/facet subset
+(service:/level:/free text) and the global time range (LIVE = last 15m).
+(4) **B12 usage metering (OBS-012)** — `/dashboard/settings/usage`:
+UsageMeterRow per pillar; the MTD values are honest derivations of the
+seed (metrics = Σ catalog cardinality; logs = 3 lines/s × seconds MTD ×
+measured mean line bytes; traces = the APM req/s series integrated hourly
+× mean seeded span count; RUM = the B6 summary's page-view math); bars
+scale to per-pillar trailing-3-month peaks (§8.2b); plan column verbatim
+"Self-host: unlimited · Cloud: announced at GA"; month boundaries + the
+heading month resolve in the org timezone (X-10). Mock `GET /v1/usage`.
+(5) **B6 RUM drill-down (U6-2)** — `/dashboard/rum/drilldown`, routed
+from the pillar header: FunnelStageCard chain (page views → sessions →
+conversions) with → connectors; page views/sessions are the summary's own
+numbers and conversions count the registered `auth_signin_completed`
+event (~9–13% of sessions, deterministic per bucket), with the definition
+labeled in-page; weekly cohort retention re-axises the Heatmap (8
+Monday-aligned cohorts × wk 0–6, % returning, unlived weeks blank);
+sessions panel + top pages/referrers TopLists share the summary read.
+Mock `GET /v1/rum/drilldown`. Unit tests pin every computation to the
+seed (clustering determinism + count conservation, usage sums recomputed
+from source, funnel/cohort math); `e2e/wave-b.spec.ts` walks all five
+surfaces (builder CRUD round-trip + Run once, seeded failing run,
+builder→public-page reflection, patterns expand, usage vs the API's own
+sums, funnel/cohort render).
+
 **Public API reference as-built (2026-07-20, ratified).** `/docs/api` is
 the public Scalar reference (X-2): the `@scalar/api-reference-react`
 embed (`ScalarApiReference` view inside `DocsApiView`) under the
@@ -483,16 +547,16 @@ order per pages.md Part B.
 | B1 first-run | `/dashboard/onboarding` | create-org (name + IANA timezone, X-10) → send-your-first-data (ingestion key + snippet + MI-16 waiting-for-data; resolves to `/dashboard` on first datapoint) |
 | B2 | `/dashboard/dashboards` · `/dashboard/dashboards/{id}` | List (org-shared, favorites) · grid editor (MI-11/12); create flow = name → widget-picker overlay → edit mode |
 | B3 | `/dashboard/metrics` · `/dashboard/metrics/summary` | Metrics explorer (QueryBar + MI-2/3, save-to-dashboard) · metrics catalog/tag explorer |
-| B4 | `/dashboard/logs` | Logs explorer — FacetSidebar + QueryBar + virtualized LogLine list + histogram (MI-4/5/6) |
+| B4 | `/dashboard/logs` | Logs explorer — FacetSidebar + QueryBar + virtualized LogLine list + histogram (MI-4/5/6) · `?tab=patterns` = the Patterns tab (LogPatternRow clusters, OBS-012) |
 | B5 | `/dashboard/traces` · `/dashboard/traces/services/{service}` · `/dashboard/traces/explorer` · `/dashboard/traces/map` | Service list · service page (endpoints, latency distribution, deps) · trace explorer + TraceWaterfall/span drawer (MI-7) · service map |
-| B6 | `/dashboard/rum` · `/dashboard/rum/new` | RUM/analytics (pages, vitals, errors) · property create (key issuance + SDK snippet) |
-| B7 | `/dashboard/uptime` · `/dashboard/uptime/{id}` | Uptime checks (the absorbed monitor core) · per-monitor page (90d strip, response-time chart, incidents, insight panel) |
+| B6 | `/dashboard/rum` · `/dashboard/rum/new` · `/dashboard/rum/drilldown` | RUM/analytics (pages, vitals, errors) · property create (key issuance + SDK snippet) · U6-2 drill-down (funnel, weekly cohort retention, top lists) |
+| B7 | `/dashboard/uptime` · `/dashboard/uptime/{id}` · `/dashboard/uptime/new` · `/dashboard/uptime/checks/{id}` (+ `/edit`) | Uptime checks (the absorbed monitor core) · per-monitor page (90d strip, response-time chart, incidents, insight panel) · synthetic check builder (HTTP / Multi-step / Browser tabs, OBS-011) · synthetic run view (`?run=` selects; StepResultRow timeline) + builder edit |
 | B7 public | `status.upstat.cuesoft.io/{slug}` → `/status/{slug}` | Public status page — host-based rewrite onto the same app **[Proposed]**; unauthenticated, deliberately outside `/dashboard` (a separate entry point, design.md §8.4) |
 | B8 | `/dashboard/monitors` · `/dashboard/monitors/new` · `/dashboard/monitors/{id}` | Monitors list + triggered feed (MI-14) · type picker → rule editor · detail with MI-9 test-replay frame |
 | B9 | `/dashboard/incidents` · `/dashboard/incidents/{id}` | Incident feed · timeline composer (MI-10); declare-incident is a modal, not a route |
 | B10 | `/dashboard/slos` | SLO list + define (SLI source, target, window) |
 | B11 | `/dashboard/services` | Service catalog (telemetry-presence, owner, repo/runbook) |
-| B12 | `/dashboard/settings` + sub-screens `/dashboard/settings/members` · `/dashboard/settings/keys` · `/dashboard/settings/properties` · `/dashboard/settings/integrations` · `/dashboard/settings/retention` · `/dashboard/settings/org` | Org/members/roles · API keys & ingestion tokens · property keys · integrations · retention per signal · org profile (IANA timezone, X-10) |
+| B12 | `/dashboard/settings` + sub-screens `/dashboard/settings/members` · `/dashboard/settings/keys` · `/dashboard/settings/properties` · `/dashboard/settings/integrations` · `/dashboard/settings/retention` · `/dashboard/settings/org` · `/dashboard/settings/status-page` · `/dashboard/settings/usage` | Org/members/roles · API keys & ingestion tokens · property keys · integrations · retention per signal · org profile (IANA timezone, X-10) · status-page builder (B7) · usage metering per pillar (OBS-012) |
 
 Part C (mobile on-call companion) has no web routes — later phase, out of
 W0–W3 (§8). Deep-linkable state rides the query string, not new routes:
@@ -551,6 +615,11 @@ even while the real backend is still gRPC (§8).
 | Keys | ingest-key CRUD (per-pillar scopes, quotas, 24h rotation grace) · property keys + origin allowlists + rejection counters (B12, U1-7) |
 | Org & members | org profile (name + IANA timezone, X-10) · members/roles per the engineering.md §2 matrix |
 | Status page (public) | status-page read by slug — powers `/status/{slug}` unauthenticated (B7; the `GetStatusPage` data shape) |
+| Status page (builder) | `GET/PUT /v1/status-page` — the B7 builder document (branding + ordered component list; `invalid_slug`, `slug_taken`, `monitor_not_found`); the public read renders it |
+| Synthetics | `/v1/synthetics` CRUD · `GET/POST /v1/synthetics/{id}/runs` + `GET …/runs/{runId}` — multi-step/browser checks with deterministic per-step run replay, stop-at-first-failure (OBS-011; step/browser validation codes) |
+| Log patterns | `GET /v1/logs/patterns` — deterministic template clustering over the stream's own line generator (B4 Patterns tab, OBS-012) |
+| Usage | `GET /v1/usage` — month-to-date meters per pillar, computed from the seeded telemetry volumes; org-timezone month boundaries (B12, OBS-012) |
+| RUM drill-down | `GET /v1/rum/drilldown` — funnel (page views → sessions → `auth_signin_completed` conversions) + weekly cohort retention (B6 U6-2) |
 
 **Seed narrative — the docs-coherent Figma dataset.** The store seeds the
 same mock content the Figma screens render (design.md §8.3 design-prep), so
@@ -585,7 +654,13 @@ a TEST_MODE boot looks like the designs:
   active/rotation-grace/revoked states and a property key with nonzero
   rejection counters.
 - **The public status page** seeded as slug `upstat` (U0-5) — components,
-  90-day strips, incident history.
+  90-day strips, incident history; its builder document (B7) seeds the
+  same five components mapped to the live monitors, so the pre-builder
+  page and the built one are byte-coherent.
+- **One multi-step synthetic check** ("checkout flow — api + web", five
+  steps + a browser stage) with a 30m run history whose run #482 FAILS the
+  `body.ok == true` assertion inside the INC-42 window and captures a
+  failure screenshot — neighbours pass (MONITORING = mitigated).
 - **A second, empty org** reachable from the TopBar org switcher — walks
   the B1 first-run onboarding and every pillar's MI-16 empty state without
   wiping the primary seed (the mock resolves waiting-for-data to populated

@@ -44,6 +44,38 @@ export interface RumVitals {
   series: { bucket: string; lcp_ms: number; cls: number; inp_ms: number }[];
 }
 
+/* ------------------------------------------------------------------ */
+/* Drill-down (U6-2, pages.md B6 [Designed 2026-07-20])                 */
+/* ------------------------------------------------------------------ */
+
+/** One FunnelStageCard (design.md §8.2b). */
+export interface FunnelStage {
+  key: string;
+  label: string;
+  count: number;
+  /** Share of the previous stage (first stage = 100). */
+  pct_of_previous: number;
+}
+
+export interface RumFunnel {
+  /** page views → sessions → conversions. */
+  stages: FunnelStage[];
+  /** The registered event counted as a conversion (api.md §3.4). */
+  conversion_event: string;
+}
+
+export interface RetentionCohort {
+  /** Cohort week start (Monday, ISO week). */
+  start: string;
+  /** % returning per week offset (index 0 = wk 0 = 100); 0 = not yet. */
+  values: number[];
+}
+
+export interface RumDrilldown {
+  funnel: RumFunnel;
+  retention: { weeks: number; cohorts: RetentionCohort[] };
+}
+
 export type ErrorGroupState = "new" | "ongoing" | "regressed";
 
 /** JS errors grouped by fingerprint (pages.md B6; ErrorGroupRow contract). */

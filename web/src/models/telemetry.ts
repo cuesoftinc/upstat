@@ -42,6 +42,27 @@ export interface LogQueryPage {
   facets: Record<string, { value: string; count: number }[]>;
 }
 
+/** One clustered message template (pages.md B4 Patterns tab, OBS-012). */
+export interface LogPattern {
+  /** Message shape with `<placeholders>` marking the clustered variables. */
+  template: string;
+  count: number;
+  dominant_level: LogLevel;
+  /** 7-bucket trend across the queried range, oldest → newest. */
+  trend: number[];
+  /** Up to 3 newest matching lines (the expand affordance). */
+  samples: LogEvent[];
+}
+
+export interface LogPatternsResult {
+  patterns: LogPattern[];
+  total_lines: number;
+  /** Width of one trend bucket. */
+  bucket_ms: number;
+  /** True when the range was sampled (counts scaled by the stride). */
+  sampled: boolean;
+}
+
 export type SpanStatus = "ok" | "error";
 
 /** Span — the ClickHouse `spans` row shape (data-model.md §5 DDL). */

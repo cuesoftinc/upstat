@@ -22,6 +22,9 @@ import type {
   SavedView,
   ServiceCatalogEntry,
   Slo,
+  StatusPageConfig,
+  SyntheticCheck,
+  SyntheticRun,
   TimelineEntry,
   Trace,
   TraceSummary,
@@ -37,6 +40,7 @@ import {
   nextId,
 } from "./util";
 import { SERVICES, type OutageWindow } from "./series";
+import { seedSynthetics } from "./synthetics";
 
 export const HERO_TRACE_ID = "9f86d081884c7d659a2feaa0c55ad015";
 
@@ -54,9 +58,19 @@ export interface MockDb {
   firstDataAtMs: number | null;
   /** Public status-page slug (pages.md B7 — owner-chosen, unique). */
   statusSlug: string | null;
+  /**
+   * Status-page builder document (B7 [Designed 2026-07-20]) — branding +
+   * ordered component list; `buildStatusPage` renders it. Null until the
+   * org publishes a page. `statusSlug` mirrors `statusPage.slug` (the
+   * routing key the public read resolves).
+   */
+  statusPage: StatusPageConfig | null;
   members: Member[];
   dashboards: Dashboard[];
   monitors: Monitor[];
+  synthetics: SyntheticCheck[];
+  /** Run history per synthetic check id, newest first. */
+  syntheticRuns: Record<string, SyntheticRun[]>;
   channels: AlertChannel[];
   rules: AlertRule[];
   alertFeed: AlertEvent[];
@@ -1045,6 +1059,11 @@ export function buildSeed(now: number): MockDb {
     },
   ];
 
+  const { checks: synthetics, runs: syntheticRuns } = seedSynthetics(
+    now,
+    outage,
+  );
+
   return {
     seededAt: now,
     outage,
@@ -1056,9 +1075,28 @@ export function buildSeed(now: number): MockDb {
     },
     firstDataAtMs: null,
     statusSlug: "upstat",
+    // U0-5: the slugged page over the live monitor set — row order is the
+    // public page order (B7 builder, Figma 331:12857)
+    statusPage: {
+      name: "Upstat",
+      slug: "upstat",
+      components: [
+        { id: "spc_homepage", name: "Homepage", monitor_id: "mon_homepage" },
+        { id: "spc_api", name: "API health", monitor_id: "mon_api" },
+        { id: "spc_status", name: "Status page", monitor_id: "mon_status" },
+        {
+          id: "spc_checkout",
+          name: "Checkout flow",
+          monitor_id: "mon_checkout",
+        },
+        { id: "spc_docs", name: "Docs", monitor_id: "mon_docs" },
+      ],
+    },
     members,
     dashboards,
     monitors,
+    synthetics,
+    syntheticRuns,
     channels,
     rules,
     alertFeed,
@@ -1141,6 +1179,7 @@ export function buildEmptySeed(
     onboarding: { org_created: true, has_data: false, ingest_key: ingestKey },
     firstDataAtMs: now + FIRST_DATA_DELAY_MS,
     statusSlug: null,
+    statusPage: null,
     members: [
       {
         id: "usr_ibukun",
@@ -1152,6 +1191,8 @@ export function buildEmptySeed(
     ],
     dashboards: [],
     monitors: [],
+    synthetics: [],
+    syntheticRuns: {},
     channels: [],
     rules: [],
     alertFeed: [],

@@ -87,7 +87,14 @@ export default function RumPage() {
           className="min-w-56"
         />
         <Button
+          kind="quiet"
           className="ml-auto"
+          onClick={() => router.push("/dashboard/rum/drilldown")}
+          data-testid="open-drilldown"
+        >
+          Drill-down →
+        </Button>
+        <Button
           onClick={() => router.push("/dashboard/rum/new")}
           data-testid="add-property"
         >
