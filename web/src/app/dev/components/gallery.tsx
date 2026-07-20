@@ -458,6 +458,17 @@ const TIMEZONES = [
   "UTC",
 ].map((tz) => ({ value: tz, label: tz }));
 
+const SELF_HOST_SNIPPET_TABS = [
+  {
+    label: "Docker Compose",
+    code: "git clone https://github.com/cuesoftinc/upstat\ncd upstat && docker compose up --build -d",
+  },
+  {
+    label: "Helm",
+    code: "git clone https://github.com/cuesoftinc/upstat\ncd upstat && helm install upstat deploy/helm",
+  },
+];
+
 const SNIPPET_TABS = [
   {
     label: "Go",
@@ -1535,6 +1546,17 @@ function GalleryAll() {
         </Cell>
         <Cell label="CodeSnippet + Tabs (Go/Python/Node/k8s, copy ✓)" grow>
           <CodeSnippet tabs={SNIPPET_TABS} className="max-w-[640px]" />
+        </Cell>
+        <Cell
+          label="CodeSnippet + Tabs, prompt mode (A14: Docker Compose | Helm)"
+          grow
+        >
+          <CodeSnippet
+            tabs={SELF_HOST_SNIPPET_TABS}
+            tabsLabel="Install method"
+            prompt
+            className="max-w-[640px]"
+          />
         </Cell>
         <Cell label="CloudVsSelfHostTable (A9)" grow>
           <CloudVsSelfHostTable className="max-w-[640px]" />

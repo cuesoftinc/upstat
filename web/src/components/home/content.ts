@@ -106,11 +106,24 @@ export const SELF_HOST_CHECKLIST = [
   "Helm chart for Kubernetes when you outgrow compose",
 ];
 
-export const COMPOSE_OUTPUT = [
-  "Pulling upstat images ......... done",
-  "ClickHouse + Postgres ready ... done",
-  "All 8 pillars live on :3000",
+/** A14 — the mirrored two-line self-host snippets (tabbed CodeSnippet,
+ *  Figma 413:2). Line 1 shared; line 2 is `make up` (compose) or the real
+ *  chart at deploy/helm. */
+export const SELF_HOST_SNIPPET_TABS: CodeSnippetTab[] = [
+  {
+    label: "Docker Compose",
+    code: "git clone https://github.com/cuesoftinc/upstat\ncd upstat && docker compose up --build -d",
+  },
+  {
+    label: "Helm",
+    code: "git clone https://github.com/cuesoftinc/upstat\ncd upstat && helm install upstat deploy/helm",
+  },
 ];
+
+/** A14 — shared muted caption under the snippet, visible in both tab
+ *  states (user-approved copy). */
+export const SELF_HOST_CAPTION =
+  "Compose ships MongoDB; the Helm chart expects yours (MONGO_URI). All 8 pillars come up on :3000.";
 
 export const ARCHITECTURE_FLOW = [
   "OTel SDK / collector",
