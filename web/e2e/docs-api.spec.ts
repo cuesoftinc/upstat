@@ -64,8 +64,13 @@ test.describe("API reference — /docs/api", () => {
     const layout = await page.evaluate(() => ({
       pageScrollable:
         document.documentElement.scrollHeight > window.innerHeight,
+      // <html>/<body> ARE the one coherent page scroller (their overflow
+      // propagates to the viewport — stylesheets may compute them "auto");
+      // only elements INSIDE the page count as competing scrollers.
       fullHeightInnerScrollers: [...document.querySelectorAll("*")].filter(
         (el) =>
+          el !== document.documentElement &&
+          el !== document.body &&
           el.scrollHeight > el.clientHeight + 10 &&
           ["auto", "scroll"].includes(getComputedStyle(el).overflowY) &&
           el.clientHeight >= window.innerHeight,
