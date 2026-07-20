@@ -1,7 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { Checkbox } from "./Checkbox";
 
@@ -23,7 +23,7 @@ export interface FacetGroupProps {
   className?: string;
 }
 
-/** FacetGroup — the §3 FacetSidebar group (naming per §8.2). */
+/** FacetGroup — the §3 FacetSidebar group (naming per §8.2, re-cut master 45:67). */
 export function FacetGroup({
   name,
   values,
@@ -39,23 +39,26 @@ export function FacetGroup({
 
   return (
     <div className={clsx("font-ui", className)} data-expanded={expanded}>
-      {/* master construction (B4 FacetGroup): chevron LEFT of the
-          lowercase medium 12px header — the uppercase/right-chevron
-          header was drift (adjudicated 2026-07-20) */}
       <button
         type="button"
         aria-expanded={expanded}
         onClick={() => setExpanded((e) => !e)}
-        className="flex w-full items-center gap-1.5 py-1.5 text-left"
+        className="flex w-full items-center justify-between gap-1.5 py-1.5 text-left"
       >
-        <ChevronDown
-          aria-hidden="true"
-          className={clsx(
-            "size-3.5 shrink-0 text-text-2 transition-transform duration-[var(--duration-fast)] ease-standard",
-            !expanded && "-rotate-90",
-          )}
-        />
-        <span className="text-[12px] font-medium text-text-2">{name}</span>
+        <span className="text-[12px] font-semibold uppercase tracking-wide text-text-2">
+          {name}
+        </span>
+        {expanded ? (
+          <ChevronDown
+            aria-hidden="true"
+            className="size-3.5 shrink-0 text-text-2"
+          />
+        ) : (
+          <ChevronRight
+            aria-hidden="true"
+            className="size-3.5 shrink-0 text-text-2"
+          />
+        )}
       </button>
       {expanded && (
         <ul className="flex flex-col">
@@ -83,14 +86,14 @@ export function FacetGroup({
           ))}
           {values.length > topN && (
             <li>
-              {/* master affordance copy: "Show 12 more" (remaining count,
-                  11px) — was "Show all N" at 12px */}
+              {/* master affordance copy: "Show all N" (total count, 11px,
+                  brand) */}
               <button
                 type="button"
                 onClick={() => setShowAll((s) => !s)}
                 className="py-1 text-[11px] text-brand hover:text-brand-deep"
               >
-                {showAll ? "Show less" : `Show ${values.length - topN} more`}
+                {showAll ? "Show less" : `Show all ${values.length}`}
               </button>
             </li>
           )}

@@ -60,6 +60,59 @@ describe("TimeseriesPanel", () => {
     expect(labels).toEqual(["0", "50 ms", "100 ms", "150 ms"]);
   });
 
+  it("a count() aggregation is unitless — it must not sniff `_ms` off the metric name", () => {
+    const countSeries: Series[] = [
+      {
+        name: "count(http.request.duration_ms)",
+        tags: {},
+        points: SERIES[0].points,
+      },
+    ];
+    const { container } = render(
+      <TimeseriesPanel
+        title="t"
+        query="metric:http.request.duration_ms | count()"
+        series={countSeries}
+      />,
+    );
+    const labels = Array.from(container.querySelectorAll("svg g text")).map(
+      (t) => t.textContent,
+    );
+    // same nice ladder as the p95 case, but bare — no " ms" suffix anywhere
+    expect(labels).toEqual(["0", "50", "100", "150"]);
+  });
+
+  it("uniq() (count-distinct per the grammar) is also unitless", () => {
+    // adversarial: the field name itself carries `_ms` — the outer fn still wins
+    const uniqSeries: Series[] = [
+      { name: "uniq(request_duration_ms)", tags: {}, points: SERIES[0].points },
+    ];
+    const { container } = render(
+      <TimeseriesPanel title="t" series={uniqSeries} />,
+    );
+    const labels = Array.from(container.querySelectorAll("svg g text")).map(
+      (t) => t.textContent,
+    );
+    expect(labels.some((l) => l?.endsWith(" ms"))).toBe(false);
+  });
+
+  it("an explicit unit prop still overrides the count() guard", () => {
+    const countSeries: Series[] = [
+      {
+        name: "count(http.request.duration_ms)",
+        tags: {},
+        points: SERIES[0].points,
+      },
+    ];
+    const { container } = render(
+      <TimeseriesPanel title="t" unit="req" series={countSeries} />,
+    );
+    const labels = Array.from(container.querySelectorAll("svg g text")).map(
+      (t) => t.textContent,
+    );
+    expect(labels).toEqual(["0", "50 req", "100 req", "150 req"]);
+  });
+
   it("shows axis-first loading and radar empty states (MI-16)", () => {
     const { container, rerender } = render(
       <TimeseriesPanel title="t" series={[]} loading />,
