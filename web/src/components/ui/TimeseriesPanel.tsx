@@ -8,6 +8,7 @@ import {
   seriesDash,
   useColorVision,
 } from "@/design/ColorVisionProvider";
+import { plotScale } from "@/design/chart-scale";
 import { ChartDataTable, ChartTableToggle } from "./ChartTable";
 import { EmptyState } from "./EmptyState";
 import { Skeleton } from "./Skeleton";
@@ -46,21 +47,40 @@ export interface TimeseriesPanelProps {
    * WidgetShell provides the chrome when the panel is a dashboard widget.
    */
   chrome?: boolean;
+  /**
+   * Y-label unit suffix ("600 ms" ladder, master 50:407; zero stays bare).
+   * Defaults to a sniff of the series/query metric name (`*_ms` → "ms").
+   */
+  unit?: string;
   className?: string;
 }
 
-const PLOT_W = 600;
-const PAD_L = 44;
-const PAD_B = 18;
-const PAD_T = 6;
+/** Plot geometry — exported so ReplayPanel's overlay math shares it. */
+export const PLOT_W = 600;
+export const PAD_L = 56; // fits unit-suffixed labels ("600 ms")
+export const PAD_R = 8;
+export const PAD_B = 18;
+export const PAD_T = 6;
 
 function seriesColor(i: number): string {
   return `var(--color-series-${(i % 8) + 1})`;
 }
 
-function formatValue(v: number): string {
-  if (Math.abs(v) >= 1000) return `${(v / 1000).toFixed(1)}k`;
-  return v % 1 === 0 ? String(v) : v.toFixed(1);
+function formatValue(v: number, unit?: string): string {
+  const compact =
+    Math.abs(v) >= 1000
+      ? `${(v / 1000).toFixed(1)}k`
+      : v % 1 === 0
+        ? String(v)
+        : v.toFixed(1);
+  // unit suffix per the master ladder — the zero tick stays bare "0"
+  return unit && v !== 0 ? `${compact} ${unit}` : compact;
+}
+
+/** Unit sniff for the default: seeded metric names carry `*_ms`. */
+function deriveUnit(series: Series[], query?: string): string | undefined {
+  const haystack = `${series[0]?.name ?? ""} ${query ?? ""}`;
+  return /_ms\b/.test(haystack) ? "ms" : undefined;
 }
 
 function formatTime(ts: string): string {
@@ -77,7 +97,18 @@ function formatTime(ts: string): string {
  */
 function legendLabel(name: string): string {
   const idx = name.indexOf(") ");
-  return idx === -1 ? name : name.slice(idx + 2);
+  if (idx === -1) return name;
+  // The master's label idiom keeps only the tag VALUES ("api-common", not
+  // "service:api-common") — for by-<tag> groups the key is shared by every
+  // entry, so it distinguishes nothing (adjudicated 2026-07-20).
+  return name
+    .slice(idx + 2)
+    .split(/\s+/)
+    .map((pair) => {
+      const colon = pair.indexOf(":");
+      return colon === -1 ? pair : pair.slice(colon + 1);
+    })
+    .join(" ");
 }
 
 /**
@@ -100,6 +131,7 @@ export function TimeseriesPanel({
   onZoomRange,
   onZoomReset,
   chrome = true,
+  unit: unitProp,
   className,
 }: TimeseriesPanelProps) {
   const [hidden, setHidden] = useState<Set<string>>(new Set());
@@ -118,26 +150,25 @@ export function TimeseriesPanel({
 
   const visible = series.filter((s) => !hidden.has(s.name));
   const plotH = height;
-  const innerW = PLOT_W - PAD_L - 8;
+  const innerW = PLOT_W - PAD_L - PAD_R;
   const innerH = plotH - PAD_T - PAD_B;
+  const unit = unitProp ?? deriveUnit(series, query);
 
-  const { min, max } = useMemo(() => {
-    let lo = Infinity;
-    let hi = -Infinity;
-    for (const s of visible) {
-      for (const p of s.points) {
-        if (p.value === null) continue;
-        lo = Math.min(lo, p.value);
-        hi = Math.max(hi, p.value);
-      }
-    }
-    if (!Number.isFinite(lo)) return { min: 0, max: 1 };
-    if (lo === hi) return { min: lo - 1, max: hi + 1 };
-    return { min: Math.min(lo, 0), max: hi * 1.05 };
-  }, [visible]);
+  // 4 zero-based nice ticks per the master ladder (0/200/400/600 ms —
+  // Figma 50:407; the [0, 0.5, 1] max/mid/min axis was drift)
+  const { ticks, domainMin, domainMax } = useMemo(
+    () =>
+      plotScale(
+        visible.flatMap((s) =>
+          s.points.flatMap((p) => (p.value === null ? [] : [p.value])),
+        ),
+      ),
+    [visible],
+  );
 
   const x = (i: number, n: number) => PAD_L + (i / Math.max(n - 1, 1)) * innerW;
-  const y = (v: number) => PAD_T + innerH - ((v - min) / (max - min)) * innerH;
+  const y = (v: number) =>
+    PAD_T + innerH - ((v - domainMin) / (domainMax - domainMin)) * innerH;
 
   const n = visible[0]?.points.length ?? 0;
   const cursorIndex =
@@ -208,7 +239,7 @@ export function TimeseriesPanel({
     };
     visible.forEach((s, si) => {
       const v = s.points[ri]?.value;
-      row[`s${si}`] = v === null || v === undefined ? null : formatValue(v);
+      row[`s${si}`] = v === null || v === undefined ? null : formatValue(v, unit);
     });
     return row;
   });
@@ -290,32 +321,30 @@ export function TimeseriesPanel({
           onDoubleClick={onZoomReset}
           data-testid="timeseries-plot"
         >
-          {/* y grid + axis labels (11px, §2 ramp) */}
-          {[0, 0.5, 1].map((t) => {
-            const v = min + (max - min) * t;
-            return (
-              <g key={t}>
-                <line
-                  x1={PAD_L}
-                  x2={PLOT_W - 8}
-                  y1={y(v)}
-                  y2={y(v)}
-                  stroke="var(--color-border)"
-                  strokeWidth={1}
-                />
-                <text
-                  x={PAD_L - 6}
-                  y={y(v) + 3}
-                  textAnchor="end"
-                  fontSize={11}
-                  fill="var(--color-text-2)"
-                  className="font-data tabular-nums"
-                >
-                  {formatValue(v)}
-                </text>
-              </g>
-            );
-          })}
+          {/* y grid + axis labels (11px, §2 ramp) — 4 zero-based unit-
+              suffixed ticks per the master (50:407) */}
+          {ticks.map((v) => (
+            <g key={v}>
+              <line
+                x1={PAD_L}
+                x2={PLOT_W - PAD_R}
+                y1={y(v)}
+                y2={y(v)}
+                stroke="var(--color-border)"
+                strokeWidth={1}
+              />
+              <text
+                x={PAD_L - 6}
+                y={y(v) + 3}
+                textAnchor="end"
+                fontSize={11}
+                fill="var(--color-text-2)"
+                className="font-data tabular-nums"
+              >
+                {formatValue(v, unit)}
+              </text>
+            </g>
+          ))}
 
           {/* x-axis time labels (mono 11, §2 ramp — Figma 50:100) */}
           {visible[0] &&
@@ -486,7 +515,7 @@ export function TimeseriesPanel({
               )}
               {s.points[cursorIndex]?.value === null
                 ? "—"
-                : formatValue(s.points[cursorIndex]?.value ?? 0)}
+                : formatValue(s.points[cursorIndex]?.value ?? 0, unit)}
             </span>
           ))}
         </div>

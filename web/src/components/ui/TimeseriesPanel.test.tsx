@@ -39,6 +39,16 @@ describe("TimeseriesPanel", () => {
     expect(screen.getByText("Waiting for data…")).toBeInTheDocument();
   });
 
+  it("y axis: zero-based nice ticks with the unit suffix (master 50:407)", () => {
+    render(<TimeseriesPanel title="t" series={SERIES} />);
+    // values 100..119 → nice ladder 0 / 50 / 100 / 150; unit sniffed from
+    // the `*_ms` metric name; the zero tick stays bare "0"
+    for (const label of ["50 ms", "100 ms", "150 ms"]) {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    }
+    expect(screen.getByText("0")).toBeInTheDocument();
+  });
+
   it("renders bars and area modes", () => {
     const { container, rerender } = render(
       <TimeseriesPanel title="t" series={SERIES} mode="bars" />,
@@ -57,8 +67,10 @@ describe("TimeseriesPanel", () => {
     }));
     render(<TimeseriesPanel title="t" series={grouped} />);
     // right-truncating the full names rendered N identical legend entries;
-    // the discriminating suffix is the label, the full name is the tooltip
-    const label = screen.getByText("service:api-common");
+    // the discriminating tag VALUE is the label (master idiom, adjudicated
+    // 2026-07-20 — the shared "service:" key prefix distinguishes nothing);
+    // the full name is the tooltip
+    const label = screen.getByText("api-common");
     expect(label).toBeInTheDocument();
     expect(label.closest("button")).toHaveAttribute(
       "title",

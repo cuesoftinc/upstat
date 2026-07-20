@@ -6,16 +6,17 @@
  * would-have-fired markers) and the firing summary.
  */
 
-import { TimeseriesPanel } from "@/components/ui/TimeseriesPanel";
+import {
+  PAD_B,
+  PAD_L,
+  PAD_R,
+  PAD_T,
+  PLOT_W,
+  TimeseriesPanel,
+} from "@/components/ui/TimeseriesPanel";
 import { ThresholdOverlay } from "@/components/ui/ThresholdOverlay";
+import { plotScale } from "@/design/chart-scale";
 import type { RuleTestResult } from "@/models";
-
-/** TimeseriesPanel plot geometry (kept in sync with the component). */
-const PLOT_W = 600;
-const PAD_L = 44;
-const PAD_R = 8;
-const PAD_T = 6;
-const PAD_B = 18;
 
 export function ReplayPanel({
   result,
@@ -28,7 +29,11 @@ export function ReplayPanel({
   const values = result.series.flatMap((s) =>
     s.points.map((p) => p.value ?? 0),
   );
-  const max = Math.max(...values, 1) * 1.05;
+  // Same domain rule as the panel's own axis (plotScale) so the overlay's
+  // threshold fractions land on the plotted gridlines.
+  const { domainMin, domainMax } = plotScale(values);
+  const yFrac = (v: number) =>
+    Math.min(Math.max((v - domainMin) / (domainMax - domainMin), 0), 1);
   const fromMs = points.length > 0 ? Date.parse(points[0].ts) : 0;
   const toMs = points.length > 0 ? Date.parse(points[points.length - 1].ts) : 1;
   const span = Math.max(toMs - fromMs, 1);
@@ -61,10 +66,10 @@ export function ReplayPanel({
           <ThresholdOverlay
             warnFrom={
               result.thresholds.warn !== null
-                ? Math.min(result.thresholds.warn / max, 1)
+                ? yFrac(result.thresholds.warn)
                 : undefined
             }
-            critFrom={Math.min(result.thresholds.crit / max, 1)}
+            critFrom={yFrac(result.thresholds.crit)}
             markers={result.markers.map(frac)}
           />
         </div>
