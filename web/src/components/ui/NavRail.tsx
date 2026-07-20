@@ -22,6 +22,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "@/controllers/use-media-query";
 import { Avatar } from "./Avatar";
+import { BrandMark } from "./BrandMark";
 
 export interface NavRailItemProps {
   icon: LucideIcon;
@@ -215,19 +216,16 @@ function RailBody({
   const byKey = new Map(NAV_PILLARS.map((p) => [p.key, p]));
   return (
     <>
+      {/* head: bolt + wordmark (BrandMark — systemic adjudication
+          2026-07-20; the "U" tile is retired) */}
       <span
         aria-hidden="true"
         className={clsx(
-          "font-ui mb-2 flex h-8 items-center gap-2",
-          expanded ? "px-1" : "justify-center",
+          "font-ui mb-2 flex h-8 items-center",
+          expanded ? "px-1.5" : "justify-center",
         )}
       >
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-(--radius) bg-brand text-[14px] font-semibold text-on-brand">
-          U
-        </span>
-        {expanded && (
-          <span className="text-[14px] font-semibold text-text">upstat</span>
-        )}
+        <BrandMark wordmark={expanded} className="text-[14px]" />
       </span>
 
       {NAV_SECTIONS.map((section) => (

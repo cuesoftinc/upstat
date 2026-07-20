@@ -157,10 +157,13 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
 
   it("accuracy: MIT copy present, no fabricated pricing", () => {
     renderHome();
+    // the MIT mention lives in the legal bar (the brand tagline is the
+    // master 290:2 line, no license copy)
     expect(
-      screen.getByText(
-        /Open-source observability by CueLABS™\. MIT licensed\./,
-      ),
+      screen.getByRole("link", { name: "MIT License" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("All your telemetry. One open platform."),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
