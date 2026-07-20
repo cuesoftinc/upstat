@@ -37,6 +37,7 @@ import type {
   TimelineEntry,
   Trace,
   TraceSummary,
+  UsageReport,
   Widget,
 } from "..";
 
@@ -248,6 +249,11 @@ export const keysRepo = {
   }) => http.post<ApiKeyWithSecret>("/v1/keys", input),
   rotate: (id: string) => http.post<ApiKeyWithSecret>(`/v1/keys/${id}/rotate`),
   revoke: (id: string) => http.delete(`/v1/keys/${id}`),
+};
+
+/** Usage metering per pillar (pages.md B12, OBS-012). */
+export const usageRepo = {
+  report: () => http.get<UsageReport>("/v1/usage"),
 };
 
 /** Members & roles (pages.md B12). */

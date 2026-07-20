@@ -6,6 +6,7 @@ export * from "./telemetry";
 export * from "./rum";
 export * from "./monitors";
 export * from "./synthetics";
+export * from "./usage";
 export * from "./alerts";
 export * from "./incidents";
 export * from "./slos";
