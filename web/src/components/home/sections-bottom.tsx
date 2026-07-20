@@ -5,14 +5,7 @@
  * (A13), community (A8), FAQ (A15), final CTA band (A16).
  */
 
-import {
-  Activity,
-  BookOpen,
-  Check,
-  ExternalLink,
-  FileText,
-  FlaskConical,
-} from "lucide-react";
+import { Activity, Check, FileText, Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
@@ -68,12 +61,14 @@ export function SelfHostSection({ onSelfHostDocs }: SelfHostSectionProps) {
               </li>
             ))}
           </ul>
+          {/* label-copy hyperlink, no raw URLs ([Revised 2026-07-19] rule;
+              canvas 135:763) — destination stays the ratified GitBook guide */}
           <a
             href={SELF_HOST_DOCS_URL}
             onClick={onSelfHostDocs}
             className="text-[13px] font-medium text-brand transition-colors duration-[var(--duration-fast)] hover:text-brand-deep"
           >
-            Self-host guide: cuesoft.gitbook.io/upstat/system/deployment →
+            Self-host guide — step-by-step deploy docs →
           </a>
         </div>
 
@@ -174,25 +169,26 @@ export function CloudSelfHostSection({
             </span>
           </code>
           {/* CTA-dedupe canon (2026-07-19): GitHub/Discord conversion lives in
-              the nav badge, A13 and the footer — this section carries
-              differentiated real destinations instead */}
+              the nav badge, A13 and the footer — this column carries the A9
+              docs deep-link rows per the canvas (135:763 + 259:3474); the
+              public-status card lives in A8 */}
+          <a
+            href={SELF_HOST_DOCS_URL}
+            className="flex items-center gap-2.5 text-[13px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
+          >
+            <FileText
+              aria-hidden="true"
+              className="size-6 shrink-0 text-text"
+            />
+            Self-host guide — step-by-step deploy docs →
+          </a>
           <a
             href={QUERY_GRAMMAR_DOCS_URL}
             className="flex items-center gap-2.5 text-[13px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
           >
-            <BookOpen
-              aria-hidden="true"
-              className="size-6 shrink-0 text-text"
-            />
-            Query grammar — the one grammar across logs, metrics and traces
+            <Search aria-hidden="true" className="size-6 shrink-0 text-text" />
+            Query grammar — one grammar across all eight pillars →
           </a>
-          <Link
-            href="/status/upstat"
-            className="flex items-center gap-2.5 text-[13px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
-          >
-            <Activity aria-hidden="true" className="size-6 shrink-0 text-ok" />
-            /status/upstat — we run upstat on upstat, publicly
-          </Link>
         </div>
       </div>
     </Section>
@@ -277,30 +273,33 @@ export function DevelopersSection({ onGithub }: DevelopersSectionProps) {
 export function CommunitySection() {
   return (
     <Section id="community" title="Community">
-      {/* CTA-dedupe canon (2026-07-19): the GitHub/Discord pair lives in A13 —
-          this section points at the lab and the docs instead */}
+      {/* CTA-dedupe canon (2026-07-19): the GitHub/Discord pair lives in A13.
+          A8 per the UPDATED canvas (225:11191, pages.md A8 ratified): the
+          CARD is the public-status card ("we run upstat on upstat" +
+          View live →); CueLABS™ moves to a link row beside the roadmap. */}
       <div className="grid items-start gap-12 lg:grid-cols-[1fr_480px]">
-        <a
-          href={CUELABS_URL}
+        <Link
+          href="/status/upstat"
+          data-testid="a8-status-card"
           className="flex items-start gap-4 rounded-(--radius) border border-border bg-bg-elev p-4 transition-colors duration-[var(--duration-base)] hover:border-text-2"
         >
-          <FlaskConical
+          <Activity
             aria-hidden="true"
-            className="mt-1 size-7 shrink-0 text-brand"
+            className="mt-1 size-7 shrink-0 text-text"
           />
           <span className="flex min-w-0 flex-1 flex-col gap-1">
             <span className="text-[14px] font-semibold text-text">
-              CueLABS™ — more open-source software from Cuesoft
+              Public status — we run upstat on upstat
             </span>
-            <span className="text-[13px] text-text-2">
-              The division upstat ships from — see what else is built in the
-              open.
+            <span className="text-[12px] leading-[1.45] text-text-2">
+              Live uptime and incident history at
+              upstat.cuesoft.io/status/upstat — we run upstat on upstat.
             </span>
           </span>
-          <span className="shrink-0 text-[13px] font-medium text-brand">
-            Explore →
+          <span className="shrink-0 text-[12px] font-medium text-brand">
+            View live →
           </span>
-        </a>
+        </Link>
         <div className="flex flex-col gap-4 lg:pt-2">
           <a
             href={ROADMAP_URL}
@@ -309,11 +308,10 @@ export function CommunitySection() {
             Public roadmap →
           </a>
           <a
-            href={SELF_HOST_DOCS_URL}
-            className="flex items-center gap-1.5 text-[13px] font-medium text-brand transition-colors duration-[var(--duration-fast)] hover:text-brand-deep"
+            href={CUELABS_URL}
+            className="text-[13px] font-medium text-brand transition-colors duration-[var(--duration-fast)] hover:text-brand-deep"
           >
-            Self-host guide — run it on your infrastructure
-            <ExternalLink aria-hidden="true" className="size-3.5" />
+            CueLABS™ — more open-source software from Cuesoft →
           </a>
         </div>
       </div>

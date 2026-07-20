@@ -76,13 +76,17 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
       ),
     ).toBeInTheDocument();
     // A8 community
-    // CTA-dedupe canon: A13 keeps the one GitHub+Discord pair; A8 points at
-    // the lab + docs instead
+    // CTA-dedupe canon: A13 keeps the one GitHub+Discord pair; A8 carries
+    // the public-status card (canvas 225:11191) + CueLABS™/roadmap links
     expect(
       screen.getByText("Discord — #upstat-lab on the CueLABS™ server"),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("CueLABS™ — more open-source software from Cuesoft"),
+      screen.getByText("Public status — we run upstat on upstat"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("View live →")).toBeInTheDocument();
+    expect(
+      screen.getByText("CueLABS™ — more open-source software from Cuesoft →"),
     ).toBeInTheDocument();
     // A15 FAQ + A16 CTA band
     expect(screen.getByText("Questions, answered.")).toBeInTheDocument();
