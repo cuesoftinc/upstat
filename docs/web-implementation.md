@@ -676,12 +676,12 @@ on it:
    server — `/api/mock/v1/*` mirrors the `/v1/*` surface path-for-path, so
    repositories are identical in both modes except for the base URL.
 
-Unset (or `0`) → real `FirebaseAuthProvider` + `NEXT_PUBLIC_BASE_URL`
-(api/common HTTP). The new app consumes **HTTP/JSON only** (U-5/X-8 — no
-new gRPC-Web surface); until monitors-v2 lands, the real-backend monitor
-path is bridged inside the models seam (§8), never in views. TEST_MODE is
-how Playwright runs in CI and how W1–W3 are built before the backend
-surfaces exist.
+Unset (or `0`) → real `FirebaseAuthProvider` + the real API base from
+`NEXT_PUBLIC_API_BASE` (api/common HTTP). The new app consumes **HTTP/JSON
+only** (U-5/X-8 — no new gRPC-Web surface); until monitors-v2 lands, the
+real-backend monitor path is bridged inside the models seam (§8), never in
+views. TEST_MODE is how Playwright runs in CI and how W1–W3 are built
+before the backend surfaces exist.
 
 ## 6. Mock server & seed narrative
 
