@@ -29,7 +29,8 @@ export default function DashboardHomePage() {
       >
         {tiles.loading || !tiles.data
           ? Array.from({ length: 4 }, (_, i) => (
-              <Skeleton key={i} kind="value" />
+              // frame reserves the hydrated QueryValue footprint (CLS)
+              <Skeleton key={i} kind="frame" className="h-(--widget-h-value)" />
             ))
           : tiles.data.map((tile) => (
               <QueryValue
@@ -51,7 +52,16 @@ export default function DashboardHomePage() {
             Watched dashboards
           </h2>
           {dashboards.loading ? (
-            <Skeleton kind="line" />
+            // one frame per seeded row height — the list swaps in place
+            <div className="flex flex-col">
+              {Array.from({ length: 3 }, (_, i) => (
+                <Skeleton
+                  key={i}
+                  kind="frame"
+                  className="h-(--widget-h-row) rounded-none border-x-0 border-t-0"
+                />
+              ))}
+            </div>
           ) : watched.length === 0 ? (
             <p className="text-[13px] leading-[1.45] text-text-2">
               No dashboards yet —{" "}
@@ -89,7 +99,15 @@ export default function DashboardHomePage() {
             Triggered monitors
           </h2>
           {feed.loading ? (
-            <Skeleton kind="line" />
+            <div className="flex flex-col">
+              {Array.from({ length: 6 }, (_, i) => (
+                <Skeleton
+                  key={i}
+                  kind="frame"
+                  className="h-(--widget-h-feed-row) rounded-none border-x-0 border-t-0"
+                />
+              ))}
+            </div>
           ) : (feed.data ?? []).length === 0 ? (
             <p className="text-[13px] leading-[1.45] text-text-2">
               Quiet — nothing has triggered.
@@ -117,7 +135,11 @@ export default function DashboardHomePage() {
         {slos.loading ? (
           <div className="grid gap-4 md:grid-cols-3">
             {Array.from({ length: 3 }, (_, i) => (
-              <Skeleton key={i} kind="value" />
+              <Skeleton
+                key={i}
+                kind="frame"
+                className="h-(--widget-h-slo) max-w-64"
+              />
             ))}
           </div>
         ) : (slos.data ?? []).length === 0 ? (

@@ -199,8 +199,16 @@ function ShellChrome({ children }: { children: ReactNode }) {
           )}
         </div>
 
-        {/* MI-14: persistent banner while a sev1/2 incident is open */}
-        {banner && (
+        {/* MI-14: persistent banner while a sev1/2 incident is open. While
+            incidents load, hold the banner's slot — the banner mounting
+            above <main> pushed every route's content down a beat after
+            first paint (CLS perf pass 2026-07-21) */}
+        {shell.incidents.loading ? (
+          <div
+            aria-hidden="true"
+            className="h-(--widget-h-banner) shrink-0 border-b border-border"
+          />
+        ) : banner ? (
           <IncidentBanner
             sev={Math.min(banner.sev, 3) as Sev}
             title={`${banner.key} — ${banner.title}`}
@@ -208,7 +216,7 @@ function ShellChrome({ children }: { children: ReactNode }) {
             responders={[banner.roles.commander, ...banner.roles.responders]}
             onClick={() => router.push(`/dashboard/incidents/${banner.id}`)}
           />
-        )}
+        ) : null}
 
         <main id="main" className="min-w-0 flex-1 overflow-y-auto">
           {/* Suspense above every page: screens read useSearchParams (deep

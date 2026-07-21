@@ -102,8 +102,12 @@ export default function MetricsExplorerPage() {
         </div>
       </header>
 
-      {/* saved views morph the QueryBar into named chips (MI-18) */}
-      {(ctrl.views.data ?? []).length > 0 && (
+      {/* saved views morph the QueryBar into named chips (MI-18); while
+          loading, hold the chip row's slot — the row materializing pushed
+          the whole explorer down a beat after paint (CLS) */}
+      {ctrl.views.loading ? (
+        <div className="h-(--widget-h-chip-row)" aria-hidden="true" />
+      ) : (ctrl.views.data ?? []).length > 0 ? (
         <ul
           aria-label="Saved views"
           className="flex flex-wrap items-center gap-2"
@@ -119,7 +123,7 @@ export default function MetricsExplorerPage() {
             </li>
           ))}
         </ul>
-      )}
+      ) : null}
 
       <QueryBar
         pills={ctrl.queryState.pills}
@@ -143,12 +147,18 @@ export default function MetricsExplorerPage() {
       <div className="flex min-h-0 flex-1 flex-col gap-5 lg:flex-row">
         {/* FacetSidebar (MI-6) */}
         <aside aria-label="Facets" className="w-full shrink-0 lg:w-52">
+          {/* min-h holds the seeded 8-row group while services load — the
+              facet list growing in pushed the env group + stacked-mobile
+              chart down after paint (CLS) */}
           <FacetGroup
             name="service"
             values={serviceFacets}
             selected={selectedServices}
             onToggle={(value) => ctrl.pivot("service", value)}
             topN={8}
+            className={
+              services.loading ? "min-h-(--widget-h-facets)" : undefined
+            }
           />
           <FacetGroup
             name="env"

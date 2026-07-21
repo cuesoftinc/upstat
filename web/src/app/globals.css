@@ -99,6 +99,37 @@
   }
 }
 
+/*
+ * Widget-frame reserve heights (perf pass 2026-07-21, CLS < 0.1 budget):
+ * every §8.1 loading frame reserves its hydrated size so the skeleton →
+ * data swap never moves layout. Values are the RENDERED sizes of the
+ * seeded widgets (desktop, TEST_MODE prod build) — re-derive by measuring
+ * if a widget's construction changes. Consumed as `min-h-(--widget-h-*)` /
+ * `h-(--widget-h-*)`; no per-page magic numbers.
+ */
+:root {
+  /* NavRail width — resolved PRE-PAINT by navRailInitScript (NavRail.tsx):
+     html[data-nav-expanded] flips it, so the app frame never paints
+     collapsed and then slides open (the 56→240px entrance moved every
+     dashboard's content column — the fleet's worst CLS source). */
+  --nav-rail-w: 56px;
+
+  --widget-h-value: 117px; /* QueryValue stat tile (label + 28 value + spark) */
+  --widget-h-row: 40px; /* DashboardListRow */
+  --widget-h-feed-row: 32px; /* AlertFeedRow */
+  --widget-h-slo: 119px; /* SLOCard */
+  --widget-h-rule: 101px; /* AlertRuleCard */
+  --widget-h-channel: 67px; /* AlertChannelCard */
+  --widget-h-editor: 503px; /* B8 rule-editor panel (form + inline replay) */
+  --widget-h-chip-row: 28px; /* SavedViewChip row */
+  --widget-h-facets: 195px; /* FacetGroup, 8 rows + show-all affordance */
+  --widget-h-banner: 39px; /* IncidentBanner (shell MI-14 slot) */
+}
+
+html[data-nav-expanded] {
+  --nav-rail-w: 240px;
+}
+
 /* Component-library keyframes (design.md §4 MIs; consumers pair these
    with motion-reduce fallbacks). */
 @keyframes breathe {

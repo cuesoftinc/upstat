@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState, useSyncExternalStore } from "react";
 import { useMediaQuery } from "@/controllers/use-media-query";
 import { Avatar } from "./Avatar";
 import { BrandMark } from "./BrandMark";
@@ -170,44 +170,93 @@ const EXPANDED_STORAGE_KEY = "nav.rail.expanded";
 const EXPAND_DEFAULT_QUERY = "(min-width: 1280px)";
 
 /**
+ * Pre-paint rail width (CLS): resolves the persisted/viewport-default
+ * expansion BEFORE first paint and sets `data-nav-expanded` on <html> —
+ * the rail's width binds `--nav-rail-w` (globals.css) off that attribute,
+ * so the app frame never paints collapsed and then slides open (the
+ * 56→240px width entrance moved every dashboard's whole content column;
+ * 2026-07-21 perf audit). Same static-literal pattern as themeInitScript.
+ * React re-syncs the attribute after hydration (toggle/resize).
+ */
+export const navRailInitScript =
+  '(function(){try{var s=localStorage.getItem("nav.rail.expanded");var x=s===null?window.matchMedia("(min-width: 1280px)").matches:s==="1";if(x&&window.matchMedia("(min-width: 768px)").matches){document.documentElement.setAttribute("data-nav-expanded","");}}catch(e){}})();';
+
+// -- external expansion store (ThemeProvider pattern: localStorage-backed,
+//    read via useSyncExternalStore — no state syncing through effects; the
+//    hydration consistency check re-renders BEFORE paint, so the resolved
+//    rail never paints a collapsed frame first) --
+
+const railListeners = new Set<() => void>();
+/** In-memory fallback when storage is unavailable (private mode). */
+let railFallback: boolean | null = null;
+let railViewportListenerAttached = false;
+
+function onRailViewportChange(): void {
+  railEmit();
+}
+
+function ensureRailViewportListener(): void {
+  if (railViewportListenerAttached || typeof window === "undefined") return;
+  try {
+    window
+      .matchMedia(EXPAND_DEFAULT_QUERY)
+      .addEventListener("change", onRailViewportChange);
+    railViewportListenerAttached = true;
+  } catch {
+    /* matchMedia unavailable — the default just won't track live */
+  }
+}
+
+function railSubscribe(listener: () => void): () => void {
+  ensureRailViewportListener();
+  railListeners.add(listener);
+  return () => {
+    railListeners.delete(listener);
+  };
+}
+
+function railEmit(): void {
+  for (const listener of railListeners) listener();
+}
+
+function readRailExpanded(): boolean {
+  try {
+    const stored = window.localStorage.getItem(EXPANDED_STORAGE_KEY);
+    if (stored !== null) return stored === "1";
+  } catch {
+    /* storage unavailable — fall through */
+  }
+  if (railFallback !== null) return railFallback;
+  try {
+    return window.matchMedia(EXPAND_DEFAULT_QUERY).matches;
+  } catch {
+    return false;
+  }
+}
+
+function toggleRailExpanded(): void {
+  const next = !readRailExpanded();
+  try {
+    window.localStorage.setItem(EXPANDED_STORAGE_KEY, next ? "1" : "0");
+  } catch {
+    railFallback = next; // non-persistent environments still toggle
+  }
+  railEmit();
+}
+
+/**
  * Rail expansion state — persisted per user (localStorage), defaulting by
- * viewport. Resolved after mount: SSR renders collapsed, so hydration
- * stays deterministic.
+ * viewport. SSR snapshots collapsed (hydration stays deterministic); the
+ * client snapshot resolves in the hydration commit. The WIDTH is resolved
+ * even earlier, by navRailInitScript (pre-paint).
  */
 function useRailExpanded(): [boolean, () => void] {
-  const [expanded, setExpanded] = useState(false);
-
-  // Deferred a tick (use-request pattern): setState stays out of the
-  // synchronous effect body.
-  useEffect(() => {
-    const t = window.setTimeout(() => {
-      try {
-        const stored = window.localStorage.getItem(EXPANDED_STORAGE_KEY);
-        if (stored !== null) {
-          setExpanded(stored === "1");
-          return;
-        }
-      } catch {
-        /* storage unavailable (private mode) — fall through to viewport */
-      }
-      setExpanded(window.matchMedia(EXPAND_DEFAULT_QUERY).matches);
-    }, 0);
-    return () => window.clearTimeout(t);
-  }, []);
-
-  const toggle = () => {
-    setExpanded((prev) => {
-      const next = !prev;
-      try {
-        window.localStorage.setItem(EXPANDED_STORAGE_KEY, next ? "1" : "0");
-      } catch {
-        /* non-persistent environments still toggle in-memory */
-      }
-      return next;
-    });
-  };
-
-  return [expanded, toggle];
+  const expanded = useSyncExternalStore(
+    railSubscribe,
+    readRailExpanded,
+    () => false,
+  );
+  return [expanded, toggleRailExpanded];
 }
 
 export interface NavRailProps {
@@ -363,6 +412,15 @@ export function NavRail({
   const inlineExpanded = expanded && !isMobile;
   const open = isMobile && drawerOpen;
 
+  // keep the pre-paint width attribute (navRailInitScript) in sync with
+  // the hydrated state — toggles and viewport flips flow through here
+  useLayoutEffect(() => {
+    document.documentElement.toggleAttribute(
+      "data-nav-expanded",
+      inlineExpanded,
+    );
+  }, [inlineExpanded]);
+
   const select = (key: string) => {
     setDrawerOpen(false);
     onNavigate?.(key);
@@ -377,7 +435,11 @@ export function NavRail({
           "sticky top-0 z-[var(--z-sticky)] flex h-dvh flex-col gap-1",
           "border-r border-border bg-bg py-2",
           "transition-[width] duration-[var(--duration-base)] ease-standard motion-reduce:transition-none",
-          inlineExpanded ? "w-60 items-stretch px-1.5" : "w-14 items-center",
+          // width rides --nav-rail-w (html[data-nav-expanded], set pre-paint
+          // by navRailInitScript) so the first paint is already final-width;
+          // user toggles still animate via the transition above
+          "w-(--nav-rail-w)",
+          inlineExpanded ? "items-stretch px-1.5" : "items-center",
           className,
         )}
       >

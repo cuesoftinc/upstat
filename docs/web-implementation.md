@@ -911,3 +911,45 @@ products; per-product values only):
   canonical on `/`, og:image resolves 200 at 1200×630, twitter card, and
   the served favicon's sha256 equals upstat's mark while differing from
   both siblings'.
+
+## 11. Performance budget (as-built, 2026-07-21)
+
+Two budgets, both e2e-locked: **CLS < 0.1** on home and every dashboard
+route, and **interactive-fast above the fold** on the marketing home
+(mobile TBT). Three mechanisms carry them:
+
+- **Pre-paint chrome resolution** — anything that changes the app frame's
+  geometry resolves before first paint, never after. The NavRail's
+  expansion (persisted `nav.rail.expanded`, ≥1280px default) is applied by
+  `navRailInitScript` (root layout, beside the theme/colorvision scripts):
+  it sets `data-nav-expanded` on `<html>`, and the rail's width binds
+  `--nav-rail-w` off that attribute. The width `transition` therefore only
+  ever animates user toggles — a first paint is already final-width. The
+  rail's internal state resolves in a layout effect (same-paint with the
+  hydration commit).
+- **Reserved loading frames** — every §8.1 loading frame holds exactly the
+  footprint of the widget it becomes. The rendered sizes live as
+  `--widget-h-*` tokens in `globals.css` (value tile, list rows, SLO/rule/
+  channel cards, the B8 rule-editor panel, saved-view chip row, facet
+  group, MI-14 banner slot), consumed as `h-(--widget-h-*)` /
+  `min-h-(--widget-h-*)` — no per-page magic numbers. `Skeleton` gains a
+  `frame` kind (bordered shimmer block, height from the token) for these;
+  `TimeseriesPanel` reserves one legend row while loading; the shell holds
+  the IncidentBanner's slot while incidents load. If a widget's
+  construction changes, re-measure and update the token.
+- **Visibility-gated demo panels** — the home page's below-the-fold demo
+  visuals (timeseries SVGs, 90-day uptime strips, snippet blocks) mount
+  through `DeferredPanel` (components/ui): prerender and first client
+  render emit a height-reserving placeholder; the subtree mounts via
+  IntersectionObserver 600px before it scrolls into view. Marketing copy
+  stays outside the wrappers (SEO), and the hero's panels stay eager —
+  only illustrative markup defers. Environments without
+  IntersectionObserver mount immediately.
+
+**Lock** — `web/e2e/layout-stability.spec.ts` computes web-vitals-style
+CLS (layout-shift entries, session-windowed) on `/`, `/dashboard`,
+`/dashboard/monitors` and `/dashboard/metrics` in TEST_MODE and asserts
+< 0.1 per route. Reference numbers (local prod build, Lighthouse mobile,
+median of 3 — devtools throttling; lantern is insensitive on localhost):
+home TBT 7ms / CLS 0.033; layout-shift probe CLS 0.017 (/dashboard),
+0.017 (monitors), 0.025 (metrics).

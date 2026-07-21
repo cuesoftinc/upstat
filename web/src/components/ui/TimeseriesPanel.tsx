@@ -576,6 +576,11 @@ export function TimeseriesPanel({
         </div>
       )}
 
+      {/* loading holds one legend-row of space — the legend materializing
+          under the plot nudged everything below the panel (CLS) */}
+      {withLegend && loading && (
+        <footer aria-hidden="true" className="min-h-3.5" />
+      )}
       {withLegend && !empty && !loading && (
         <footer className="flex flex-wrap gap-2">
           {series.map((s, i) => (
