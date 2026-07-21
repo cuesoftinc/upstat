@@ -115,8 +115,8 @@ verified in both themes) — the one extra constraint the teal brand imposes.
   destinations; upstat renders it in its own dark visual design.
   - **Nav** **[Revised 2026-07-19]**: 4 text links Features (anchors the
     landing feature-highlights band, `/#features` — differentiated from
-    Platform, which anchors the pillar grid; the two previously shared one
-    anchor) · Platform (upstat product slot — anchors to the landing
+    Platform, which anchors the pillar grid) · Platform (upstat product
+    slot — anchors to the landing
     pillar-grid section) · Docs (GitBook root) · GitHub — the GitHub item
     renders as a compact star badge (star glyph + neutral "Star" label; no
     count on canvas — the live star count is runtime behavior) — +

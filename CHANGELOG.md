@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- `/docs/api`'s Scalar reference now loads on user intent instead of shipping
+  eagerly with the route (#198).
+- Tree-shape parity: env reads route through typed `config/env.ts`
+  accessors, the gRPC client rehomes under `models/repositories/`, and the
+  root layout's fallback description matches the shipped OG tagline (#199).
+- Dashboard CLS (NavRail width settling before first paint, reserved widget
+  frame heights, a stable `IncidentBanner` slot) and home TBT (below-the-fold
+  demo panels mount on intersection) both land inside budget (#201).
+
+### Fixed
+- Contrast-token canon: AA-compliant `-text` variants for the tinted-chip
+  recipe, plus a new `on-crit` token (#196).
+- Signin gains the sibling-parity legal consent line (#200).
+
 ### Added
 - Settings goes route-backed tabs: General | Members | Keys & properties |
   Integrations | Data & privacy | Appearance | Usage — seven deep-linkable
