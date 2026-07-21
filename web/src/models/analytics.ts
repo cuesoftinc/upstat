@@ -12,6 +12,7 @@
  * (`POST /v1/events`, api.md §3.1 batch shape).
  */
 
+import { env } from "@/config/env";
 import { TEST_MODE, http } from "./repositories/client";
 
 /** Registered upstat browser events (api.md §3.4). */
@@ -38,7 +39,7 @@ export function createTracker(options?: {
 }): Tracker {
   const enabled =
     options?.enabled ??
-    (!TEST_MODE && process.env.NEXT_PUBLIC_ANALYTICS === "1");
+    (!TEST_MODE && env.analytics);
   const transport: AnalyticsTransport =
     options?.transport ?? ((events) => http.post("/v1/events", { events }));
 

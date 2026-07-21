@@ -318,7 +318,8 @@ prune landed: `styled-components` (+ its `next.config.ts` compiler flag),
 `js-cookie` (+ `@types/js-cookie`), `@iconify/react`,
 `@react-oauth/google`, and `@floating-ui/react-dom` are removed — zero
 live imports verified first; the X-8 gRPC control-plane pair
-(`grpc-web`, `google-protobuf` + `src/proto`/`src/client.ts`/
+(`grpc-web`, `google-protobuf` + `src/proto`/
+`src/models/repositories/grpc-client.ts`/
 `components/libs/grpc`) stays until monitors-v2 per §8. Dead code:
 MarketingFooter's unused `inline` variant axis removed (no consumer; the
 footer renders the one canonical stacked shape). The docs now describe
@@ -816,7 +817,8 @@ only intentional exception is the X-8 gRPC pair below (`grpc-web`,
 `google-protobuf`), which backs the kept control-plane tree.
 
 One tree stays live by design: the gRPC-Web control plane. `src/proto/*`,
-`src/client.ts`, and the gRPC libs (`components/libs/grpc`) are
+`src/models/repositories/grpc-client.ts`, and the gRPC libs
+(`components/libs/grpc`) are
 monitor/user **control-plane code, not UI** — X-8 keeps the existing
 control plane on gRPC until monitors-v2 (OBS-006). At backend-integration
 time the monitor repository may wrap the gRPC-Web client *inside* the

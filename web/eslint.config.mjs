@@ -18,7 +18,7 @@ const eslintConfig = defineConfig([
     "src/legacy/**",
     // X-8 exception (§8 tranche 3): the gRPC-Web control-plane client
     // stays in place until monitors-v2 — not UI, not retro-linted.
-    "src/client.ts",
+    "src/models/repositories/grpc-client.ts",
     "src/proto/**",
     "src/components/libs/grpc/**",
   ]),

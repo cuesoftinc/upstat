@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   // URLs (SEO plumbing, fleet canon).
   metadataBase: new URL("https://upstat.cuesoft.io"),
   title: "Upstat",
-  description: "The Upstat Project",
+  description: "All your telemetry. One open platform.",
   // Every route's canonical is its own path, resolved against metadataBase.
   alternates: { canonical: "./" },
 };
