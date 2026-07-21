@@ -1,3 +1,4 @@
+import { env } from "@/config/env";
 import { ApiError, type ApiErrorBody } from "../errors";
 
 /**
@@ -8,11 +9,11 @@ import { ApiError, type ApiErrorBody } from "../errors";
  * `/api/mock`; otherwise the real API base from `NEXT_PUBLIC_API_BASE`
  * (api.upstat.cuesoft.io once the HTTP surfaces land).
  */
-export const TEST_MODE = process.env.NEXT_PUBLIC_TEST_MODE === "1";
+export const TEST_MODE = env.testMode;
 
 export function apiBase(): string {
   if (TEST_MODE) return "/api/mock";
-  return process.env.NEXT_PUBLIC_API_BASE || "/api/mock";
+  return env.apiBase;
 }
 
 async function parseError(res: Response): Promise<never> {
