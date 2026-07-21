@@ -24,9 +24,9 @@ const SEV_CHIP: Record<
   AlertEvent["sev"],
   { label: string; className: string }
 > = {
-  sev1: { label: "SEV-1", className: "bg-crit/14 text-crit" },
-  sev2: { label: "SEV-2", className: "bg-warn/14 text-warn" },
-  resolved: { label: "OK", className: "bg-ok/14 text-ok" },
+  sev1: { label: "SEV-1", className: "bg-crit/14 text-crit-text" },
+  sev2: { label: "SEV-2", className: "bg-warn/14 text-warn-text" },
+  resolved: { label: "OK", className: "bg-ok/14 text-ok-text" },
 };
 
 export interface AlertFeedRowProps {

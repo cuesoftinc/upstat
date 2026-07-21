@@ -102,7 +102,7 @@ export default function ServiceCatalogPage() {
                     href={selected.links.repo}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-brand hover:underline"
+                    className="text-brand-text hover:underline"
                   >
                     repo
                   </a>
@@ -114,7 +114,7 @@ export default function ServiceCatalogPage() {
                       href={selected.links.runbook}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-brand hover:underline"
+                      className="text-brand-text hover:underline"
                     >
                       runbook
                     </a>

@@ -159,7 +159,7 @@ export default function TraceExplorerPage() {
                 </h2>
                 <Link
                   href={`/dashboard/traces/map?service=${selected.root_service}`}
-                  className="text-[12px] text-brand hover:underline"
+                  className="text-[12px] text-brand-text hover:underline"
                   data-testid="map-crosslink"
                 >
                   View {selected.root_service} in service map →

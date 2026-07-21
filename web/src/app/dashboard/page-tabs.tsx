@@ -21,7 +21,7 @@ export function PageTabs({ tabs, label }: { tabs: PageTab[]; label: string }) {
           className={clsx(
             "text-[13px] transition-colors duration-[var(--duration-fast)]",
             tab.active
-              ? "font-medium text-brand"
+              ? "font-medium text-brand-text"
               : "text-text-2 hover:text-text",
           )}
         >

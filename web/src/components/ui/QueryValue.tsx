@@ -25,9 +25,9 @@ const TINT: Record<Exclude<QueryValueThreshold, "none">, string> = {
 };
 
 const DELTA_TEXT: Record<Exclude<QueryValueThreshold, "none">, string> = {
-  ok: "text-ok",
-  warn: "text-warn",
-  crit: "text-crit",
+  ok: "text-ok-text",
+  warn: "text-warn-text",
+  crit: "text-crit-text",
 };
 
 /**
@@ -78,8 +78,8 @@ export function QueryValue({
               threshold !== "none"
                 ? DELTA_TEXT[threshold]
                 : deltaPct >= 0
-                  ? "text-ok"
-                  : "text-crit",
+                  ? "text-ok-text"
+                  : "text-crit-text",
             )}
           >
             {deltaPct >= 0 ? "▲" : "▼"} {Math.abs(deltaPct).toFixed(1)}%

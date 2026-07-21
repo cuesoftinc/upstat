@@ -66,8 +66,8 @@ export function SLOCard({ slo, className }: SLOCardProps) {
         <span
           className={clsx(
             "text-[20px] font-semibold tabular-nums",
-            slo.state === "healthy" && "text-ok",
-            slo.state === "burning" && "text-warn",
+            slo.state === "healthy" && "text-ok-text",
+            slo.state === "burning" && "text-warn-text",
             slo.state === "exhausted" && "text-crit",
           )}
         >

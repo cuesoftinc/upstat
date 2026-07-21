@@ -141,7 +141,7 @@ function FeaturesDropdown({ href }: { href: string }) {
         onClick={() => setOpen(false)}
         className={clsx(
           "text-[13px] font-medium transition-colors duration-[var(--duration-fast)]",
-          open ? "text-brand" : "text-text-2 hover:text-text",
+          open ? "text-brand-text" : "text-text-2 hover:text-text",
         )}
       >
         Features
@@ -155,7 +155,7 @@ function FeaturesDropdown({ href }: { href: string }) {
         onClick={() => setOpen((o) => !o)}
         className={clsx(
           "rounded-(--radius) p-0.5 transition-colors duration-[var(--duration-fast)]",
-          open ? "text-brand" : "text-text-2 hover:text-text",
+          open ? "text-brand-text" : "text-text-2 hover:text-text",
         )}
       >
         <ChevronDown
@@ -189,7 +189,7 @@ function FeaturesDropdown({ href }: { href: string }) {
                         href={`/#pillar-${pillar}`}
                         data-pillar={pillar}
                         onClick={() => setOpen(false)}
-                        className="flex items-center gap-2.5 whitespace-nowrap text-[13px] font-medium text-text transition-colors duration-[var(--duration-fast)] hover:text-brand"
+                        className="flex items-center gap-2.5 whitespace-nowrap text-[13px] font-medium text-text transition-colors duration-[var(--duration-fast)] hover:text-brand-text"
                       >
                         <Icon
                           aria-hidden="true"

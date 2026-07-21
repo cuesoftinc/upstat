@@ -124,7 +124,7 @@ function FlowChip({
     <span
       className={
         accent
-          ? "rounded-(--radius) border border-brand px-3.5 py-2 font-data text-[12px] text-brand"
+          ? "rounded-(--radius) border border-brand px-3.5 py-2 font-data text-[12px] text-brand-text"
           : "rounded-(--radius) border border-border px-3.5 py-2 font-data text-[12px] text-text"
       }
     >
@@ -199,7 +199,7 @@ function Step({
   return (
     <div className="min-w-0 flex flex-col gap-3">
       <div className="flex items-baseline gap-2.5">
-        <span className="font-data text-[20px] font-semibold tabular-nums text-brand">
+        <span className="font-data text-[20px] font-semibold tabular-nums text-brand-text">
           {n}
         </span>
         <h3 className="text-[16px] font-semibold text-text">{title}</h3>

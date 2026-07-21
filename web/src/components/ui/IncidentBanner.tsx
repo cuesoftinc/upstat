@@ -69,7 +69,7 @@ export function IncidentBanner({
       </span>
       {/* the whole strip is the button; the link text is the master's
           explicit affordance */}
-      <span className="shrink-0 text-[13px] font-medium text-brand">
+      <span className="shrink-0 text-[13px] font-medium text-brand-text">
         {resolved ? "Postmortem →" : "View incident →"}
       </span>
     </button>

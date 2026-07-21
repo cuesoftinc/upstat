@@ -73,7 +73,7 @@ export default function StatusPageBuilderPage() {
       <header className="flex items-center gap-3">
         <h1 className="text-[20px] font-semibold">Status page — builder</h1>
         {saved && (
-          <span className="rounded-(--radius) bg-ok/15 px-2 py-0.5 text-[12px] text-ok">
+          <span className="rounded-(--radius) bg-ok/15 px-2 py-0.5 text-[12px] text-ok-text">
             Saved
           </span>
         )}

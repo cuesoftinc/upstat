@@ -10,7 +10,7 @@ export interface ErrorGroupRowProps {
 }
 
 const STATE_TINT: Record<ErrorGroup["state"], string> = {
-  new: "text-brand border-brand/40",
+  new: "text-brand-text border-brand/40",
   ongoing: "text-text-2 border-border",
   regressed: "text-crit border-crit/40",
 };

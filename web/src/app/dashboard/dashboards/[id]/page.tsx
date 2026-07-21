@@ -153,7 +153,7 @@ export default function DashboardViewPage() {
           {ctrl.savedPulse && (
             <span
               data-testid="saved-chip"
-              className="rounded-(--radius) bg-ok/15 px-2 py-0.5 text-[12px] text-ok"
+              className="rounded-(--radius) bg-ok/15 px-2 py-0.5 text-[12px] text-ok-text"
             >
               Saved
             </span>

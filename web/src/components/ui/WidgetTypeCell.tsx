@@ -28,7 +28,7 @@ export function WidgetTypeCell({
         "font-ui flex w-24 flex-col items-center gap-1.5 rounded-(--radius) border p-3",
         "transition-colors duration-[var(--duration-fast)] ease-standard",
         selected
-          ? "border-brand bg-brand/10 text-brand"
+          ? "border-brand bg-brand/10 text-brand-text"
           : "border-border bg-bg-elev text-text-2 hover:border-text-2 hover:text-text",
         className,
       )}

@@ -91,7 +91,7 @@ export default function RumNewPropertyPage() {
                   <>
                     <span
                       data-testid="property-verified"
-                      className="inline-flex items-center gap-1.5 rounded-full bg-ok/15 px-2.5 py-1 text-[12px] text-ok"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-ok/15 px-2.5 py-1 text-[12px] text-ok-text"
                     >
                       <span
                         aria-hidden="true"

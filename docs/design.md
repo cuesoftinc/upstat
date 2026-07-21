@@ -42,11 +42,14 @@
 | `text-2` | #6B6F7B | #9BA0AC | secondary |
 | `brand` | #00E09E | #00E09E | nav, CTAs, focus (sampled from the landing) |
 | `brand-deep` | #00A991 | #00A991 | hover/active brand states, secondary accents |
-| `on-brand` | #0E1113 | #0E1113 | labels/knobs on `brand` fills **only** — **[Decided 2026-07-16]** dark ink in *both* modes (brand teal is bright; fixes the light-mode white-on-teal contrast flag). **[Decided 2026-07-17]** destructive-fill labels stay raw `#FFFFFF` pending a possible `on-crit` token — `on-brand` does not extend to `crit` fills (matches the built destructive Button; recorded so docs and build no longer diverge silently) |
+| `on-brand` | #0E1113 | #0E1113 | labels/knobs on `brand` fills **only** — **[Decided 2026-07-16]** dark ink in *both* modes (brand teal is bright; fixes the light-mode white-on-teal contrast flag). `on-brand` does not extend to `crit` fills — those bind `on-crit` |
+| `on-crit` | #FFFFFF | #0E1113 | labels on `crit` fills (destructive Button, SevChip SEV-1, CountBadge) — white clears AA on the light crit fill (4.98) but not the dark one (3.03 on #FF5C5C), so dark uses the `on-brand` ink (6.26) |
 | `ok` | #2E9950 | #3DCC70 | up / passing |
 | `warn` | #C77D00 | #FFB020 | degraded / warn thresholds |
 | `crit` | #D32F2F | #FF5C5C | down / alerting |
 | `nodata` | #9AA0AA | #5C6270 | no data / muted monitors |
+| `brand-text` | #097955 | #00E09E | AA text variant — readable brand text (links, active nav/tabs, chip labels, INFO level) binds this; fills/borders/dots/icons/focus rings keep `brand`. Light darkens `brand` in OKLCH (L only) until ≥4.5:1 on the tinted recipe (`text-X` on `bg-X/10–15`); dark base already clears AA, so dark aliases it |
+| `ok-text/warn-text/crit-text/nodata-text/text-2-text` | #047634 / #925B03 / #C31A21 / #646A73 / #616571 | #3DCC70 / #FFB020 / #FF5C5C / #868D9C / #9BA0AC | AA text variants for status text and the chip/pill recipe (StatusPill, LevelChip, AlertFeedRow, IncidentHistoryEntry, ok/15 chips) — readable text binds the `-text` variant, fills/dots keep the base. Light values darken the base in OKLCH until ≥4.5:1 on the /14–/15 tints; dark bases already pass except `nodata`, which lightens (its `-text` is the one dark divergence) |
 | Series palette | 8-step categorical **[Decided]**: `#7C6CF0 #00B4D8 #F4A259 #E86A92 #43AA8B #B5179E #FFCA3A #4361EE` (validated ≥3:1 against both `bg` values; colorblind-checked) | same | charts; series→color stable per view session |
 
 Status semantics are sacred: `ok/warn/crit/nodata` colors are reserved — never
@@ -244,9 +247,8 @@ styles); the remaining iteration is the Style Guide *page* refresh below.
 
 Additions (2026-07-16): (1) the new `on-brand` token (§2) now exists in the
 `upstat/tokens` collection — components placing labels/knobs on `brand`
-fills bind it instead of a raw ink (**[Decided 2026-07-17]** `on-brand`
-applies to brand fills only; destructive-fill labels stay raw `#FFFFFF`
-pending a possible `on-crit` token — see §2). (2) OpenType tabular figures
+fills bind it instead of a raw ink (`on-brand` applies to brand fills only;
+destructive-fill labels bind `on-crit` — see §2). (2) OpenType tabular figures
 (`tnum`) must be enabled **manually** on numeric text styles in the Figma UI —
 the plugin API cannot set font features — so the §2 "tabular figures in all
 numeric contexts" rule is applied by hand when each numeric type style is
@@ -347,7 +349,7 @@ never on screens. A screen frame must read as the shipped product would.
 
 | Component | Variants × states |
 | --- | --- |
-| Button | kind: brand / quiet / destructive × state: default / hover / disabled — destructive labels raw `#FFFFFF` per the §2 `on-crit` decision |
+| Button | kind: brand / quiet / destructive × state: default / hover / disabled — destructive labels bind `on-crit` (§2) |
 | Input | state: default / focus / error / disabled |
 | Toast | kind: info / success / error |
 | QueryPill | state: default / hover |

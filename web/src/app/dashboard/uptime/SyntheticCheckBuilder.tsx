@@ -282,7 +282,7 @@ export function SyntheticCheckBuilder({
               data-testid={`check-kind-${value}`}
               className={
                 tab === value
-                  ? "rounded-(--radius) border border-brand px-3 py-1.5 text-[13px] font-medium text-brand"
+                  ? "rounded-(--radius) border border-brand px-3 py-1.5 text-[13px] font-medium text-brand-text"
                   : "rounded-(--radius) border border-border px-3 py-1.5 text-[13px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
               }
             >

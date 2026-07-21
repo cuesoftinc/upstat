@@ -79,7 +79,7 @@ export function ServiceCatalogRow({
             href={entry.links.repo}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-0.5 text-[12px] text-text-2 hover:text-brand"
+            className="inline-flex items-center gap-0.5 text-[12px] text-text-2 hover:text-brand-text"
           >
             repo <ExternalLink className="size-3" aria-hidden="true" />
           </a>
@@ -89,7 +89,7 @@ export function ServiceCatalogRow({
             href={entry.links.runbook}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-0.5 text-[12px] text-text-2 hover:text-brand"
+            className="inline-flex items-center gap-0.5 text-[12px] text-text-2 hover:text-brand-text"
           >
             runbook <ExternalLink className="size-3" aria-hidden="true" />
           </a>

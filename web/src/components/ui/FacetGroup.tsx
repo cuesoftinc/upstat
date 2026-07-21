@@ -91,7 +91,7 @@ export function FacetGroup({
               <button
                 type="button"
                 onClick={() => setShowAll((s) => !s)}
-                className="py-1 text-[11px] text-brand hover:text-brand-deep"
+                className="py-1 text-[11px] text-brand-text hover:text-brand-deep"
               >
                 {showAll ? "Show less" : `Show all ${values.length}`}
               </button>

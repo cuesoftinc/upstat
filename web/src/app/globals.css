@@ -29,6 +29,15 @@
   --color-warn: var(--color-warn);
   --color-crit: var(--color-crit);
   --color-nodata: var(--color-nodata);
+  --color-on-crit: var(--color-on-crit);
+  /* AA text variants — readable text in a hue binds these; fills/
+     borders/dots/icons keep the base hue (design.md §2) */
+  --color-brand-text: var(--color-brand-text);
+  --color-ok-text: var(--color-ok-text);
+  --color-warn-text: var(--color-warn-text);
+  --color-crit-text: var(--color-crit-text);
+  --color-nodata-text: var(--color-nodata-text);
+  --color-text-2-text: var(--color-text-2-text);
   --color-series-1: var(--color-series-1);
   --color-series-2: var(--color-series-2);
   --color-series-3: var(--color-series-3);
@@ -191,7 +200,8 @@
      descendant (the marketing nav rode away with the scroll — caught by
      the /docs/api header e2e under CI). `clip` clips without creating a
      scroll container. */
-  html, body {
+  html,
+  body {
     overflow-x: clip;
     max-width: 100%;
   }

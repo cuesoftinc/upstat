@@ -46,12 +46,12 @@ const DOT: Record<StatusPillStatus, string> = {
 };
 
 const TEXT: Record<StatusPillStatus, string> = {
-  ok: "text-ok",
-  warn: "text-warn",
-  crit: "text-crit",
-  nodata: "text-nodata",
-  paused: "text-nodata",
-  pending: "text-text-2",
+  ok: "text-ok-text",
+  warn: "text-warn-text",
+  crit: "text-crit-text",
+  nodata: "text-nodata-text",
+  paused: "text-nodata-text",
+  pending: "text-text-2-text",
 };
 
 // §5 colorblind mode: the dot-only variant is the one color-only status

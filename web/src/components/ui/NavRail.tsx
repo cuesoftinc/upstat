@@ -61,7 +61,7 @@ export function NavRailItem({
     expanded ? "w-full gap-3 px-2.5 text-left" : "size-10 justify-center",
     "transition-colors duration-[var(--duration-fast)] ease-standard",
     active
-      ? "bg-brand/15 text-brand"
+      ? "bg-brand/15 text-brand-text"
       : "text-text-2 hover:bg-bg-elev hover:text-text",
   );
   const itemBody = (

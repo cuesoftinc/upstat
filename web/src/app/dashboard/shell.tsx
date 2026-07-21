@@ -177,7 +177,7 @@ function ShellChrome({ children }: { children: ReactNode }) {
                       setOrgOpen(false);
                       shell.newOrg();
                     }}
-                    className="w-full px-3 py-1.5 text-left text-[13px] text-brand transition-colors duration-[var(--duration-fast)] hover:bg-bg"
+                    className="w-full px-3 py-1.5 text-left text-[13px] text-brand-text transition-colors duration-[var(--duration-fast)] hover:bg-bg"
                   >
                     + New organization
                   </button>

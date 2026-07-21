@@ -11,11 +11,11 @@ export interface LevelChipProps {
 // Mapping [Decided 2026-07-16]: INFO → brand · DEBUG → text-2 · TRACE →
 // nodata; ERROR/WARN keep crit/warn. 14% tint container (Figma 40:33).
 const TINT: Record<LogLevel, string> = {
-  ERROR: "text-crit bg-crit/14",
-  WARN: "text-warn bg-warn/14",
-  INFO: "text-brand bg-brand/14",
-  DEBUG: "text-text-2 bg-text-2/14",
-  TRACE: "text-nodata bg-nodata/14",
+  ERROR: "text-crit-text bg-crit/14",
+  WARN: "text-warn-text bg-warn/14",
+  INFO: "text-brand-text bg-brand/14",
+  DEBUG: "text-text-2-text bg-text-2/14",
+  TRACE: "text-nodata-text bg-nodata/14",
 };
 
 /** LevelChip — log level chip ×5, extracted from LogLine (§8.2). */

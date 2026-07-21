@@ -110,7 +110,7 @@ function QuadCard({ title, body, readMoreHref }: QuadCopy) {
       </div>
       <a
         href={readMoreHref}
-        className="ml-5 text-[12px] font-medium text-brand transition-colors duration-[var(--duration-fast)] hover:text-brand-deep"
+        className="ml-5 text-[12px] font-medium text-brand-text transition-colors duration-[var(--duration-fast)] hover:text-brand-deep"
       >
         Read more →
       </a>

@@ -89,7 +89,7 @@ export default function NewMonitorPage() {
             className={clsx(
               "rounded-full border px-3 py-1.5 text-[13px] transition-colors duration-[var(--duration-fast)]",
               signal === s
-                ? "border-brand text-brand"
+                ? "border-brand text-brand-text"
                 : "border-border text-text-2 hover:text-text",
             )}
           >

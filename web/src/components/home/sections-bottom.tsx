@@ -68,7 +68,7 @@ export function SelfHostSection({ onSelfHostDocs }: SelfHostSectionProps) {
           <a
             href={SELF_HOST_DOCS_URL}
             onClick={onSelfHostDocs}
-            className="text-[13px] font-medium text-brand transition-colors duration-[var(--duration-fast)] hover:text-brand-deep"
+            className="text-[13px] font-medium text-brand-text transition-colors duration-[var(--duration-fast)] hover:text-brand-deep"
           >
             Self-host guide — step-by-step deploy docs →
           </a>
@@ -168,7 +168,7 @@ export function CloudSelfHostSection({
           {/* flex-wrap of two nowrap runs: at 390 the comment wraps as a
               whole line instead of mid-comment (CodeSnippet convention) */}
           <code className="font-data flex flex-wrap gap-x-2 text-[13px]">
-            <span className="whitespace-nowrap text-brand">
+            <span className="whitespace-nowrap text-brand-text">
               docker compose up -d
             </span>
             <span className="whitespace-nowrap text-text-2">
@@ -215,7 +215,7 @@ export function DevelopersSection({ onGithub }: DevelopersSectionProps) {
     <Section title="For developers — come build it.">
       <div className="grid items-start gap-12 lg:grid-cols-[1fr_480px]">
         <div className="min-w-0 flex flex-col gap-5">
-          <p className="font-data text-[13px] text-brand">{STACK_LINE}</p>
+          <p className="font-data text-[13px] text-brand-text">{STACK_LINE}</p>
           <p className="text-[14px] text-text-2">
             upstat is built in the open — and the interesting problems are open
             too:
@@ -234,14 +234,14 @@ export function DevelopersSection({ onGithub }: DevelopersSectionProps) {
             <a
               href={GITHUB_URL}
               onClick={onGithub}
-              className="flex items-center gap-2.5 text-[13px] text-text transition-colors duration-[var(--duration-fast)] hover:text-brand"
+              className="flex items-center gap-2.5 text-[13px] text-text transition-colors duration-[var(--duration-fast)] hover:text-brand-text"
             >
               <GithubIcon className="size-4 shrink-0" />
               github.com/cuesoftinc/upstat — good first issues welcome
             </a>
             <a
               href={`${GITHUB_URL}/blob/main/CONTRIBUTING.md`}
-              className="flex items-center gap-2.5 text-[13px] text-text transition-colors duration-[var(--duration-fast)] hover:text-brand"
+              className="flex items-center gap-2.5 text-[13px] text-text transition-colors duration-[var(--duration-fast)] hover:text-brand-text"
             >
               <FileText aria-hidden="true" className="size-4 shrink-0" />
               CONTRIBUTING.md — local setup in one script, architecture guide
@@ -249,7 +249,7 @@ export function DevelopersSection({ onGithub }: DevelopersSectionProps) {
             </a>
             <a
               href={DISCORD_URL}
-              className="flex items-center gap-2.5 text-[13px] text-text transition-colors duration-[var(--duration-fast)] hover:text-brand"
+              className="flex items-center gap-2.5 text-[13px] text-text transition-colors duration-[var(--duration-fast)] hover:text-brand-text"
             >
               {/* Discord blurple — brand-glyph color exception (design.md §8.1) */}
               <DiscordIcon className="size-4 shrink-0 text-[#5865F2]" />
@@ -259,7 +259,7 @@ export function DevelopersSection({ onGithub }: DevelopersSectionProps) {
         </div>
 
         <div className="min-w-0 rounded-(--radius) border border-border bg-bg-elev p-4">
-          <p className="font-data text-[12px] text-brand">
+          <p className="font-data text-[12px] text-brand-text">
             label: good first issue
           </p>
           {/* overflow-x-auto: pre text doesn't wrap — scroll inside the card
@@ -303,20 +303,20 @@ export function CommunitySection() {
               upstat.cuesoft.io/status/upstat — we run upstat on upstat.
             </span>
           </span>
-          <span className="shrink-0 text-[13px] font-medium text-brand">
+          <span className="shrink-0 text-[13px] font-medium text-brand-text">
             View live →
           </span>
         </Link>
         <div className="flex flex-col gap-4 lg:pt-2">
           <a
             href={ROADMAP_URL}
-            className="text-[13px] font-medium text-brand transition-colors duration-[var(--duration-fast)] hover:text-brand-deep"
+            className="text-[13px] font-medium text-brand-text transition-colors duration-[var(--duration-fast)] hover:text-brand-deep"
           >
             Public roadmap →
           </a>
           <a
             href={CUELABS_URL}
-            className="text-[13px] font-medium text-brand transition-colors duration-[var(--duration-fast)] hover:text-brand-deep"
+            className="text-[13px] font-medium text-brand-text transition-colors duration-[var(--duration-fast)] hover:text-brand-deep"
           >
             CueLABS™ — more open-source software from Cuesoft →
           </a>
