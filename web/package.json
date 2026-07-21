@@ -31,7 +31,6 @@
     "@radix-ui/react-tooltip": "^1.2.12",
     "@scalar/api-reference-react": "^0.9.58",
     "clsx": "^2.1.1",
-    "date-fns": "^4.4.0",
     "google-protobuf": "^4",
     "grpc-web": "^2",
     "lucide-react": "^1.25.0",
