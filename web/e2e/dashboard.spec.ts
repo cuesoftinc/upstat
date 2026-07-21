@@ -354,7 +354,10 @@ test("full journey: onboarding → B1 → dashboards → explorer → logs → t
       async () =>
         page.getByRole("list", { name: "Log lines" }).locator("li").count(),
       {
-        timeout: 10_000,
+        // 30s, not 10: under dev-server compile contention the first tail
+        // batches can take >10s to land (pre-existing flake documented by
+        // the 2026-07-21 a11y lane) — the tail itself streams every ~2s
+        timeout: 30_000,
       },
     )
     .toBeGreaterThan(tailCount);
