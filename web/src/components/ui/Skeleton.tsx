@@ -2,7 +2,7 @@
 
 import { clsx } from "clsx";
 
-export type SkeletonKind = "line" | "value" | "panel-axis";
+export type SkeletonKind = "line" | "value" | "panel-axis" | "frame";
 
 export interface SkeletonProps {
   /** §8.2b: kind line / value / panel-axis. */
@@ -17,6 +17,23 @@ export interface SkeletonProps {
  */
 export function Skeleton({ kind = "line", className, style }: SkeletonProps) {
   const shimmer = "animate-pulse motion-reduce:animate-none bg-bg-elev";
+  if (kind === "frame") {
+    // widget-frame placeholder — no intrinsic height; callers bind a
+    // `--widget-h-*` reserve token (globals.css) so the loading frame
+    // holds exactly the hydrated widget's footprint (CLS budget)
+    return (
+      <div
+        data-kind={kind}
+        aria-hidden="true"
+        style={style}
+        className={clsx(
+          "w-full rounded-(--radius) border border-border",
+          shimmer,
+          className,
+        )}
+      />
+    );
+  }
   if (kind === "panel-axis") {
     // axis-first loading: hairline axes + shimmering plot region
     return (

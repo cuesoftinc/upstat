@@ -137,9 +137,15 @@ export default function MonitorsPage() {
               </div>
             </header>
             {ctrl.rules.loading ? (
-              <div className="flex flex-col gap-2">
-                {Array.from({ length: 4 }, (_, i) => (
-                  <Skeleton key={i} kind="panel-axis" style={{ height: 88 }} />
+              // frames reserve the hydrated AlertRuleCard footprints (CLS);
+              // count/gap mirror the seeded list construction
+              <div className="flex flex-col gap-3">
+                {Array.from({ length: 5 }, (_, i) => (
+                  <Skeleton
+                    key={i}
+                    kind="frame"
+                    className="h-(--widget-h-rule)"
+                  />
                 ))}
               </div>
             ) : rules.length === 0 ? (
@@ -200,7 +206,15 @@ export default function MonitorsPage() {
               Notification channels
             </h2>
             {ctrl.channels.loading ? (
-              <Skeleton kind="line" />
+              <div className="flex flex-col gap-3">
+                {Array.from({ length: 3 }, (_, i) => (
+                  <Skeleton
+                    key={i}
+                    kind="frame"
+                    className="h-(--widget-h-channel)"
+                  />
+                ))}
+              </div>
             ) : (
               <ul className="flex flex-col gap-3" aria-label="Channels">
                 {(ctrl.channels.data ?? []).map((channel) => (
@@ -228,7 +242,15 @@ export default function MonitorsPage() {
               Triggered
             </h2>
             {ctrl.feed.loading ? (
-              <Skeleton kind="line" />
+              <div className="flex flex-col">
+                {Array.from({ length: 6 }, (_, i) => (
+                  <Skeleton
+                    key={i}
+                    kind="frame"
+                    className="h-(--widget-h-feed-row) rounded-none border-x-0 border-t-0"
+                  />
+                ))}
+              </div>
             ) : (ctrl.feed.data ?? []).length === 0 ? (
               <p className="text-[13px] text-text-2">
                 Quiet — nothing has triggered.
@@ -259,9 +281,20 @@ export default function MonitorsPage() {
           // self-start: the frame (130:2621) shows the editor panel at
           // content height while the rules column runs on below it — the
           // default grid stretch left ~650px of empty panel under the form
-          className="min-w-0 self-start rounded-(--radius) border border-border bg-bg-elev p-5"
+          className={clsx(
+            "min-w-0 self-start rounded-(--radius) border border-border bg-bg-elev p-5",
+            // the editor auto-selects rules[0] once loaded — while loading,
+            // reserve the form's footprint so the panel doesn't grow into
+            // place (CLS); loaded content stands at this height on its own
+            ctrl.rules.loading && "min-h-(--widget-h-editor)",
+          )}
         >
-          {selected ? (
+          {ctrl.rules.loading ? (
+            <div className="flex flex-col gap-4" aria-hidden="true">
+              <Skeleton kind="line" className="w-64" />
+              <Skeleton kind="panel-axis" style={{ height: 200 }} />
+            </div>
+          ) : selected ? (
             <>
               <h2
                 id="editor-heading"

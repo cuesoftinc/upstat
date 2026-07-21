@@ -5,6 +5,7 @@ import {
   colorVisionInitScript,
 } from "@/design/ColorVisionProvider";
 import { ThemeProvider, themeInitScript } from "@/design/ThemeProvider";
+import { navRailInitScript } from "@/components/ui/NavRail";
 import "./globals.css";
 
 // Design-system fonts (design.md §2): Inter for UI, JetBrains Mono for
@@ -52,11 +53,13 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body>
-        {/* pre-paint: applies the persisted `upstat.theme` override and the
-            `upstat.colorvision` mode before first paint — static literal
-            scripts (theme-parity canon; design.md §5 colorblind mode) */}
+        {/* pre-paint: applies the persisted `upstat.theme` override, the
+            `upstat.colorvision` mode and the rail expansion width before
+            first paint — static literal scripts (theme-parity canon;
+            design.md §5 colorblind mode; CLS perf pass 2026-07-21) */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <script dangerouslySetInnerHTML={{ __html: colorVisionInitScript }} />
+        <script dangerouslySetInnerHTML={{ __html: navRailInitScript }} />
         <ThemeProvider>
           <ColorVisionProvider>{children}</ColorVisionProvider>
         </ThemeProvider>
