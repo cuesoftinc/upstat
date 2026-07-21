@@ -37,9 +37,7 @@ export function createTracker(options?: {
   enabled?: boolean;
   transport?: AnalyticsTransport;
 }): Tracker {
-  const enabled =
-    options?.enabled ??
-    (!TEST_MODE && env.analytics);
+  const enabled = options?.enabled ?? (!TEST_MODE && env.analytics);
   const transport: AnalyticsTransport =
     options?.transport ?? ((events) => http.post("/v1/events", { events }));
 
