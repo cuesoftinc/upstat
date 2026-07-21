@@ -6,7 +6,12 @@
  */
 
 import { useCallback } from "react";
-import type { Monitor, SyntheticCheck, SyntheticCheckInput } from "@/models";
+import type {
+  Monitor,
+  SyntheticCheck,
+  SyntheticCheckInput,
+  SyntheticRun,
+} from "@/models";
 import { monitorsRepo, syntheticsRepo } from "@/models/repositories";
 import { useRequest } from "./use-request";
 
@@ -76,14 +81,28 @@ export function useSyntheticRunController(
   const check = useRequest(() => syntheticsRepo.get(checkId), [checkId]);
   const runs = useRequest(() => syntheticsRepo.runs(checkId), [checkId]);
   const list = runs.data ?? [];
-  const selected = runId
-    ? (list.find((r) => r.id === runId) ??
-      list.find((r) => String(r.number) === runId.replace(/^#/, "")) ??
-      null)
-    : (list[0] ?? null);
+  const selected = selectRun(list, runId);
   const notFound =
     runId !== null && !runs.loading && list.length > 0 && selected === null;
   return { check, runs, selected, notFound };
+}
+
+/**
+ * Pure `?run=` resolution (extracted for the regression lock): internal id
+ * first, then the visible run number with or without the `#` prefix; null
+ * when nothing matches (the page renders "Run … not found", never the
+ * "No runs yet" empty copy). No `runId` selects the latest run.
+ */
+export function selectRun(
+  list: SyntheticRun[],
+  runId: string | null,
+): SyntheticRun | null {
+  if (!runId) return list[0] ?? null;
+  return (
+    list.find((r) => r.id === runId) ??
+    list.find((r) => String(r.number) === runId.replace(/^#/, "")) ??
+    null
+  );
 }
 
 /**
