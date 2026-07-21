@@ -33,6 +33,24 @@ test("signin → dashboard home via the single Google CTA", async ({ page }) => 
   ).toBeVisible();
 });
 
+test("legal consent line links the canonical Cuesoft policies", async ({
+  page,
+}) => {
+  await page.goto("/signin");
+
+  const screen = page.getByTestId("signin-screen");
+  await expect(
+    screen.getByText(/By continuing you agree to the/),
+  ).toBeVisible();
+  await expect(screen.getByRole("link", { name: "Terms" })).toHaveAttribute(
+    "href",
+    "https://terms.cuesoft.io",
+  );
+  await expect(
+    screen.getByRole("link", { name: "Privacy Policy" }),
+  ).toHaveAttribute("href", "https://privacy.cuesoft.io");
+});
+
 test("/login 404s on the branded page (redirect stub removed 2026-07-19)", async ({
   page,
 }) => {

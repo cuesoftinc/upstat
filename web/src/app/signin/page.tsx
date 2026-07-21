@@ -43,6 +43,30 @@ export default function SignInPage() {
             Sign-in failed. Please try again.
           </p>
         )}
+
+        {/* Legal consent line (sibling parity: apparule/expendit signin) —
+            links open the canonical Cuesoft policies in a new tab. */}
+        <p className="text-[13px] leading-[1.45] text-text-2">
+          By continuing you agree to the{" "}
+          <a
+            href="https://terms.cuesoft.io"
+            target="_blank"
+            rel="noreferrer"
+            className="underline underline-offset-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
+          >
+            Terms
+          </a>{" "}
+          and{" "}
+          <a
+            href="https://privacy.cuesoft.io"
+            target="_blank"
+            rel="noreferrer"
+            className="underline underline-offset-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
+          >
+            Privacy Policy
+          </a>
+          .
+        </p>
       </main>
     </div>
   );

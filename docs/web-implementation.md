@@ -684,7 +684,7 @@ order per pages.md Part B.
 | pages.md | Route | Screen |
 | --- | --- | --- |
 | Part A (A1–A16) | `/` | Public home page |
-| flows/auth.md · design.md §8.1 Stage 4 | `/signin` | Single auth screen — GoogleAuthButton + legal links (X-1; the only auth route — stale `/login` links 404 on the branded page (stub removed 2026-07-19); there is no `/signup`) |
+| flows/auth.md · design.md §8.1 Stage 4 | `/signin` | Single auth screen — GoogleAuthButton + legal consent line (Terms/Privacy open the canonical https://terms.cuesoft.io / https://privacy.cuesoft.io in a new tab; X-1; the only auth route — stale `/login` links 404 on the branded page (stub removed 2026-07-19); there is no `/signup`) |
 | X-2 | `/docs/api` | Public API reference — Scalar embed rendering `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); marketing nav chrome, minimal legal strip **[Ratified 2026-07-20]** |
 | B1 | `/dashboard` | Home — org health: incidents banner (MI-14), triggered monitors, SLO burn (MI-15), watched dashboards |
 | B1 first-run | `/dashboard/onboarding` | create-org (name + IANA timezone, X-10) → send-your-first-data (ingestion key + snippet + MI-16 waiting-for-data; resolves to `/dashboard` on first datapoint) |
