@@ -9,7 +9,7 @@
 
 import { MarketingNav } from "@/components/ui/MarketingNav";
 import { useDocsApiController } from "@/controllers/home";
-import { ScalarApiReference } from "./ScalarApiReference";
+import { ScalarApiReferenceLazy } from "./ScalarApiReferenceLazy";
 
 const LICENSE_URL = "https://github.com/cuesoftinc/upstat/blob/main/LICENSE";
 
@@ -30,7 +30,7 @@ export function DocsApiView() {
           its viewport math to match (one coherent scroll). `isolate` opens
           a stacking context so no Scalar z-index can paint over the nav. */}
       <main className="isolate flex-1 [--scalar-custom-header-height:57px]">
-        <ScalarApiReference />
+        <ScalarApiReferenceLazy />
       </main>
       {/* Minimal footer strip — verbatim legal line only (parity canon). */}
       <footer className="border-t border-border bg-bg px-6 py-4">
