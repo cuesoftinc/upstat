@@ -13,13 +13,13 @@ function ms(v: number): string {
 
 function errTint(rate: number): string {
   if (rate >= 0.04) return "text-crit";
-  if (rate >= 0.01) return "text-warn";
+  if (rate >= 0.01) return "text-warn-text";
   return "text-text-2";
 }
 
 function apdexTint(apdex: number): string {
   if (apdex < 0.8) return "text-crit";
-  if (apdex < 0.94) return "text-warn";
+  if (apdex < 0.94) return "text-warn-text";
   return "text-text-2";
 }
 

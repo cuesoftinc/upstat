@@ -88,7 +88,7 @@ export function AlertChannelCard({
         <button
           type="button"
           onClick={onVerify}
-          className="mt-0.5 shrink-0 text-[12px] font-medium text-brand hover:text-brand-deep"
+          className="mt-0.5 shrink-0 text-[12px] font-medium text-brand-text hover:text-brand-deep"
         >
           Verify
         </button>

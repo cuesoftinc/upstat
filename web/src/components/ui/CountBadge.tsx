@@ -21,7 +21,7 @@ export function CountBadge({
     <span
       className={clsx(
         "font-ui inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-crit",
-        "px-1 text-[10px] font-semibold tabular-nums text-[#FFFFFF]", // §2 on-crit note
+        "px-1 text-[10px] font-semibold tabular-nums text-on-crit", // §2 on-crit
         pulse && "animate-pulse motion-reduce:animate-none",
         className,
       )}
@@ -53,7 +53,7 @@ export function BufferedCountChip({
       onClick={onClick}
       className={clsx(
         "font-data inline-flex items-center gap-1 rounded-full border border-brand bg-brand/12 px-2 py-[3px]",
-        "text-[11px] font-medium text-brand",
+        "text-[11px] font-medium text-brand-text",
         "transition-colors duration-[var(--duration-fast)] ease-standard hover:bg-brand/20",
         className,
       )}

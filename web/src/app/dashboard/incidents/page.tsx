@@ -64,8 +64,8 @@ export default function IncidentsPage() {
                 <span
                   className={
                     incident.status === "resolved"
-                      ? "text-[12px] uppercase tracking-wide text-ok"
-                      : "text-[12px] uppercase tracking-wide text-warn"
+                      ? "text-[12px] uppercase tracking-wide text-ok-text"
+                      : "text-[12px] uppercase tracking-wide text-warn-text"
                   }
                 >
                   {incident.status}

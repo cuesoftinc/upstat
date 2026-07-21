@@ -642,8 +642,10 @@ reload persistence.
 Notes: status semantics are sacred — `ok/warn/crit/nodata` are reserved for
 state, never decoration, and `ok` stays visually distinct from `brand`
 (design.md §2). `--on-brand` is dark ink in **both** modes and applies to
-`brand` fills only — destructive-fill labels stay raw `#FFFFFF` pending a
-possible `on-crit` token **[Decided 2026-07-17]**; that raw white is the
+`brand` fills only — destructive-fill labels bind `--on-crit` (white in
+light, `on-brand` ink in dark, §2). Readable text in a status/brand hue
+binds the `--<hue>-text` AA variant; fills/borders/dots/icons keep the
+base hue (§2). The GoogleAuthButton's brand-mandated chrome is the
 canonical example of a documented no-raw-hex exception (code comment
 required, §1). Type ramp (11/12/13/14/16/20/24–32) and fonts live in the
 Tailwind theme, not tokens.css; tabular numerals

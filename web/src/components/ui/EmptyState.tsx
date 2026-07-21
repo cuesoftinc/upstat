@@ -116,7 +116,7 @@ export function EmptyState({
             href={docsHref}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 text-[12px] text-brand hover:text-brand-deep"
+            className="inline-flex items-center gap-1 text-[12px] text-brand-text hover:text-brand-deep"
           >
             Setup docs <ExternalLink className="size-3" aria-hidden="true" />
           </a>

@@ -22,17 +22,17 @@ export interface IncidentHistoryEntryProps {
 }
 
 const PHASE_TINT: Record<IncidentPhase, string> = {
-  investigating: "text-crit",
-  identified: "text-warn",
-  monitoring: "text-brand",
-  resolved: "text-ok",
+  investigating: "text-crit-text",
+  identified: "text-warn-text",
+  monitoring: "text-brand-text",
+  resolved: "text-ok-text",
 };
 
 const PHASE_CHIP: Record<IncidentPhase, string> = {
-  investigating: "bg-crit/10 text-crit",
-  identified: "bg-warn/10 text-warn",
-  monitoring: "bg-brand/10 text-brand",
-  resolved: "bg-ok/10 text-ok",
+  investigating: "bg-crit/10 text-crit-text",
+  identified: "bg-warn/10 text-warn-text",
+  monitoring: "bg-brand/10 text-brand-text",
+  resolved: "bg-ok/10 text-ok-text",
 };
 
 const PHASE_DOT: Record<IncidentPhase, string> = {

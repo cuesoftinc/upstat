@@ -181,7 +181,7 @@ export default function MonitorDetailPage() {
             </p>
             <Link
               href="/dashboard/monitors/new?signal=trace"
-              className="mt-2 inline-block text-[13px] text-brand hover:underline"
+              className="mt-2 inline-block text-[13px] text-brand-text hover:underline"
             >
               Create a latency monitor from this insight →
             </Link>

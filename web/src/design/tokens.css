@@ -10,8 +10,8 @@
  * fallback only.
  *
  * No raw hex anywhere else in the app — components consume these variables
- * (documented exceptions carry a code comment, e.g. destructive-fill labels
- * stay raw #FFFFFF pending an `on-crit` token, design.md §2).
+ * (the one documented exception is the brand-mandated GoogleAuthButton
+ * chrome; destructive-fill labels bind `on-crit`, design.md §2).
  */
 
 :root {
@@ -28,6 +28,22 @@
   --color-warn: #ffb020; /* degraded / warn thresholds */
   --color-crit: #ff5c5c; /* down / alerting */
   --color-nodata: #5c6270; /* no data / muted monitors */
+  --color-on-crit: #0e1113; /* labels on crit fills — dark ink in dark theme
+    (white on #ff5c5c is 3.03), white in light (design.md §2) */
+
+  /* ---- AA text variants (design.md §2) ----
+     Readable text in a status/brand hue binds the `-text` variant;
+     fills/borders/dots/icons keep the base hue. Dark base values clear
+     4.5:1 on their /14 tints except nodata, which lightens in OKLCH
+     (L 0.496→0.643) — the others alias the base. Light values darken
+     the base (L only; C/H preserved) until ≥4.5:1 on the tinted-chip
+     recipe (`text-X` on `bg-X/10–15`) — see the light block. */
+  --color-brand-text: #00e09e;
+  --color-ok-text: #3dcc70;
+  --color-warn-text: #ffb020;
+  --color-crit-text: #ff5c5c;
+  --color-nodata-text: #868d9c; /* 4.63 on nodata/14 over bg-elev */
+  --color-text-2-text: #9ba0ac;
 
   /* ---- Series palette (8-step categorical; same both themes) ---- */
   --color-series-1: #7c6cf0;
@@ -85,6 +101,16 @@
   --color-warn: #c77d00;
   --color-crit: #d32f2f;
   --color-nodata: #9aa0aa;
+  --color-on-crit: #ffffff; /* white on #d32f2f = 4.98 */
+  /* AA text variants — every light base misses 4.5:1 on its /14 tint
+     (brand 1.57 · ok 3.10 · warn 2.84 · crit 4.03 · nodata 2.35 ·
+     text-2 4.21), so all darken in OKLCH until the recipe clears AA */
+  --color-brand-text: #097955; /* 4.61 on brand/15 over bg-elev */
+  --color-ok-text: #047634; /* 4.61 on ok/15 over bg-elev */
+  --color-warn-text: #925b03; /* 4.60 on warn/14 over bg-elev */
+  --color-crit-text: #c31a21; /* 4.54 on crit/15 over bg-elev */
+  --color-nodata-text: #646a73; /* 4.61 on nodata/14 over bg-elev */
+  --color-text-2-text: #616571; /* 4.61 on text-2/14 over bg-elev */
   /* series palette is identical in both themes (validated ≥3:1 on both bg values) */
 }
 
@@ -105,5 +131,12 @@
     --color-warn: #c77d00;
     --color-crit: #d32f2f;
     --color-nodata: #9aa0aa;
+    --color-on-crit: #ffffff;
+    --color-brand-text: #097955;
+    --color-ok-text: #047634;
+    --color-warn-text: #925b03;
+    --color-crit-text: #c31a21;
+    --color-nodata-text: #646a73;
+    --color-text-2-text: #616571;
   }
 }

@@ -102,7 +102,7 @@ export function RouteTabs({
                 "shrink-0 whitespace-nowrap pb-2 text-[13px]",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
                 selected
-                  ? "-mb-px border-b-2 border-brand font-medium text-brand"
+                  ? "-mb-px border-b-2 border-brand font-medium text-brand-text"
                   : "text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text",
               )}
             >

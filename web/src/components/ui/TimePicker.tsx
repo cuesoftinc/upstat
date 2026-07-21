@@ -53,7 +53,7 @@ export function TimePicker({
           className={clsx(
             "hidden px-2 text-[12px] font-medium tabular-nums transition-colors duration-[var(--duration-fast)] ease-standard md:block",
             value === preset
-              ? "bg-bg-elev text-brand"
+              ? "bg-bg-elev text-brand-text"
               : "text-text-2 hover:text-text",
           )}
         >
@@ -77,7 +77,7 @@ export function TimePicker({
             "flex items-center gap-1 px-2 text-[12px] font-medium md:border-l md:border-border",
             "transition-colors duration-[var(--duration-fast)] ease-standard",
             value === "custom"
-              ? "bg-bg-elev text-brand"
+              ? "bg-bg-elev text-brand-text"
               : "text-text-2 hover:text-text",
           )}
         >
@@ -140,7 +140,7 @@ export function TimePicker({
           className={clsx(
             "hidden items-center gap-1.5 border-l border-border px-2 text-[12px] font-medium md:flex",
             "transition-colors duration-[var(--duration-fast)] ease-standard",
-            live ? "text-brand" : "text-text-2 hover:text-text",
+            live ? "text-brand-text" : "text-text-2 hover:text-text",
           )}
         >
           <span

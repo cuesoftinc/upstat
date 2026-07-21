@@ -58,7 +58,7 @@ export default function DashboardHomePage() {
               <button
                 type="button"
                 onClick={() => router.push("/dashboard/dashboards")}
-                className="text-brand hover:underline"
+                className="text-brand-text hover:underline"
               >
                 create your first dashboard
               </button>
@@ -126,7 +126,7 @@ export default function DashboardHomePage() {
             <button
               type="button"
               onClick={() => router.push("/dashboard/slos")}
-              className="text-brand hover:underline"
+              className="text-brand-text hover:underline"
             >
               define your first SLO
             </button>

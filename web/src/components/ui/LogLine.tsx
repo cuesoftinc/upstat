@@ -170,7 +170,7 @@ export function LogLine({
                     if ((e.metaKey || e.ctrlKey) && onPivot)
                       onPivot(key, value);
                   }}
-                  className="truncate text-left text-text hover:text-brand"
+                  className="truncate text-left text-text hover:text-brand-text"
                 >
                   {value}
                 </button>

@@ -244,7 +244,7 @@ export default function LogsPage() {
                 data-testid={`logs-tab-${value}`}
                 className={
                   tab === value
-                    ? "-mb-px border-b-2 border-brand pb-2 text-[13px] font-medium text-brand"
+                    ? "-mb-px border-b-2 border-brand pb-2 text-[13px] font-medium text-brand-text"
                     : "pb-2 text-[13px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
                 }
               >

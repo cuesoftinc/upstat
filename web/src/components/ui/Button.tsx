@@ -14,7 +14,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 /**
  * Button — design.md §8.2. Brand fills carry `on-brand` ink; destructive
- * labels stay raw #FFFFFF per the §2 on-crit decision (documented exception).
+ * labels bind the §2 `on-crit` token (white in light, dark ink in dark).
  */
 export function Button({
   kind = "brand",
@@ -39,9 +39,9 @@ export function Button({
         kind === "quiet" &&
           "border border-border bg-transparent text-text hover:bg-bg-elev disabled:hover:bg-bg-elev",
         kind === "destructive" &&
-          // raw #FFFFFF label pending an `on-crit` token (design.md §2);
-          // hover dims the crit fill to 85% (Figma 37:25), label stays white
-          "bg-crit text-[#FFFFFF] hover:bg-crit/85 disabled:hover:bg-bg-elev",
+          // label binds `on-crit` (design.md §2 — white/light, ink/dark);
+          // hover dims the crit fill to 85% (Figma 37:25)
+          "bg-crit text-on-crit hover:bg-crit/85 disabled:hover:bg-bg-elev",
         className,
       )}
       {...rest}

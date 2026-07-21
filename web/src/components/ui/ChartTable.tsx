@@ -38,7 +38,7 @@ export function ChartTableToggle({
       onClick={onToggle}
       className={clsx(
         "rounded-(--radius) p-1 transition-colors duration-[var(--duration-fast)] ease-standard",
-        active ? "text-brand" : "text-text-2 hover:bg-bg hover:text-text",
+        active ? "text-brand-text" : "text-text-2 hover:bg-bg hover:text-text",
         className,
       )}
     >

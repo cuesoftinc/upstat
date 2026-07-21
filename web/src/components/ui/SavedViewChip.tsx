@@ -30,7 +30,7 @@ export function SavedViewChip({
         "font-ui inline-flex h-7 items-center gap-1.5 rounded-(--radius) border px-2 text-[12px] font-medium",
         "transition-colors duration-[var(--duration-fast)] ease-standard",
         active
-          ? "border-brand bg-brand/10 text-brand"
+          ? "border-brand bg-brand/10 text-brand-text"
           : "border-border bg-bg-elev text-text hover:border-text-2",
         className,
       )}

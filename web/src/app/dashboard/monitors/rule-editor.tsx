@@ -240,7 +240,7 @@ export function RuleEditor({
             Thresholds · evaluation window
           </legend>
           <label className="flex min-w-0 flex-col gap-1 text-[13px]">
-            <span className="text-warn">warn &gt;</span>
+            <span className="text-warn-text">warn &gt;</span>
             <Input
               mono
               value={warn}
@@ -291,7 +291,9 @@ export function RuleEditor({
                   {ch.target}
                 </span>
                 {ch.health !== "verified" && (
-                  <span className="text-[11px] text-warn">({ch.health})</span>
+                  <span className="text-[11px] text-warn-text">
+                    ({ch.health})
+                  </span>
                 )}
               </li>
             ))}

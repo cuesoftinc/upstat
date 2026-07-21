@@ -83,8 +83,8 @@ export function StatusPageHeader({
           aria-hidden="true"
           className={clsx(
             "size-5",
-            overall === "operational" && "text-ok",
-            overall === "degraded" && "text-warn",
+            overall === "operational" && "text-ok-text",
+            overall === "degraded" && "text-warn-text",
             (overall === "partial_outage" || overall === "major_outage") &&
               "text-crit",
           )}

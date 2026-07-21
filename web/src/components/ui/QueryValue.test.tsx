@@ -10,7 +10,7 @@ describe("QueryValue", () => {
     // Figma 70:537 — tint wash carries the threshold, the value stays neutral
     expect(screen.getByText("142 ms")).toHaveClass("text-text");
     expect(container.querySelector(".bg-warn\\/8")).not.toBeNull();
-    expect(screen.getByText("▼ 3.4%")).toHaveClass("text-warn");
+    expect(screen.getByText("▼ 3.4%")).toHaveClass("text-warn-text");
   });
 
   it("renders the sparkline variant", () => {

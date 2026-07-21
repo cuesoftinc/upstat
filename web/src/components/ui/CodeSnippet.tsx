@@ -115,7 +115,10 @@ export function CodeSnippet({
         <code className="font-data text-[13px] leading-[1.6] text-text">
           {prompt
             ? tabs[active].code.split("\n").map((line) => (
-                <span key={line} className="block whitespace-nowrap text-brand">
+                <span
+                  key={line}
+                  className="block whitespace-nowrap text-brand-text"
+                >
                   <span aria-hidden="true" className="select-none">
                     {"$ "}
                   </span>

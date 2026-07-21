@@ -52,7 +52,7 @@ export default function RuleReplayPage() {
           Rule not found.{" "}
           <Link
             href="/dashboard/monitors"
-            className="text-brand hover:underline"
+            className="text-brand-text hover:underline"
           >
             Back to monitors
           </Link>
@@ -121,7 +121,7 @@ export default function RuleReplayPage() {
               Replay — last 24h
             </h2>
             {testResult && (
-              <span className="rounded-full border border-warn px-2.5 py-0.5 text-[12px] text-warn">
+              <span className="rounded-full border border-warn px-2.5 py-0.5 text-[12px] text-warn-text">
                 would have fired ×{testResult.would_have_fired}
               </span>
             )}

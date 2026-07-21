@@ -55,7 +55,7 @@ export default function ServiceMapPage() {
             highlight: <span className="font-data text-text">{selected}</span> —{" "}
             <Link
               href={`/dashboard/traces/services/${selected}`}
-              className="text-brand hover:underline"
+              className="text-brand-text hover:underline"
             >
               open service →
             </Link>
