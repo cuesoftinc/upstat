@@ -146,7 +146,9 @@ test("B7: status-page builder edits reflect on the public page", async ({
     .getByRole("button", { name: "Reorder Web frontend" })
     .press("ArrowDown");
   await page.getByTestId("save-status-page").click();
-  await expect(page.getByText("Saved")).toBeVisible();
+  // exact: the settings copy ("Saved changes publish immediately…")
+  // substring-matches a bare "Saved" and trips strict mode.
+  await expect(page.getByText("Saved", { exact: true })).toBeVisible();
 
   // public-URL preview links the slugged public construction
   await expect(page.getByTestId("open-public-page")).toHaveAttribute(

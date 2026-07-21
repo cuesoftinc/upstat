@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   demo panels mount on intersection) both land inside budget (#201).
 
 ### Fixed
+- Accessibility closeout: footer links meet the 24px target-size minimum,
+  the cloud-vs-self-host comparison table names its feature column for
+  assistive tech, a skip-to-content link fronts the app shell, and the
+  command palette opens on ⌘K as well as "/" (#204).
 - Contrast-token canon: AA-compliant `-text` variants for the tinted-chip
   recipe, plus a new `on-crit` token (#196).
 - Signin gains the sibling-parity legal consent line (#200).
