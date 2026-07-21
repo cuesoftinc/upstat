@@ -20,8 +20,13 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  // Absolute base for og/twitter images, canonicals and other metadata
+  // URLs (SEO plumbing, fleet canon).
+  metadataBase: new URL("https://upstat.cuesoft.io"),
   title: "Upstat",
   description: "The Upstat Project",
+  // Every route's canonical is its own path, resolved against metadataBase.
+  alternates: { canonical: "./" },
 };
 
 // No maximumScale: pinch-zoom must stay available (2026-07-21 a11y audit

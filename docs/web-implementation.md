@@ -848,3 +848,41 @@ policy — when that phase opens.
 - [ ] No dead code in live paths at any point: `src/legacy/` is the only
       quarantine location and trends to empty (§8); the proto/gRPC
       control plane retires only at monitors-v2
+
+## 10. SEO plumbing (as-built, 2026-07-21)
+
+Fleet-uniform discoverability layer (same construction in all three
+products; per-product values only):
+
+- **`src/app/sitemap.ts`** — public marketing routes only: `/`,
+  `/docs/api`, and `/status/upstat` (the dogfood status page — live 200
+  unauthenticated). No `/dashboard/*`, no `/signin`; customer `/status/*`
+  pages are runtime content, not build-time sitemap entries.
+- **`src/app/robots.ts`** — allow `/` (incl. `/status/*`), disallow
+  `/dashboard` and `/api`; references
+  `https://upstat.cuesoft.io/sitemap.xml`.
+- **Canonical** — root layout sets
+  `metadataBase = https://upstat.cuesoft.io` and
+  `alternates.canonical = "./"`, so every route emits its own path as the
+  canonical URL.
+- **og/twitter card** — `src/app/opengraph-image.png` (1200×630, App Router
+  file convention): BrandMark bolt + lowercase wordmark + tagline on the
+  dark token canvas; `twitter:card = summary_large_image`.
+- **Route metadata gaps closed** — `/signin` gets "Sign in — Upstat"
+  (fleet P9 pattern) and `/status/{slug}` gets per-org
+  `generateMetadata` ("{slug} status — Upstat") — both were leaking the
+  root fallback.
+- **Icons** — `src/app/favicon.ico` (16/32/48/256 PNG-in-ICO) and
+  `src/app/apple-icon.png` (180×180): the BrandMark bolt in brand green on
+  the dark tile. Replaces the stock create-next-app icon the repo had
+  shipped since scaffold (byte-identical with apparule's — neither
+  product's mark).
+- **Provenance** — all three binaries are generated from the design tokens
+  by `web/scripts/generate-brand-assets.mjs` (byte-identical across repos,
+  config keyed by package name; Inter via `INTER_WOFF2` or the official
+  distribution).
+- **Lock** — `web/e2e/seo.spec.ts` (byte-identical across repos) asserts
+  sitemap 200 + exact route set, robots policy + sitemap reference,
+  canonical on `/`, og:image resolves 200 at 1200×630, twitter card, and
+  the served favicon's sha256 equals upstat's mark while differing from
+  both siblings'.
