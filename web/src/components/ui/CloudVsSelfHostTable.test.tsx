@@ -34,4 +34,11 @@ describe("CloudVsSelfHostTable — landing instance overrides (Figma 135:688)", 
       screen.getByRole("button", { name: "Deploy with compose" }),
     ).toBeInTheDocument();
   });
+
+  it("keeps an sr-only Feature header when the visible label is empty", () => {
+    render(<CloudVsSelfHostTable featureHeader="" />);
+    expect(
+      screen.getByRole("columnheader", { name: "Feature" }),
+    ).toBeInTheDocument();
+  });
 });
