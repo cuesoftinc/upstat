@@ -33,6 +33,11 @@ export function CommandPalette({
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Focus restore (2026-07-21 a11y audit, fleet P4): the palette opens
+  // programmatically ("/" or the TopBar search button), so closing must
+  // hand focus back to whatever element had it before the input grabbed
+  // focus — previously it fell to <body>.
+  const returnFocusRef = useRef<HTMLElement | null>(null);
 
   const results = useMemo(
     () =>
@@ -54,8 +59,20 @@ export function CommandPalette({
     }
   }
 
+  // Opening snapshots the opener before the input grabs focus; closing
+  // sends focus back once the palette's DOM is gone.
   useEffect(() => {
-    if (open) inputRef.current?.focus();
+    if (open) {
+      returnFocusRef.current =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
+      inputRef.current?.focus();
+    } else {
+      const opener = returnFocusRef.current;
+      returnFocusRef.current = null;
+      if (opener?.isConnected) opener.focus();
+    }
   }, [open]);
 
   if (!open) return null;
@@ -68,8 +85,15 @@ export function CommandPalette({
     >
       <div
         role="dialog"
+        aria-modal="true"
         aria-label="Command palette"
         onClick={(e) => e.stopPropagation()}
+        // Escape dismisses from ANYWHERE inside the dialog (2026-07-21
+        // a11y audit: it was bound on the search input only, so after Tab
+        // moved focus to an option Escape did nothing).
+        onKeyDown={(e) => {
+          if (e.key === "Escape") onClose();
+        }}
         className={clsx(
           "font-ui w-[560px] overflow-hidden rounded-(--radius) border border-border bg-bg-elev shadow-xl",
           className,
@@ -85,7 +109,6 @@ export function CommandPalette({
               setActive(0);
             }}
             onKeyDown={(e) => {
-              if (e.key === "Escape") onClose();
               if (e.key === "ArrowDown") {
                 e.preventDefault();
                 setActive((a) => Math.min(a + 1, results.length - 1));

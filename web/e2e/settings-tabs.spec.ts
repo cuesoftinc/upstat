@@ -119,7 +119,7 @@ test("deep link direct-loads the Usage tab; NavRail stays active on sub-routes",
   await expect(
     page
       .getByRole("navigation", { name: "Product navigation" })
-      .getByRole("button", { name: "Settings" }),
+      .getByRole("link", { name: "Settings" }),
   ).toHaveAttribute("aria-current", "page");
 });
 

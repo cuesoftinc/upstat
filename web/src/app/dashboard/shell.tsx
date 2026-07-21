@@ -118,9 +118,11 @@ function ShellChrome({ children }: { children: ReactNode }) {
     // (the logs live-tail list, MI-4 pause-on-scroll) get a real overflow
     // boundary instead of growing the body.
     <div className="font-ui flex h-dvh bg-bg text-text">
+      {/* Rail items are real <a> links (a11y audit: middle-click/new-tab,
+          AT link navigation); the g-chords keep router.push (keyboard.ts). */}
       <NavRail
         activeKey={activeKeyFor(pathname)}
-        onNavigate={(key) => router.push(PILLAR_ROUTES[key] ?? "/dashboard")}
+        hrefFor={(key) => PILLAR_ROUTES[key] ?? "/dashboard"}
         userName={userName}
       />
 

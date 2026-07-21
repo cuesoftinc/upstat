@@ -19,6 +19,7 @@ import {
   Target,
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "@/controllers/use-media-query";
 import { Avatar } from "./Avatar";
@@ -28,6 +29,10 @@ export interface NavRailItemProps {
   icon: LucideIcon;
   label: string;
   active?: boolean;
+  /** Route target — renders a real <a> (next/link). Nav destinations are
+   *  links, not buttons (2026-07-21 a11y audit: middle-click/new-tab and
+   *  AT link navigation; siblings' rails are the pattern). Omit only for
+   *  genuinely action-only items. */
   href?: string;
   onClick?: () => void;
   /** layout=expanded — icon + inline label row, no flyout (design.md §2
@@ -40,45 +45,67 @@ export interface NavRailItemProps {
  * NavRailItem — §8.2b: default / hover (flyout label) / active (brand
  * accent bar + brand icon, both layouts). `expanded` renders the 228px
  * icon+label row ([Directive 2026-07-19]); collapsed keeps the flyout.
+ * With `href` it renders a next/link <a>; otherwise a <button>.
  */
 export function NavRailItem({
   icon: Icon,
   label,
   active = false,
+  href,
   onClick,
   expanded = false,
 }: NavRailItemProps) {
   const [hover, setHover] = useState(false);
+  const itemClass = clsx(
+    "relative flex h-10 items-center rounded-(--radius)",
+    expanded ? "w-full gap-3 px-2.5 text-left" : "size-10 justify-center",
+    "transition-colors duration-[var(--duration-fast)] ease-standard",
+    active
+      ? "bg-brand/15 text-brand"
+      : "text-text-2 hover:bg-bg-elev hover:text-text",
+  );
+  const itemBody = (
+    <>
+      {/* active = brand accent bar + brand icon in both states (§2) */}
+      {active && (
+        <span
+          aria-hidden="true"
+          className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-brand"
+        />
+      )}
+      <Icon className="size-5 shrink-0" strokeWidth={active ? 2.2 : 2} />
+      {expanded && (
+        <span className="truncate text-[13px] font-medium">{label}</span>
+      )}
+    </>
+  );
   return (
     <div className="relative">
-      <button
-        type="button"
-        aria-label={label}
-        aria-current={active ? "page" : undefined}
-        onClick={onClick}
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
-        className={clsx(
-          "relative flex h-10 items-center rounded-(--radius)",
-          expanded ? "w-full gap-3 px-2.5 text-left" : "size-10 justify-center",
-          "transition-colors duration-[var(--duration-fast)] ease-standard",
-          active
-            ? "bg-brand/15 text-brand"
-            : "text-text-2 hover:bg-bg-elev hover:text-text",
-        )}
-      >
-        {/* active = brand accent bar + brand icon in both states (§2) */}
-        {active && (
-          <span
-            aria-hidden="true"
-            className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-brand"
-          />
-        )}
-        <Icon className="size-5 shrink-0" strokeWidth={active ? 2.2 : 2} />
-        {expanded && (
-          <span className="truncate text-[13px] font-medium">{label}</span>
-        )}
-      </button>
+      {href ? (
+        <Link
+          href={href}
+          aria-label={label}
+          aria-current={active ? "page" : undefined}
+          onClick={onClick}
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          className={itemClass}
+        >
+          {itemBody}
+        </Link>
+      ) : (
+        <button
+          type="button"
+          aria-label={label}
+          aria-current={active ? "page" : undefined}
+          onClick={onClick}
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          className={itemClass}
+        >
+          {itemBody}
+        </button>
+      )}
       {!expanded && hover && (
         <span
           role="tooltip"
@@ -185,6 +212,12 @@ function useRailExpanded(): [boolean, () => void] {
 
 export interface NavRailProps {
   activeKey: string;
+  /** Pillar key → route. When provided, items render real <a> links
+   *  (next/link) — the a11y-audit nav semantics; clicks still close the
+   *  <md overlay drawer. */
+  hrefFor?: (key: string) => string | undefined;
+  /** Selection callback. With `hrefFor` the link handles navigation and
+   *  this (if given) is side-effects only — don't router.push from it. */
   onNavigate?: (key: string) => void;
   /** Signed-in user for the foot avatar (master 284:2 foot construction). */
   userName?: string | null;
@@ -197,6 +230,7 @@ export interface NavRailProps {
 function RailBody({
   expanded,
   activeKey,
+  hrefFor,
   onSelect,
   footLabel,
   footExpanded,
@@ -206,6 +240,7 @@ function RailBody({
 }: {
   expanded: boolean;
   activeKey: string;
+  hrefFor?: (key: string) => string | undefined;
   onSelect: (key: string) => void;
   footLabel: string;
   footExpanded: boolean;
@@ -256,6 +291,7 @@ function RailBody({
                 label={pillar.label}
                 active={pillar.key === activeKey}
                 expanded={expanded}
+                href={hrefFor?.(pillar.key)}
                 onClick={() => onSelect(pillar.key)}
               />
             );
@@ -314,6 +350,7 @@ function RailBody({
  */
 export function NavRail({
   activeKey,
+  hrefFor,
   onNavigate,
   userName,
   className,
@@ -347,6 +384,7 @@ export function NavRail({
         <RailBody
           expanded={inlineExpanded}
           activeKey={activeKey}
+          hrefFor={hrefFor}
           onSelect={(key) => onNavigate?.(key)}
           footLabel={
             inlineExpanded ? "Collapse navigation" : "Expand navigation"
@@ -384,6 +422,7 @@ export function NavRail({
             <RailBody
               expanded
               activeKey={activeKey}
+              hrefFor={hrefFor}
               onSelect={select}
               footLabel="Close navigation"
               footTestId="rail-drawer-close"
