@@ -8,6 +8,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Settings goes route-backed tabs: General | Members | Keys & properties |
+  Integrations | Data & privacy | Appearance | Usage — seven deep-linkable
+  tabs (#188).
+- Self-host install snippet goes tabbed: Docker Compose and Helm (#184).
+- SEO plumbing: sitemap, `robots.txt`, canonical URLs, an Open Graph card, and
+  a real brand favicon in place of the placeholder (#195).
+
+### Changed
+- Dead-code and env-plumbing cleanup: removed dead exports, scaffold assets,
+  an unused dependency, and the dead `NEXT_PUBLIC_BASE_URL` env plumbing
+  (docs now name the real var); piped Playwright's `webServer` output so CI
+  server deaths are diagnosable (#190, #191, #193).
+
+### Fixed
+- Figma↔code convergence pass: home content, charts, pills sweep, `NavRail`,
+  brand mark, banner, `FacetGroup` header, landing font-smoothing/type lock,
+  `TimePicker` panel anatomy, monitors editor panel whitespace, the `?run=`
+  lock, and `IncidentBanner` chrome-strip placement (#180, #181, #182, #185,
+  #186, #192).
+- Self-host checklist now names the shipping database (MongoDB) instead of
+  the earlier target (#189).
+- Accessibility: pinch-zoom restored, nav-rail links corrected, and command
+  palette dismissal/focus restore fixed (#194).
+
+### Added
 - Full observability web application (monitors, incidents, logs, metrics, RUM,
   and public status pages) built from the shared component registry over a
   mock CRUD API, with multi-organization onboarding.
