@@ -24,10 +24,12 @@ export const metadata: Metadata = {
   description: "The Upstat Project",
 };
 
+// No maximumScale: pinch-zoom must stay available (2026-07-21 a11y audit
+// blocker — axe meta-viewport on every route; siblings' viewport export is
+// the fleet pattern).
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
 };
 
 export default function RootLayout({

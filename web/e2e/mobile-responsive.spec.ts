@@ -12,6 +12,19 @@ import { expect, test, type Page, type TestInfo } from "@playwright/test";
 const MOBILE = { width: 390, height: 844 };
 const TABLET = { width: 768, height: 1024 };
 
+// Pinch-zoom stays available (2026-07-21 a11y audit blocker: the root
+// viewport export shipped maximumScale:1 — axe meta-viewport on 18/18
+// route-loads; siblings' viewport export is the fleet pattern).
+test("viewport meta never disables pinch-zoom", async ({ page }) => {
+  await page.goto("/");
+  const content = await page
+    .locator('meta[name="viewport"]')
+    .getAttribute("content");
+  expect(content).toContain("width=device-width");
+  expect(content).not.toMatch(/maximum-scale/i);
+  expect(content).not.toMatch(/user-scalable\s*=\s*(no|0)/i);
+});
+
 /** Every route in the web-implementation.md §4 route map (seeded ids §6). */
 const ROUTES = [
   "/",
