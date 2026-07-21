@@ -46,6 +46,10 @@ export function ScalarApiReference() {
         // Scalar's floating dev toolbar defaults to "localhost" — never
         // show it on the public reference (audit 2026-07-20)
         showDeveloperTools: "never",
+        // Same leak class: Agent Scalar auto-enables on localhost-class
+        // hosts (isLocalUrl), surfacing an AI-chat drawer that never exists
+        // on the real deploy — disable outright.
+        agent: { disabled: true },
       }}
     />
   );
