@@ -15,7 +15,9 @@ export interface CloudVsSelfHostTableProps {
   onTryCloud?: () => void;
   onSelfHost?: () => void;
   /** Header/CTA overrides — the landing v2 instance (Figma 135:688) uses
-   *  an empty feature header, "Upstat Cloud", and "Deploy with compose". */
+   *  an empty feature header, "Upstat Cloud", and "Deploy with compose".
+   *  An empty featureHeader stays visually blank but keeps an sr-only
+   *  "Feature" label so the column header is never empty for AT. */
   featureHeader?: string;
   cloudHeader?: string;
   selfHostHeader?: string;
@@ -64,7 +66,9 @@ export function CloudVsSelfHostTable({
             scope="col"
             className="p-3 text-left text-[13px] font-semibold text-text"
           >
-            {featureHeader}
+            {/* axe empty-table-header (a11y audit 2026-07-21): the landing
+                instance passes "" — keep the visual blank, name the column */}
+            {featureHeader || <span className="sr-only">Feature</span>}
           </th>
           <th
             scope="col"

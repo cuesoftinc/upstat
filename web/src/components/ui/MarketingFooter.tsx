@@ -113,16 +113,20 @@ export function MarketingFooter({
           <nav
             key={col.heading}
             aria-label={col.heading}
-            className="flex flex-col gap-1.5"
+            className="flex flex-col"
           >
-            <span className="text-[12px] font-semibold uppercase tracking-wide text-text-2">
+            <span className="pb-0.5 text-[12px] font-semibold uppercase tracking-wide text-text-2">
               {col.heading}
             </span>
+            {/* WCAG 2.5.8 target size (a11y audit ×15): each link is a
+                ≥24px flex row — min-h-6 supplies the hit area and the old
+                gap-1.5 rhythm is absorbed into the rows' inner padding, so
+                the rendered text keeps its size and alignment. */}
             {col.links.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
-                className="text-[13px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
+                className="flex min-h-6 items-center text-[13px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
               >
                 {link.label}
               </a>

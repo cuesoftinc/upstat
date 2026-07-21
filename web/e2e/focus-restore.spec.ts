@@ -34,6 +34,25 @@ test("palette: Escape works from an option and focus returns to the trigger", as
   await expect(trigger).toBeFocused();
 });
 
+test("palette: ⌘K toggles it (fleet-standard invocation, P12)", async ({
+  page,
+}) => {
+  await signIn(page);
+  const anchor = page.getByTestId("rail-toggle");
+  await anchor.focus();
+  await expect(anchor).toBeFocused();
+
+  await page.keyboard.press("ControlOrMeta+k");
+  const palette = page.getByRole("dialog", { name: "Command palette" });
+  await expect(palette).toBeVisible();
+
+  // Second ⌘K toggles it closed (expendit parity) — even from the search
+  // input — and focus returns to the pre-open element (P4).
+  await page.keyboard.press("ControlOrMeta+k");
+  await expect(palette).toBeHidden();
+  await expect(anchor).toBeFocused();
+});
+
 test('palette: "/" opens it and Escape from the input restores focus too', async ({
   page,
 }) => {
