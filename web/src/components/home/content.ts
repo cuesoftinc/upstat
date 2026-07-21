@@ -140,7 +140,6 @@ export const GITHUB_URL = "https://github.com/cuesoftinc/upstat";
 export const DISCORD_URL = "https://discord.gg/CDfZxxrxbb";
 // real GitBook destinations (docs.upstat.cuesoft.io was NXDOMAIN —
 // user-reported dead link 2026-07-19; canon hrefs, verified 200)
-export const DOCS_URL = "https://cuesoft.gitbook.io/upstat";
 export const SELF_HOST_DOCS_URL =
   "https://cuesoft.gitbook.io/upstat/system/deployment";
 // CTA-dedupe destinations (canon "Community CTA placement", 2026-07-19):
