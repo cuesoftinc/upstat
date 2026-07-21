@@ -138,8 +138,8 @@ serialized against the shared mock store, reset to a clean seed via
 prod build (all journeys + MI spot-checks at 1440/390). Fixes landed:
 the app frame is now viewport-bounded (`h-dvh`, was `min-h-screen`) so
 `<main>` is the real scroll container — this is what makes MI-4's
-scroll-up pause + buffered-count reachable (the logs list previously grew
-the body and never overflowed); the home page's demo data seeds from a
+scroll-up pause + buffered-count reachable; the home page's demo data
+seeds from a
 pinned epoch on first render and rebuilds with the real clock post-mount
 (static prerender + hydration text-mismatch, React #418); mock
 `parseQuery` rejects malformed pipes so MI-13's syntax-error state is
@@ -267,8 +267,8 @@ MARKERS stay cut per pages.md B1 (no deploy-events API is implied); every
 log line's `version` attr is the service's current version and bumps at
 the deploy. Log trace ids are per-line deterministic hexes (~25% of
 lines) — only lines inside the hero-trace window on its services carry
-the hero id (it previously rode ~30% of ALL lines). Error-group
-sparklines cohere with their states (new = appears at first_seen;
+the hero id. Error-group sparklines cohere with their states (new =
+appears at first_seen;
 regressed = spike aligned to the INC-42 window; ongoing = steady band).
 The alert feed matches rule states — the warn-state SLO-burn rule has its
 sev2 entry, and the trace-latency rule carries a triggered→recovered pair
@@ -526,8 +526,8 @@ colorblind), and AlertFeedRow collapses to the master's single line
 tooltip). (4) NavRail per the adjudication — Dashboards ungrouped above
 TELEMETRY, master foot (chevron square + user avatar via
 `useCurrentUserName`), the §8.1 reconciled rail-icon list. (5) The shared
-`BrandMark` (bolt + wordmark) replaces the green "U" tile at every brand
-site; /signin matches frame 124:6 (centered mark over "Sign in to your
+`BrandMark` (bolt + wordmark) is the mark at every brand site; /signin
+matches frame 124:6 (centered mark over "Sign in to your
 organization"; the CTA stays the GoogleAuthButton canon). (6)
 IncidentBanner keeps the global strip and gains "open Xm" + "View
 incident →" / "Postmortem →". (7) B4 constructions per masters —
@@ -619,8 +619,8 @@ clipboard payload, caption persistence and the 1440/390 container fit.
 - **Palette dismissal + focus restore (fleet P4).** `CommandPalette`
   handles Escape on the dialog container (it was input-only — after Tab
   to an option the palette was un-dismissable), is announced
-  `aria-modal`, and snapshots the opener on open / refocuses it on close
-  (previously focus fell to `<body>`). Unit: `CommandPalette.test.tsx`;
+  `aria-modal`, and snapshots the opener on open / refocuses it on close.
+  Unit: `CommandPalette.test.tsx`;
   e2e: `focus-restore.spec.ts` (open → Tab inside → Escape → trigger
   refocused, plus the "/" hotkey path).
 
@@ -899,9 +899,7 @@ products; per-product values only):
   root fallback.
 - **Icons** — `src/app/favicon.ico` (16/32/48/256 PNG-in-ICO) and
   `src/app/apple-icon.png` (180×180): the BrandMark bolt in brand green on
-  the dark tile. Replaces the stock create-next-app icon the repo had
-  shipped since scaffold (byte-identical with apparule's — neither
-  product's mark).
+  the dark tile (byte-identical with apparule's — neither product's mark).
 - **Provenance** — all three binaries are generated from the design tokens
   by `web/scripts/generate-brand-assets.mjs` (byte-identical across repos,
   config keyed by package name; Inter via `INTER_WOFF2` or the official
