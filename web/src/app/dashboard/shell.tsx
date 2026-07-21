@@ -17,7 +17,7 @@ import { IncidentBanner } from "@/components/ui/IncidentBanner";
 import { NavRail, NAV_PILLARS } from "@/components/ui/NavRail";
 import { NotificationPopover } from "@/components/ui/AlertFeedRow";
 import { ShortcutCheatsheet } from "@/components/ui/ShortcutCheatsheet";
-import { SkipLink } from "@/components/ui/SkipLink";
+import SkipLink from "@/components/ui/SkipLink";
 import { TimePicker, type TimePreset } from "@/components/ui/TimePicker";
 import { TopBar } from "@/components/ui/TopBar";
 import { ZoomStackChip } from "@/components/ui/ZoomStackChip";

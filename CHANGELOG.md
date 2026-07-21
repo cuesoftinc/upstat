@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- The command palette and the keyboard-shortcut overlay ride the same dialog
+  primitive as the rest of the overlay set — focus is trapped while they are
+  open; dismissal and focus-restore behavior are unchanged (#206).
+- The demo chart's crosshair tooltip follows the hero loop without shifting
+  layout — home CLS lands at ~0 (#206).
+- The skip-to-content link converges on the fleet-canonical implementation
+  (#206).
 - `/docs/api`'s Scalar reference now loads on user intent instead of shipping
   eagerly with the route (#198).
 - Tree-shape parity: env reads route through typed `config/env.ts`
@@ -27,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Signin gains the sibling-parity legal consent line (#200).
 
 ### Added
+- Web app manifest at `/manifest.webmanifest`: install identity — product
+  name, theme colors, and icons (#206).
 - Settings goes route-backed tabs: General | Members | Keys & properties |
   Integrations | Data & privacy | Appearance | Usage — seven deep-linkable
   tabs (#188).

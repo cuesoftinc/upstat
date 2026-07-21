@@ -1,5 +1,6 @@
 "use client";
 
+import * as Dialog from "@radix-ui/react-dialog";
 import { clsx } from "clsx";
 import { Search } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -22,7 +23,14 @@ export interface CommandPaletteProps {
   className?: string;
 }
 
-/** CommandPalette / SearchOverlay — §8.2b: empty / results / no-results. */
+/**
+ * CommandPalette / SearchOverlay — §8.2b: empty / results / no-results.
+ * Radix-Dialog convergence (deferral sweep 2026-07-21): the dialog
+ * behavior — focus trap, Escape-anywhere, outside-dismiss, and the P4
+ * focus restore back to the pre-open element — rides
+ * `@radix-ui/react-dialog`; the rendered chrome is the QA'd markup
+ * unchanged.
+ */
 export function CommandPalette({
   open,
   onClose,
@@ -33,10 +41,11 @@ export function CommandPalette({
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
-  // Focus restore (2026-07-21 a11y audit, fleet P4): the palette opens
-  // programmatically ("/" or the TopBar search button), so closing must
-  // hand focus back to whatever element had it before the input grabbed
-  // focus — previously it fell to <body>.
+  // Focus restore (fleet P4): the palette opens programmatically ("/",
+  // ⌘K or the TopBar search button), so closing must hand focus back to
+  // whatever element had it before the input grabbed focus. The P4 lock
+  // asserts the restore the moment the palette is gone — Radix's own
+  // restore runs a tick later — so the snapshot/restore pair stays ours.
   const returnFocusRef = useRef<HTMLElement | null>(null);
 
   const results = useMemo(
@@ -59,114 +68,116 @@ export function CommandPalette({
     }
   }
 
-  // Opening snapshots the opener before the input grabs focus; closing
-  // sends focus back once the palette's DOM is gone.
+  // Closing sends focus back synchronously once the palette's DOM is gone.
   useEffect(() => {
-    if (open) {
-      returnFocusRef.current =
-        document.activeElement instanceof HTMLElement
-          ? document.activeElement
-          : null;
-      inputRef.current?.focus();
-    } else {
-      const opener = returnFocusRef.current;
-      returnFocusRef.current = null;
-      if (opener?.isConnected) opener.focus();
-    }
+    if (open) return;
+    const opener = returnFocusRef.current;
+    returnFocusRef.current = null;
+    if (opener?.isConnected) opener.focus();
   }, [open]);
 
-  if (!open) return null;
-
   return (
-    <div
-      role="presentation"
-      onClick={onClose}
-      className="fixed inset-0 z-[var(--z-overlay)] flex items-start justify-center bg-bg/70 pt-[15vh]"
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Command palette"
-        onClick={(e) => e.stopPropagation()}
-        // Escape dismisses from ANYWHERE inside the dialog (2026-07-21
-        // a11y audit: it was bound on the search input only, so after Tab
-        // moved focus to an option Escape did nothing).
-        onKeyDown={(e) => {
-          if (e.key === "Escape") onClose();
-        }}
-        className={clsx(
-          "font-ui w-[560px] overflow-hidden rounded-(--radius) border border-border bg-bg-elev shadow-xl",
-          className,
-        )}
-      >
-        <div className="flex items-center gap-2 border-b border-border px-3">
-          <Search aria-hidden="true" className="size-4 text-text-2" />
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setActive(0);
+    <Dialog.Root open={open} onOpenChange={(next) => !next && onClose()}>
+      <Dialog.Portal>
+        {/* Content nests inside Overlay so the scrim + flex-positioning
+            layer stays byte-identical (the Modal.tsx convergence pattern). */}
+        <Dialog.Overlay className="fixed inset-0 z-[var(--z-overlay)] flex items-start justify-center bg-bg/70 pt-[15vh]">
+          <Dialog.Content
+            aria-describedby={undefined}
+            // Radix hides the outside tree via aria-hidden but leaves
+            // aria-modal off; the a11y locks assert the attribute.
+            aria-modal="true"
+            // Opening snapshots the opener BEFORE the input grabs focus
+            // (this fires while the pre-open element still has it).
+            onOpenAutoFocus={(e) => {
+              e.preventDefault();
+              returnFocusRef.current =
+                document.activeElement instanceof HTMLElement
+                  ? document.activeElement
+                  : null;
+              inputRef.current?.focus();
             }}
-            onKeyDown={(e) => {
-              if (e.key === "ArrowDown") {
-                e.preventDefault();
-                setActive((a) => Math.min(a + 1, results.length - 1));
-              }
-              if (e.key === "ArrowUp") {
-                e.preventDefault();
-                setActive((a) => Math.max(a - 1, 0));
-              }
-              if (e.key === "Enter" && results[active]) {
-                onSelect?.(results[active]);
-                onClose();
-              }
-            }}
-            placeholder="Search dashboards, monitors, services…"
-            aria-label="Search"
-            className="h-11 flex-1 bg-transparent text-[14px] text-text placeholder:text-text-2 focus:outline-none"
-          />
-        </div>
-        <ul
-          role="listbox"
-          aria-label="Results"
-          className="max-h-72 overflow-y-auto py-1"
-        >
-          {results.length === 0 && (
-            <li className="px-3 py-6 text-center text-[13px] text-text-2">
-              No results for “{query}”
-            </li>
-          )}
-          {results.map((item, i) => {
-            const Icon = item.icon;
-            return (
-              <li key={item.id} role="presentation">
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={i === active}
-                  onClick={() => {
-                    onSelect?.(item);
+            // The synchronous restore above owns focus hand-back.
+            onCloseAutoFocus={(e) => e.preventDefault()}
+            className={clsx(
+              "font-ui w-[560px] overflow-hidden rounded-(--radius) border border-border bg-bg-elev shadow-xl",
+              className,
+            )}
+          >
+            <Dialog.Title className="sr-only">Command palette</Dialog.Title>
+            <div className="flex items-center gap-2 border-b border-border px-3">
+              <Search aria-hidden="true" className="size-4 text-text-2" />
+              <input
+                ref={inputRef}
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setActive(0);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setActive((a) => Math.min(a + 1, results.length - 1));
+                  }
+                  if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setActive((a) => Math.max(a - 1, 0));
+                  }
+                  if (e.key === "Enter" && results[active]) {
+                    onSelect?.(results[active]);
                     onClose();
-                  }}
-                  onMouseEnter={() => setActive(i)}
-                  className={clsx(
-                    "flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-text",
-                    "transition-colors duration-[var(--duration-fast)]",
-                    i === active && "bg-bg",
-                  )}
-                >
-                  {Icon && (
-                    <Icon aria-hidden="true" className="size-4 text-text-2" />
-                  )}
-                  <span className="flex-1 truncate">{item.label}</span>
-                  {item.kbd && <KbdChip keys={item.kbd} />}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </div>
+                  }
+                }}
+                placeholder="Search dashboards, monitors, services…"
+                aria-label="Search"
+                className="h-11 flex-1 bg-transparent text-[14px] text-text placeholder:text-text-2 focus:outline-none"
+              />
+            </div>
+            <ul
+              role="listbox"
+              aria-label="Results"
+              className="max-h-72 overflow-y-auto py-1"
+            >
+              {results.length === 0 && (
+                <li className="px-3 py-6 text-center text-[13px] text-text-2">
+                  No results for “{query}”
+                </li>
+              )}
+              {results.map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <li key={item.id} role="presentation">
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={i === active}
+                      onClick={() => {
+                        onSelect?.(item);
+                        onClose();
+                      }}
+                      onMouseEnter={() => setActive(i)}
+                      className={clsx(
+                        "flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-text",
+                        "transition-colors duration-[var(--duration-fast)]",
+                        i === active && "bg-bg",
+                      )}
+                    >
+                      {Icon && (
+                        <Icon
+                          aria-hidden="true"
+                          className="size-4 text-text-2"
+                        />
+                      )}
+                      <span className="flex-1 truncate">{item.label}</span>
+                      {item.kbd && <KbdChip keys={item.kbd} />}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </Dialog.Content>
+        </Dialog.Overlay>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

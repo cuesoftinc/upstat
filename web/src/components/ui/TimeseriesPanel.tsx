@@ -200,6 +200,15 @@ export function TimeseriesPanel({
   const n = visible[0]?.points.length ?? 0;
   const cursorIndex =
     cursorFrac !== null && n > 0 ? Math.round(cursorFrac * (n - 1)) : null;
+  // Crosshair x as a percentage of the rendered plot width — fed to the
+  // tooltip as `cqw` units (the plot wrapper is an inline-size container)
+  // so the tooltip moves via transform only. Moving it via `left` made
+  // every hero-loop step a layout shift: the tooltip was the whole of the
+  // home page's CLS (layout-stability probe, deferral sweep 2026-07-21).
+  const cursorPct =
+    cursorIndex !== null
+      ? ((PAD_L + (cursorIndex / Math.max(n - 1, 1)) * innerW) / PLOT_W) * 100
+      : 0;
 
   const fracAt = (clientX: number): number | null => {
     const rect = svgRef.current?.getBoundingClientRect();
@@ -333,7 +342,7 @@ export function TimeseriesPanel({
           className="border-0 bg-transparent p-0"
         />
       ) : (
-        <div className="relative min-w-0">
+        <div className="@container relative min-w-0">
           <svg
             ref={svgRef}
             viewBox={`0 0 ${PLOT_W} ${plotH}`}
@@ -529,20 +538,23 @@ export function TimeseriesPanel({
           {/* crosshair tooltip — FLOATING at the crosshair inside the plot,
               led by the timestamp (master 50:407 crosshair variant:
               "14:32:00 · p50 84 ms · …"); flips sides past plot center so
-              it never leaves the panel */}
+              it never leaves the panel. Positioned by transform ONLY
+              (`cqw` of the @container plot wrapper + own-width flip) —
+              transform moves are composited and never count as layout
+              shifts, where the previous `left` moves put the tooltip on
+              every hero-loop frame's CLS. */}
           {cursorIndex !== null && visible[0]?.points[cursorIndex] && (
             <div
               data-testid="crosshair-tooltip"
               className={clsx(
-                "font-data pointer-events-none absolute top-2 z-10 flex flex-col gap-0.5",
+                "font-data pointer-events-none absolute left-0 top-2 z-10 flex flex-col gap-0.5",
                 "rounded-(--radius) border border-border bg-bg-elev/95 px-2 py-1.5 text-[11px] tabular-nums shadow-lg",
               )}
               style={{
-                left: `${((PAD_L + (cursorIndex / Math.max(n - 1, 1)) * innerW) / PLOT_W) * 100}%`,
                 transform:
                   cursorIndex / Math.max(n - 1, 1) > 0.55
-                    ? "translateX(calc(-100% - 8px))"
-                    : "translateX(8px)",
+                    ? `translateX(calc(${cursorPct}cqw - 100% - 8px))`
+                    : `translateX(calc(${cursorPct}cqw + 8px))`,
               }}
             >
               <span className="text-text-2">
