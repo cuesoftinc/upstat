@@ -30,6 +30,29 @@ describe("NavRail", () => {
     expect(onNavigate).toHaveBeenCalledWith("monitors");
   });
 
+  it("renders real <a> links when hrefFor maps routes (2026-07-21 a11y audit)", () => {
+    // Nav destinations are links, not buttons: middle-click/new-tab and
+    // AT link navigation work; active semantics stay on the anchor.
+    render(
+      <NavRail
+        activeKey="logs"
+        hrefFor={(key) => `/dashboard/${key}`}
+        onNavigate={vi.fn()}
+      />,
+    );
+    for (const pillar of NAV_PILLARS) {
+      expect(screen.getByRole("link", { name: pillar.label })).toHaveAttribute(
+        "href",
+        `/dashboard/${pillar.key}`,
+      );
+    }
+    expect(screen.getByRole("link", { name: "Logs" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.queryByRole("button", { name: "Logs" })).toBeNull();
+  });
+
   /* [Directive 2026-07-19] expandable rail — design.md §2 */
 
   it("sections cover every pillar in B order (Telemetry/Respond/Platform)", () => {

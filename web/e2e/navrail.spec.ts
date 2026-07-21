@@ -146,7 +146,7 @@ test("below md, expansion is an overlay drawer — content never squeezes ([Clar
 
   // selecting a pillar navigates AND closes the drawer
   await page.getByTestId("rail-toggle").click();
-  await drawer.getByRole("button", { name: "Logs", exact: true }).click();
+  await drawer.getByRole("link", { name: "Logs", exact: true }).click();
   await page.waitForURL("**/dashboard/logs");
   await expect(drawer).toBeHidden();
 
@@ -162,15 +162,17 @@ test("navigation works at both rail widths (charts unaffected)", async ({
   await page.setViewportSize({ width: 1440, height: 900 });
   await signIn(page);
   // expanded: click by visible label row
-  await rail(page)
-    .getByRole("button", { name: "Dashboards", exact: true })
-    .click();
+  // pillar items are real links (a11y audit) — role + href locked here
+  const dashboards = rail(page).getByRole("link", {
+    name: "Dashboards",
+    exact: true,
+  });
+  await expect(dashboards).toHaveAttribute("href", "/dashboard/dashboards");
+  await dashboards.click();
   await page.waitForURL("**/dashboard/dashboards");
   // collapse and navigate by icon (aria-label)
   await page.getByTestId("rail-toggle").click();
-  await rail(page)
-    .getByRole("button", { name: "Metrics", exact: true })
-    .click();
+  await rail(page).getByRole("link", { name: "Metrics", exact: true }).click();
   await page.waitForURL("**/dashboard/metrics");
   await expect(page.getByTestId("timeseries-plot")).toBeVisible();
 });

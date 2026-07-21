@@ -47,7 +47,7 @@ async function signIn(page: Page) {
 async function goTo(page: Page, pillar: string) {
   await page
     .getByRole("navigation", { name: "Product navigation" })
-    .getByRole("button", { name: pillar, exact: true })
+    .getByRole("link", { name: pillar, exact: true })
     .click();
 }
 
@@ -389,7 +389,11 @@ test("full journey: onboarding → B1 → dashboards → explorer → logs → t
   await goTo(page, "Traces");
   await expect(page.getByTestId("apm-services")).toBeVisible();
   await expect(page.getByRole("rowheader", { name: "checkout" })).toBeVisible();
-  await page.getByRole("link", { name: "Traces" }).click();
+  // scoped: the rail's Traces item is a link too (a11y-audit nav semantics)
+  await page
+    .getByRole("navigation", { name: "APM views" })
+    .getByRole("link", { name: "Traces" })
+    .click();
   await page.waitForURL("**/dashboard/traces/explorer**");
   await page.getByTestId("trace-9f86d081").click();
   await expect(page.getByTestId("trace-waterfall")).toBeVisible();

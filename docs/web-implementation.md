@@ -579,6 +579,29 @@ visible in both tab states, so switching never shifts layout. The
 focus, copied-morph reset); e2e: `home.spec.ts` pins helm-tab copy → the
 clipboard payload, caption persistence and the 1440/390 container fit.
 
+**A11y blockers as-built (2026-07-21 audit).** Three contracts hardened:
+
+- **Pinch-zoom stays available.** The root `viewport` export carries no
+  `maximumScale` (the audit's 18/18-route axe `meta-viewport` blocker;
+  siblings' viewport export is the fleet pattern). Locked in
+  `mobile-responsive.spec.ts`.
+- **Rail items are real links.** `NavRailItem` renders a next/link `<a>`
+  when given `href`; `NavRail` takes `hrefFor` (pillar key → route — the
+  shell passes `PILLAR_ROUTES`) so middle-click/new-tab and AT link
+  navigation work. Active semantics (`aria-current="page"`, brand bar)
+  and the expandable-rail behavior are unchanged; `onNavigate` remains
+  for action-only/button fall-back call sites and MUST NOT `router.push`
+  when `hrefFor` is set (the link navigates). The `g …` chords keep their
+  programmatic `router.push` (keyboard.ts). Unit: `NavRail.test.tsx`
+  link-mode lock; e2e: `navrail.spec.ts` navigates by link role + href.
+- **Palette dismissal + focus restore (fleet P4).** `CommandPalette`
+  handles Escape on the dialog container (it was input-only — after Tab
+  to an option the palette was un-dismissable), is announced
+  `aria-modal`, and snapshots the opener on open / refocuses it on close
+  (previously focus fell to `<body>`). Unit: `CommandPalette.test.tsx`;
+  e2e: `focus-restore.spec.ts` (open → Tab inside → Escape → trigger
+  refocused, plus the "/" hotkey path).
+
 ## 3. Token mapping — design.md §2 → `web/src/design/tokens.css`
 
 One custom property per Figma variable in the `upstat/tokens` collection
