@@ -21,6 +21,7 @@ const DEFAULT_SHORTCUTS: ShortcutEntry[] = [
   { keys: "g d", label: "Go to dashboards" },
   { keys: "g l", label: "Go to logs" },
   { keys: "g m", label: "Go to monitors" },
+  { keys: "⌘K", label: "Search" },
   { keys: "/", label: "Search" },
   { keys: "e", label: "Toggle dashboard edit mode" },
   { keys: "j", label: "Next log line" },

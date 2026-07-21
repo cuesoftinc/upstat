@@ -2,8 +2,10 @@
 
 /**
  * MI-17 keyboard map — `g d` dashboards, `g l` logs, `g m` monitors,
- * `/` search, `?` overlay cheatsheet. Sequences time out after 800ms;
- * shortcuts never fire while typing in an input/textarea/select.
+ * ⌘K/Ctrl+K or `/` search, `?` overlay cheatsheet. Sequences time out
+ * after 800ms; shortcuts never fire while typing in an
+ * input/textarea/select — except ⌘K, which toggles the palette from
+ * anywhere (fleet standard P12, expendit parity).
  */
 
 import { useRouter } from "next/navigation";
@@ -32,6 +34,7 @@ export const SHORTCUTS: ShortcutEntry[] = [
   { keys: "g h", label: "Go to home" },
   { keys: "g t", label: "Go to traces" },
   { keys: "g i", label: "Go to incidents" },
+  { keys: "⌘K", label: "Search" },
   { keys: "/", label: "Search" },
   { keys: "e", label: "Toggle dashboard edit mode" },
   { keys: "?", label: "This cheatsheet" },
@@ -70,6 +73,15 @@ export function useKeyboardMap(): KeyboardMapState {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      // Fleet-standard palette invocation (P12): ⌘K/Ctrl+K toggles the
+      // palette alongside "/" (the log-search idiom stays). Handled ahead
+      // of the modifier and typing-target guards — like expendit's, it
+      // works from anywhere, inputs included.
+      if (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+        return;
+      }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (isTypingTarget(e.target)) return;
 

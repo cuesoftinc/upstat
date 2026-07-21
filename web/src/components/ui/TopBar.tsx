@@ -22,8 +22,8 @@ export interface TopBarProps {
 }
 
 /**
- * TopBar — §2 layout: org/env switcher · global time picker · search (/) ·
- * bell.
+ * TopBar — §2 layout: org/env switcher · global time picker · search
+ * (⌘K, also "/") · bell.
  *
  * Mobile (<md, 390 support): the fixed-width utility cluster (~770px) used
  * to overflow the clipped document — right-side taps side-scrolled the
@@ -79,8 +79,10 @@ export function TopBar({
       >
         <Search aria-hidden="true" className="size-3.5 shrink-0" />
         <span className="hidden flex-1 text-left md:block">Search</span>
+        {/* fleet-standard invocation hint (P12) — "/" still works and is
+            listed in the ? cheatsheet */}
         <span className="hidden md:inline-flex">
-          <KbdChip keys="/" />
+          <KbdChip keys="⌘K" />
         </span>
       </button>
 
