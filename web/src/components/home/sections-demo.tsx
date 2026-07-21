@@ -8,6 +8,7 @@
 import Link from "next/link";
 import type { AlertRule, Series } from "@/models";
 import { AlertRuleCard } from "@/components/ui/AlertRuleCard";
+import { DeferredPanel } from "@/components/ui/DeferredPanel";
 import {
   IncidentHistoryEntry,
   type IncidentHistoryUpdate,
@@ -42,22 +43,28 @@ export function DemoBandSection({
   return (
     <Section id="demo" title="It looks like this — with your data.">
       <div className="grid items-start gap-12 lg:grid-cols-[1fr_480px]">
-        <TimeseriesPanel
-          title="p95 latency — api-common"
-          titleAs="p"
-          unit="ms"
-          query={query}
-          series={series}
-          height={190}
-          className="min-w-0"
-        />
-        <div className="min-w-0 flex flex-col gap-6">
-          <UptimeCard
-            name={heartbeat.name}
-            days={heartbeat.days}
-            uptimePct={heartbeat.uptimePct}
-            p95Ms={heartbeat.p95Ms}
+        {/* demo visuals mount on approach (TBT); the copy and QueryValue
+            tiles stay eager — see DeferredPanel */}
+        <DeferredPanel minHeight={308} className="min-w-0">
+          <TimeseriesPanel
+            title="p95 latency — api-common"
+            titleAs="p"
+            unit="ms"
+            query={query}
+            series={series}
+            height={190}
+            className="min-w-0"
           />
+        </DeferredPanel>
+        <div className="min-w-0 flex flex-col gap-6">
+          <DeferredPanel minHeight={124}>
+            <UptimeCard
+              name={heartbeat.name}
+              days={heartbeat.days}
+              uptimePct={heartbeat.uptimePct}
+              p95Ms={heartbeat.p95Ms}
+            />
+          </DeferredPanel>
           <div className="flex flex-wrap gap-6">
             <QueryValue
               label="availability · api-common"
@@ -141,27 +148,32 @@ export function UseCasesSection({
             body="11 widget types on one grid — timeseries, heatmaps, top lists, log streams, even markdown. Hover anywhere and every panel's crosshair lands on the same moment. Drag, resize, ship."
             readMoreHref="#demo"
           />
-          <TimeseriesPanel
-            title="p95 latency — api-common"
-            titleAs="p"
-            unit="ms"
-            query={query}
-            series={series}
-            height={140}
-            className="min-w-0"
-          />
+          <DeferredPanel minHeight={248} className="min-w-0">
+            <TimeseriesPanel
+              title="p95 latency — api-common"
+              titleAs="p"
+              unit="ms"
+              query={query}
+              series={series}
+              height={140}
+              className="min-w-0"
+            />
+          </DeferredPanel>
         </div>
 
         {/* 2 — alerting → incidents (visual left, copy right) */}
         <div className="grid items-center gap-12 md:grid-cols-[1fr_480px]">
-          <div className="min-w-0 flex flex-col gap-4 md:order-1">
+          <DeferredPanel
+            minHeight={202}
+            className="min-w-0 flex flex-col gap-4 md:order-1"
+          >
             <AlertRuleCard rule={alertRule} />
             <IncidentHistoryEntry
               updates={[incidentUpdate]}
               variant="timeline"
               className="border-b-0 py-0"
             />
-          </div>
+          </DeferredPanel>
           <div className="md:order-2">
             <QuadCard
               title="From alert to postmortem"
@@ -178,7 +190,10 @@ export function UseCasesSection({
             body="Publish uptime and incident history to a page you control at your own slug. Subscribers get updates as your responders post them — the same timeline, no PR filter."
             readMoreHref="#status"
           />
-          <div className="min-w-0 flex flex-col gap-3">
+          <DeferredPanel
+            minHeight={132}
+            className="min-w-0 flex flex-col gap-3"
+          >
             <StatusPageHeader
               overall="operational"
               lastUpdated={statusUpdatedAt}
@@ -192,7 +207,7 @@ export function UseCasesSection({
               uptimePct={statusRow.uptimePct}
               layout="inline"
             />
-          </div>
+          </DeferredPanel>
         </div>
 
         {/* 4 — cookieless RUM (visual left, copy right) */}
@@ -248,7 +263,9 @@ export function StatusEmbedSection({
           updatedFormat="relative"
           updatedPlacement="banner"
         />
-        <div className="flex flex-col gap-3">
+        {/* the two 90-bar strips mount on approach (TBT); the header and
+            the status link above/below stay eager for the e2e/SEO copy */}
+        <DeferredPanel minHeight={140} className="flex flex-col gap-3">
           {rows.map((row) => (
             <StatusPageComponentRow
               key={row.name}
@@ -259,7 +276,7 @@ export function StatusEmbedSection({
               layout="inline"
             />
           ))}
-        </div>
+        </DeferredPanel>
       </div>
       {/* the REAL status page is the in-app B7 route — the imagined
           status.upstat.cuesoft.io host was a dead link (sweep 2026-07-19) */}

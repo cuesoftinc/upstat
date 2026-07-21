@@ -9,6 +9,7 @@ import type { ApiKey, Series } from "@/models";
 import { APIKeyRow } from "@/components/ui/APIKeyRow";
 import { Button } from "@/components/ui/Button";
 import { CodeSnippet } from "@/components/ui/CodeSnippet";
+import { DeferredPanel } from "@/components/ui/DeferredPanel";
 import { MARKETING_PILLARS, PillarCard } from "@/components/ui/PillarCard";
 import { TimeseriesPanel } from "@/components/ui/TimeseriesPanel";
 import { UptimeCard } from "@/components/ui/UptimeCard";
@@ -140,7 +141,11 @@ export function OtelSection() {
       sub="Point your existing OTel SDKs at one endpoint — gRPC 4317 / HTTP 4318. Nothing proprietary in your code."
     >
       <div className="grid items-center gap-12 lg:grid-cols-[1fr_480px]">
-        <CodeSnippet tabs={OTEL_SNIPPETS} />
+        {/* below-the-fold demo visuals mount on approach (TBT); reserves
+            are the rendered desktop sizes — see DeferredPanel */}
+        <DeferredPanel minHeight={176}>
+          <CodeSnippet tabs={OTEL_SNIPPETS} />
+        </DeferredPanel>
         <div className="flex flex-col gap-5">
           <div
             className="flex flex-wrap items-center gap-3"
@@ -220,7 +225,9 @@ export function HowItWorksSection({ series }: HowItWorksSectionProps) {
           title="Point your SDK at us"
           body="One endpoint — gRPC 4317 / HTTP 4318. No agents to babysit."
         >
-          <CodeSnippet tabs={OTEL_SNIPPETS} />
+          <DeferredPanel minHeight={176}>
+            <CodeSnippet tabs={OTEL_SNIPPETS} />
+          </DeferredPanel>
         </Step>
         <Step
           n={2}
@@ -228,22 +235,24 @@ export function HowItWorksSection({ series }: HowItWorksSectionProps) {
           body="Scoped ingestion tokens — rotate with zero downtime."
         >
           {/* the key row keeps its natural width; scrolls inside at 375w */}
-          <div className="overflow-x-auto">
+          <DeferredPanel minHeight={48} className="overflow-x-auto">
             <APIKeyRow apiKey={DEMO_KEY} />
-          </div>
+          </DeferredPanel>
         </Step>
         <Step
           n={3}
           title="See everything"
           body="Dashboards, traces, logs and alerts light up as data lands."
         >
-          <TimeseriesPanel
-            title="p95 latency — api-common"
-            titleAs="p"
-            unit="ms"
-            series={series}
-            height={130}
-          />
+          <DeferredPanel minHeight={220}>
+            <TimeseriesPanel
+              title="p95 latency — api-common"
+              titleAs="p"
+              unit="ms"
+              series={series}
+              height={130}
+            />
+          </DeferredPanel>
         </Step>
       </div>
     </Section>
