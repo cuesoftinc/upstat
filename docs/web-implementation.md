@@ -616,13 +616,52 @@ clipboard payload, caption persistence and the 1440/390 container fit.
   when `hrefFor` is set (the link navigates). The `g …` chords keep their
   programmatic `router.push` (keyboard.ts). Unit: `NavRail.test.tsx`
   link-mode lock; e2e: `navrail.spec.ts` navigates by link role + href.
-- **Palette dismissal + focus restore (fleet P4).** `CommandPalette`
-  handles Escape on the dialog container (it was input-only — after Tab
-  to an option the palette was un-dismissable), is announced
-  `aria-modal`, and snapshots the opener on open / refocuses it on close.
-  Unit: `CommandPalette.test.tsx`;
+- **Palette dismissal + focus restore (fleet P4).** `CommandPalette` is
+  a Radix Dialog (deferral sweep below): Escape dismisses from anywhere
+  inside it, it is announced `aria-modal` (set explicitly — Radix hides
+  the outside tree instead of announcing modality), and it snapshots the
+  opener on open / synchronously refocuses it on close (Radix's own
+  restore runs a tick later than the lock asserts, so the hand-back
+  stays component-owned). Unit: `CommandPalette.test.tsx`;
   e2e: `focus-restore.spec.ts` (open → Tab inside → Escape → trigger
   refocused, plus the "/" hotkey path).
+
+**Deferral sweep as-built (2026-07-21).** Register closeout, one pass:
+
+- **Overlay canon closed (SKILL.md canonical-libraries).** Every
+  behavior-bearing overlay rides a `@radix-ui` primitive: the W2 set
+  (Modal/Sheet, Tooltip, Select, Switch, Checkbox, the NavRail mobile
+  drawer, NotificationPopover, IncidentComposer autocomplete) plus
+  CommandPalette and ShortcutCheatsheet on `@radix-ui/react-dialog`
+  (the Modal.tsx pattern — Content nested in Overlay, rendered chrome
+  unchanged; focus trap and scrim/Escape dismissal from the primitive).
+  `@floating-ui/*` has zero imports repo-wide (dependency pruned in the
+  code-quality pass; the lockfile entries are Radix-internal). The
+  bespoke layers that remain are positioning-/layout-class, not
+  behavior primitives, and stay bespoke per the floating-layers canon's
+  measure-and-clamp clause: TimePicker's absolute-range panel (designed
+  responsive dual rendering — `<md` fixed full-width sheet under the
+  bar, `md+` right-anchored panel; Escape + in-viewport geometry locked
+  in `dashboard.spec.ts`), QueryBar's suggestion listbox (combobox
+  anchored full-width to its own input; the input keeps focus),
+  SpanDrawer (in-flow detail panel, `<lg` sheet), and Toast (status
+  region — no focus/dismiss semantics).
+- **Crosshair tooltip moves by transform only (CLS).** The
+  TimeseriesPanel plot wrapper is an inline-size container and the
+  crosshair tooltip positions via `translateX(calc(<x>cqw ± own-width
+  flip))` — never `left` — so the hero's 8s crosshair loop produces
+  zero layout-shift entries. Home layout-stability probe (prod build):
+  0.0108 → 0.0001, the tooltip gone from the shift sources.
+- **Web app manifest.** `src/app/manifest.ts` (App Router convention,
+  served at `/manifest.webmanifest`, linked from every route): identity
+  from the root layout metadata ("Upstat" / "All your telemetry. One
+  open platform."), colors from the dark-primary tokens
+  (`--color-bg`), the §10 favicon/apple-icon set. Locked in
+  `e2e/seo.spec.ts` (§10).
+- **SkipLink byte-parity.** `components/ui/SkipLink.tsx` is the
+  byte-identical fleet canonical (sha256 `907bb788…`, default export);
+  the dashboard shell consumes the default export. P15 behavior and the
+  `skip-link.spec.ts` lock are unchanged.
 
 ## 3. Token mapping — design.md §2 → `web/src/design/tokens.css`
 
@@ -904,11 +943,16 @@ products; per-product values only):
   by `web/scripts/generate-brand-assets.mjs` (byte-identical across repos,
   config keyed by package name; Inter via `INTER_WOFF2` or the official
   distribution).
+- **Web manifest** — `src/app/manifest.ts` (App Router convention):
+  name/short_name/description mirror the root metadata, theme/background
+  are the dark-primary `--color-bg`, icons are the favicon + apple-icon
+  set above.
 - **Lock** — `web/e2e/seo.spec.ts` (byte-identical across repos) asserts
   sitemap 200 + exact route set, robots policy + sitemap reference,
-  canonical on `/`, og:image resolves 200 at 1200×630, twitter card, and
+  canonical on `/`, og:image resolves 200 at 1200×630, twitter card,
   the served favicon's sha256 equals upstat's mark while differing from
-  both siblings'.
+  both siblings', and the manifest is linked, resolves, names the
+  product, and every declared icon resolves.
 
 ## 11. Performance budget (as-built, 2026-07-21)
 
@@ -947,7 +991,8 @@ route, and **interactive-fast above the fold** on the marketing home
 **Lock** — `web/e2e/layout-stability.spec.ts` computes web-vitals-style
 CLS (layout-shift entries, session-windowed) on `/`, `/dashboard`,
 `/dashboard/monitors` and `/dashboard/metrics` in TEST_MODE and asserts
-< 0.1 per route. Reference numbers (local prod build, Lighthouse mobile,
-median of 3 — devtools throttling; lantern is insensitive on localhost):
-home TBT 7ms / CLS 0.033; layout-shift probe CLS 0.017 (/dashboard),
-0.017 (monitors), 0.025 (metrics).
+< 0.1 per route. Reference numbers (local prod build; TBT via Lighthouse
+mobile, median of 3 — devtools throttling; lantern is insensitive on
+localhost): home TBT 7ms; layout-shift probe CLS 0.0001 (home — the
+crosshair tooltip moves by transform, deferral sweep above), 0.017
+(/dashboard), 0.017 (monitors), 0.025 (metrics).
