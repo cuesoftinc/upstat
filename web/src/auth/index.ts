@@ -18,8 +18,3 @@ export function getAuthProvider(): AuthProvider {
   }
   return provider;
 }
-
-/** Test hook — reset the singleton between unit tests. */
-export function __resetAuthProvider(): void {
-  provider = null;
-}

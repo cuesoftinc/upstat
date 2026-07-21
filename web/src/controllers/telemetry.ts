@@ -7,13 +7,7 @@ import {
   queryRepo,
   tracesRepo,
 } from "@/models/repositories";
-import type {
-  LogEvent,
-  LogQueryPage,
-  QueryRequest,
-  QueryResult,
-  Trace,
-} from "@/models";
+import type { LogEvent, QueryRequest, QueryResult, Trace } from "@/models";
 import { useRequest } from "./use-request";
 import { useTimeRange } from "./time-range";
 
@@ -37,35 +31,6 @@ export function useMetricsController() {
   }, []);
 
   return { summary, result, run, running, queryError };
-}
-
-/** Logs controller — query + cursor pagination + live tail (pages.md B4, MI-4). */
-export function useLogsController(params: {
-  q?: string;
-  from?: string;
-  to?: string;
-}) {
-  const state = useRequest<LogQueryPage>(
-    () => logsRepo.query({ ...params, limit: 100 }),
-    [params.q, params.from, params.to],
-  );
-  const [older, setOlder] = useState<LogQueryPage["events"]>([]);
-  const [loadingMore, setLoadingMore] = useState(false);
-
-  const loadMore = useCallback(async () => {
-    const cursor = state.data?.next_cursor;
-    if (!cursor || loadingMore) return;
-    setLoadingMore(true);
-    try {
-      const page = await logsRepo.query({ ...params, cursor, limit: 100 });
-      setOlder((prev) => [...prev, ...page.events]);
-    } finally {
-      setLoadingMore(false);
-    }
-  }, [state.data?.next_cursor, loadingMore, params]);
-
-  const events = [...(state.data?.events ?? []), ...older];
-  return { ...state, events, loadMore, loadingMore };
 }
 
 /** One-shot query against the global time range (detail panels, tiles). */

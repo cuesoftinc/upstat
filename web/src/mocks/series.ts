@@ -33,8 +33,6 @@ export const SERVICES = [
   "checkout",
 ] as const;
 
-export type ServiceName = (typeof SERVICES)[number];
-
 export interface OutageWindow {
   /** ms epoch */
   start: number;

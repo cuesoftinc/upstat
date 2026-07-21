@@ -6,7 +6,7 @@
  * for its type. Views render the result; they never fetch.
  */
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type {
   LogEvent,
   Monitor,
@@ -122,12 +122,6 @@ export function useWidgetData(
     services: isMap ? services : null,
     resolvedQuery,
   };
-}
-
-/** MI-2: one crosshair shared by every panel in a view. */
-export function useCrosshair() {
-  const [cursor, setCursor] = useState<number | null>(null);
-  return { cursor, setCursor };
 }
 
 /** Deterministic heatmap cells from a series (time × value-bucket grid). */
