@@ -310,10 +310,14 @@ test("FAQ is a single-open accordion (A15)", async ({ page }) => {
   await expect(faq.locator("[data-expanded=true]")).toHaveCount(1);
   await expect(faq.getByText(/Point any OTLP exporter/)).toBeVisible();
 
-  await faq.getByRole("button", { name: second }).click();
-  await expect(
-    faq.getByText(/Retention is configurable per signal/),
-  ).toBeVisible();
+  // retry the first click while the band hydrates (below-fold bands
+  // hydrate on-visible — the nav-hydration retry convention)
+  await expect(async () => {
+    await faq.getByRole("button", { name: second }).click();
+    await expect(
+      faq.getByText(/Retention is configurable per signal/),
+    ).toBeVisible({ timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
   // still exactly one open — the first closed
   await expect(faq.locator("[data-expanded=true]")).toHaveCount(1);
   await expect(faq.getByText(/Point any OTLP exporter/)).toBeHidden();
@@ -352,10 +356,14 @@ test("CTAs hand off into the app: Try Cloud → /signin (§8.4 cross-page)", asy
     .click();
   await page.waitForURL("**/signin");
 
-  // final CTA band
+  // final CTA band — retry while the band hydrates (below-fold bands
+  // hydrate on-visible; the click scrolls the band in, handlers attach a
+  // beat later)
   await page.goto("/");
-  await page.getByRole("button", { name: "Try Cloud" }).last().click();
-  await page.waitForURL("**/signin");
+  await expect(async () => {
+    await page.getByRole("button", { name: "Try Cloud" }).last().click();
+    await page.waitForURL("**/signin", { timeout: 2_000 });
+  }).toPass({ timeout: 15_000 });
 });
 
 test("Self Host CTA scrolls to the self-host section (A14)", async ({
@@ -439,10 +447,13 @@ test("A14 self-host tabs — helm copy + caption persists", async ({
   const tablist = block.getByRole("tablist", { name: "Install method" });
 
   const before = await block.boundingBox();
-  await tablist.getByRole("tab", { name: "Helm" }).click();
-  await expect(
-    block.getByText("cd upstat && helm install upstat deploy/helm"),
-  ).toBeVisible();
+  // retry while the band hydrates (below-fold bands hydrate on-visible)
+  await expect(async () => {
+    await tablist.getByRole("tab", { name: "Helm" }).click();
+    await expect(
+      block.getByText("cd upstat && helm install upstat deploy/helm"),
+    ).toBeVisible({ timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
   await expect(caption).toBeVisible();
   // no layout shift — mirrored two-line block + always-rendered caption
   const after = await block.boundingBox();

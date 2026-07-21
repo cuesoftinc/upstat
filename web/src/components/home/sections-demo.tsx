@@ -17,8 +17,59 @@ import { StatusPageComponentRow } from "@/components/ui/StatusPageComponentRow";
 import { StatusPageHeader } from "@/components/ui/StatusPageHeader";
 import { TimeseriesPanel } from "@/components/ui/TimeseriesPanel";
 import { UptimeCard } from "@/components/ui/UptimeCard";
-import type { StatusRowDemo, UptimeDemo } from "@/controllers/home";
+import {
+  useHomeDemoData,
+  type StatusRowDemo,
+  type UptimeDemo,
+} from "@/controllers/home";
 import { Section } from "./Section";
+
+/*
+ * *Band exports — self-feeding wrappers for on-visible hydration (Defer
+ * contract, point 3): each band owns its epoch→live demo swap
+ * (useHomeDemoData) so a dehydrated boundary hydrates against the exact
+ * markup it server-rendered, whenever the visitor scrolls to it. The
+ * underlying sections stay render-only.
+ */
+
+export function DemoBand() {
+  const demo = useHomeDemoData();
+  return (
+    <DemoBandSection
+      series={demo.latencySeries}
+      query={demo.latencyQuery}
+      heartbeat={demo.heartbeatAllUp}
+      availabilitySparkline={demo.availabilitySparkline}
+      latencySparkline={demo.latencySparkline}
+    />
+  );
+}
+
+export function UseCasesBand() {
+  const demo = useHomeDemoData();
+  return (
+    <UseCasesSection
+      series={demo.latencySeries}
+      query={demo.latencyQuery}
+      alertRule={demo.alertRule}
+      incidentUpdate={demo.incidentUpdate}
+      statusRow={demo.statusRows[0]}
+      statusUpdatedAt={demo.statusUpdatedAt}
+      visitorsSparkline={demo.visitorsSparkline}
+      lcpSparkline={demo.lcpSparkline}
+    />
+  );
+}
+
+export function StatusEmbedBand() {
+  const demo = useHomeDemoData();
+  return (
+    <StatusEmbedSection
+      rows={demo.statusRows}
+      updatedAt={demo.statusUpdatedAt}
+    />
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* A4 — demo band ("It looks like this — with your data.")              */

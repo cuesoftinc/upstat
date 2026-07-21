@@ -137,9 +137,12 @@ export default function MonitorsPage() {
               </div>
             </header>
             {ctrl.rules.loading ? (
-              <div className="flex flex-col gap-2">
-                {Array.from({ length: 4 }, (_, i) => (
-                  <Skeleton key={i} kind="panel-axis" style={{ height: 88 }} />
+              // loaded-height parity (perf audit 2026-07-21): five 101px
+              // cards at the list's gap-3 — the previous 4×88 under-
+              // reservation shifted the channels/triggered sections below
+              <div className="flex flex-col gap-3">
+                {Array.from({ length: 5 }, (_, i) => (
+                  <Skeleton key={i} kind="panel-axis" style={{ height: 101 }} />
                 ))}
               </div>
             ) : rules.length === 0 ? (
@@ -200,7 +203,12 @@ export default function MonitorsPage() {
               Notification channels
             </h2>
             {ctrl.channels.loading ? (
-              <Skeleton kind="line" />
+              // three 67px cards (loaded-height parity, perf audit 2026-07-21)
+              <div className="flex flex-col gap-3" aria-hidden="true">
+                {Array.from({ length: 3 }, (_, i) => (
+                  <Skeleton key={i} kind="line" style={{ height: 67 }} />
+                ))}
+              </div>
             ) : (
               <ul className="flex flex-col gap-3" aria-label="Channels">
                 {(ctrl.channels.data ?? []).map((channel) => (
@@ -228,7 +236,13 @@ export default function MonitorsPage() {
               Triggered
             </h2>
             {ctrl.feed.loading ? (
-              <Skeleton kind="line" />
+              // six 32px feed rows (loaded-height parity, perf audit
+              // 2026-07-21)
+              <div className="flex flex-col gap-2" aria-hidden="true">
+                {Array.from({ length: 6 }, (_, i) => (
+                  <Skeleton key={i} kind="line" style={{ height: 24 }} />
+                ))}
+              </div>
             ) : (ctrl.feed.data ?? []).length === 0 ? (
               <p className="text-[13px] text-text-2">
                 Quiet — nothing has triggered.

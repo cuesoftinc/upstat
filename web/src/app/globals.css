@@ -206,3 +206,35 @@
     max-width: 100%;
   }
 }
+
+/* NavRail boot width (CLS fix, perf audit 2026-07-21): railInitScript
+   resolves the persisted/default expansion pre-paint as a <html> flag;
+   painting the rail at its final width keeps the app column still while
+   React hydrates (it re-resolves the signal in a layout effect and
+   removes the flag before the next paint). The interior alignment mirrors
+   the expanded paddings so the icon column doesn't slide. Un-layered on
+   purpose — it must override the collapsed `w-14`/`items-center`/no-padding
+   utilities, and layered rules (base < utilities) cannot. */
+html[data-rail-boot="expanded"] nav[data-rail] {
+  width: 15rem; /* w-60, the expanded rail */
+  align-items: stretch;
+  padding-inline: 0.375rem; /* px-1.5 */
+}
+
+/* …and the boot window shows the COLLAPSED innards inside that expanded
+   box, so mirror the expanded geometry to keep hydration reflow-free:
+   groups left-align (a fixed-size icon item then sits at the expanded
+   row's x), the brand head takes the expanded padding, and the collapsed
+   section hairlines occupy the expanded section-title row height (13px →
+   30px — the measured title block) so the pillar rows don't slide down
+   when the titles hydrate in. */
+html[data-rail-boot="expanded"] nav[data-rail] > div {
+  align-items: stretch;
+}
+html[data-rail-boot="expanded"] nav[data-rail] > span[aria-hidden] {
+  justify-content: flex-start;
+  padding-inline: 0.375rem;
+}
+html[data-rail-boot="expanded"] nav[data-rail] span[aria-hidden].h-px {
+  margin-block: 14.5px;
+}

@@ -323,9 +323,15 @@ export function TimeseriesPanel({
           maxHeight={plotH}
         />
       ) : loading ? (
-        // height via style — a template-built `h-[…]` class never reaches
-        // Tailwind's scanner, so it emitted no CSS
-        <Skeleton kind="panel-axis" style={{ height: plotH }} />
+        <>
+          {/* height via style — a template-built `h-[…]` class never
+              reaches Tailwind's scanner, so it emitted no CSS */}
+          <Skeleton kind="panel-axis" style={{ height: plotH }} />
+          {/* legend-row floor (perf audit 2026-07-21): the loaded panel
+              appends a ~14px legend footer — reserve it so captions below
+              the panel don't shift when the data lands */}
+          {withLegend && <div aria-hidden="true" className="h-3.5" />}
+        </>
       ) : empty ? (
         <EmptyState
           pillar="metrics"

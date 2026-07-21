@@ -29,7 +29,14 @@ export default function DashboardHomePage() {
       >
         {tiles.loading || !tiles.data
           ? Array.from({ length: 4 }, (_, i) => (
-              <Skeleton key={i} kind="value" />
+              // loaded-height parity (perf audit 2026-07-21): the loaded
+              // QueryValue tile card is 117px — a bare 28px value skeleton
+              // let everything below climb as the tiles hydrated
+              <Skeleton
+                key={i}
+                kind="value"
+                style={{ height: 117, width: "100%" }}
+              />
             ))
           : tiles.data.map((tile) => (
               <QueryValue
@@ -51,7 +58,14 @@ export default function DashboardHomePage() {
             Watched dashboards
           </h2>
           {dashboards.loading ? (
-            <Skeleton kind="line" />
+            // three 40px rows — the seeded list's loaded height (perf
+            // audit 2026-07-21: skeletons carry their loaded counterparts'
+            // heights so hydration doesn't shift the SLO band below)
+            <div className="flex flex-col gap-2" aria-hidden="true">
+              {Array.from({ length: 3 }, (_, i) => (
+                <Skeleton key={i} kind="line" style={{ height: 32 }} />
+              ))}
+            </div>
           ) : watched.length === 0 ? (
             <p className="text-[13px] leading-[1.45] text-text-2">
               No dashboards yet —{" "}
@@ -89,7 +103,13 @@ export default function DashboardHomePage() {
             Triggered monitors
           </h2>
           {feed.loading ? (
-            <Skeleton kind="line" />
+            // six 32px feed rows (loaded-height parity, perf audit
+            // 2026-07-21) — the triggered column sets this grid row's height
+            <div className="flex flex-col gap-2" aria-hidden="true">
+              {Array.from({ length: 6 }, (_, i) => (
+                <Skeleton key={i} kind="line" style={{ height: 24 }} />
+              ))}
+            </div>
           ) : (feed.data ?? []).length === 0 ? (
             <p className="text-[13px] leading-[1.45] text-text-2">
               Quiet — nothing has triggered.
@@ -117,7 +137,12 @@ export default function DashboardHomePage() {
         {slos.loading ? (
           <div className="grid gap-4 md:grid-cols-3">
             {Array.from({ length: 3 }, (_, i) => (
-              <Skeleton key={i} kind="value" />
+              // 119px = the loaded SLOCard (perf audit 2026-07-21)
+              <Skeleton
+                key={i}
+                kind="value"
+                style={{ height: 119, width: "100%" }}
+              />
             ))}
           </div>
         ) : (slos.data ?? []).length === 0 ? (

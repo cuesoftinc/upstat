@@ -8,6 +8,7 @@ import { Modal } from "@/components/ui/Modal";
 import { QueryBar } from "@/components/ui/QueryBar";
 import { SavedViewChip } from "@/components/ui/SavedViewChip";
 import { Select } from "@/components/ui/Select";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { TimeseriesPanel } from "@/components/ui/TimeseriesPanel";
 import { useMetricsExplorerController } from "@/controllers/explorer";
 import {
@@ -102,8 +103,13 @@ export default function MetricsExplorerPage() {
         </div>
       </header>
 
-      {/* saved views morph the QueryBar into named chips (MI-18) */}
-      {(ctrl.views.data ?? []).length > 0 && (
+      {/* saved views morph the QueryBar into named chips (MI-18). The row
+          is reserved at chip height while views load — inserting it after
+          first paint pushed the QueryBar + chart down 44px (CLS, perf
+          audit 2026-07-21); it only collapses when there are no views. */}
+      {ctrl.views.loading ? (
+        <Skeleton kind="line" style={{ height: 28 }} className="max-w-56" />
+      ) : (ctrl.views.data ?? []).length > 0 ? (
         <ul
           aria-label="Saved views"
           className="flex flex-wrap items-center gap-2"
@@ -119,7 +125,7 @@ export default function MetricsExplorerPage() {
             </li>
           ))}
         </ul>
-      )}
+      ) : null}
 
       <QueryBar
         pills={ctrl.queryState.pills}

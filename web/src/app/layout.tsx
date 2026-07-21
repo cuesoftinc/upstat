@@ -5,6 +5,7 @@ import {
   colorVisionInitScript,
 } from "@/design/ColorVisionProvider";
 import { ThemeProvider, themeInitScript } from "@/design/ThemeProvider";
+import { railInitScript } from "@/components/ui/NavRail";
 import "./globals.css";
 
 // Design-system fonts (design.md §2): Inter for UI, JetBrains Mono for
@@ -57,6 +58,11 @@ export default function RootLayout({
             scripts (theme-parity canon; design.md §5 colorblind mode) */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <script dangerouslySetInnerHTML={{ __html: colorVisionInitScript }} />
+        {/* pre-paint rail width (CLS fix, perf audit 2026-07-21): the
+            dashboard rail must paint at its persisted width — resolving it
+            after hydration slid the whole app column. No-op off /dashboard
+            (the CSS hook is nav[data-rail]); NavRail clears the flag. */}
+        <script dangerouslySetInnerHTML={{ __html: railInitScript }} />
         <ThemeProvider>
           <ColorVisionProvider>{children}</ColorVisionProvider>
         </ThemeProvider>

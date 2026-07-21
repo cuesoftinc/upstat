@@ -10,16 +10,24 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
 }));
 
-const renderHome = () =>
-  render(
+const renderHome = async () => {
+  const result = render(
     <ThemeProvider>
       <HomeView />
     </ThemeProvider>,
   );
+  // Below-fold bands hydrate on-visible (Defer); jsdom has no
+  // IntersectionObserver so they flip immediately, but the next/dynamic
+  // section chunks still resolve async — await one sentinel per chunk so
+  // every section is queryable before the assertions run.
+  await screen.findByText("It looks like this — with your data.");
+  await screen.findByText("OTLP in. Answers out.");
+  return result;
+};
 
 describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
-  it("renders every section of the landing", () => {
-    renderHome();
+  it("renders every section of the landing", async () => {
+    await renderHome();
     // A2 hero
     expect(
       screen.getByRole("heading", { level: 1, name: /All your telemetry\./ }),
@@ -124,8 +132,8 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
     );
   });
 
-  it("keeps the nav star badge neutral in TEST_MODE (no invented count)", () => {
-    renderHome();
+  it("keeps the nav star badge neutral in TEST_MODE (no invented count)", async () => {
+    await renderHome();
     const navigation = screen.getByRole("navigation", { name: "Marketing" });
     expect(
       within(navigation).getByRole("link", {
@@ -136,7 +144,7 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
   });
 
   it("FAQ is single-open: opening one closes the other (A15)", async () => {
-    renderHome();
+    await renderHome();
     // first item open by default
     expect(screen.getByText(FAQ_ITEMS[0].answer)).toBeInTheDocument();
     await userEvent.click(
@@ -148,15 +156,15 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
 
   it("Try Cloud CTAs route to /signin", async () => {
     push.mockClear();
-    renderHome();
+    await renderHome();
     const ctas = screen.getAllByRole("button", { name: "Try Cloud" });
     expect(ctas.length).toBeGreaterThanOrEqual(3); // hero + table + mobile group + band
     await userEvent.click(ctas[0]);
     expect(push).toHaveBeenCalledWith("/signin");
   });
 
-  it("accuracy: MIT copy present, no fabricated pricing", () => {
-    renderHome();
+  it("accuracy: MIT copy present, no fabricated pricing", async () => {
+    await renderHome();
     // the MIT mention lives in the legal bar (the brand tagline is the
     // master 290:2 line, no license copy)
     expect(
@@ -172,8 +180,8 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the use-case quads with their Read more anchors (§8.4 SCROLL_TO)", () => {
-    renderHome();
+  it("renders the use-case quads with their Read more anchors (§8.4 SCROLL_TO)", async () => {
+    await renderHome();
     const links = screen.getAllByRole("link", { name: "Read more →" });
     expect(links.map((l) => l.getAttribute("href"))).toEqual([
       "#demo",
@@ -183,8 +191,8 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
     ]);
   });
 
-  it("demo band renders the seeded panels (uptime strip + query values)", () => {
-    renderHome();
+  it("demo band renders the seeded panels (uptime strip + query values)", async () => {
+    await renderHome();
     const demo = document.getElementById("demo")!;
     expect(
       within(demo).getByText("availability · api-common"),

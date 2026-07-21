@@ -911,3 +911,57 @@ products; per-product values only):
   canonical on `/`, og:image resolves 200 at 1200×630, twitter card, and
   the served favicon's sha256 equals upstat's mark while differing from
   both siblings'.
+
+## 11. Performance (as-built, 2026-07-21)
+
+Two lab-vitals invariants, from the adjudicated perf audit (dashboard CLS
+0.23–0.31 desktop; home TBT 772ms mobile live):
+
+**Dashboard CLS < 0.05 — nothing moves after first paint.**
+
+- **Rail boot width** — the NavRail's expansion choice
+  (`nav.rail.expanded` / ≥1280px default) is applied PRE-PAINT:
+  `railInitScript` (exported by `NavRail.tsx`, injected by the root
+  layout beside the theme boot scripts — the `themeInitScript` pattern)
+  sets
+  `data-rail-boot="expanded"` on `<html>`, globals.css maps it to the
+  expanded width (un-layered rules — utilities beat `@layer base`), and
+  `useRailExpanded` re-resolves the same signal in a LAYOUT effect (not
+  the deferred-tick pattern) and clears the flag before the hydrated
+  frame paints. Resolving it post-paint slid the whole app column
+  56→240px under a width transition — the single largest CLS source.
+- **Reserved slots** — content that arrives after first paint occupies
+  its loaded height from the start: the shell's MI-14 banner slot
+  (39px, collapses only when nothing is open), the metrics saved-views
+  chip row (28px while views load), and the `TimeseriesPanel` legend-row
+  floor (14px when loading with a legend).
+- **Skeleton height parity** — loading skeletons carry their loaded
+  counterparts' measured heights (`style={{ height }}` — template-built
+  `h-[…]` classes never reach Tailwind's scanner): QueryValue tile 117px,
+  SLOCard 119px, AlertRuleCard 101px at gap-3 ×5, AlertChannelCard 67px
+  ×3, feed rows ×6, dashboard list rows ×3. Under-reserving lets every
+  band below climb as data hydrates.
+
+As-measured (local TEST_MODE prod build, Lighthouse desktop, authed):
+`/dashboard` 0.29→0.001, `/dashboard/monitors` 0.52→0.002,
+`/dashboard/metrics` 0.40→0.006.
+
+**Home mobile TBT — below-fold bands hydrate on-visible.**
+
+- The landing hydrates the nav + hero eagerly; every band below defers
+  via `components/home/Defer.tsx` — SSR'd `<Suspense>` boundaries whose
+  `next/dynamic` loaders wait on a per-chunk `HydrationGate`, released by
+  an IntersectionObserver as the band approaches. React keeps each
+  boundary dehydrated (server DOM visible, zero hydration work) until
+  then. The full contract — Defer never re-renders, band elements are
+  identity-stable (`useMemo` in `HomeView`), data-fed bands own the
+  epoch→live demo swap (`*Band` wrappers) — lives in the `Defer.tsx`
+  docblock; break any leg and React silently replaces band DOM with an
+  empty fallback.
+- The marketing markup still ships fully in the HTML (SEO) —
+  `seo.spec.ts` and the home specs assert it; e2e interactions with
+  below-fold bands use the nav-hydration retry convention.
+
+As-measured (local, Lighthouse mobile): TBT 65→15ms at the default 4×
+CPU throttle; ~4.5× lower at a 20× slow-device proxy; script evaluation
+roughly halved.

@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { useMediaQuery } from "@/controllers/use-media-query";
 import { Avatar } from "./Avatar";
 import { BrandMark } from "./BrandMark";
@@ -170,29 +170,63 @@ const EXPANDED_STORAGE_KEY = "nav.rail.expanded";
 const EXPAND_DEFAULT_QUERY = "(min-width: 1280px)";
 
 /**
+ * Pre-paint rail width (CLS fix, perf audit 2026-07-21): SSR renders the
+ * collapsed 56px rail; resolving the persisted/default expansion after
+ * paint slid the entire app column 56→240px and scored CLS 0.23–0.31 on
+ * every dashboard route. This script (injected by the dashboard layout,
+ * themeInitScript pattern) applies the resolved choice as
+ * `data-rail-boot="expanded"` on <html> BEFORE the rail paints;
+ * globals.css maps it to the expanded width. `useRailExpanded` resolves
+ * the same signal in a layout effect and clears the flag pre-paint, so
+ * the column never moves. Mirrors `resolveBootExpanded` below — keep the
+ * two in sync.
+ */
+export const railInitScript = `(function () {
+  try {
+    if (!window.matchMedia("(min-width: 768px)").matches) return;
+    var stored = null;
+    try {
+      stored = window.localStorage.getItem("${EXPANDED_STORAGE_KEY}");
+    } catch (e) {}
+    var expanded =
+      stored !== null
+        ? stored === "1"
+        : window.matchMedia("${EXPAND_DEFAULT_QUERY}").matches;
+    if (expanded)
+      document.documentElement.setAttribute("data-rail-boot", "expanded");
+  } catch (e) {}
+})();`;
+
+/** The client-side twin of `railInitScript` — one resolution rule. */
+function resolveBootExpanded(): boolean {
+  try {
+    const stored = window.localStorage.getItem(EXPANDED_STORAGE_KEY);
+    if (stored !== null) return stored === "1";
+  } catch {
+    /* storage unavailable (private mode) — fall through to viewport */
+  }
+  return window.matchMedia(EXPAND_DEFAULT_QUERY).matches;
+}
+
+/**
  * Rail expansion state — persisted per user (localStorage), defaulting by
- * viewport. Resolved after mount: SSR renders collapsed, so hydration
- * stays deterministic.
+ * viewport. SSR renders collapsed (deterministic hydration); the boot
+ * script has already painted the resolved width via `data-rail-boot`, and
+ * a LAYOUT effect (deliberately not the deferred-tick pattern — the state
+ * must catch up before the hydrated frame paints, or the app column
+ * shifts) re-resolves the same signal and clears the boot flag.
  */
 function useRailExpanded(): [boolean, () => void] {
   const [expanded, setExpanded] = useState(false);
 
-  // Deferred a tick (use-request pattern): setState stays out of the
-  // synchronous effect body.
-  useEffect(() => {
-    const t = window.setTimeout(() => {
-      try {
-        const stored = window.localStorage.getItem(EXPANDED_STORAGE_KEY);
-        if (stored !== null) {
-          setExpanded(stored === "1");
-          return;
-        }
-      } catch {
-        /* storage unavailable (private mode) — fall through to viewport */
-      }
-      setExpanded(window.matchMedia(EXPAND_DEFAULT_QUERY).matches);
-    }, 0);
-    return () => window.clearTimeout(t);
+  useLayoutEffect(() => {
+    // The synchronous pre-paint setState is the point: React must commit
+    // the resolved width in the same frame the boot flag is removed, or
+    // the app column shifts (dashboard CLS 0.23–0.31, perf audit
+    // 2026-07-21).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setExpanded(resolveBootExpanded());
+    document.documentElement.removeAttribute("data-rail-boot");
   }, []);
 
   const toggle = () => {
@@ -372,6 +406,7 @@ export function NavRail({
     <>
       <nav
         aria-label="Product navigation"
+        data-rail
         data-expanded={inlineExpanded}
         className={clsx(
           "sticky top-0 z-[var(--z-sticky)] flex h-dvh flex-col gap-1",

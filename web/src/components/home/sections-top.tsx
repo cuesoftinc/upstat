@@ -12,7 +12,7 @@ import { CodeSnippet } from "@/components/ui/CodeSnippet";
 import { MARKETING_PILLARS, PillarCard } from "@/components/ui/PillarCard";
 import { TimeseriesPanel } from "@/components/ui/TimeseriesPanel";
 import { UptimeCard } from "@/components/ui/UptimeCard";
-import type { UptimeDemo } from "@/controllers/home";
+import { useHomeDemoData, type UptimeDemo } from "@/controllers/home";
 import { OTEL_SNIPPETS } from "./content";
 import { Section } from "./Section";
 
@@ -208,6 +208,16 @@ function Step({
       <div className="mt-1">{children}</div>
     </div>
   );
+}
+
+/**
+ * Self-feeding wrapper for on-visible hydration (Defer contract, point 3):
+ * the band owns its epoch→live demo swap so a dehydrated boundary hydrates
+ * against the exact markup it server-rendered, whenever that happens.
+ */
+export function HowItWorksBand() {
+  const demo = useHomeDemoData();
+  return <HowItWorksSection series={demo.latencySeries} />;
 }
 
 export function HowItWorksSection({ series }: HowItWorksSectionProps) {
