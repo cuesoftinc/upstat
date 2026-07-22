@@ -125,7 +125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   session read reads as signed out instead of throwing past the seam; the
   provider contract (return `null`, never throw) is documented on
   `AuthProvider.currentUser()`, and the e2e cold-start pair locks both
-  directions.
+  directions (#208).
 - Accessibility closeout: footer links meet the 24px target-size minimum,
   the cloud-vs-self-host comparison table names its feature column for
   assistive tech, a skip-to-content link fronts the app shell, and the
