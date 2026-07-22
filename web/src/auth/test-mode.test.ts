@@ -15,6 +15,12 @@ describe("TestModeAuthProvider", () => {
     expect(await provider.idToken()).toBe("test-mode-token");
   });
 
+  it("reads a corrupted session as signed out (flows/auth.md §2: null, never throw)", () => {
+    window.sessionStorage.setItem("upstat.test-session", "{not json");
+    const provider = new TestModeAuthProvider();
+    expect(provider.currentUser()).toBeNull();
+  });
+
   it("clears the session on signOut", async () => {
     const provider = new TestModeAuthProvider();
     await provider.signInWithGoogle();

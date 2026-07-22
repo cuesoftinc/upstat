@@ -139,7 +139,23 @@ function auditOverflow(): OverflowReport {
   return out;
 }
 
+// The dashboard is session-gated (flows/auth.md §2); the public routes
+// (`/`, `/signin`, `/status/*`) are audited signed OUT — a /signin visit
+// with a session would reverse-guard to /dashboard — so the session is
+// established lazily: one sign-in beat before a test's first gated route
+// (ROUTES orders public first, so the signed-out sweep stays intact).
+const sessioned = new WeakSet<Page>();
+
+async function ensureSession(page: Page, route: string) {
+  if (!route.startsWith("/dashboard") || sessioned.has(page)) return;
+  await page.goto("/signin");
+  await page.getByRole("button", { name: /continue with google/i }).click();
+  await page.waitForURL("**/dashboard**");
+  sessioned.add(page);
+}
+
 async function open(page: Page, route: string) {
+  await ensureSession(page, route);
   await page.goto(route, { waitUntil: "domcontentloaded" });
   // charts/lists render client-side from the mock — give them a beat
   await page.waitForTimeout(1_200);

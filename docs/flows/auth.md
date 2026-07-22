@@ -19,7 +19,18 @@ returns `PERMISSION_DENIED provider_not_allowed` for non-Google tokens.
 
 Firebase SDK session; gRPC-Web carries `authorization: Bearer <ID token>`
 metadata (interceptor swaps local-JWT verification for Firebase);
-`upstat_token`/`upstat_user` cookies retire. Boundary inventory:
+`upstat_token`/`upstat_user` cookies retire.
+
+**Session restore [Decided 2026-07-22, platform-neutral]**: restore
+resolves **before either surface routes** — the web resolves the
+provider's restored session before dashboard routes render (the
+`DashboardShell` gate), and the mobile on-call companion, when its phase
+opens, runs the same silent restore behind its boot gate. A failed
+restore reads as **signed out** (never an error interstitial) —
+providers resolve `null` and never throw past the seam; a signed-in user
+never sees the auth screen (`/signin` carries the reverse guard).
+
+Boundary inventory:
 
 | Caller | Mechanism |
 | --- | --- |

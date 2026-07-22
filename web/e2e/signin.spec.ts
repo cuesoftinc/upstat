@@ -51,6 +51,42 @@ test("legal consent line links the canonical Cuesoft policies", async ({
   ).toHaveAttribute("href", "https://privacy.cuesoft.io");
 });
 
+/**
+ * Cold-start matrix (flows/auth.md §2, ratified 2026-07-22): restore
+ * resolves before either surface routes, and each surface guards its
+ * wrong-state visitor.
+ */
+test("cold start signed out: /dashboard replaces to /signin with no dashboard paint", async ({
+  page,
+}) => {
+  await page.goto("/dashboard");
+  await page.waitForURL("**/signin");
+  await expect(page.getByTestId("signin-screen")).toBeVisible();
+  // The dashboard never painted content for the signed-out visitor.
+  await expect(page.getByTestId("dashboard-home")).toHaveCount(0);
+});
+
+test("reverse guard: a signed-in visit to /signin is replaced to /dashboard", async ({
+  page,
+}) => {
+  await page.goto("/signin");
+  await page
+    .getByTestId("signin-screen")
+    .getByRole("button", { name: /continue with google/i })
+    .click();
+  await page.waitForURL("**/dashboard");
+
+  // Same tab (the TEST_MODE session is sessionStorage-held, per-tab):
+  // /signin is not a reachable surface while signed in — the SignInGate
+  // replaces to the app and the CTA never paints.
+  await page.goto("/signin");
+  await page.waitForURL("**/dashboard");
+  await expect(page.getByTestId("dashboard-home")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /continue with google/i }),
+  ).toHaveCount(0);
+});
+
 test("/login 404s on the branded page (redirect stub removed 2026-07-19)", async ({
   page,
 }) => {

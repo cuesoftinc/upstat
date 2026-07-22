@@ -720,6 +720,19 @@ standard]** — `/` home · `/signin` the only auth route · all app surfaces
 under `/dashboard/<area>`, canonical across the CueLABS™ products. Rail
 order per pages.md Part B.
 
+**Session gate (flows/auth.md §2, ratified 2026-07-22).** Restore
+resolves before either surface routes: `DashboardShell` holds rendering
+behind `useRequireAuth` (nothing dashboard-side paints until the session
+read settles — an aria-busy hold, then signed-out visitors replace to
+`/signin`), and `/signin` carries the reverse guard — `SignInGate` wraps
+the screen content (`useRedirectAuthed`; metadata stays on the signin
+layout) so a signed-in visitor is replaced to `/dashboard` and never
+sees the CTA. A failed restore reads as signed out: providers return
+`null`, never throw (the `AuthProvider.currentUser()` contract), and the
+controllers catch as a second net. Locked by the e2e cold-start pair in
+`signin.spec.ts`. The public `/status/{slug}` entry point stays outside
+the gate by construction (it never mounts the shell).
+
 | pages.md | Route | Screen |
 | --- | --- | --- |
 | Part A (A1–A16) | `/` | Public home page |

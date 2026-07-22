@@ -117,6 +117,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Session-restore gate hardening (flows/auth.md §2, ratified 2026-07-22):
+  the dashboard now sits behind a session gate — nothing app-side paints
+  until the restored session settles, and a signed-out visitor is replaced
+  to `/signin` — while `/signin` gains the reverse guard (a signed-in
+  visitor is replaced to `/dashboard` and never sees the CTA). A failed
+  session read reads as signed out instead of throwing past the seam; the
+  provider contract (return `null`, never throw) is documented on
+  `AuthProvider.currentUser()`, and the e2e cold-start pair locks both
+  directions (#208).
 - Accessibility closeout: footer links meet the 24px target-size minimum,
   the cloud-vs-self-host comparison table names its feature column for
   assistive tech, a skip-to-content link fronts the app shell, and the
