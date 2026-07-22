@@ -32,7 +32,14 @@ export class TestModeAuthProvider implements AuthProvider {
   currentUser(): AuthUser | null {
     if (typeof window === "undefined") return null;
     const raw = window.sessionStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as AuthUser) : null;
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as AuthUser;
+    } catch {
+      // flows/auth.md §2: a corrupted session reads as signed out — the
+      // provider contract (provider.ts) is null, never throw.
+      return null;
+    }
   }
 
   async idToken(): Promise<string | null> {

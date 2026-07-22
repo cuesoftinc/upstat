@@ -21,6 +21,7 @@ import SkipLink from "@/components/ui/SkipLink";
 import { TimePicker, type TimePreset } from "@/components/ui/TimePicker";
 import { TopBar } from "@/components/ui/TopBar";
 import { ZoomStackChip } from "@/components/ui/ZoomStackChip";
+import { useRequireAuth } from "@/controllers/auth";
 import {
   ageLabel,
   useCurrentUserName,
@@ -257,6 +258,24 @@ function ShellChrome({ children }: { children: ReactNode }) {
 }
 
 export function DashboardShell({ children }: { children: ReactNode }) {
+  const { user, checked } = useRequireAuth();
+
+  // Session gate (flows/auth.md §2, ratified 2026-07-22): nothing
+  // dashboard-side paints until the session read settles; a signed-out
+  // visitor is replaced to /signin (useRequireAuth) and never sees the
+  // app chrome. Covers both the in-flight read and the replace beat.
+  if (!checked || !user) {
+    return (
+      <div
+        aria-busy="true"
+        data-testid="dashboard-gate"
+        className="flex min-h-screen items-center justify-center bg-bg"
+      >
+        <span className="sr-only">Loading…</span>
+      </div>
+    );
+  }
+
   return (
     <TimeRangeProvider>
       <ShellChrome>{children}</ShellChrome>

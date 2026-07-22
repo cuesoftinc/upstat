@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 /**
  * Demo-completeness features (PR3): portable dashboard JSON import (B2 /
@@ -10,6 +10,15 @@ import { expect, test } from "@playwright/test";
 test.beforeEach(async ({ request }) => {
   await request.post("/api/mock/v1/reset");
 });
+
+// The dashboard is session-gated (flows/auth.md §2) — establish the
+// TEST_MODE session before navigating (suite-standard helper).
+async function signIn(page: Page) {
+  await page.goto("/signin");
+  await page.getByRole("button", { name: /continue with google/i }).click();
+  await page.waitForURL("**/dashboard**");
+  await expect(page.getByTestId("dashboard-home")).toBeVisible();
+}
 
 const PORTABLE = JSON.stringify({
   version: 1,
@@ -36,6 +45,7 @@ const PORTABLE = JSON.stringify({
 test("dashboards: import a portable JSON definition → lands on the new dashboard", async ({
   page,
 }) => {
+  await signIn(page);
   await page.goto("/dashboard/dashboards");
   await page.getByTestId("import-dashboard").click();
   await page.getByTestId("import-json").fill(PORTABLE);
@@ -54,6 +64,7 @@ test("dashboards: import a portable JSON definition → lands on the new dashboa
 test("dashboards: malformed import errors readably, nothing created", async ({
   page,
 }) => {
+  await signIn(page);
   await page.goto("/dashboard/dashboards");
   await page.getByTestId("import-dashboard").click();
   await page.getByTestId("import-json").fill('{"version": 3}');
@@ -62,6 +73,7 @@ test("dashboards: malformed import errors readably, nothing created", async ({
 });
 
 test("RUM: devices and countries breakdowns render (B6)", async ({ page }) => {
+  await signIn(page);
   await page.goto("/dashboard/rum");
   await expect(page.getByRole("heading", { name: "Devices" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Countries" })).toBeVisible();
@@ -73,6 +85,7 @@ test("RUM: devices and countries breakdowns render (B6)", async ({ page }) => {
 test("traces: the hero span's logs-in-span tab carries correlated lines (B5)", async ({
   page,
 }) => {
+  await signIn(page);
   await page.goto("/dashboard/traces/explorer");
   // the hero trace is the seeded POST /v1/events run; selecting it fires
   // the correlated-logs fetch — wait for it before reading tab counts
@@ -108,6 +121,7 @@ test("traces: the hero span's logs-in-span tab carries correlated lines (B5)", a
 test("monitors: an active alert row opens declare-incident prefilled (B9)", async ({
   page,
 }) => {
+  await signIn(page);
   await page.goto("/dashboard/monitors");
   await page
     .getByRole("list", { name: "Triggered feed" })
@@ -148,6 +162,7 @@ test("nav: Features and Platform anchor different landing sections", async ({
 test("logs: j/k walk the log lines with focus; Enter expands (§5)", async ({
   page,
 }) => {
+  await signIn(page);
   await page.goto("/dashboard/logs");
   // live tail is off by default (?live=1 enables it) — the row window is
   // the static base query, so focus targets stay stable
