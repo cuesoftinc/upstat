@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DAY, HOUR, MINUTE } from "./util";
+import { DAY, HOUR, MINUTE } from "@/lib/format";
 import { rumBucketMs, rumSummary, rumVitals } from "./rum-data";
 
 const NOW = Date.parse("2026-07-18T12:00:00Z");

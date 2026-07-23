@@ -1,7 +1,7 @@
 import type { Dashboard } from "@/models";
 import { jsonError, jsonOk, notFound, readJson } from "@/mocks/http";
 import { getDb } from "@/mocks/store";
-import { iso } from "@/mocks/util";
+import { iso } from "@/lib/format";
 
 function find(id: string): Dashboard | undefined {
   return getDb().dashboards.find((d) => d.id === id);

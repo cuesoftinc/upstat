@@ -21,7 +21,8 @@ import {
   type ParsedQuery,
 } from "@/mocks/series";
 import { monitorHistory } from "@/mocks/uptime-data";
-import { HOUR, MINUTE, hashSeed, mulberry32 } from "@/mocks/util";
+import { HOUR, MINUTE } from "@/lib/format";
+import { hashSeed, mulberry32 } from "@/lib/random";
 import type { Monitor } from "@/models";
 
 /* ------------------------------------------------------------------ */

@@ -1,7 +1,8 @@
 /** RUM aggregates — deterministic, honoring analytics-math.md honesty rules. */
 
 import type { RumSummary, RumVitals } from "@/models";
-import { DAY, HOUR, MINUTE, hashSeed, iso, mulberry32, unitFor } from "./util";
+import { DAY, HOUR, MINUTE, iso } from "@/lib/format";
+import { hashSeed, mulberry32, unitFor } from "@/lib/random";
 
 const TOP_PAGES = [
   "/",

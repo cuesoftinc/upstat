@@ -2,7 +2,8 @@ import type { SyntheticCheck, SyntheticCheckInput } from "@/models";
 import { jsonError, jsonOk, readJson } from "@/mocks/http";
 import { getDb } from "@/mocks/store";
 import { normalizeSteps, validateCheckInput } from "@/mocks/synthetics";
-import { iso, nextId } from "@/mocks/util";
+import { iso } from "@/lib/format";
+import { nextId } from "@/mocks/util";
 
 /** GET /v1/synthetics — multi-step + browser checks (pages.md B7, OBS-011). */
 export async function GET() {

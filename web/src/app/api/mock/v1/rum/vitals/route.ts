@@ -1,7 +1,7 @@
 import { jsonError, jsonOk } from "@/mocks/http";
 import { rumVitals } from "@/mocks/rum-data";
 import { getDb, telemetryReady } from "@/mocks/store";
-import { DAY } from "@/mocks/util";
+import { DAY } from "@/lib/format";
 
 /** GET /v1/rum/vitals — core web vitals LCP/CLS/INP (pages.md B6). */
 export async function GET(req: Request) {

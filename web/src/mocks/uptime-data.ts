@@ -2,7 +2,8 @@
 
 import type { CheckResult, MonitorHistory, UptimeDay } from "@/models";
 import type { Monitor } from "@/models";
-import { DAY, MINUTE, hashSeed, iso, mulberry32 } from "./util";
+import { DAY, MINUTE, iso } from "@/lib/format";
+import { hashSeed, mulberry32 } from "@/lib/random";
 import type { OutageWindow } from "./series";
 
 export function monitorHistory(

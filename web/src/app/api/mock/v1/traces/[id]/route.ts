@@ -1,7 +1,8 @@
 import type { Span, Trace } from "@/models";
 import { jsonOk, notFound } from "@/mocks/http";
 import { getDb } from "@/mocks/store";
-import { hashSeed, iso, mulberry32 } from "@/mocks/util";
+import { iso } from "@/lib/format";
+import { hashSeed, mulberry32 } from "@/lib/random";
 
 /**
  * GET /v1/traces/{id} — waterfall detail. The hero trace (POST /v1/events,

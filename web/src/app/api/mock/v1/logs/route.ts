@@ -2,7 +2,7 @@ import type { LogEvent } from "@/models";
 import { jsonError, jsonOk } from "@/mocks/http";
 import { generateLogs, logHistogram } from "@/mocks/series";
 import { getDb, telemetryReady } from "@/mocks/store";
-import { HOUR, SECOND, iso } from "@/mocks/util";
+import { HOUR, SECOND, iso } from "@/lib/format";
 
 /**
  * GET /v1/logs — explorer query + cursor pagination + live tail (pages.md

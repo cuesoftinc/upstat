@@ -1,7 +1,7 @@
 import type { Incident } from "@/models";
 import { jsonError, jsonOk, notFound, readJson } from "@/mocks/http";
 import { getDb } from "@/mocks/store";
-import { iso } from "@/mocks/util";
+import { iso } from "@/lib/format";
 
 export async function GET(
   _req: Request,

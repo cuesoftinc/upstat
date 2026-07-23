@@ -8,7 +8,8 @@
 
 import type { RumDrilldown } from "@/models";
 import { rumSummary } from "./rum-data";
-import { DAY, hashSeed, iso, mulberry32, unitFor } from "./util";
+import { DAY, iso } from "@/lib/format";
+import { hashSeed, mulberry32, unitFor } from "@/lib/random";
 
 export const CONVERSION_EVENT = "auth_signin_completed";
 export const RETENTION_WEEKS = 7; // wk 0–6

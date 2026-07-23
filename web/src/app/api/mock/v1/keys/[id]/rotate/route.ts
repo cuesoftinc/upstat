@@ -1,6 +1,6 @@
 import { jsonError, jsonOk, notFound } from "@/mocks/http";
 import { getDb } from "@/mocks/store";
-import { hashSeed } from "@/mocks/util";
+import { hashSeed } from "@/lib/random";
 
 /**
  * POST /v1/keys/{id}/rotate — rotation contract (data-model.md §2): the

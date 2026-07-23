@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildSeed } from "./seed";
 import { replayMonitor, replayRule } from "./replay";
-import { HOUR, MINUTE } from "./util";
+import { HOUR, MINUTE } from "@/lib/format";
 
 const NOW = Date.parse("2026-07-18T12:00:00Z");
 

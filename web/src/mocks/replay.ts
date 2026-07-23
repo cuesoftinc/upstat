@@ -16,7 +16,7 @@ import {
   type OutageWindow,
   type ParsedQuery,
 } from "./series";
-import { HOUR, MINUTE, iso } from "./util";
+import { HOUR, MINUTE, iso } from "@/lib/format";
 
 const REPLAY_STEP_MS = 5 * MINUTE;
 const REPLAY_RANGE_MS = 24 * HOUR;

@@ -11,17 +11,9 @@ import type {
   Series,
   TimeseriesResult,
 } from "@/models";
-import {
-  HOUR,
-  MINUTE,
-  SECOND,
-  hashSeed,
-  iso,
-  mulberry32,
-  snapStepMs,
-  stepLabel,
-  unitFor,
-} from "./util";
+import { HOUR, MINUTE, SECOND, iso } from "@/lib/format";
+import { hashSeed, mulberry32, unitFor } from "@/lib/random";
+import { snapStepMs, stepLabel } from "./util";
 
 export const SERVICES = [
   "api-common",

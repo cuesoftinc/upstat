@@ -14,7 +14,9 @@ import {
   type SyntheticStepInput,
   type SyntheticStepResult,
 } from "@/models";
-import { hashSeed, iso, mulberry32, nextId } from "./util";
+import { iso } from "@/lib/format";
+import { hashSeed, mulberry32 } from "@/lib/random";
+import { nextId } from "./util";
 
 export const SYNTHETIC_VIEWPORTS = ["1440x900", "768x1024", "390x844"] as const;
 

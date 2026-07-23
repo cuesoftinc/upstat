@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildSeed } from "./seed";
 import { buildStatusPage } from "./status-page";
-import { iso } from "./util";
+import { iso } from "@/lib/format";
 
 const NOW = Date.parse("2026-07-18T12:00:00Z");
 
