@@ -22,7 +22,11 @@ export default function StatusPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto flex w-full max-w-[960px] flex-col gap-4 px-6 py-10">
+      <main
+        id="main"
+        tabIndex={-1}
+        className="mx-auto flex w-full max-w-[960px] flex-col gap-4 px-6 py-10"
+      >
         <Skeleton kind="line" className="w-64" />
         <Skeleton kind="panel-axis" style={{ height: 220 }} />
       </main>
@@ -33,7 +37,11 @@ export default function StatusPage() {
     // branded 404 treatment (the app-wide not-found pattern) — public
     // surface, so the CTA points home, not into the auth-gated dashboard
     return (
-      <main className="font-ui flex min-h-screen flex-col items-center justify-center gap-4 bg-bg px-6 text-text">
+      <main
+        id="main"
+        tabIndex={-1}
+        className="font-ui flex min-h-screen flex-col items-center justify-center gap-4 bg-bg px-6 text-text"
+      >
         <p className="font-data text-[13px] text-text-2">404</p>
         <h1 className="text-[24px] font-semibold">Status page not found</h1>
         <p className="max-w-[420px] text-center text-[13px] leading-[1.45] text-text-2">
@@ -54,6 +62,8 @@ export default function StatusPage() {
 
   return (
     <main
+      id="main"
+      tabIndex={-1}
       data-testid="status-page"
       className="mx-auto flex w-full max-w-[960px] flex-col gap-6 px-6 py-10"
     >

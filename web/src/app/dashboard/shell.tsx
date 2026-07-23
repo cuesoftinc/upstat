@@ -17,7 +17,6 @@ import { IncidentBanner } from "@/components/ui/IncidentBanner";
 import { NavRail, NAV_PILLARS } from "@/components/ui/NavRail";
 import { NotificationPopover } from "@/components/ui/AlertFeedRow";
 import { ShortcutCheatsheet } from "@/components/ui/ShortcutCheatsheet";
-import SkipLink from "@/components/ui/SkipLink";
 import { TimePicker, type TimePreset } from "@/components/ui/TimePicker";
 import { TopBar } from "@/components/ui/TopBar";
 import { ZoomStackChip } from "@/components/ui/ZoomStackChip";
@@ -120,9 +119,6 @@ function ShellChrome({ children }: { children: ReactNode }) {
     // (the logs live-tail list, MI-4 pause-on-scroll) get a real overflow
     // boundary instead of growing the body.
     <div className="font-ui flex h-dvh bg-bg text-text">
-      {/* Fleet canon P15: first focusable on every dashboard page — the
-          rail + chrome are 9+ tab stops before <main> without it. */}
-      <SkipLink />
       {/* Rail items are real <a> links (a11y audit: middle-click/new-tab,
           AT link navigation); the g-chords keep router.push (keyboard.ts). */}
       <NavRail

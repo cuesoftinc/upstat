@@ -6,6 +6,7 @@ import {
 } from "@/design/ColorVisionProvider";
 import { ThemeProvider, themeInitScript } from "@/design/ThemeProvider";
 import { navRailInitScript } from "@/components/ui/NavRail";
+import SkipLink from "@/components/ui/SkipLink";
 import "./globals.css";
 
 // Design-system fonts (design.md §2): Inter for UI, JetBrains Mono for
@@ -53,6 +54,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body>
+        {/* P15 fleet canon: first focusable on every route; targets the
+            route's single <main id="main">. */}
+        <SkipLink />
         {/* pre-paint: applies the persisted `upstat.theme` override, the
             `upstat.colorvision` mode and the rail expansion width before
             first paint — static literal scripts (theme-parity canon;

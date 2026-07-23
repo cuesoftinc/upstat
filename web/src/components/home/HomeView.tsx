@@ -52,7 +52,9 @@ export function HomeView() {
         onTryCloud={onTryCloud}
       />
 
-      <main>
+      {/* id + tabIndex: the SkipLink (root layout, P15) targets #main and
+          moves programmatic focus there — not just a scroll jump. */}
+      <main id="main" tabIndex={-1}>
         <HeroSection
           series={demo.latencySeries}
           query={demo.latencyQuery}
