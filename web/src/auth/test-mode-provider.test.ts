@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { TestModeAuthProvider } from "./test-mode";
+import { TestModeAuthProvider } from "./test-mode-provider";
 
 describe("TestModeAuthProvider", () => {
   beforeEach(() => {

@@ -1,7 +1,9 @@
 import type { ApiKey } from "@/models";
 import { jsonError, jsonOk, readJson } from "@/mocks/http";
 import { getDb } from "@/mocks/store";
-import { hashSeed, iso, nextId } from "@/mocks/util";
+import { iso } from "@/lib/format";
+import { hashSeed } from "@/lib/random";
+import { nextId } from "@/mocks/util";
 
 /** GET /v1/keys — API keys & ingestion tokens (pages.md B12). */
 export async function GET() {

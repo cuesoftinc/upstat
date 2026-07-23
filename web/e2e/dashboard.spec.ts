@@ -244,7 +244,7 @@ test("full journey: onboarding → B1 → dashboards → explorer → logs → t
   const run = Date.now().toString(36).slice(-5);
   // hermetic start — re-seed the §6 narrative (long-lived local servers
   // accumulate declared incidents/orgs from earlier runs)
-  await page.request.post("/api/mock/v1/reset");
+  await page.request.post("/api/mock/v1/testing/reset");
   await prewarm(page);
   await signIn(page);
 

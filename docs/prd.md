@@ -66,7 +66,7 @@ demonstrate Cuesoft's engineering standards and infrastructure stability
 
 | ID | Requirement | Rationale |
 | --- | --- | --- |
-| MON-001 | **Alerting** — notify on monitor state change *(U-4 ratified: webhooks first, email via Resend)* | Features grid says "alerts"; today status flips are silent — a monitoring product that tells no one is a dashboard, not a monitor |
+| MON-001 | **Alerting** — notify on monitor state change *(U-4 ratified: webhooks first, email via Brevo)* | Features grid says "alerts"; today status flips are silent — a monitoring product that tells no one is a dashboard, not a monitor |
 | ANA-001 | Event-ingestion API + JS tracking script | M2/M3 foundation; lightweight page-view + custom-event beacon |
 | ANA-002 | Dashboards read real aggregates | Replace the mock `/api/dashboard/*` routes — mocks were acceptable scaffolding, not product |
 | ANA-003 | Data-retention policy, stated and enforced | UPS-003 requires documenting retention; you can't document what isn't defined (data-model.md §4 proposes 90d raw / 13mo rollups) |
@@ -111,7 +111,7 @@ demonstrate Cuesoft's engineering standards and infrastructure stability
 1. ~~**Event API authentication for browsers**~~ **RESOLVED (U-2)**. Original — tracking scripts can't hold
    secrets. Proposed: public write-only property key, origin-checked, rate
    limited (api.md §3.1); confirm this satisfies the privacy posture.
-2. ~~**Alert channels order**~~ **RESOLVED (U-4: webhooks first, Resend email)**. Original — email first (needs an SMTP/provider decision —
+2. ~~**Alert channels order**~~ **RESOLVED (U-4: webhooks first, Brevo email)**. Original — email first (needs an SMTP/provider decision —
    note the old SMTP plumbing was deliberately removed), webhook second,
    Slack later? MON-001 assumes email→webhook.
 3. ~~**gRPC-Web vs REST**~~ **RESOLVED (U-5: new surfaces HTTP)**. Original — monitors stay gRPC (works today);
@@ -125,9 +125,10 @@ demonstrate Cuesoft's engineering standards and infrastructure stability
 ## 9. Scope expansion — full observability platform (2026-07-16) **[Directive]**
 
 Look and feel: **datadoghq.com** ([design.md](design.md)). Upstat's target is
-now "almost everything a full-fledged observability and SRE platform can do".
-**This supersedes §1's M-restraint and §4's non-goals list** (APM/tracing/logs
-were excluded there; they are now core pillars — kept above for audit trail).
+now "almost everything a full-fledged observability and SRE platform can do":
+APM, distributed tracing, and log aggregation are core pillars of this
+current scope (§1's original M-restraint and §4's non-goals list no longer
+apply to them).
 
 - Pillar & feature register: OBS-001…012 in [pages.md](pages.md); page-level
   breakdowns for all pillars (dashboards, metrics, logs, traces, RUM,
@@ -139,6 +140,7 @@ were excluded there; they are now core pillars — kept above for audit trail).
 - The three earlier mandates map in: M1 → Synthetics/Uptime pillar,
   M2/M3 → RUM/Analytics pillar (events layer unchanged as its foundation).
 - Platform structure **[Directive]**: home page (shared open-source pattern:
-  Discord, GitHub, preview, Try Cloud / Self Host) + dashboard + eventual
-  mobile companion (on-call-first). Docs on GitBook (Git-synced from
+  Discord, GitHub, preview, Try Cloud / Self Host) + dashboard + an eventual
+  mobile companion (on-call-first) — out of current scope per §4's non-goals;
+  `mobile/*` are placeholder directories only. Docs on GitBook (Git-synced from
   `docs/`); API reference via Scalar.

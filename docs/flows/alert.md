@@ -1,6 +1,6 @@
 # Flow: Alerting (channels → rules → dispatch)
 
-> Implements MON-001 with decisions U-4 (webhooks first, email via Resend).
+> Implements MON-001 with decisions U-4 (webhooks first, email via Brevo).
 > Covers channel lifecycle, rule config, dispatch semantics, cooldown, and
 > the flapping guard. Data model: `ALERT_RULE`/`ALERT_CHANNEL`
 > (data-model.md §2).

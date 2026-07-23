@@ -11,7 +11,7 @@ import type {
 } from "@/models";
 import type { MockDb } from "./seed";
 import { monitorHistory } from "./uptime-data";
-import { iso } from "./util";
+import { iso } from "@/lib/format";
 
 function overallFor(db: MockDb): StatusPageOverall {
   const anyDown = db.monitors.some((m) => m.status === "down" && !m.muted);

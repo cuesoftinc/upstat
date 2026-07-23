@@ -3,8 +3,10 @@
 ## Prerequisites
 
 - [Docker](https://www.docker.com/) & Docker Compose (recommended path)
-- For native development: Go 1.25+ (see `api/common/go.mod`), Python 3.11+
-  (`api/observability`), Node.js (see `web/.nvmrc`), MongoDB, and Envoy (gRPC-Web proxy)
+- For native development: Go 1.26+ (see `api/common/go.mod`), Python 3.11+
+  (`api/observability`), Node.js 24 (see `web/.nvmrc`), MongoDB, and Envoy
+  (only needed for the target gRPC-Web control plane — not required for the
+  web app to function; see below)
 
 ## Configuration
 
@@ -21,7 +23,7 @@ service ships a `.env.example` to copy from.
 | `JWT_SECRET` | Secret used to sign/verify JWTs |
 | `BASE_URL` | Public base URL of the backend |
 | `INSIGHT_SERVICE_GRPC_ADDRESS` | Address of the observability gRPC server |
-| `SERVICE_TOKEN_HASH` | Server-side hash api/common validates the observability service token against (client sends `UPSTAT_GRPC_AUTH_TOKEN`) |
+| `SERVICE_TOKEN_HASH` | Future/optional — not yet read by any service; api/common currently validates the shared gRPC auth token via `JWT_SECRET`, not a separate hash |
 
 ### `api/observability` (Python service)
 
@@ -63,8 +65,10 @@ cd api/observability && cp .env.example .env \
 # Web (dashboard + status pages)
 cd web && npm install && npm run dev
 
-# Envoy (gRPC-Web -> gRPC proxy) — the browser reaches the backend through Envoy,
-# so it must be running for the web app to talk to api/common.
+# Envoy (gRPC-Web -> gRPC proxy) — only needed for the target gRPC-Web
+# control plane; the web app itself runs fine without it today (its data
+# path is the in-app mock CRUD server). The gRPC-Web client is retained
+# (web/src/components/libs/grpc) but not yet wired to anything that calls Envoy.
 # The config targets hostname `api-common` (the Compose/Kubernetes service name);
 # for a native run, point it at loopback first:
 #   echo "127.0.0.1 api-common" | sudo tee -a /etc/hosts

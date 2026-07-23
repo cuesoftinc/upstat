@@ -1,7 +1,7 @@
 import { jsonError, jsonOk } from "@/mocks/http";
 import { buildRumDrilldown } from "@/mocks/rum-drilldown";
 import { getDb, telemetryReady } from "@/mocks/store";
-import { HOUR } from "@/mocks/util";
+import { HOUR } from "@/lib/format";
 
 /**
  * GET /v1/rum/drilldown — B6 analytics drill-down (U6-2, pages.md B6

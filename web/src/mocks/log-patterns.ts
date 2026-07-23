@@ -16,7 +16,7 @@ import {
   type HeroTraceWindow,
   type OutageWindow,
 } from "./series";
-import { SECOND } from "./util";
+import { SECOND } from "@/lib/format";
 
 export const TREND_BUCKETS = 7;
 

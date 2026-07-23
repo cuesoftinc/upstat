@@ -1,7 +1,7 @@
 import { jsonError, jsonOk } from "@/mocks/http";
 import { clusterLogs } from "@/mocks/log-patterns";
 import { getDb, telemetryReady } from "@/mocks/store";
-import { HOUR } from "@/mocks/util";
+import { HOUR } from "@/lib/format";
 
 /**
  * GET /v1/logs/patterns — B4 Patterns tab (pages.md B4 [Designed

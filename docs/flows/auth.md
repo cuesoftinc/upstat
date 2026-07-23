@@ -64,5 +64,7 @@ Events (dogfooded once the events layer lands): `auth_signin_completed`,
 
 - [ ] Google sign-in end-to-end through Envoy gRPC-Web metadata
 - [ ] Interceptor rejects expired, foreign-project, and non-Google tokens
-- [ ] `/signup` removed; cookies removed; legacy sign-in 410s after window
+- [ ] `/signup` removed; cookies removed; legacy sign-in returns
+  `FAILED_PRECONDITION migrate_to_firebase` after the 60-day window (ships
+  with Firebase auth, engineering.md §1)
 - [ ] Service tokens + property keys + public allowlist untouched

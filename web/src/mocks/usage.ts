@@ -20,7 +20,7 @@ import type { MockDb } from "./seed";
 import { SERVICES, metricValue } from "./series";
 import { logLinesAtSecond } from "./series";
 import { rumSummary } from "./rum-data";
-import { DAY, HOUR, SECOND } from "./util";
+import { DAY, HOUR, SECOND } from "@/lib/format";
 
 /** Verbatim plan column (accuracy canon — no invented quotas/pricing). */
 export const USAGE_PLAN_COPY = "Self-host: unlimited · Cloud: announced at GA";

@@ -184,7 +184,7 @@ async function assertNoOverflow(page: Page, route: string) {
 // hermetic start — the dev-persistent store accumulates orgs/incidents from
 // earlier specs; re-seed the §6 narrative so seeded ids resolve
 test.beforeEach(async ({ request }) => {
-  await request.post("/api/mock/v1/reset");
+  await request.post("/api/mock/v1/testing/reset");
 });
 
 function slug(route: string): string {

@@ -30,7 +30,7 @@ declare global {
 
 test.beforeEach(async ({ page, request }) => {
   // hermetic seed — earlier specs mutate the shared narrative
-  await request.post("/api/mock/v1/reset");
+  await request.post("/api/mock/v1/testing/reset");
   await page.addInitScript(() => {
     window.__shifts = [];
     new PerformanceObserver((list) => {

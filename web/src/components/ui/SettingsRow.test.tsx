@@ -44,7 +44,7 @@ describe("SettingsRow", () => {
       />,
     );
     expect(
-      screen.getByRole("button", { name: "edit" }).closest("[inert]"),
+      screen.queryByRole("button", { name: "edit" })?.closest("[inert]"),
     ).toBeNull();
   });
 });

@@ -1,9 +1,9 @@
 # Upstat — System Architecture
 
 > Canonical structure (ecosystem standard): current state → target state →
-> service breakdown → deep dives → deployment → dependencies. All content
-> preserved from the organic original; decisions.md governs where markers
-> lag. Markers: **[Current]**, **[PRD]**, **[Directive]**, **[Decided]**.
+> service breakdown → deep dives → deployment → dependencies. Markers:
+> **[Current]**, **[PRD]**, **[Directive]**, **[Decided]** — see
+> [decisions.md](decisions.md) for ratification detail.
 
 ## 1. Context — current state **[Current]**
 
@@ -62,6 +62,9 @@ flowchart LR
 - The system is distributed: services run in separate containers/processes and communicate over network protocols.
 - The project currently uses Docker Compose for local orchestration.
 - The Go backend contains an internal monitor worker that schedules periodic checks.
+- The shipped web app serves its dashboard data from the in-app mock CRUD
+  server (`web/src/app/api/mock/v1`); gRPC-Web via Envoy (shown above) is the
+  intended control-plane path, retained but not yet wired (web-implementation.md §1).
 
 ## 2. Context — target state **[Decided]**
 
@@ -191,14 +194,12 @@ provider-independent and may ship first if the email decision stalls.
 
 ## 6. Observability platform expansion (2026-07-16) **[Directive]**
 
-> Supersedes the earlier "lightweight" guardrail (kept below for audit).
-
 ### 6.1 Ingestion architecture
 
-> **X-5 note:** every "MongoDB" box in the earlier (pre-X-5) diagrams of this
-> file reads as the control-plane store — now **Aiven Postgres**; Phase-1
-> events land in Postgres partitioned tables with a scheduled retention job
-> (data-model §3), NOT Mongo TTL. Diagrams are updated as touched.
+> **X-5 note:** once X-5 ships, every "MongoDB" control-plane box in this
+> file's diagrams becomes **Aiven Postgres** — Phase-1 events land in
+> Postgres partitioned tables with a scheduled retention job (data-model
+> §3), not Mongo TTL. Diagrams update as touched.
 
 **OpenTelemetry-native**: OTLP (gRPC 4317 + HTTP 4318) is the single
 first-party intake — and per **X-9** the ecosystem's: apparule and expendit
@@ -267,7 +268,7 @@ until its explorer, retention, and monitor support all work. Marketing may
 list pillars as "early access" but the in-app empty states (MI-16) never
 pretend data exists. Sequencing in roadmap.md revision.
 
-### 6.6 Superseded non-goals guardrail (audit trail)
+### 6.6 Non-goals guardrail
 
 Per PRD §5, the target explicitly excludes APM/tracing/log aggregation and
 session replay. Any feature request in those directions re-opens the PRD
@@ -279,7 +280,7 @@ rather than growing scope silently.
 
 Cloud: [deployment.md](deployment.md) (Cloud Run via cuesoft-iac, X-3/X-6 —
 api/common `min-instances: 1` + scheduler lease). Self-host: compose
-(mongo/redis/envoy + services) and the standard-form Helm chart + terraform
+(mongo/envoy + services) and the standard-form Helm chart + terraform
 in `deploy/` — validated end-to-end on a live cluster.
 
 ## 8. Cross-repo dependencies

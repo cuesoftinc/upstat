@@ -1,7 +1,7 @@
 import { jsonError, jsonOk, readJson } from "@/mocks/http";
 import { buildTimeseries, parseQuery } from "@/mocks/series";
 import { getDb, telemetryReady } from "@/mocks/store";
-import { DAY } from "@/mocks/util";
+import { DAY } from "@/lib/format";
 
 const MAX_RANGE_DAYS = 92;
 

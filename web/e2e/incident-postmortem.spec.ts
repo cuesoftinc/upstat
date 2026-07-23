@@ -20,7 +20,7 @@ async function signIn(page: Page) {
 test("seeded resolved incident lists its postmortem on the detail", async ({
   page,
 }) => {
-  await page.request.post("/api/mock/v1/reset");
+  await page.request.post("/api/mock/v1/testing/reset");
   await signIn(page);
 
   await page.goto("/dashboard/incidents/inc_41");
@@ -52,7 +52,7 @@ test("seeded resolved incident lists its postmortem on the detail", async ({
 test("resolve → Start postmortem → composed doc lands on the detail", async ({
   page,
 }) => {
-  await page.request.post("/api/mock/v1/reset");
+  await page.request.post("/api/mock/v1/testing/reset");
   await signIn(page);
 
   // INC-42 is seeded MONITORING — no postmortem affordance yet
@@ -108,5 +108,5 @@ test("resolve → Start postmortem → composed doc lands on the detail", async 
   ).toBeVisible();
 
   // leave the narrative clean for later specs
-  await page.request.post("/api/mock/v1/reset");
+  await page.request.post("/api/mock/v1/testing/reset");
 });

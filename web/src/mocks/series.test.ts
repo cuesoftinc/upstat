@@ -5,7 +5,7 @@ import {
   parseQuery,
   type OutageWindow,
 } from "./series";
-import { HOUR, MINUTE } from "./util";
+import { HOUR, MINUTE } from "@/lib/format";
 
 const NOW = Date.parse("2026-07-18T12:00:00Z");
 const OUTAGE: OutageWindow = {

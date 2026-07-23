@@ -2,7 +2,7 @@ import type { SyntheticCheckInput } from "@/models";
 import { jsonError, jsonOk, notFound, readJson } from "@/mocks/http";
 import { getDb } from "@/mocks/store";
 import { normalizeSteps, validateCheckInput } from "@/mocks/synthetics";
-import { iso } from "@/mocks/util";
+import { iso } from "@/lib/format";
 
 type Params = { params: Promise<{ id: string }> };
 

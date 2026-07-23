@@ -1,7 +1,8 @@
 import type { Widget } from "@/models";
 import { jsonError, jsonOk, notFound, readJson } from "@/mocks/http";
 import { getDb } from "@/mocks/store";
-import { iso, nextId } from "@/mocks/util";
+import { iso } from "@/lib/format";
+import { nextId } from "@/mocks/util";
 
 /** POST /v1/dashboards/{id}/widgets — add a widget (widget picker, B2). */
 export async function POST(

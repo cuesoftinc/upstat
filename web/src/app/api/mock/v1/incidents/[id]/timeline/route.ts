@@ -1,7 +1,8 @@
 import type { IncidentPhase, TimelineEntry } from "@/models";
 import { jsonError, jsonOk, notFound, readJson } from "@/mocks/http";
 import { getDb } from "@/mocks/store";
-import { iso, nextId } from "@/mocks/util";
+import { iso } from "@/lib/format";
+import { nextId } from "@/mocks/util";
 
 /** GET /v1/incidents/{id}/timeline — newest-first entries (MI-10). */
 export async function GET(

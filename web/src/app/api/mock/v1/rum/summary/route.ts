@@ -1,7 +1,7 @@
 import { jsonError, jsonOk } from "@/mocks/http";
 import { rumSummary } from "@/mocks/rum-data";
 import { getDb, telemetryReady } from "@/mocks/store";
-import { DAY } from "@/mocks/util";
+import { DAY } from "@/lib/format";
 
 const EMPTY_SUMMARY = {
   page_views: 0,

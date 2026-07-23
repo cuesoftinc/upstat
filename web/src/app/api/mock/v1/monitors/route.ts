@@ -1,7 +1,8 @@
 import type { Monitor } from "@/models";
 import { jsonError, jsonOk, readJson } from "@/mocks/http";
 import { getDb } from "@/mocks/store";
-import { iso, nextId } from "@/mocks/util";
+import { iso } from "@/lib/format";
+import { nextId } from "@/mocks/util";
 
 /** GET /v1/monitors — uptime checks list (pages.md B7). */
 export async function GET() {
