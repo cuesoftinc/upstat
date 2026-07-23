@@ -1,0 +1,23 @@
+schemaVersion: 1
+name: upstat
+profile: cuelabs
+
+surfaces:
+  web: active
+  backend:
+    common: planned
+    observability: planned
+  mobile:
+    flutter: planned
+
+capabilities:
+  grpc: planned
+  firebaseAuth: planned
+
+deployment:
+  web: firebase-app-hosting
+  api: none
+  selfHost: helm
+  infrastructure: terraform
+
+deviations: []
