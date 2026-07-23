@@ -8,18 +8,21 @@ generates ML-powered reliability insights.
 
 ```mermaid
 flowchart LR
-    WEB[web dashboard<br/>Next.js] -->|gRPC-Web| ENV[Envoy]
+    WEB[web dashboard<br/>Next.js] -->|gRPC-Web, target| ENV[Envoy]
     ENV -->|gRPC| AC[api/common — Go<br/>monitor worker · checks · incidents<br/>MonitorService · UserService]
     OBS[api/observability — Python<br/>ML anomaly detection · insights] -->|gRPC GetRecentChecks| AC
     AC --> MG[(MongoDB)]
     OBS --> MG
 ```
 
-- **`web`** — Next.js dashboard and public status pages. Talks to the backend
-  over **gRPC-Web**.
+- **`web`** — Next.js dashboard and public status pages. Currently serves
+  dashboard data from its in-app mock CRUD server (`/api/mock/v1`); talking
+  to the backend over **gRPC-Web** is the target control plane (client
+  retained, not yet wired).
 - **Envoy** — front proxy at [deploy/helm/envoy/envoy.yaml](https://github.com/cuesoftinc/upstat/blob/main/deploy/helm/envoy/envoy.yaml).
   Translates browser gRPC-Web into native gRPC for the Go backend and applies
-  CORS.
+  CORS — part of the target control plane, not yet in the web app's live
+  data path.
 - **`api/common`** — Go gRPC backend: `MonitorService` and `UserService`, the
   internal monitor worker that schedules periodic checks, and persistence of
   monitors, check results, and incidents.

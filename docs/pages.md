@@ -1,11 +1,9 @@
 # Upstat — Pages, Screens & Features
 
 > Component-level inventory referencing [design.md](design.md) (`MI-n`).
-> The 2026-07-16 directive expands Upstat to a **full observability & SRE
-> platform** (Datadog-class) — this supersedes the earlier PRD §5
-> "lightweight, avoid enterprise observability" restraint, which previous
-> docs treated as a guardrail. Superseded statements in prd.md/roadmap.md are
-> annotated rather than rewritten (audit trail). **[Directive]**
+> Upstat's target is a **full observability & SRE platform** (Datadog-class);
+> the earlier PRD §5 "lightweight, avoid enterprise observability" restraint
+> no longer applies. **[Directive]**
 
 ## Part A — Public home page (upstat.cuesoft.io)
 

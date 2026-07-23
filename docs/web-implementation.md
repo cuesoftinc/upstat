@@ -15,14 +15,16 @@
 
 - **Stack**: Next.js 16 App Router + React 19 + TypeScript; Tailwind maps to
   the token CSS variables (§3). All live UI is token/Tailwind-based; the one
-  non-UI holdover is the gRPC-Web control-plane client, live per X-8 until
-  monitors-v2 (§8).
+  non-UI holdover is the gRPC-Web control-plane client (`components/libs/grpc`)
+  — retained, not yet wired into any repository or page (X-8; targeted for
+  monitors-v2, §8).
 - **Design tokens**: `web/src/design/tokens.css` — CSS custom properties
-  mirroring design.md §2 exactly (light on `:root`, dark on
-  `[data-theme="dark"]`, honoring `prefers-color-scheme` with manual
-  override; spacing 4–64; radii; durations + easings; z layers; the 8-step
-  series palette; `on-brand`). **No raw hex in components** — the same rule
-  as Figma (design.md §7); documented exceptions carry a code comment.
+  mirroring design.md §2 exactly (dark on `:root`, the product default;
+  light under `[data-theme="light"]`, honoring `prefers-color-scheme` with
+  manual override; spacing 4–64; radii; durations + easings; z layers; the
+  8-step series palette; `on-brand`). **No raw hex in components** — the
+  same rule as Figma (design.md §7); documented exceptions carry a code
+  comment.
 - **Components**: `web/src/components/ui/<Name>.tsx` — one module per Figma
   component set, named exactly as the set (PascalCase, design.md §8.1 naming
   standard); props mirror the variant axes (`kind`/`size`/`state`/…);

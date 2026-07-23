@@ -80,8 +80,8 @@ waits on external contracts.
 
 ## Revision — observability platform expansion (2026-07-16)
 
-Supersedes the §5-restraint framing above (kept for audit). Phases 0–2 stand
-— they build the landing, the events layer (now the RUM foundation), honest
+The §5-restraint framing above no longer applies. Phases 0–2 stand — they
+build the landing, the events layer (now the RUM foundation), honest
 dashboards, and alerting channels. The expansion then proceeds by pillar,
 each gated on the storage decision **R2 (ClickHouse — ratify)**:
 

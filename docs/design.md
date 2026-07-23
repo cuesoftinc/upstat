@@ -254,15 +254,12 @@ the plugin API cannot set font features — so the §2 "tabular figures in all
 numeric contexts" rule is applied by hand when each numeric type style is
 created or edited.
 
-Updates (2026-07-17): (1) the Style Guide page is being refreshed to match
+Updates (2026-07-17): the Style Guide page is being refreshed to match
 the collection — add the missing `on-brand` swatch, correct the type samples
 (the rendered `Display / 32 Bold` and `Title / 24 Bold` samples contradict
 the §2 400/500/600 weight ramp), and render the z-index layer row
 (`z/base`…`z/toast` exist as variables but have no swatches) — the page and
-this doc must never diverge. (2) the legacy `Variable collection` (font /
-ITEM / BACKGROUND / white, single mode — predates `upstat/tokens`) and the
-Deprecated-page contents are **quarantined as pending cleanup**: whether and
-when to delete them is an owner decision, deliberately not scheduled here.
+this doc must never diverge.
 
 ## 8. Figma component build plan (design phase)
 
@@ -427,7 +424,7 @@ project license, the copy reads **MIT**.
 | KbdChip + ShortcutCheatsheet | single key / chord (`g d`) · both themes · cheatsheet: 2-col grid overlay (`?`, MI-17) — **as built (2026-07-17):** the cheatsheet is an exemplar single (grid assembled once, not a variant set) |
 | CountBadge / BufferedCountChip | bell unread dot+n / buffered "▼ n new" pill (MI-4) · idle / pulse-on-increment |
 | SevChip (standalone) | sev1 / sev2 / sev3 — extracted from IncidentBanner for timeline/composer/feed reuse |
-| GoogleAuthButton | default / hover / loading · Google 'G' glyph + "Continue with Google" — the product's single auth CTA (X-1); renamed from `GoogleSignInCTA` 2026-07-17 per the §8.1 naming standard (same name in every product) |
+| GoogleAuthButton | default / hover / loading · Google 'G' glyph + "Continue with Google" — the product's single auth CTA (X-1), named per the §8.1 naming standard (same name in every product) |
 | Skeleton | kind: line / value / panel-axis · shimmer sweep — static (no sweep) under `prefers-reduced-motion` per §5 — the Stage-4 loading-frame primitive (§8.1 three-frame rule); iteration-1 addition **[built 2026-07-18]** |
 | **Product rows & overlays** | |
 | APIKeyRow / PropertyKeyRow | kind: ingestion-token (per-pillar scope chips) / property-key (RUM) · active / rotation-grace (24h) / revoked · mono key + copy + rejection-counter cell — **[Adjudicated 2026-07-20]** entity status is a labeled StatusPill (ACTIVE ok / ROTATING warn / REVOKED nodata), never lowercase text; the anatomy is key icon · name · masked-key chip · per-signal scope chips (otlp → logs/metrics/traces · rum · statsd → metrics · all) · "grace ends in 24h" / "N rejects (24h)" meta · pill |

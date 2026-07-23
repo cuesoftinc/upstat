@@ -33,7 +33,7 @@
 | --- | --- | --- | --- | --- |
 | U2-1 | Traffic pillar on real data | /v1/stats wiring, mock routes deleted | ANA-002, pages.md B6 | U1-6 |
 | U2-2 | `nodata` + flapping semantics | worker state machine per contract + transition tests | flows/monitor §2 | — |
-| U2-3 | Alert channels | webhook (signed) + email (Resend) + verification flows | flows/alert §1, U-4 | — |
+| U2-3 | Alert channels | webhook (signed) + email (Brevo) + verification flows | flows/alert §1, U-4 | — |
 | U2-4 | Alert rules + dispatcher | rules CRUD, dispatch ordering/cooldown/retries, flapping guard | flows/alert §2–3 | U2-2, U2-3 |
 | U2-5 | Alert UX | channels/rules UI, triggered feed MI-14, bulk opt-in sheet | pages.md B8 | U2-4 |
 | U2-6 | Setup docs (UPS-003) | monitor/script/alert/retention user guides → GitBook | flows/*, analytics-math | U1-4, U2-4 |
