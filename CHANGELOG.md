@@ -48,6 +48,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   scoped Dependabot config, `.editorconfig`, root `Makefile`, `scripts/`, and
   `docs/overview.md` + `docs/setup.md`.
 
+- `.cuelabs/project.yaml` — the CueLABS project manifest (standards
+  catalog v2): declares surface truth — web active; `api/common` + `api/observability` and mobile flutter planned —
+  so standards tooling audits declared state instead of inferring it (#213).
+
 ### Changed
 
 - Fleet-parity convergence: web deps aligned to the sibling pin set (Next
@@ -113,6 +117,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Folded the standalone `deploy/envoy` config into the `deploy/helm` chart.
 - Aligned `.gitignore`, `.editorconfig`, and `.dockerignore` to the shared
   standard; renamed `CHANGELOG` → `CHANGELOG.md`.
+
+- `SECURITY.md` and `CONTRIBUTING.md` synced to the v2 standards
+  templates: the security policy gains the private-vulnerability-reporting
+  flow with the dedicated `security@cuesoft.io` mailbox, and contributor
+  setup routes through the README, `.env.example`, and `make help` (#213).
 
 ### Removed
 
