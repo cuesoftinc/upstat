@@ -23,7 +23,10 @@ const eslintConfig = defineConfig([
     "src/components/libs/grpc/**",
   ]),
   // W3 enforcement gate (paired with scripts/check-boundaries.mjs):
-  // src/legacy is quarantined — no live import may reach it.
+  // src/legacy is quarantined — no live import may reach it. The
+  // gRPC-Web control-plane client is exempted above (globalIgnores, X-8);
+  // these patterns cover the org's pruned/banned styled kits and date
+  // libraries (web-implementation.md §8, org SKILL).
   {
     files: ["src/**/*.{ts,tsx}"],
     rules: {
@@ -35,6 +38,16 @@ const eslintConfig = defineConfig([
               group: ["**/legacy/**", "@/legacy/**"],
               message:
                 "src/legacy is quarantined (web-implementation.md §8) — live code must not import it.",
+            },
+            {
+              group: ["@mui/*", "@emotion/*"],
+              message:
+                "Styled kits are pruned org-wide — build from the token layer (Tailwind + design tokens).",
+            },
+            {
+              group: ["dayjs", "moment"],
+              message:
+                "Use the native Date-based helpers in @/lib/format — no third-party date library in this repo.",
             },
           ],
         },
