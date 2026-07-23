@@ -8,7 +8,7 @@ const TEST_USER: AuthUser = {
 
 // Fleet canon (P16): TEST_MODE session keys are `<product>.test-session`;
 // upstat keeps sessionStorage (already the dictated storage).
-const STORAGE_KEY = "upstat.test-session";
+const SESSION_KEY = "upstat.test-session";
 
 /**
  * TEST_MODE auth (`NEXT_PUBLIC_TEST_MODE=1`): no Firebase, no network —
@@ -18,20 +18,20 @@ const STORAGE_KEY = "upstat.test-session";
 export class TestModeAuthProvider implements AuthProvider {
   async signInWithGoogle(): Promise<AuthUser> {
     if (typeof window !== "undefined") {
-      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(TEST_USER));
+      window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(TEST_USER));
     }
     return TEST_USER;
   }
 
   async signOut(): Promise<void> {
     if (typeof window !== "undefined") {
-      window.sessionStorage.removeItem(STORAGE_KEY);
+      window.sessionStorage.removeItem(SESSION_KEY);
     }
   }
 
   currentUser(): AuthUser | null {
     if (typeof window === "undefined") return null;
-    const raw = window.sessionStorage.getItem(STORAGE_KEY);
+    const raw = window.sessionStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     try {
       return JSON.parse(raw) as AuthUser;

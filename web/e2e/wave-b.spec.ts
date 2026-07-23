@@ -19,7 +19,7 @@ async function signIn(page: Page) {
 }
 
 async function reset(page: Page) {
-  await page.request.post("/api/mock/v1/reset");
+  await page.request.post("/api/mock/v1/testing/reset");
 }
 
 /* ------------------------------------------------------------------ */

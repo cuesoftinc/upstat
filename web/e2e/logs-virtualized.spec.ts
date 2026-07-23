@@ -21,7 +21,7 @@ async function signIn(page: Page) {
 test("10k lines: bounded DOM, truthful scrollHeight, smooth jumps", async ({
   page,
 }) => {
-  await page.request.post("/api/mock/v1/reset");
+  await page.request.post("/api/mock/v1/testing/reset");
   await signIn(page);
 
   await page.goto("/dashboard/logs?limit=10000&range=1h");

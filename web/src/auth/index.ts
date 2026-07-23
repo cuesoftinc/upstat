@@ -1,8 +1,8 @@
 import type { AuthProvider } from "./provider";
-import { TestModeAuthProvider } from "./test-mode";
+import { TestModeAuthProvider } from "./test-mode-provider";
 
 export type { AuthProvider, AuthUser } from "./provider";
-export { TestModeAuthProvider } from "./test-mode";
+export { TestModeAuthProvider } from "./test-mode-provider";
 
 let provider: AuthProvider | null = null;
 

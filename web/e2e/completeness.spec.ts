@@ -8,7 +8,7 @@ import { expect, test, type Page } from "@playwright/test";
  */
 
 test.beforeEach(async ({ request }) => {
-  await request.post("/api/mock/v1/reset");
+  await request.post("/api/mock/v1/testing/reset");
 });
 
 // The dashboard is session-gated (flows/auth.md §2) — establish the

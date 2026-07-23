@@ -20,7 +20,7 @@ async function signIn(page: Page) {
 test("By state groups the seeded rules with counts; mute wins", async ({
   page,
 }) => {
-  await page.request.post("/api/mock/v1/reset");
+  await page.request.post("/api/mock/v1/testing/reset");
   await signIn(page);
 
   await page.goto("/dashboard/monitors");
