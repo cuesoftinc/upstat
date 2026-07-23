@@ -135,6 +135,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Skip-to-content now mounts once from the root layout instead of only the
+  dashboard shell, so marketing routes (`/`, `/signin`, `/docs/api`, public
+  status pages, the 404) get the fleet-canonical (P15) first-focusable link
+  too — every route's `<main>` carries the matching `id="main"` +
+  `tabIndex={-1}` target, and the e2e coverage now locks the flow on a
+  marketing route in addition to the dashboard.
 - Docs currency pass: corrected the dark/light design-token inversion, the
   redis and Aiven-Postgres-vs-current-state mismatches, Resend→Brevo (X-7),
   and the mock-CRUD-vs-gRPC-Web control-plane framing across the README and

@@ -5,7 +5,13 @@ import Link from "next/link";
  */
 export default function NotFound() {
   return (
-    <div className="font-ui flex min-h-screen flex-col items-center justify-center gap-4 bg-bg px-6 text-text">
+    // id + tabIndex: the SkipLink (root layout, P15) targets #main and
+    // moves programmatic focus there — not just a scroll jump.
+    <main
+      id="main"
+      tabIndex={-1}
+      className="font-ui flex min-h-screen flex-col items-center justify-center gap-4 bg-bg px-6 text-text"
+    >
       <p className="font-data text-[13px] text-text-2">404</p>
       <h1 className="text-[24px] font-semibold">
         This page doesn&apos;t exist.
@@ -20,6 +26,6 @@ export default function NotFound() {
       >
         Go to the dashboard
       </Link>
-    </div>
+    </main>
   );
 }

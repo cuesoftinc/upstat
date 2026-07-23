@@ -24,7 +24,13 @@ export default function SignInPage() {
         data-testid="signin-screen"
         className="font-ui flex min-h-screen items-center justify-center bg-bg px-[var(--space-4)] text-text"
       >
-        <main className="flex w-full max-w-[360px] flex-col items-center gap-[var(--space-6)] text-center">
+        {/* id + tabIndex: the SkipLink (root layout, P15) targets #main and
+            moves programmatic focus there — not just a scroll jump. */}
+        <main
+          id="main"
+          tabIndex={-1}
+          className="flex w-full max-w-[360px] flex-col items-center gap-[var(--space-6)] text-center"
+        >
           <header className="flex flex-col items-center gap-[var(--space-3)]">
             <BrandMark
               wordmark

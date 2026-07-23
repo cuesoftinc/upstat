@@ -1589,8 +1589,9 @@ export function ComponentGallery() {
       {/* Semantic landmark: the gallery body is the page's single <main>
           (live-QA sweep: this page had zero). Component instances inside
           keep their own semantics — StatusPageHeader demos legitimately
-          render <h1>, so this dev-only page has extra h1s by design. */}
-      <main>
+          render <h1>, so this dev-only page has extra h1s by design.
+          id + tabIndex: the SkipLink (root layout, P15) targets #main. */}
+      <main id="main" tabIndex={-1}>
         <GalleryAll />
 
         <div data-theme="light">
