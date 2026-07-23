@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `@axe-core/playwright` a11y smoke coverage for home, `/signin`, and the
+  dashboard home route — the axe-core gate the sibling repos already run.
 - Web app manifest at `/manifest.webmanifest`: install identity — product
   name, theme colors, and icons (#206).
 - Settings goes route-backed tabs: General | Members | Keys & properties |
@@ -36,8 +38,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - Production service bootstrap: `/health` + `/ready`, structured `slog` logging,
   and signal-cancelled graceful shutdown (Go); FastAPI `lifespan` (observability).
-- Merged the `web/.deprecated` dashboard into the main app: home at `/`, product
-  dashboard at `/dashboard/*`, plus `/login` and `/signup`.
+- Merged the `web/.deprecated` dashboard into the main app: home at `/` and
+  product dashboard at `/dashboard/*` (the merge's initial `/login`/`/signup`
+  routes were retired later in this same cycle in favor of `/signin` — see
+  Changed/Removed below).
 - Local Docker stack: root `docker-compose.yml` (mongo, api-common:8080,
   api-observability:8081, envoy:8082, web:3000) and `.env.example`.
 - Standardized repository structure and shared CueLABS™ community-health files, a
@@ -46,6 +50,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Fleet-parity convergence: web deps aligned to the sibling pin set (Next
+  16.2.11, React/React-DOM 19.2.8, `@types/node` ^24, `@testing-library/jest-dom`
+  ^7, prettier ^3.9.6, `@scalar/api-reference-react` ^0.9.59, `@vitejs/plugin-react`
+  ^6.0.4, plus a `repository` field); generic time/PRNG helpers moved out of
+  `mocks/util.ts` into `web/src/lib/format.ts` + `random.ts`; the mock reset
+  test seam moved to `/api/mock/v1/testing/reset`; `auth/test-mode.ts` renamed
+  `test-mode-provider.ts` (`SESSION_KEY`); `api/common` on Go 1.26 (Dockerfile
+  `golang:1.26-alpine`, binary renamed `upstat` → `app`); CI `setup-node` on
+  24; eslint gained the org's `@mui`/`@emotion`/`dayjs`/`moment` import bans
+  plus `eslint-plugin-testing-library`/`@testing-library/dom`; Dependabot's
+  npm block gained apparule's major-version ignore list.
 - The command palette and the keyboard-shortcut overlay ride the same dialog
   primitive as the rest of the overlay set — focus is trapped while they are
   open; dismissal and focus-restore behavior are unchanged (#206).
@@ -101,6 +116,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Removed
 
+- `api/common/Makefile` (no sibling repo carries one — the root `Makefile`
+  is the org entrypoint) and the duplicated `src/generated/` block in
+  `web/.prettierignore`.
 - The legacy quarantine tree (pre-registry login/signup, dashboard, and
   component trees).
 
@@ -117,6 +135,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Docs currency pass: corrected the dark/light design-token inversion, the
+  redis and Aiven-Postgres-vs-current-state mismatches, Resend→Brevo (X-7),
+  and the mock-CRUD-vs-gRPC-Web control-plane framing across the README and
+  docs/ (web-implementation, architecture, overview, setup); reconciled the
+  legacy-signin retirement failure mode with engineering.md and the
+  mobile-scope statements in prd.md; stripped changelog-style archaeology
+  language from prd/roadmap/pages/design in favor of describing the current
+  system only (history stays in this file).
 - Session-restore gate hardening (flows/auth.md §2, ratified 2026-07-22):
   the dashboard now sits behind a session gate — nothing app-side paints
   until the restored session settles, and a signed-out visitor is replaced
