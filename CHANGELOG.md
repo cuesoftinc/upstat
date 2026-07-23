@@ -50,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - `.cuelabs/project.yaml` — the CueLABS project manifest (standards
   catalog v2): declares surface truth — web active; `api/common` + `api/observability` and mobile flutter planned —
-  so standards tooling audits declared state instead of inferring it.
+  so standards tooling audits declared state instead of inferring it (#213).
 
 ### Changed
 
@@ -121,7 +121,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `SECURITY.md` and `CONTRIBUTING.md` synced to the v2 standards
   templates: the security policy gains the private-vulnerability-reporting
   flow with the dedicated `security@cuesoft.io` mailbox, and contributor
-  setup routes through the README, `.env.example`, and `make help`.
+  setup routes through the README, `.env.example`, and `make help` (#213).
 
 ### Removed
 
