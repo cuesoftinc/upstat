@@ -20,7 +20,7 @@ From the repo root (recommended): `cp .env.example .env && make up` → :8080.
 Natively: `go run ./cmd/server` (see `.env.example` here for required vars).
 
 gRPC-Web browsers reach this service through Envoy (`:8082` in compose).
-Regenerate stubs with `make generate_grpc_code` (protoc required).
+Regenerate stubs with the `protoc` command in [docs/grpc-api.md](docs/grpc-api.md).
 
 ## Test
 

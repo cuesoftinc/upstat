@@ -43,11 +43,14 @@ web/src/proto/user.proto
 The server enables gRPC reflection, so clients (Insomnia, grpcurl, etc.) can
 discover services without importing the proto file.
 
-When the backend proto changes, regenerate the Go server bindings from `api/common`:
+When the backend proto changes, regenerate the Go server bindings from `api/common`
+(requires `protoc` + `protoc-gen-go`/`protoc-gen-go-grpc`):
 
 ```bash
 cd api/common
-make generate_grpc_code
+PATH="$PATH:$(go env GOPATH)/bin" protoc --go_out=. --go_opt=paths=source_relative \
+  --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+  internal/proto/user.proto internal/proto/insight.proto
 ```
 
 ## Environment
