@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 
 - `@axe-core/playwright` a11y smoke coverage for home, `/signin`, and the
-  dashboard home route — the axe-core gate the sibling repos already run.
+  dashboard home route — the axe-core gate the sibling repos already run (#209).
 - Web app manifest at `/manifest.webmanifest`: install identity — product
   name, theme colors, and icons (#206).
 - Settings goes route-backed tabs: General | Members | Keys & properties |
@@ -60,7 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `golang:1.26-alpine`, binary renamed `upstat` → `app`); CI `setup-node` on
   24; eslint gained the org's `@mui`/`@emotion`/`dayjs`/`moment` import bans
   plus `eslint-plugin-testing-library`/`@testing-library/dom`; Dependabot's
-  npm block gained apparule's major-version ignore list.
+  npm block gained apparule's major-version ignore list (#209).
 - The command palette and the keyboard-shortcut overlay ride the same dialog
   primitive as the rest of the overlay set — focus is trapped while they are
   open; dismissal and focus-restore behavior are unchanged (#206).
@@ -118,7 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - `api/common/Makefile` (no sibling repo carries one — the root `Makefile`
   is the org entrypoint) and the duplicated `src/generated/` block in
-  `web/.prettierignore`.
+  `web/.prettierignore` (#209).
 - The legacy quarantine tree (pre-registry login/signup, dashboard, and
   component trees).
 
@@ -142,7 +142,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   legacy-signin retirement failure mode with engineering.md and the
   mobile-scope statements in prd.md; stripped changelog-style archaeology
   language from prd/roadmap/pages/design in favor of describing the current
-  system only (history stays in this file).
+  system only (history stays in this file) (#209).
 - Session-restore gate hardening (flows/auth.md §2, ratified 2026-07-22):
   the dashboard now sits behind a session gate — nothing app-side paints
   until the restored session settles, and a signed-out visitor is replaced
