@@ -76,7 +76,13 @@ describe("useHomeDemoData hydration determinism (React #418 regression, QA 2026-
       vi.useRealTimers();
       return data;
     };
+    // False positive: `firstRenderAt` is a local helper (its name just
+    // contains "render"), not Testing Library's `render`/`renderHook` — it
+    // already unmounts internally and returns plain hook-result data, not a
+    // RenderResult, so the naming convention doesn't apply.
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const atBuildTime = firstRenderAt("2026-07-10T08:00:00Z");
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const daysLater = firstRenderAt("2026-07-19T21:42:00Z");
     expect(atBuildTime).toEqual(daysLater);
   });
