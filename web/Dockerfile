@@ -20,6 +20,7 @@ COPY docs/api/openapi.yaml /app/docs/api/openapi.yaml
 # NEXT_PUBLIC_* are inlined at build time.
 ARG NEXT_PUBLIC_ENVOY_URL
 ENV NEXT_PUBLIC_ENVOY_URL=$NEXT_PUBLIC_ENVOY_URL
+RUN mkdir -p public
 RUN npm run build
 
 # ---- runner ----
