@@ -11,7 +11,7 @@ require (
 	google.golang.org/protobuf v1.36.12
 )
 
-require golang.org/x/net v0.57.0
+require golang.org/x/net v0.58.0
 
 require (
 	github.com/golang/snappy v0.0.4 // indirect
