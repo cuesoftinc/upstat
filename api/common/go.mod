@@ -7,11 +7,11 @@ require (
 	github.com/joho/godotenv v1.5.1
 	go.mongodb.org/mongo-driver v1.17.9
 	golang.org/x/crypto v0.55.0
-	google.golang.org/grpc v1.83.0
+	google.golang.org/grpc v1.83.2
 	google.golang.org/protobuf v1.36.12
 )
 
-require golang.org/x/net v0.57.0
+require golang.org/x/net v0.58.0
 
 require (
 	github.com/golang/snappy v0.0.4 // indirect
