@@ -38,7 +38,7 @@
     "google-protobuf": "^4",
     "grpc-web": "^2",
     "lucide-react": "^1.31.0",
-    "next": "16.3.0",
+    "next": "16.3.3",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
