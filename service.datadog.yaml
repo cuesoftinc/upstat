@@ -1,0 +1,94 @@
+apiVersion: v3
+kind: service
+metadata:
+  name: upstat-website
+  displayName: upstat-website
+  description: Upstat Monorepo
+  owner: cuesoft
+  tags:
+    - app:upstat
+    - component:website
+  contacts:
+    - type: email
+      contact: cuehire-cuesoft@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/upstat
+    - name: Website
+      type: other
+      url: https://upstat.cuesoft.io
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  languages:
+    - typescript
+---
+apiVersion: v3
+kind: repository
+metadata:
+  name: github.com/cuesoftinc/upstat
+  displayName: upstat
+  description: Upstat Monorepo
+  owner: cuesoft
+  tags:
+    - app:upstat
+    - component:website
+  contacts:
+    - type: email
+      contact: cuehire-cuesoft@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/upstat
+    - name: Website
+      type: other
+      url: https://upstat.cuesoft.io
+datadog:
+  codeLocations:
+    - repositoryURL: github.com/cuesoftinc/upstat
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  componentOf:
+    - service:upstat-website
+---
+apiVersion: v3
+kind: system
+metadata:
+  name: upstat
+  displayName: upstat
+  description: Upstat platform
+  owner: cuesoft
+  tags:
+    - app:upstat
+    - component:system
+  contacts:
+    - type: email
+      contact: cuehire-cuesoft@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/upstat
+    - name: Website
+      type: other
+      url: https://upstat.cuesoft.io
+spec:
+  lifecycle: production
+  tier: "1"
+  components:
+    - service:upstat-website
