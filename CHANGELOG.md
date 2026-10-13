@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Datadog service catalog entry for the Upstat system.
 - `@axe-core/playwright` a11y smoke coverage for home, `/signin`, and the
   dashboard home route — the axe-core gate the sibling repos already run (#209).
 - Web app manifest at `/manifest.webmanifest`: install identity — product
