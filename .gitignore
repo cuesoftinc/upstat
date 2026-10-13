@@ -62,3 +62,9 @@ tmp/
 
 # NOTE: do NOT ignore .dockerignore; commit lockfiles (package-lock.json,
 # go.sum, pubspec.lock, .terraform.lock.hcl).
+
+# ── Personal notes ──
+/systemDesign.md
+
+# ── Local copies of the CueLABS skills (installed from oss-engineering-standards) ──
+.claude/skills/
