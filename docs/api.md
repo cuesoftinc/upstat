@@ -12,7 +12,7 @@
 
 | Service | RPCs | Auth |
 | --- | --- | --- |
-| `UserService` | GetUser, GoogleAuth, CreateUser, UpdateUser, DeleteUser, GetAllUsers | CreateUser/GetUser/GoogleAuth public; rest JWT |
+| `UserService` | GetUser, CreateUser, UpdateUser, DeleteUser, GetAllUsers | CreateUser/GetUser public; rest JWT |
 | `MonitorService` | CreateMonitor, UpdateMonitor, GetMonitor, ListMonitors, DeleteMonitor, GetStatusPage, GetRecentChecks | GetStatusPage + GetRecentChecks public; rest JWT (owner from token) |
 | `InsightService` (served by api/observability :50051, consumed by api/common) | GetMonitorInsight | service-token |
 
@@ -21,13 +21,15 @@
 | Endpoint | Notes |
 | --- | --- |
 | `GET /health`, `GET /ready` (both services) | probes |
+| `GET /v1/auth/sso/google?cv=`, `GET /v1/auth/sso/google/callback` (api/common) | Google sign-in: PKCE start, state-checked callback that redirects to the web app `/auth/callback?handoff=` |
+| `POST /v1/auth/sso/exchange`, `GET /v1/auth/me`, `POST /v1/auth/logout` (api/common) | handoff-for-session exchange (sets the session cookie), identity read, cookie clear; credentialed CORS for allowed origins |
 | `GET /insights/{monitor_id}`, `POST /analyze/{monitor_id}` (observability :8081) | insight read/trigger |
 
 ## 1a. Service topology for new surfaces **[Decided]**
 
 | Surface | Service | Port | Hostname | CORS/origin enforcement |
 | --- | --- | --- | --- | --- |
-| `/v1/events`, `/v1/stats`, `/v1/query`, `/v1/channels`, `/v1/monitors/*/rules` | **api/common** (Go — gains an HTTP mux alongside gRPC/h2c) | 8080 | `api.upstat.cuesoft.io` | in-app middleware (origin allowlist per property for /v1/events; standard CORS for user routes) |
+| `/v1/events`, `/v1/stats`, `/v1/query`, `/v1/channels`, `/v1/monitors/*/rules` | **api/common** (Go — gains an HTTP mux alongside gRPC/h2c) | 8080 | `api-upstat.cuesoft.io` | in-app middleware (origin allowlist per property for /v1/events; standard CORS for user routes) |
 | `upstat.js` static | web | 3000 | `upstat.cuesoft.io/upstat.js` | n/a (public asset) |
 | OTLP gRPC/HTTP (OBS-001) | ingest gateway (new service at OBS-001) | 4317/4318 | `ingest.upstat.cuesoft.io` | key-authed, no browser CORS |
 | Existing gRPC-Web | local only | 8080 | as today | current |
@@ -92,7 +94,7 @@ Auto page-views (incl. SPA history changes) + manual custom events.
 
 ```
 GET /v1/stats?property=…&name=page_view&period=hour|day&from=RFC3339&to=RFC3339&dim=path
-Authorization: Firebase bearer (owner) — not the public key
+Authorization: session bearer (owner), not the public key
 → 200 {
     series: [{bucket: RFC3339, count, uniques}],
     totals: {count, uniques_daily_avg},

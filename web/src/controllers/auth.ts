@@ -1,18 +1,37 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { useRouter } from "next/navigation";
 import { getAuthProvider, type AuthUser } from "@/auth";
+import { getOAuthRedirectErrorMessage } from "@/auth/oauth-errors";
+
+const subscribeToNothing = () => () => {};
 
 /**
  * Auth controller — the single Google CTA flow (X-1, flows/auth.md).
  * Sign-in delegates to the active AuthProvider (TestModeAuthProvider in
- * TEST_MODE; FirebaseAuthProvider at backend-integration time).
+ * TEST_MODE; SsoAuthProvider otherwise).
  */
 export function useAuthController() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The API sends failed Google sign-ins back to /signin with an error code.
+  const search = useSyncExternalStore(
+    subscribeToNothing,
+    () => window.location.search,
+    () => "",
+  );
+  const redirectError = useMemo(
+    () => getOAuthRedirectErrorMessage(new URLSearchParams(search)),
+    [search],
+  );
 
   const signInWithGoogle = useCallback(async () => {
     setLoading(true);
@@ -31,7 +50,7 @@ export function useAuthController() {
     router.push("/signin");
   }, [router]);
 
-  return { signInWithGoogle, signOut, loading, error };
+  return { signInWithGoogle, signOut, loading, error, redirectError };
 }
 
 /**

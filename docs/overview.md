@@ -27,8 +27,8 @@ flowchart LR
   the Go backend that pulls recent checks, runs anomaly detection and insight
   generation, and persists insights.
 - **Data** — MongoDB stores monitors, check results, incidents, and insights.
-- **Auth** — Google sign-in (`GOOGLE_CLIENT_ID`) plus JWTs issued by the Go
-  backend; services authenticate to each other with a gRPC auth token.
+- **Auth**: Google single sign-on run by the Go backend (PKCE, one-time
+  handoff code, session JWT and cookie); services authenticate to each other with a gRPC auth token.
 
 The key architectural boundary: the Go backend owns operational monitoring
 (scheduling, checks, state), and the observability service owns analytics and

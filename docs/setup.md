@@ -20,7 +20,15 @@ service ships a `.env.example` to copy from.
 | `MONGO_URI` | MongoDB connection string |
 | `MONGO_DB` | MongoDB database name (e.g. `Upstat`) |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID for sign-in |
-| `JWT_SECRET` | Secret used to sign/verify JWTs |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+| `GOOGLE_REDIRECT_URI` | API callback registered with Google (`<api>/v1/auth/sso/google/callback`) |
+| `JWT_SECRET` | Secret used to sign/verify session JWTs (at least 32 characters) |
+| `JWT_ACCESS_TTL` | Session token lifetime as a Go duration (default `24h`) |
+| `JWT_EXPIRY_HOURS` | Session lifetime in hours; used when `JWT_ACCESS_TTL` is unset |
+| `SESSION_SECRET` | Secret that seals the one-time sign-in handoff (at least 32 characters) |
+| `SESSION_COOKIE_NAME` | Session cookie name (default `upstat_session`) |
+| `OAUTH_STATE_COOKIE` | Sign-in state cookie name (default `upstat_oauth_state`) |
+| `WEB_URL` | Web app origin the API redirects to after sign-in |
 | `PUBLIC_URL` | Public base URL of the backend |
 | `INSIGHT_GRPC_ADDR` | Address of the observability gRPC server |
 | `SERVICE_TOKEN_HASH` | Future/optional — not yet read by any service; api/common currently validates the shared gRPC auth token via `JWT_SECRET`, not a separate hash |

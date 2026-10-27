@@ -193,7 +193,7 @@ standard: `api/common` 8080, then each service in the order it was added.
 | Unit | Lang | Role | Responsibility | Owns | Port |
 | --- | --- | --- | --- | --- | --- |
 | `web` | Next.js | Frontend | Landing, dashboard, public status pages (ISR), `/docs/api`, serves `upstat.js` | — | 3000 |
-| `api/common` | **Go** | **CRUD (write)** | Control-plane API: Firebase auth, orgs/roles, monitors, rules, channels, incidents, SLOs, dashboards, keys, event registry, catalog, status pages. **Check scheduler** (lookup-then-write) that calls the probe functions and relays their results to Kafka. **Outbox publisher.** Persists every decision Python makes (transitions, incidents, deliveries, insights). Owns the Postgres **and** ClickHouse schemas (migrations). | **Postgres** (sole client) | 8080 |
+| `api/common` | **Go** | **CRUD (write)** | Control-plane API: Google SSO sessions, orgs/roles, monitors, rules, channels, incidents, SLOs, dashboards, keys, event registry, catalog, status pages. **Check scheduler** (lookup-then-write) that calls the probe functions and relays their results to Kafka. **Outbox publisher.** Persists every decision Python makes (transitions, incidents, deliveries, insights). Owns the Postgres **and** ClickHouse schemas (migrations). | **Postgres** (sole client) | 8080 |
 | `api/observability` | **Python** | Processing | Anomaly detection, insight narratives (Vertex AI; Groq/Gemini BYO key for self-host), log patterns (OBS-012), forecasting | nothing: reads via `api/query`, emits via Kafka | 8081 |
 | `api/ingest` | **Node** (NestJS) | Thin gateway | OTLP over HTTP and gRPC, and `/v1/events`: key auth, scope, byte quotas, origin allowlist, event-registry validation, `visitor_hash` → Kafka. **OTLP payloads pass through unparsed.** | nothing | 8082 (+4317/4318 in self-host) |
 | `api/query` | **Go** | **CRUD (read)** | Parses the shared grammar, compiles an org-scoped query to SQL, routes by time range (raw/1m/1h), enforces limits, caches in memory. Serves explorers, dashboards, `/v1/stats`, and the Python services' reads. | read-only ClickHouse user | 8083 |
@@ -527,7 +527,7 @@ belongs in the gateway by the standard's definition.
   `/v1/query`, `/v1/stats`, `/v1/logs*`, `/v1/traces*`, `/v1/metrics*`, and
   `/v1/rum*` to `api/query` (Go), and everything else to `api/common`, each
   at its own run.app URL.
-- `api/query` verifies the Firebase token with the shared Go auth package
+- `api/query` verifies the session token with the shared Go auth package
   and resolves membership and role from `config.members`, held in memory.
 - It parses the grammar into the **same `QueryAst v1` the web already
   defines** (`web/src/models/query.ts`) and compiles it with a structured
@@ -582,7 +582,7 @@ way.
 | Host | Routes to | Protocol |
 | --- | --- | --- |
 | `upstat.cuesoft.io` | web | HTTPS |
-| `api.upstat.cuesoft.io` | common (default), query (read paths, §6.5) | HTTP/JSON |
+| `api-upstat.cuesoft.io` | common (default), query (read paths, §6.5) | HTTP/JSON |
 | `ingest.upstat.cuesoft.io` | ingest-http: OTLP/HTTP `/v1/traces\|metrics\|logs`, `/v1/events` | HTTP/JSON + OTLP/HTTP |
 | `otlp.ingest.upstat.cuesoft.io` | ingest-grpc | OTLP/gRPC |
 
@@ -624,7 +624,7 @@ engineering.md unchanged.
 
 | Concern | Control |
 | --- | --- |
-| **User auth** | Firebase ID tokens, Google provider only (`provider_not_allowed` otherwise), verified by one shared Go package in `common` and `query`. Legacy JWT/password paths are deleted with the gRPC services. |
+| **User auth** | Google SSO run by `common` (PKCE, one-time handoff, session JWT signed with `JWT_SECRET`, also sent as an HttpOnly cookie), verified by one shared Go package in `common` and `query`. Legacy password paths are deleted with the gRPC services. |
 | **Authz** | engineering.md §2 role matrix, enforced in `common`. `query` enforces read roles from `config.members`. |
 | **Tenancy** | `org_id` everywhere; Postgres RLS; ClickHouse `org_id`-first keys + row policy + builder-injected predicate. The gateway sets `org_id` from the key, never from the payload. Cross-org access returns `not_found`. |
 | **Machine identity** | Ingest keys: sha256 at rest, shown once, 24 h rotation grace, scoped, write-only. Between services: Kafka ACLs (a SASL user per service with topic-level grants) and Cloud Run IAM for the synchronous calls (`common → probe`, `Python → query`). The `SERVICE_TOKEN` scheme retires. |

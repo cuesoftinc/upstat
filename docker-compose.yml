@@ -28,8 +28,15 @@ services:
       PORT: "8080"
       MONGO_URI: mongodb://mongo:27017
       MONGO_DB: ${MONGO_DB:-Upstat}
-      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-me-0123456789ab}
+      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-24h}
+      SESSION_SECRET: ${SESSION_SECRET:-dev-session-secret-change-me-0123456789}
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-upstat_session}
+      OAUTH_STATE_COOKIE: ${OAUTH_STATE_COOKIE:-upstat_oauth_state}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:8080/v1/auth/sso/google/callback}
+      WEB_URL: ${WEB_URL:-http://localhost:3000}
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080/}
       INSIGHT_GRPC_ADDR: api-observability:50051
     depends_on:

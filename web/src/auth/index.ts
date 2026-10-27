@@ -1,20 +1,20 @@
 import type { AuthProvider } from "./provider";
+import { env } from "@/config/env";
+import { SsoAuthProvider } from "./sso-provider";
 import { TestModeAuthProvider } from "./test-mode-provider";
 
 export type { AuthProvider, AuthUser } from "./provider";
+export { SsoAuthProvider } from "./sso-provider";
 export { TestModeAuthProvider } from "./test-mode-provider";
 
 let provider: AuthProvider | null = null;
 
-/**
- * Active auth provider. TEST_MODE → TestModeAuthProvider. The real
- * FirebaseAuthProvider (Google-only per X-1) slots in here at
- * backend-integration time — callers never know the difference.
- */
+/** Active auth provider: TEST_MODE uses the deterministic one, otherwise Google SSO through the API. */
 export function getAuthProvider(): AuthProvider {
   if (!provider) {
-    // Only TestModeAuthProvider exists in W0; the factory is the seam.
-    provider = new TestModeAuthProvider();
+    provider = env.testMode
+      ? new TestModeAuthProvider()
+      : new SsoAuthProvider();
   }
   return provider;
 }

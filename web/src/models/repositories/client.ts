@@ -7,7 +7,7 @@ import { ApiError, type ApiErrorBody } from "../errors";
  *
  * TEST_MODE (`NEXT_PUBLIC_TEST_MODE=1`) targets the in-app mock server at
  * `/api/mock`; otherwise the real API base from `NEXT_PUBLIC_API_BASE`
- * (api.upstat.cuesoft.io once the HTTP surfaces land).
+ * (api-upstat.cuesoft.io once the HTTP surfaces land).
  */
 export const TEST_MODE = env.testMode;
 

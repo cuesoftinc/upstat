@@ -5,13 +5,40 @@ info:
   description: >-
     Draft contract for the HTTP surfaces (events, stats, query, alerts-v2,
     OTLP omitted — standard protocol). Monitors/users remain gRPC
-    (api/common/docs/grpc-api.md). Auth: Firebase ID tokens for user routes;
+    (api/common/docs/grpc-api.md). Auth: Google SSO session tokens for user routes;
     property public keys for ingestion (U-2).
 servers:
-  - url: https://api.upstat.cuesoft.io
+  - url: https://api-upstat.cuesoft.io
   - url: http://localhost:8080
-tags: [{ name: events }, { name: stats }, { name: alerts }, { name: query }]
+tags: [{ name: auth }, { name: events }, { name: stats }, { name: alerts }, { name: query }]
 paths:
+  /v1/auth/sso/google:
+    get:
+      tags: [auth]
+      summary: "Start Google sign-in (cv = PKCE S256 challenge); redirects to Google with a state cookie"
+      parameters: [{ name: cv, in: query, required: false, schema: { type: string, minLength: 43, maxLength: 43 } }]
+      responses:
+        "307": { description: Redirect to Google }
+        "429": { description: rate_limited }
+        "503": { description: sso_config_invalid }
+  /v1/auth/sso/google/callback:
+    get:
+      tags: [auth]
+      summary: "Google redirect target; verifies state, issues a one-time handoff, redirects to the web app /auth/callback?handoff="
+      responses:
+        "302": { description: Redirect to the web app (errors go to /signin?error=) }
+  /v1/auth/sso/exchange:
+    post:
+      tags: [auth]
+      summary: "Trade the handoff code and PKCE verifier for a session token; also sets the session cookie"
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [handoff, verifier], properties: { handoff: { type: string }, verifier: { type: string } } } } } }
+      responses:
+        "200": { description: "{ data: { access_token, token_type, expires_in } }" }
+        "401": { description: handoff_invalid }
+  /v1/auth/me:
+    get: { tags: [auth], summary: Current session identity, security: [{ session: [] }], responses: { "200": { description: "{ data: { id, email, name } }" }, "401": { description: Unauthenticated } } }
+  /v1/auth/logout:
+    post: { tags: [auth], summary: Clear the session and handoff cookies, responses: { "204": { description: Cleared }, "403": { description: csrf_rejected } } }
   /v1/events:
     post:
       tags: [events]
@@ -22,25 +49,25 @@ paths:
         "422": { description: ts_out_of_range / schema rejection }
         "429": { description: rate_limited (600/min sustained) }
   /v1/stats:
-    get: { tags: [stats], summary: "Rollup series (uniques_additive: false in metadata)", security: [{ firebase: [] }], responses: { "200": { description: Series } } }
+    get: { tags: [stats], summary: "Rollup series (uniques_additive: false in metadata)", security: [{ session: [] }], responses: { "200": { description: Series } } }
   /v1/query:
-    post: { tags: [query], summary: Shared-grammar query (query-grammar.md), security: [{ firebase: [] }], responses: { "200": { description: Results }, "400": { description: "invalid_query {position, hint}" } } }
+    post: { tags: [query], summary: Shared-grammar query (query-grammar.md), security: [{ session: [] }], responses: { "200": { description: Results }, "400": { description: "invalid_query {position, hint}" } } }
   /v1/channels:
-    post: { tags: [alerts], summary: Create alert channel (webhook/email), security: [{ firebase: [] }], responses: { "201": { description: Channel (unverified) } } }
+    post: { tags: [alerts], summary: Create alert channel (webhook/email), security: [{ session: [] }], responses: { "201": { description: Channel (unverified) } } }
   /v1/channels/{id}/verify:
-    post: { tags: [alerts], summary: Verify channel, security: [{ firebase: [] }], responses: { "200": { description: Verified } } }
+    post: { tags: [alerts], summary: Verify channel, security: [{ session: [] }], responses: { "200": { description: Verified } } }
   /v1/monitors/{id}/rules:
-    put: { tags: [alerts], summary: Set alert rules (on/cooldown/channels), security: [{ firebase: [] }], responses: { "200": { description: Rules } } }
+    put: { tags: [alerts], summary: Set alert rules (on/cooldown/channels), security: [{ session: [] }], responses: { "200": { description: Rules } } }
   /v1/channels/{id}:
-    delete: { tags: [alerts], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Delete channel (detaches from rules), security: [{ firebase: [] }], responses: { "204": { description: Deleted } } }
+    delete: { tags: [alerts], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Delete channel (detaches from rules), security: [{ session: [] }], responses: { "204": { description: Deleted } } }
   /v1/channels-list:
-    get: { tags: [alerts], summary: List channels (owner), security: [{ firebase: [] }], responses: { "200": { description: Channels } } }
+    get: { tags: [alerts], summary: List channels (owner), security: [{ session: [] }], responses: { "200": { description: Channels } } }
   /v1/monitors/{id}/rules-get:
-    get: { tags: [alerts], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Get rules, security: [{ firebase: [] }], responses: { "200": { description: Rules } } }
+    get: { tags: [alerts], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Get rules, security: [{ session: [] }], responses: { "200": { description: Rules } } }
 
 components:
   securitySchemes:
-    firebase: { type: http, scheme: bearer, bearerFormat: "Firebase ID token (google.com provider only)" }
+    session: { type: http, scheme: bearer, bearerFormat: "Session JWT issued by POST /v1/auth/sso/exchange (also sent as an HttpOnly cookie)" }
     propertyKey: { type: http, scheme: bearer, bearerFormat: "write-only property public key (pk_..., 24h rotation grace)" }
   parameters:
     Id: { name: id, in: path, required: true, schema: { type: string } }

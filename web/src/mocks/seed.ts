@@ -273,7 +273,7 @@ export function buildSeed(now: number): MockDb {
     {
       id: "mon_api",
       name: "API health",
-      target: "https://api.upstat.cuesoft.io/health",
+      target: "https://api-upstat.cuesoft.io/health",
       type: "api",
       active: true,
       status: "up",
