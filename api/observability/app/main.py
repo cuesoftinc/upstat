@@ -20,14 +20,19 @@ from router.analyze import analyze_router
 from router.insights import insights_router
 
 def _grpc_enabled() -> bool:
-    return os.getenv("ENABLE_GRPC_SERVER", "true").lower() in {"1", "true", "yes", "on"}
+    return os.getenv("GRPC_SERVER_ENABLED", "true").lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: launch the internal gRPC server once (migrated from on_event).
     logger.info("Starting observability")
-    logger.info(f"UPSTAT_GRPC_ADDRESS={os.getenv('UPSTAT_GRPC_ADDRESS', '<unset>')}")
+    logger.info(f"COMMON_GRPC_ADDR={os.getenv('COMMON_GRPC_ADDR', '<unset>')}")
     logger.info(f"UPSTAT_GRPC_AUTH_TOKEN set={bool(os.getenv('UPSTAT_GRPC_AUTH_TOKEN'))}")
 
     if _grpc_enabled():

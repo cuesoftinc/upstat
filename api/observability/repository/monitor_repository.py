@@ -15,7 +15,7 @@ DEFAULT_CHECK_LIMIT = 50
 
 
 def get_recent_checks(monitor_id: str) -> list[MonitorCheck]:
-    address = os.getenv("UPSTAT_GRPC_ADDRESS", DEFAULT_GRPC_ADDRESS)
+    address = os.getenv("COMMON_GRPC_ADDR", DEFAULT_GRPC_ADDRESS)
     token = os.getenv("UPSTAT_GRPC_AUTH_TOKEN")
     limit = int(os.getenv("UPSTAT_GRPC_CHECK_LIMIT", DEFAULT_CHECK_LIMIT))
 
@@ -43,7 +43,7 @@ def get_recent_checks(monitor_id: str) -> list[MonitorCheck]:
 
 
 def get_monitor(monitor_id: str):
-    address = os.getenv("UPSTAT_GRPC_ADDRESS", DEFAULT_GRPC_ADDRESS)
+    address = os.getenv("COMMON_GRPC_ADDR", DEFAULT_GRPC_ADDRESS)
     token = os.getenv("UPSTAT_GRPC_AUTH_TOKEN")
 
     try:
@@ -75,7 +75,7 @@ def get_incident_context(monitor_id: str) -> IncidentContext:
     if not owner_id:
         return incident_context
 
-    address = os.getenv("UPSTAT_GRPC_ADDRESS", DEFAULT_GRPC_ADDRESS)
+    address = os.getenv("COMMON_GRPC_ADDR", DEFAULT_GRPC_ADDRESS)
     token = os.getenv("UPSTAT_GRPC_AUTH_TOKEN")
 
     try:

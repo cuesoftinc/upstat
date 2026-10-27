@@ -34,10 +34,10 @@ services:
     env:
       PORT: "8081"
       GRPC_PORT: "50051"
-      ENABLE_GRPC_SERVER: "true"
+      GRPC_SERVER_ENABLED: "true"
       MONGO_URI: mongodb://mongo:27017
       MONGO_DB: Upstat
-      UPSTAT_GRPC_ADDRESS: api-common:8080
+      COMMON_GRPC_ADDR: api-common:8080
 
   web:
     image: cuesoft/upstat-web:latest
