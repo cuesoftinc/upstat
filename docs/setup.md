@@ -21,21 +21,21 @@ service ships a `.env.example` to copy from.
 | `MONGO_DB` | MongoDB database name (e.g. `Upstat`) |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID for sign-in |
 | `JWT_SECRET` | Secret used to sign/verify JWTs |
-| `BASE_URL` | Public base URL of the backend |
-| `INSIGHT_SERVICE_GRPC_ADDRESS` | Address of the observability gRPC server |
+| `PUBLIC_URL` | Public base URL of the backend |
+| `INSIGHT_GRPC_ADDR` | Address of the observability gRPC server |
 | `SERVICE_TOKEN_HASH` | Future/optional — not yet read by any service; api/common currently validates the shared gRPC auth token via `JWT_SECRET`, not a separate hash |
 
 ### `api/observability` (Python service)
 
 | Variable | Description |
 |----------|-------------|
-| `UPSTAT_GRPC_ADDRESS` | Address of the Go backend gRPC server |
+| `COMMON_GRPC_ADDR` | Address of the Go backend gRPC server |
 | `UPSTAT_GRPC_AUTH_TOKEN` | Auth token presented to the Go backend |
 | `UPSTAT_GRPC_CHECK_LIMIT` | Max recent checks to request per monitor |
 | `MONGO_URI` / `MONGO_DB` | MongoDB connection string and database name |
 | `GROQ_API_KEY` | API key for LLM-rendered insights |
 | `GRPC_PORT` | Port the observability gRPC server listens on |
-| `ENABLE_GRPC_SERVER` | Toggle the embedded gRPC server (`true`/`false`) |
+| `GRPC_SERVER_ENABLED` | Toggle the embedded gRPC server (`true`/`false`) |
 
 ## Quick start (Docker)
 

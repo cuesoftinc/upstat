@@ -18,7 +18,7 @@ services:
       PORT: "8080"
       MONGO_URI: mongodb://mongo:27017
       MONGO_DB: Upstat
-      INSIGHT_SERVICE_GRPC_ADDRESS: api-observability:50051
+      INSIGHT_GRPC_ADDR: api-observability:50051
     # Inject secrets (e.g. JWT_SECRET) from a Kubernetes Secret instead of env:
     # envFrom:
     #   - secretRef: api-common-secrets
@@ -34,10 +34,10 @@ services:
     env:
       PORT: "8081"
       GRPC_PORT: "50051"
-      ENABLE_GRPC_SERVER: "true"
+      GRPC_SERVER_ENABLED: "true"
       MONGO_URI: mongodb://mongo:27017
       MONGO_DB: Upstat
-      UPSTAT_GRPC_ADDRESS: api-common:8080
+      COMMON_GRPC_ADDR: api-common:8080
 
   web:
     image: cuesoft/upstat-web:latest

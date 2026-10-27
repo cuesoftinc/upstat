@@ -62,7 +62,7 @@ MONGO_URI=mongodb://localhost:27017
 MONGO_DB=Upstat
 JWT_SECRET=replace-with-a-long-random-secret
 GOOGLE_CLIENT_ID=replace-with-google-client-id.apps.googleusercontent.com
-BASE_URL=http://localhost:8080/
+PUBLIC_URL=http://localhost:8080/
 ```
 
 `GOOGLE_CLIENT_ID` must match the Google OAuth client used by the frontend to obtain the Google ID token.
@@ -92,7 +92,7 @@ service MonitorService {
 
 A companion proto, `internal/proto/insight.proto`, defines `InsightService`
 (`GetMonitorInsight`). It is served by `api/observability` on its gRPC port
-(`:50051`) and consumed by this backend (`INSIGHT_SERVICE_GRPC_ADDRESS`), so it
+(`:50051`) and consumed by this backend (`INSIGHT_GRPC_ADDR`), so it
 is not part of the API this service exposes.
 
 ## Auth Model
