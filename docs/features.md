@@ -74,7 +74,7 @@ retention gates; every pillar ships explorer + retention + monitors together
 | UX-2 | Error envelope (HTTP) + gRPC status mapping | engineering §1 |
 | UX-3 | Authz (owner-model now, org-ready matrix) | engineering §2 |
 | UX-4 | Never-log gate + storage-scan privacy test | engineering §5 |
-| UX-5 | build-and-test.yml + release.yml (tag-gated) | deployment.md, X-6 |
+| UX-5 | build-and-test.yml + release.yml (deploys on merge) | deployment.md, X-6 |
 | UX-6 | cuesoft-iac upstat stack (Cloud Run ×3, WIF, Doppler, Aiven PG) | deployment.md §2 |
 | UX-7 | E2E smoke: down→alert→recover cycle | engineering §4 |
 | UX-8 | OTel self-instrumentation (upstat dogfoods its own OTLP ingest once OBS-001 lands) | engineering §Telemetry, X-9 |

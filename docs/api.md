@@ -8,7 +8,7 @@
 
 ## 1. Current surface **[Current]**
 
-### gRPC (api/common :8080, h2c; browsers via Envoy gRPC-Web :8082)
+### gRPC (api/common :8080, h2c; local gRPC-Web only)
 
 | Service | RPCs | Auth |
 | --- | --- | --- |
@@ -30,7 +30,7 @@
 | `/v1/events`, `/v1/stats`, `/v1/query`, `/v1/channels`, `/v1/monitors/*/rules` | **api/common** (Go — gains an HTTP mux alongside gRPC/h2c) | 8080 | `api.upstat.cuesoft.io` | in-app middleware (origin allowlist per property for /v1/events; standard CORS for user routes) |
 | `upstat.js` static | web | 3000 | `upstat.cuesoft.io/upstat.js` | n/a (public asset) |
 | OTLP gRPC/HTTP (OBS-001) | ingest gateway (new service at OBS-001) | 4317/4318 | `ingest.upstat.cuesoft.io` | key-authed, no browser CORS |
-| Existing gRPC-Web | Envoy → api/common | 8082→8080 | as today | Envoy CORS (current) |
+| Existing gRPC-Web | local only | 8080 | as today | current |
 
 ## 2. Target surface — monitors & alerts
 

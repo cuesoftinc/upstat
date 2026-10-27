@@ -32,7 +32,7 @@ func (w *MonitorWorker) Start(ctx context.Context) {
 	ticker := time.NewTicker(w.PollInterval)
 	defer ticker.Stop()
 
-	w.runOnce()
+	w.tick(ctx)
 
 	for {
 		select {
@@ -40,28 +40,39 @@ func (w *MonitorWorker) Start(ctx context.Context) {
 			slog.Info("monitor worker stopped")
 			return
 		case <-ticker.C:
-			w.runOnce()
+			w.tick(ctx)
 		}
 	}
 }
 
-func (w *MonitorWorker) runOnce() {
+func (w *MonitorWorker) tick(ctx context.Context) {
+	if err := w.RunOnce(ctx); err != nil && ctx.Err() == nil {
+		slog.Error("monitor pass failed", "error", err)
+	}
+}
+
+// RunOnce runs one pass of every due check and stops starting new checks once ctx is done.
+func (w *MonitorWorker) RunOnce(ctx context.Context) error {
 	monitors, err := w.MonitorRepo.ListActiveMonitors()
 	if err != nil {
-		slog.Error("could not list active monitors")
-		return
+		return err
 	}
 
 	sem := make(chan struct{}, w.Concurrency)
 	var wg sync.WaitGroup
 
+launch:
 	for _, monitor := range monitors {
 		if !shouldRunMonitor(monitor) {
 			continue
 		}
 
+		select {
+		case sem <- struct{}{}:
+		case <-ctx.Done():
+			break launch
+		}
 		wg.Add(1)
-		sem <- struct{}{}
 
 		go func(m *model.Monitor) {
 			defer wg.Done()
@@ -74,6 +85,7 @@ func (w *MonitorWorker) runOnce() {
 	}
 	wg.Wait()
 
+	return ctx.Err()
 }
 
 func shouldRunMonitor(monitor *model.Monitor) bool {

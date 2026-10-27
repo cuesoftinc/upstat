@@ -68,10 +68,10 @@ Scheduler contract **[Decided]**: monitors are spread across their interval
 by hash-jitter (no thundering herd); worker concurrency cap 50 in-flight
 checks per instance; missed slots (downtime) are skipped, not backfilled
 (drift policy: next slot wins); cloud egress IPs are published in setup docs
-for customer allowlists. **Cloud Run: the worker requires `min-instances: 1`
-and a scheduler singleton lease** (Postgres advisory lock) so scale-out
-never double-schedules — checks are leased by one instance; the HTTP surface
-scales freely (deployment.md).
+for customer allowlists. **Cloud Run: min instances 0.** Cloud Scheduler
+calls `POST /internal/jobs/run-checks` every minute and each call runs one
+pass of due checks, so the shortest interval is 60 s; the in-process loop
+is for local runs only (deployment.md).
 
 Each check persists: `up`, `status_code` (0 = transport error), 
 `response_time_ms`, `checked_at` (90d retention, U-6). The monitor page

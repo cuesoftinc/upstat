@@ -19,7 +19,15 @@ internal/util         JWT, interceptor        internal/proto     generated stubs
 From the repo root (recommended): `cp .env.example .env && make up` → :8080.
 Natively: `go run ./cmd/server` (see `.env.example` here for required vars).
 
-gRPC-Web browsers reach this service through Envoy (`:8082` in compose).
+The web reaches this service by proxying `/api/v1/*`.
+
+`POST /internal/jobs/run-checks` runs one pass of due checks (the Cloud Scheduler
+job `upstat-run-checks` calls it every minute). It needs a Google OIDC bearer
+token: `SCHEDULER_AUDIENCE` must equal the token audience and
+`SCHEDULER_INVOKER_EMAIL` the verified `email` claim. Either unset returns 503,
+a bad token 401, a wrong email 403. Other job names return 404. Set
+`WORKER_ENABLED=false` on Cloud Run; it defaults to on locally.
+
 Regenerate stubs with the `protoc` command in [docs/grpc-api.md](docs/grpc-api.md).
 
 ## Test

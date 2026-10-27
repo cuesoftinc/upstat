@@ -1,0 +1,115 @@
+# Release: API services only (X-6, docs/deployment.md §3).
+#
+# Fires on every merge to main that touches the API services; the deploy job
+# runs in the `Sandbox` environment. No version tags: images carry the sha.
+# The web app is not here: it rides Firebase App Hosting rollouts from main.
+#
+# The Cloud Run resources (services, scheduler jobs, env, secrets, IAM) are created by
+# the cuesoft-iac stack (docs/deployment.md). This workflow only builds
+# the images and points the existing resources at the new digests.
+name: release
+
+on:
+  push:
+    branches: [main]
+    paths: ["api/**", ".github/workflows/release.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  images:
+    name: images · build + push
+    runs-on: ubuntu-latest
+    outputs:
+      common: ${{ steps.common.outputs.digest }}
+      observability: ${{ steps.observability.outputs.digest }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Tags
+        id: meta
+        run: |
+          echo "sha=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+
+      - name: Build + push api-common
+        id: common
+        uses: docker/build-push-action@v7
+        with:
+          context: api/common
+          push: true
+          tags: |
+            cuesoft/upstat-api-common:${{ steps.meta.outputs.sha }}
+            cuesoft/upstat-api-common:latest
+          cache-from: type=gha,scope=common
+          cache-to: type=gha,mode=max,scope=common
+
+      - name: Build + push api-observability
+        id: observability
+        uses: docker/build-push-action@v7
+        with:
+          context: api/observability
+          push: true
+          tags: |
+            cuesoft/upstat-api-observability:${{ steps.meta.outputs.sha }}
+            cuesoft/upstat-api-observability:latest
+          cache-from: type=gha,scope=observability
+          cache-to: type=gha,mode=max,scope=observability
+
+  deploy:
+    name: deploy · Cloud Run (Sandbox)
+    needs: images
+    runs-on: ubuntu-latest
+    environment: Sandbox
+    permissions:
+      contents: read
+      id-token: write # Workload Identity Federation: no JSON keys
+    env:
+      REGION: ${{ vars.GCP_REGION }}
+      COMMON: docker.io/cuesoft/upstat-api-common@${{ needs.images.outputs.common }}
+      OBSERVABILITY: docker.io/cuesoft/upstat-api-observability@${{ needs.images.outputs.observability }}
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      # Deploy by digest, never by tag: Cloud Run pulls Docker Hub images
+      # through mirror.gcr.io, which has served stale manifests for tags.
+      # common first: it runs the database migrations on start.
+      - name: Deploy api-common
+        run: gcloud run services update upstat-api-common --region "$REGION" --image "$COMMON" --quiet
+
+      - name: Deploy api-observability
+        run: gcloud run services update upstat-api-observability --region "$REGION" --image "$OBSERVABILITY" --quiet
+
+      # Don't report success without checking the terminal state: every
+      # service's latest revision must be the one serving and Ready.
+      - name: Verify revisions are ready
+        run: |
+          for svc in upstat-api-common upstat-api-observability; do
+            ready=$(gcloud run services describe "$svc" --region "$REGION" --format 'value(status.latestReadyRevisionName)')
+            created=$(gcloud run services describe "$svc" --region "$REGION" --format 'value(status.latestCreatedRevisionName)')
+            echo "$svc: created=$created ready=$ready"
+            [ -n "$ready" ] && [ "$ready" = "$created" ] || { echo "::error::$svc did not become ready"; exit 1; }
+          done
+          url=$(gcloud run services describe upstat-api-common --region "$REGION" --format 'value(status.url)')
+          curl -fsS "$url/ready" && echo

@@ -62,7 +62,7 @@ policy as the stranded path.
 Events (dogfooded once the events layer lands): `auth_signin_completed`,
 `auth_migration_completed`.
 
-- [ ] Google sign-in end-to-end through Envoy gRPC-Web metadata
+- [ ] Google sign-in end-to-end through gRPC-Web metadata
 - [ ] Interceptor rejects expired, foreign-project, and non-Google tokens
 - [ ] `/signup` removed; cookies removed; legacy sign-in returns
   `FAILED_PRECONDITION migrate_to_firebase` after the 60-day window (ships

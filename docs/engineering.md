@@ -58,7 +58,7 @@ access.
 | `/v1/events` pre-auth | 1,000 req/min per IP (invalid-key flood guard) |
 | Insights `GET /insights/*`, `POST /analyze/*` | **bearer-authed (REVISED — was open)**; analyze 6/min per user (LLM cost guard) |
 
-Limit store: **shared Aiven Redis** (X-5 — this is Redis's role here, plus
+Limit store: **shared Aiven Valkey** (X-5; user `upstat`, keys `upstat:*`; this is Valkey's role here, plus
 dispatch cooldown cache); `429 rate_limited` + `Retry-After` (cataloged §1).
 
 ## 4. Testing strategy
@@ -67,8 +67,8 @@ dispatch cooldown cache); `429 rate_limited` + `Retry-After` (cataloged §1).
 | --- | --- | --- |
 | Unit (Go/pytest) | worker, dispatcher, rollups, hash | **evaluation-semantics transition table** (flows/monitor.md §2 — every edge incl. `nodata`); dispatch ordering + cooldown fixtures (flows/alert.md §3); visitor-hash rotation vectors; rollup idempotency (analytics-math.md §7) |
 | Contract | error catalog + query grammar | grammar: valid/invalid corpus with position-accurate errors; `uniques_additive:false` metadata presence |
-| Integration (compose) | web → envoy → gRPC; events → rollup → stats | webhook signature fixture (documented recipe verifies) |
-| E2E smoke (release tag) | signin → create monitor → down-simulation → alert → recover | against sandbox in release.yml; uses a controllable target service |
+| Integration (compose) | web → api/common; events → rollup → stats | webhook signature fixture (documented recipe verifies) |
+| E2E smoke (per deploy) | signin → create monitor → down-simulation → alert → recover | against sandbox in release.yml; uses a controllable target service |
 | Privacy invariants | events pipeline | raw IP/UA absent from storage + logs (grep + storage-scan test) |
 
 Web implementation (MVC boundaries, TEST_MODE, mock server, Vitest/Playwright
@@ -101,7 +101,7 @@ is the standing proof.
   methods `GET,POST,PUT,PATCH,DELETE,OPTIONS`; headers
   `Authorization, Content-Type, Idempotency-Key, X-Org-Id`; preflight 204
   with `Access-Control-Max-Age: 600`.
-- App-level CORS applies to the HTTP surfaces (api.md §1a) from U1-2; browser gRPC-Web CORS stays in Envoy config.
+- App-level CORS applies to the HTTP surfaces (api.md §1a) from U1-2.
 
 ## Telemetry (OpenTelemetry, X-9)
 

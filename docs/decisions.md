@@ -51,7 +51,7 @@ initially, native app later.
 ## U-5 · Protocol split — gates all new surfaces
 
 **Recommendation ⭐:** existing user/monitor control plane stays **gRPC**
-(works, typed, Envoy already wired); every new surface is **HTTP/JSON**
+(works, typed); every new surface is **HTTP/JSON**
 (events, stats, query, OTLP/HTTP alongside OTLP/gRPC, dashboards, monitors-v2,
 incidents, SLOs). Browsers and sibling products never need proto toolchains.
 
@@ -118,7 +118,7 @@ blocks.
   [flows/auth.md](flows/auth.md). Environment/secrets live in **Doppler**
   — resolved: Doppler access works via the cuesoft-iac token; **services read
   project `upstat`, config `stg`** (dev* = local convenience; prd empty until
-  a production exists). Redis DB index recorded when assigned. ☑
+  a production exists). Valkey user `upstat` (keys `upstat:*`) provisioned by the IaC. ☑
 - **X-2 Docs platform**: GitBook space per product, Git-synced; Scalar API
   refs. **RATIFIED 2026-07-20**: every product ships a public `/docs/api`
   route embedding the Scalar interactive reference, rendered live from the
@@ -142,10 +142,9 @@ blocks.
   **Aiven Postgres** for the control plane (users, monitors, dashboards,
   rules, incidents, SLOs) — migrating from Mongo with the monitors-v2/OBS
   work; **ClickHouse** remains the telemetry store (U-1 unchanged).
-  **Shared Redis**: the sandbox **Aiven Redis** instance, tenancy by
-  **`REDIS_DB` index** (the irealty pattern: discrete `REDIS_HOST/PORT/
-  USERNAME/PASSWORD/TLS/DB` vars; e.g. irealty prd=0, stg/dev=1) — indices
-  per product/config assigned in Doppler by the owner. **Doppler is the env
+  **Shared Valkey**: the sandbox **Aiven Valkey** instance (`sandbox-cache`),
+  tenancy by a per-product user (`upstat`) limited to `upstat:*` keys;
+  credentials in Doppler. **Doppler is the env
   source of truth**: project `upstat` with `dev / dev_personal / stg / prd`
   configs (already created). **Object storage**: the **default Cloud Storage bucket** in
   `sandbox-e306a` (per-product prefixes `upstat/<env>/…`) for capture
@@ -159,6 +158,9 @@ blocks.
   happen exclusively on tag creation (`v*`)**, treated as production-grade:
   a GitHub tag ruleset restricts `v*` creation to owner-level access, and the
   deploy workflow additionally runs in a protected GitHub environment. ☑
+  **Revised 2026-10-27 (owner):** "Deploy on merge to main". A merge to
+  `main` that touches `api/**` deploys the API services to the sandbox; no
+  `v*` tags, since the open-source products cut no releases yet.
 - **X-7 Transactional email (RATIFIED, directive 2026-07-16)**: **Brevo REST
   API** for all product email (alert emails, money-event receipts, purge
   confirmations…) — the irealty pattern: `BREVO_API_KEY`, `BREVO_FROM_EMAIL`,
@@ -170,9 +172,9 @@ blocks.
   (OTel industry standard, OBS-001), internal s2s (observability↔common),
   and the existing monitor control plane until monitors-v2. Cloud Run runs
   gRPC fine with end-to-end HTTP/2 (h2c) — already how api/common works.
-  **Browser gRPC-Web + Envoy is a sunset path**: no new surface uses it
-  (U-5); at monitors-v2 (OBS-006) the dashboard goes fully HTTP and Envoy
-  retires from the cloud topology. apparule/expendit never adopt gRPC. ☑
+  **Browser gRPC-Web is a sunset path**: no new surface uses it
+  (U-5); at monitors-v2 (OBS-006) the dashboard goes fully HTTP. Envoy is
+  not deployed to the cloud. apparule/expendit never adopt gRPC. ☑
 - **X-9 Telemetry standard (RATIFIED, directive 2026-07-16)**: **OpenTelemetry
   everywhere** — traces, custom metrics, and logs from every service via OTel
   SDKs (Go: otel-go + slog bridge; Python: opentelemetry-python + logging

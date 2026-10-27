@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `POST /internal/jobs/run-checks` on api/common, guarded by scheduler OIDC token.
+- `WORKER_ENABLED` flag to turn off the in-process monitor loop.
+- Staging estate documented: Cloud Run, Cloud Scheduler, Valkey, Doppler `stg`.
+- Release workflow deploys both API services to Sandbox on merge to main.
 - Datadog service catalog entry for the Upstat system.
 - `@axe-core/playwright` a11y smoke coverage for home, `/signin`, and the
   dashboard home route — the axe-core gate the sibling repos already run (#209).
