@@ -112,7 +112,6 @@ Requests missing or carrying an invalid token are rejected with `Unauthenticated
 Public RPCs (no token required):
 
 ```text
-proto.UserService/CreateUser
 proto.UserService/GetUser
 proto.MonitorService/GetStatusPage
 proto.MonitorService/GetRecentChecks
@@ -135,39 +134,14 @@ Unauthenticated: invalid token claims
 
 ## Create User
 
-Use this for email/password signup.
+Closed. Accounts are created by Google sign-in through
+`GET /v1/auth/sso/google`; the RPC requires a token and returns
+`FailedPrecondition: sign up with Google`.
 
 Method:
 
 ```text
 proto.UserService/CreateUser
-```
-
-Request:
-
-```json
-{
-  "name": "Ada Lovelace",
-  "email": "ada@example.com",
-  "password": "password123"
-}
-```
-
-Success response:
-
-```json
-{
-  "data": "user created successfully",
-  "status": "success"
-}
-```
-
-Common errors:
-
-```text
-InvalidArgument: name, email, and password are required
-AlreadyExists: email already exists
-Internal: could not create user
 ```
 
 ## Get User

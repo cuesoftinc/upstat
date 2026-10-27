@@ -17,8 +17,21 @@ func requestSourceHash(r *http.Request, cfg *config.AuthConfig) string {
 	if !ok {
 		return cache.UnattributedSourceHash
 	}
-	sum := sha256.Sum256([]byte(ip))
+	sum := sha256.Sum256([]byte(sourceBucketKey(ip)))
 	return hex.EncodeToString(sum[:16])
+}
+
+// sourceBucketKey keys an IPv6 source by its /64, the block one subscriber controls.
+func sourceBucketKey(ip string) string {
+	addr, err := netip.ParseAddr(ip)
+	if err != nil || !addr.Is6() {
+		return ip
+	}
+	prefix, err := addr.Prefix(64)
+	if err != nil {
+		return ip
+	}
+	return prefix.String()
 }
 
 // requestSourceIP walks X-Forwarded-For only through proxies the config trusts.

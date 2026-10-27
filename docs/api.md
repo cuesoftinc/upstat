@@ -12,7 +12,7 @@
 
 | Service | RPCs | Auth |
 | --- | --- | --- |
-| `UserService` | GetUser, CreateUser, UpdateUser, DeleteUser, GetAllUsers | CreateUser/GetUser public; rest JWT |
+| `UserService` | GetUser, CreateUser, UpdateUser, DeleteUser, GetAllUsers | GetUser public; CreateUser closed (Google sign-in creates accounts); rest JWT |
 | `MonitorService` | CreateMonitor, UpdateMonitor, GetMonitor, ListMonitors, DeleteMonitor, GetStatusPage, GetRecentChecks | GetStatusPage + GetRecentChecks public; rest JWT (owner from token) |
 | `InsightService` (served by api/observability :50051, consumed by api/common) | GetMonitorInsight | service-token |
 

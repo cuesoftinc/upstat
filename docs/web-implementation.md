@@ -38,10 +38,10 @@
   (feature-scoped hooks/orchestration, own all state; views never fetch);
   views = `web/src/app/**` routes + composed components, render-only.
 - **TEST_MODE**: `NEXT_PUBLIC_TEST_MODE=1` → GoogleAuthButton navigates
-  straight to the dashboard (no Firebase), and the API client targets the
+  straight to the dashboard (no Google redirect), and the API client targets the
   in-app mock server (§5). Auth sits behind an `AuthProvider` interface
-  (`TestModeAuthProvider` now; `FirebaseAuthProvider` added at
-  backend-integration time — X-1 Google-only either way,
+  (`TestModeAuthProvider` in TEST_MODE, `SsoAuthProvider` otherwise — X-1
+  Google-only either way,
   [flows/auth.md](flows/auth.md)).
 - **Mock server**: Next route handlers under `web/src/app/api/mock/*`
   implementing the documented API surface the web needs (paths, snake_case
@@ -769,15 +769,14 @@ on it:
 
 1. **Auth**: the `AuthProvider` resolves to `TestModeAuthProvider` —
    GoogleAuthButton navigates straight to `/dashboard` as the seeded test user
-   (§6, owner of the seeded org), no Firebase SDK loaded, no popup. The
-   interface is identical to the future `FirebaseAuthProvider` (X-1
-   Google-only, bearer-token shape preserved), so backend integration swaps
-   the provider, not the views.
+   (§6, owner of the seeded org), no Google redirect, no network. The
+   interface is identical to `SsoAuthProvider` (X-1 Google-only, bearer-token
+   shape preserved), so the two modes swap the provider, not the views.
 2. **API client**: the models layer's base URL targets the in-app mock
    server — `/api/mock/v1/*` mirrors the `/v1/*` surface path-for-path, so
    repositories are identical in both modes except for the base URL.
 
-Unset (or `0`) → real `FirebaseAuthProvider` + the real API base from
+Unset (or `0`) → `SsoAuthProvider` (API session cookie) + the real API base from
 `NEXT_PUBLIC_API_BASE` (api/common HTTP). The new app consumes **HTTP/JSON
 only** (U-5/X-8 — no new gRPC-Web surface); until monitors-v2 lands, the
 real-backend monitor path is bridged inside the models seam (§8), never in
@@ -915,7 +914,7 @@ policy — when that phase opens.
 - [ ] W0–W3 each closed by a Figma QA loop before merge; deviations landed
       in docs + the org SKILL.md
 - [ ] TEST_MODE boots to `/dashboard` with the §6 seed rendering the
-      Figma-coherent narrative; no Firebase loaded; the empty-org path
+      Figma-coherent narrative; no Google redirect; the empty-org path
       reaches onboarding + MI-16 states
 - [ ] Every mocked endpoint speaks the engineering.md envelope with catalog
       codes; monitor transitions in the mock honor the flows/monitor.md §2

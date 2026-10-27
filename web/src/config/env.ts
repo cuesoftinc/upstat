@@ -13,7 +13,7 @@ export const env = {
   envoyUrl: process.env.NEXT_PUBLIC_ENVOY_URL || "http://localhost:8082",
   /**
    * TEST_MODE (web-standard): NEXT_PUBLIC_TEST_MODE=1 →
-   * - GoogleAuthButton signs straight in (no Firebase), and
+   * - GoogleAuthButton signs straight in (no Google redirect), and
    * - the repository client targets the in-app mock server (/api/mock).
    */
   testMode: process.env.NEXT_PUBLIC_TEST_MODE === "1",

@@ -25,7 +25,6 @@ func AuthenticateInterceptor(
 ) (any, error) {
 	switch info.FullMethod {
 	case
-		"/proto.UserService/CreateUser",
 		"/proto.UserService/GetUser",
 		"/proto.MonitorService/GetStatusPage",
 		"/proto.MonitorService/GetRecentChecks":

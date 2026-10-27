@@ -51,33 +51,9 @@ func (s *UserServiceServer) GetUser(ctx context.Context, req *pb.GetUserRequest)
 	return userResponse(user, token, "success"), nil
 }
 
+// CreateUser is closed: accounts are created by Google sign-in only, so no one can pre-claim an email.
 func (s *UserServiceServer) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
-	if req.GetName() == "" || req.GetEmail() == "" || req.GetPassword() == "" {
-		return nil, status.Error(codes.InvalidArgument, "name, email, and password are required")
-	}
-
-	if _, err := s.userRepo.GetUser(req.GetEmail()); err == nil {
-		return nil, status.Error(codes.AlreadyExists, "email already exists")
-	}
-
-	password := req.GetPassword()
-	if _, err := util.HashPassword(&password); err != nil {
-		return nil, status.Error(codes.Internal, "could not hash password")
-	}
-
-	_, err := s.userRepo.CreateUser(model.User{
-		Name:     req.GetName(),
-		Email:    req.GetEmail(),
-		Password: password,
-	})
-	if err != nil {
-		return nil, status.Error(codes.Internal, "could not create user")
-	}
-
-	return &pb.CreateUserResponse{
-		Data:   "user created successfully",
-		Status: "success",
-	}, nil
+	return nil, status.Error(codes.FailedPrecondition, "sign up with Google")
 }
 
 func (s *UserServiceServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {

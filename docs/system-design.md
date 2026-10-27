@@ -259,8 +259,7 @@ erDiagram
     MONITOR ||--o{ INSIGHT : "analyzed into"
 
     USER { uuid id PK
-        string firebase_uid UK
-        string email }
+        string email UK }
     ORG { uuid id PK
         string name
         string timezone "IANA, X-10 tier 1" }
@@ -307,8 +306,8 @@ erDiagram
 ```
 
 Tables in data-model.md §2/§5 keep their fields. The table above shows
-only what the redesign adds or changes: `firebase_uid` replaces
-`password_hash`; monitors gain `regions`, `min_failing_regions`,
+only what the redesign adds or changes: Google sign-in
+replaces `password_hash` (accounts key on the Google-verified email); monitors gain `regions`, `min_failing_regions`,
 `next_run_at`, and `last_transition_seq`; `PROPERTY` folds into
 `INGEST_KEY` (`kind = property_key`), matching the web's `ApiKey` model;
 `DISPATCH` becomes `DELIVERY`; and one `INCIDENT` table covers both
@@ -780,7 +779,7 @@ for function source that must also ship open-source for self-host
 | `internal/service/checker_service.go` | **Port to Python** in `functions/probe` (pycurl): drop in-loop retries, add SSRF pinning and phase timings |
 | `internal/service/monitor_service.go`, `user_service.go` (gRPC) | **Rewrite** as HTTP handlers against Postgres; validation rules carry over |
 | `internal/repository/*` (Mongo) | **Replace** with Postgres repositories; check/insight repos go away (ClickHouse / Kafka) |
-| `internal/util/{jwt,auth,google_auth}.go` | **Retire** for `pkg/auth` (Firebase) |
+| `internal/util/{jwt,auth,session}.go`, `internal/auth/*` | **Keep**: Google sign-in and the API session carry over |
 | `internal/proto/*` | **Retire** (gRPC) |
 | `api/observability/{analysis,ml,service}` | **Keep** as-is |
 | `api/observability/{repository,database,router/grpc_server.py}` | **Rewrite**: `api/query` client + Kafka consumer/producer; gRPC server removed |

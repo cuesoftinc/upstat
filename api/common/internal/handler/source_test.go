@@ -62,3 +62,13 @@ func TestRequestSourceHash(t *testing.T) {
 		t.Fatalf("hashes a=%q b=%q c=%q", a, b, c)
 	}
 }
+
+func TestRequestSourceHashBucketsIPv6By64(t *testing.T) {
+	cfg := &config.AuthConfig{}
+	a := requestSourceHash(sourceRequest("[2001:db8:1:2::1]:1"), cfg)
+	b := requestSourceHash(sourceRequest("[2001:db8:1:2:ffff::9]:1"), cfg)
+	c := requestSourceHash(sourceRequest("[2001:db8:1:3::1]:1"), cfg)
+	if a != b || a == c {
+		t.Fatalf("hashes a=%q b=%q c=%q", a, b, c)
+	}
+}
