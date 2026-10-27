@@ -15,10 +15,6 @@ flowchart LR
         UI[Next.js UI / React App]
     end
 
-    subgraph Proxy
-        Envoy[Envoy Proxy]
-    end
-
     subgraph Backend
         GoBackend[Go gRPC Backend]
         PythonService[Python Observability Service]
@@ -28,8 +24,8 @@ flowchart LR
         Mongo[MongoDB]
     end
 
-    UI -->|HTTP / API requests| Envoy
-    Envoy -->|gRPC / HTTP| GoBackend
+    UI -->|proxies /api/v1/*| GoBackend
+    Scheduler[Cloud Scheduler] -->|POST /internal/jobs/run-checks, OIDC| GoBackend
     PythonService -->|gRPC| GoBackend
     GoBackend -->|MongoDB reads/writes| Mongo
     PythonService -->|Insight persistence| Mongo
@@ -45,14 +41,14 @@ flowchart LR
 ### 1.1 Components
 
 - **Frontend**: Next.js / React application in `web`.
-- **Envoy**: Proxy layer in `deploy/helm/envoy/envoy.yaml` and Docker Compose.
+- **Cloud Scheduler**: job `upstat-run-checks` calls the Go backend every minute on Cloud Run.
 - **Go Backend**: gRPC server in `api/common`, exposing `MonitorService` and `UserService`.
 - **Python Observability Service**: FastAPI service in `api/observability`, calling Go backend via gRPC to analyze recent monitor checks.
 - **MongoDB**: Primary database for monitors, check results, incidents, and insights.
 
 ### 1.2 Communication patterns
 
-- `UI -> Envoy -> GoBackend`: frontend requests route through Envoy.
+- `UI -> GoBackend`: the web proxies `/api/v1/*` to the common service.
 - `PythonService -> GoBackend`: gRPC client calls using shared proto definitions in `api/common/internal/proto/user.proto`.
 - `GoBackend -> Mongo`: persistence for monitors, checks, incidents.
 - `PythonService -> Mongo`: insight persistence.
@@ -61,10 +57,10 @@ flowchart LR
 
 - The system is distributed: services run in separate containers/processes and communicate over network protocols.
 - The project currently uses Docker Compose for local orchestration.
-- The Go backend contains an internal monitor worker that schedules periodic checks.
+- The Go backend runs one pass of due checks per `POST /internal/jobs/run-checks` (Google OIDC guard); the in-process worker loop is for local runs (`WORKER_ENABLED`).
 - The shipped web app serves its dashboard data from the in-app mock CRUD
-  server (`web/src/app/api/mock/v1`); gRPC-Web via Envoy (shown above) is the
-  intended control-plane path, retained but not yet wired (web-implementation.md §1).
+  server (`web/src/app/api/mock/v1`); the proxied HTTP path (shown above) is the
+  intended control-plane path, not yet wired (web-implementation.md §1).
 
 ## 2. Context — target state **[Decided]**
 
@@ -279,8 +275,8 @@ rather than growing scope silently.
 ## 7. Deployment view
 
 Cloud: [deployment.md](deployment.md) (Cloud Run via cuesoft-iac, X-3/X-6 —
-api/common `min-instances: 1` + scheduler lease). Self-host: compose
-(mongo/envoy + services) and the standard-form Helm chart + terraform
+every service min instances 0, Cloud Scheduler drives checks). Self-host: compose
+(mongo + services) and the standard-form Helm chart + terraform
 in `deploy/` — validated end-to-end on a live cluster.
 
 ## 8. Cross-repo dependencies
@@ -290,4 +286,4 @@ in `deploy/` — validated end-to-end on a live cluster.
 | D2 | Event-ingestion API | **provided by this repo** (Phase 1) | unblocks apparule/expendit analytics |
 | D1 | `account.cuesoft.io` facade | consumed, later | X-1: Firebase interim ratified — not blocking |
 | D3 | Upstat clause on privacy.cuesoft.io | consumed | UPS-005 copy |
-| X-5/X-7 | Aiven PG + Redis, Brevo | consumed | shared data/email plane |
+| X-5/X-7 | Aiven PG + Valkey, Brevo | consumed | shared data/email plane |

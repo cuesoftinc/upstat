@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/cuesoftinc/upstat/api/common/internal/config"
+	"github.com/cuesoftinc/upstat/api/common/internal/jobs"
 	pb "github.com/cuesoftinc/upstat/api/common/internal/proto"
 	"github.com/cuesoftinc/upstat/api/common/internal/service"
 	"github.com/cuesoftinc/upstat/api/common/internal/util"
@@ -36,7 +37,11 @@ func main() {
 	defer stop()
 
 	worker := service.NewMonitorWorker(db)
-	go worker.Start(ctx)
+	if config.WorkerEnabled() {
+		go worker.Start(ctx)
+	} else {
+		slog.Info("monitor worker loop disabled; checks run via POST /internal/jobs/run-checks")
+	}
 
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(util.AuthenticateInterceptor),
@@ -48,6 +53,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", healthCheck)
 	mux.HandleFunc("/ready", readyCheck)
+	mux.Handle(jobs.Path, jobs.Handler{Verifier: jobs.GoogleVerifier{}, Checks: worker})
 
 	handler := h2c.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.ProtoMajor == 2 && strings.HasPrefix(r.Header.Get("Content-Type"), "application/grpc") {

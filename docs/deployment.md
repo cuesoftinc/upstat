@@ -9,10 +9,25 @@
 
 | Surface | Runs on | Provisioned by |
 | --- | --- | --- |
-| `api/common` (Go, gRPC/h2c) | Cloud Run (HTTP/2 enabled), **`min-instances: 1`** — the monitor worker must never scale to zero, and check scheduling runs under a Postgres advisory-lock lease so scale-out never double-checks (flows/monitor.md §3) | cuesoft-iac stack `upstat` |
-| `api/observability` (Python) | Cloud Run | cuesoft-iac stack `upstat` |
-| envoy gRPC-Web proxy | Cloud Run **[Decided: ships as its own service now; revisit only when OBS-001's gateway lands — UX-6 builds against 3 services]** | cuesoft-iac stack `upstat` |
-| `web` (Next.js) | **Firebase App Hosting** | App Hosting backend |
+| `api/common` (Go, gRPC/h2c) | Cloud Run `upstat-api-common` (HTTP/2 enabled), **min instances 0**; checks run when Cloud Scheduler calls `POST /internal/jobs/run-checks` every minute (flows/monitor.md §3) | cuesoft-iac stack `cuesoft` |
+| `api/observability` (Python) | Cloud Run `upstat-api-observability`, HTTP only, min instances 0; callable only by `upstat-common` | cuesoft-iac stack `cuesoft` |
+| Cloud Scheduler `upstat-run-checks` | Every minute, OIDC token to the common service; created paused until the PR that adds the endpoint deploys | cuesoft-iac stack `cuesoft` |
+| `web` (Next.js) | **Firebase App Hosting** backend `upstat-website` (upstat.cuesoft.io); proxies `/api/v1/*` to the common service | App Hosting backend |
+
+Ingest, query, alerting and probes are Planned (system-design.md §10.1) and
+are not provisioned.
+
+### Staging estate
+
+| Item | Value |
+| --- | --- |
+| GCP project / region | `sandbox-e306a` / `us-central1` |
+| Runtime accounts | `upstat-common`, `upstat-observability` |
+| URLs | `https://<service>-805800737799.us-central1.run.app` |
+| Stores | Firestore sandbox (Mongo-compatible); Aiven Postgres `sandbox-db` (database and user `upstat`); Aiven Valkey `sandbox-cache` (user `upstat`, keys `upstat:*`) |
+| ClickHouse | ClickHouse Cloud account, outside the GCP IaC (Planned) |
+| Secrets | Doppler project `upstat`, config `stg` |
+| GitHub environment `Sandbox` variables | `GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WORKLOAD_IDENTITY_PROVIDER`, `GCP_DEPLOY_SERVICE_ACCOUNT` |
 
 ## 2. Provisioning (cuesoft-iac)
 
@@ -49,20 +64,25 @@ Two hard-won rules inherited from cueprise, non-negotiable:
 2. **WIF only** (`google-github-actions/auth@v3` with
    `workload_identity_provider` + `service_account`) — no JSON keys.
 
-The single protected GitHub environment is **`Sandbox`** (X-6) — required
-reviewers + the sandbox URLs (`api.upstat.cuesoft.io`,
-`ingest.upstat.cuesoft.io` at OBS-001). No other deploy environments exist.
+The single protected GitHub environment is **`Sandbox`** (X-6): required
+reviewers and the four `GCP_*` variables above. No other deploy environments
+exist.
 
 ## 4. Runtime contract (Cloud Run) **[Decided defaults]**
 
 | Service | CPU / mem | Concurrency | Min–max instances | Timeout |
 | --- | --- | --- | --- | --- |
-| api/common | 1 vCPU / 512 MiB | 80 | **1**–5 (worker lease, flows/monitor.md §3) | 60 s |
+| api/common | 1 vCPU / 512 MiB | 80 | 0–5 | 60 s |
 | api/observability | 1 vCPU / 1 GiB | 10 | 0–3 | 120 s |
-| envoy (sunset at monitors-v2, X-8) | 0.5 vCPU / 256 MiB | 200 | 0–3 | 60 s |
 
-- Domains: `api.upstat.cuesoft.io` → api/common; `ingest.upstat.cuesoft.io`
-  arrives with OBS-001; `status.upstat.cuesoft.io` → status pages.
+- Run-checks guard: `common` verifies the scheduler's Google OIDC token.
+  `SCHEDULER_AUDIENCE` must equal the token audience and
+  `SCHEDULER_INVOKER_EMAIL` the scheduler service account (verified email);
+  either unset returns 503, a bad token 401, a wrong email 403.
+- Set `WORKER_ENABLED=false` on Cloud Run: an idle instance does not run the
+  in-process worker loop, so Cloud Scheduler drives every pass.
+- Domains: `upstat.cuesoft.io` → web; the APIs are reached through the web
+  proxy.
 - Rollback: redeploy the previous image digest (recorded in the release run).
 - Web env: `NEXT_PUBLIC_*` flows Doppler → `apphosting.yaml` at rollout.
 

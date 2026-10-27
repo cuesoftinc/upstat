@@ -898,7 +898,7 @@ monitor/user **control-plane code, not UI** — X-8 keeps the existing
 control plane on gRPC until monitors-v2 (OBS-006). At backend-integration
 time the monitor repository may wrap the gRPC-Web client *inside* the
 models seam (views stay HTTP-shaped, §5); when monitors-v2 flips the
-dashboard fully HTTP and Envoy retires from the cloud topology, the
+dashboard fully HTTP, the
 proto tree quarantines and retires in its own PR — synchronized with
 the backend migration, not the W stages.
 
