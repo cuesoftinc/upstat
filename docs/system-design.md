@@ -53,6 +53,15 @@
 >   storage prefix; other products can read the lanes.
 > - **One Kafka user, `upstat`;** consumer groups `upstat-<service>`.
 > - **Keep-alive:** Expendit owns it; Upstat runs no heartbeat or watchdog.
+> - **Request ids:** every request carries a `request_id`, kept when it is
+>   re-sent; the owner keeps the first result per `request_id` and drops
+>   later ones.
+> - **Never block a partition:** a message that keeps failing becomes a
+>   failed result on `cuelabs.results` (or is recorded as failed by
+>   `common`), and is then committed.
+> - **Environments:** only the deployed services (Doppler `stg`) connect to
+>   the shared service; local runs use the compose broker, so a laptop
+>   never joins a shared consumer group.
 
 ## Contents
 
@@ -427,7 +436,7 @@ sequenceDiagram
   co-partitioned, so config, results, and timer land on the same consumer.
   If every region fails to report, the monitor goes `nodata`, never
   `down`.
-- **Free extras.** Phase timings feed the check-detail waterfall, and
+- **Extras from the same check.** Phase timings feed the check-detail waterfall, and
   `cert_not_after` gives OBS-011 certificate-expiry warnings without a new
   check type.
 
@@ -829,15 +838,12 @@ worth keeping, not a dual-write parity harness (§15 Q2).
 ## 15. Open questions
 
 1. **Probe regions.** Is `us-central1 / europe-west2 / africa-south1`
-   right for the customer base, and is three regions affordable in the
-   sandbox, or should Phase C start with two?
+   right for the customer base, or should Phase C start with two?
 2. **Existing data.** Are there any real users or monitors in the current
    Mongo that must survive? If not, the flows/auth.md §3 password-migration
    window and U2-7's parity harness can be dropped.
-3. **Kafka budget.** Aiven Kafka is the one new paid dependency. If it's
-   refused, S-2's fallback applies.
-4. **Gateway language.** Node follows the standard's gateway example. If
+3. **Gateway language.** Node follows the standard's gateway example. If
    the team prefers fewer languages, the gateway could be Python, at the
    cost of lower per-instance throughput on the hottest path.
-5. **Team capacity.** Phases B and C can run in parallel with two people;
+4. **Team capacity.** Phases B and C can run in parallel with two people;
    with one, B goes first because the sibling products are blocked on it.

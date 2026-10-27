@@ -42,8 +42,8 @@ documented as such; no cross-property joins, ever.
 ## U-4 · Alert channels & email provider (MON-001) — gates Phase 2
 
 **Recommendation ⭐:** **webhooks first** (provider-independent, ships
-immediately), **email via Resend** second (developer-grade DX, sane pricing;
-SES is the cost-optimization escape hatch later); Slack via webhook URL
+immediately), **email via Resend** second (developer-grade DX;
+SES is the escape hatch later); Slack via webhook URL
 initially, native app later.
 
 ☑ Ratified — **email provider REVISED by X-7 (2026-07-16): Brevo REST API** (was Resend); webhooks-first unchanged
