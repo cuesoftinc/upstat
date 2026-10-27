@@ -42,8 +42,8 @@ documented as such; no cross-property joins, ever.
 ## U-4 · Alert channels & email provider (MON-001) — gates Phase 2
 
 **Recommendation ⭐:** **webhooks first** (provider-independent, ships
-immediately), **email via Resend** second (developer-grade DX, sane pricing;
-SES is the cost-optimization escape hatch later); Slack via webhook URL
+immediately), **email via Resend** second (developer-grade DX;
+SES is the escape hatch later); Slack via webhook URL
 initially, native app later.
 
 ☑ Ratified — **email provider REVISED by X-7 (2026-07-16): Brevo REST API** (was Resend); webhooks-first unchanged
@@ -216,3 +216,23 @@ blocks.
   the template); tier-2 fields are high-sensitivity in every data-model §4
   classification; verification is delegated to the money/filing provider —
   no in-house document review. ☑
+- **X-11 Shared message bus (RATIFIED, boss 2026-10-13)**: expendit, apparule
+  and upstat share **one Aiven Kafka service** under the CueLABS delivery
+  standard's `references/shared-messaging.md` (the contract; read it before
+  designing any Kafka use). Three topics ("lanes") serve every product:
+  `cuelabs.uploads` (gateway → control plane), `cuelabs.requests` (control
+  plane → processing), `cuelabs.results` (processing → control plane); two
+  more are held in reserve and need a decision. Event types are
+  `<product>.<domain>.<event>`; consumers read the type first and skip what
+  isn't theirs. **Payloads go by pointer** (claim-check in the product's own
+  storage prefix) because every product can read the lanes. No compacted
+  topics: config travels in requests or as a snapshot object. Retention is
+  the service's fixed setting, so nothing may depend on the bus keeping a
+  message for more than a day; each control plane re-sends overdue work
+  from its own store. One Kafka user per product (`expendit`, `apparule`,
+  `upstat`); consumer groups `<product>-<service>`. The service powers off
+  after 24 h with no traffic and drops its messages: **keep-alive owner is
+  expendit** (its `api/common` reaper sends a heartbeat every 6 h and powers
+  the service back on through the Aiven API); apparule and upstat run no
+  heartbeat or watchdog. Bulk data never rides the bus (upstat telemetry
+  goes through the OpenTelemetry Collector instead). ☑
