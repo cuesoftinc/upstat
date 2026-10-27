@@ -184,7 +184,7 @@ export function seedSynthetics(
       {
         kind: "http",
         method: "GET",
-        url: "https://api.upstat.cuesoft.io/health",
+        url: "https://api-upstat.cuesoft.io/health",
       },
       { kind: "assertion", expression: "status == 200" },
       { kind: "assertion", expression: "body.ok == true" },

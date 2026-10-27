@@ -14,7 +14,7 @@ Flow-spec-owned codes: monitors (flows/monitor.md — `name_taken`,
 `timeout_gte_interval`), alerts (flows/alert.md — `channel_unverified`,
 `verification_expired`), events (analytics-math.md — `ts_out_of_range`,
 schema/origin rejections with per-reason counters), auth (flows/auth.md —
-`provider_not_allowed`, `migrate_to_firebase`), query
+`return_to_not_allowed`, `handoff_invalid`), query
 (`invalid_query{position, hint}` — query-grammar.md §3's error-not-empty
 rule), ingest (`quota_exceeded`, `key_scope_mismatch` — OBS-001).
 
@@ -39,7 +39,7 @@ owner-only model as "owner=everything, others=nothing" until then:
 | Status-page config | — | — | ✓ | ✓ |
 
 Role source **[Decided]**: org roles live in the control-plane DB (not
-Firebase custom claims) — resolved per request alongside org context.
+session token claims) — resolved per request alongside org context.
 
 Machine identities: `SERVICE_TOKEN` (observability↔common, fixed scope);
 property public keys (write-only ingest, U-2) — neither ever grants user-API

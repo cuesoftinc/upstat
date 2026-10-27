@@ -114,7 +114,10 @@ blocks.
   2026-07-16: Google sign-in is the ONLY method — no username/password
   signup or login, product-wide.** Email/Password provider disabled at
   the Firebase project; backends reject non-Google-provider tokens
-  (`provider_not_allowed`); UI ships exactly one auth CTA. Full contract:
+  (`provider_not_allowed`); UI ships exactly one auth CTA. **AMENDED
+  2026-10-28: the API owns Google sign-in** (OAuth redirect, handoff
+  exchange, HttpOnly session cookie carrying the API-signed JWT); Firebase
+  is no longer in the sign-in path. Full contract:
   [flows/auth.md](flows/auth.md). Environment/secrets live in **Doppler**
   — resolved: Doppler access works via the IaC token; **services read
   project `upstat`, config `stg`** (dev* = local convenience; prd empty until
@@ -194,7 +197,7 @@ blocks.
 - **X-10 Identity, profile & KYC tiers (RATIFIED, directive 2026-07-16)**: layered on
   X-1 — Google-only sign-in stays the sole credential; tiers add profile data and
   verification, never alternative logins. **Tier 0 — Google identity** (all
-  products): firebase_uid + Google-verified email; grants all read/basic use.
+  products): Google-verified email; grants all read/basic use.
   **Tier 1 — self-attested profile & location** (captured in product
   profile/settings; sensitive PII, never logged): apparule = bio + profile
   location {city, state, country} powering proximity-ranked designer

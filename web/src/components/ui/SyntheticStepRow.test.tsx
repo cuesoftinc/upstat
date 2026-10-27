@@ -8,13 +8,13 @@ describe("SyntheticStepRow", () => {
       <SyntheticStepRow
         index={1}
         kind="http"
-        summary="GET https://api.upstat.cuesoft.io/health"
+        summary="GET https://api-upstat.cuesoft.io/health"
       />,
     );
     expect(screen.getByText("1")).toBeInTheDocument();
     expect(screen.getByText("HTTP")).toBeInTheDocument();
     expect(
-      screen.getByText("GET https://api.upstat.cuesoft.io/health"),
+      screen.getByText("GET https://api-upstat.cuesoft.io/health"),
     ).toBeInTheDocument();
 
     rerender(

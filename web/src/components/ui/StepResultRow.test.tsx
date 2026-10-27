@@ -8,7 +8,7 @@ describe("StepResultRow", () => {
       <StepResultRow
         index={1}
         kind="http"
-        summary="GET https://api.upstat.cuesoft.io/health"
+        summary="GET https://api-upstat.cuesoft.io/health"
         result="pass"
         durationMs={142}
         durationFraction={0.31}

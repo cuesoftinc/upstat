@@ -16,7 +16,8 @@ import { SignInGate } from "./SignInGate";
  * sees this screen.
  */
 export default function SignInPage() {
-  const { signInWithGoogle, loading, error } = useAuthController();
+  const { signInWithGoogle, loading, error, redirectError } =
+    useAuthController();
 
   return (
     <SignInGate>
@@ -48,9 +49,9 @@ export default function SignInPage() {
             className="w-full max-w-[280px]"
           />
 
-          {error && (
+          {(error || redirectError) && (
             <p role="alert" className="text-[13px] leading-[1.45] text-crit">
-              Sign-in failed. Please try again.
+              {redirectError ?? "Sign-in failed. Please try again."}
             </p>
           )}
 

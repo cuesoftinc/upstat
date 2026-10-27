@@ -11,7 +11,7 @@ const TEST_USER: AuthUser = {
 const SESSION_KEY = "upstat.test-session";
 
 /**
- * TEST_MODE auth (`NEXT_PUBLIC_TEST_MODE=1`): no Firebase, no network —
+ * TEST_MODE auth (`NEXT_PUBLIC_TEST_MODE=1`): no Google redirect, no network —
  * sign-in immediately establishes a deterministic session so Playwright and
  * local dev go straight from /signin to /dashboard.
  */

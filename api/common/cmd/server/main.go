@@ -11,9 +11,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/cuesoftinc/upstat/api/common/internal/auth"
+	"github.com/cuesoftinc/upstat/api/common/internal/cache"
 	"github.com/cuesoftinc/upstat/api/common/internal/config"
+	"github.com/cuesoftinc/upstat/api/common/internal/handler"
 	"github.com/cuesoftinc/upstat/api/common/internal/jobs"
 	pb "github.com/cuesoftinc/upstat/api/common/internal/proto"
+	"github.com/cuesoftinc/upstat/api/common/internal/repository"
 	"github.com/cuesoftinc/upstat/api/common/internal/service"
 	"github.com/cuesoftinc/upstat/api/common/internal/util"
 	"golang.org/x/net/http2"
@@ -30,6 +34,17 @@ func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 
 	config.LoadEnv()
+
+	authCfg, err := config.LoadAuth()
+	if err != nil {
+		slog.Error("invalid auth configuration", "error", err)
+		os.Exit(1)
+	}
+	util.SetAccessTTL(authCfg.JWTAccessTTL)
+	util.ConfigureSession(util.SessionSettings{
+		CookieName:    authCfg.SessionCookieName,
+		AllowedOrigin: authCfg.IsAllowedOrigin,
+	})
 
 	db := config.NewDBHandler()
 
@@ -55,7 +70,15 @@ func main() {
 	mux.HandleFunc("/ready", readyCheck)
 	mux.Handle(jobs.Path, jobs.Handler{Verifier: jobs.GoogleVerifier{}, Checks: worker})
 
-	handler := h2c.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler.NewAuthHandler(
+		authCfg,
+		cache.NewMemoryStore(),
+		auth.NewGoogleSSO(authCfg.GoogleClientID, authCfg.GoogleClientSecret, authCfg.GoogleRedirectURI),
+		auth.NewHandoffService(repository.NewSSOHandoffRepository(db), authCfg.SessionSecret, util.GenerateSessionToken),
+		repository.NewUserRepository(db),
+	).Register(mux)
+
+	root := h2c.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.ProtoMajor == 2 && strings.HasPrefix(r.Header.Get("Content-Type"), "application/grpc") {
 			grpcServer.ServeHTTP(w, r)
 			return
@@ -70,7 +93,7 @@ func main() {
 	}
 
 	addr := ":" + port
-	srv := &http.Server{Addr: addr, Handler: handler}
+	srv := &http.Server{Addr: addr, Handler: root}
 
 	go func() {
 		slog.Info("server started (gRPC + HTTP)", "addr", addr)

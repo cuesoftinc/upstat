@@ -2,7 +2,6 @@ package util
 
 import (
 	"context"
-	"strings"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -15,6 +14,7 @@ type contextKey string
 const (
 	userIDContextKey contextKey = "userId"
 	emailContextKey  contextKey = "email"
+	nameContextKey   contextKey = "name"
 )
 
 func AuthenticateInterceptor(
@@ -25,11 +25,9 @@ func AuthenticateInterceptor(
 ) (any, error) {
 	switch info.FullMethod {
 	case
-		"/proto.UserService/CreateUser",
 		"/proto.UserService/GetUser",
 		"/proto.MonitorService/GetStatusPage",
-		"/proto.MonitorService/GetRecentChecks",
-		"/proto.UserService/GoogleAuth":
+		"/proto.MonitorService/GetRecentChecks":
 		return handler(ctx, req)
 	}
 
@@ -38,31 +36,19 @@ func AuthenticateInterceptor(
 		return nil, status.Error(codes.Unauthenticated, "missing metadata")
 	}
 
-	authHeaders := md.Get("authorization")
-	if len(authHeaders) == 0 {
-		return nil, status.Error(codes.Unauthenticated, "missing authorization header")
+	claims, ok := authenticateHeaders(
+		first(md, "authorization"),
+		first(md, "cookie"),
+		first(md, "origin"),
+		first(md, "sec-fetch-site"),
+	)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "invalid or missing credentials")
 	}
 
-	authHeader := authHeaders[0]
-	if !strings.HasPrefix(authHeader, "Bearer ") {
-		return nil, status.Error(codes.Unauthenticated, "invalid authorization header")
-	}
-
-	token := strings.TrimPrefix(authHeader, "Bearer ")
-	if token == "" {
-		return nil, status.Error(codes.Unauthenticated, "missing token")
-	}
-
-	userID, email, err := ValidateToken(token)
-	if err != nil {
-		return nil, status.Error(codes.Unauthenticated, "invalid token")
-	}
-	if userID == "" || email == "" {
-		return nil, status.Error(codes.Unauthenticated, "invalid token claims")
-	}
-
-	ctx = context.WithValue(ctx, userIDContextKey, userID)
-	ctx = context.WithValue(ctx, emailContextKey, email)
+	ctx = context.WithValue(ctx, userIDContextKey, claims.UserID)
+	ctx = context.WithValue(ctx, emailContextKey, claims.Email)
+	ctx = context.WithValue(ctx, nameContextKey, claims.Name)
 
 	return handler(ctx, req)
 }
@@ -75,4 +61,11 @@ func UserIDFromContext(ctx context.Context) (string, bool) {
 func EmailFromContext(ctx context.Context) (string, bool) {
 	email, ok := ctx.Value(emailContextKey).(string)
 	return email, ok
+}
+
+func first(md metadata.MD, key string) string {
+	if v := md.Get(key); len(v) > 0 {
+		return v[0]
+	}
+	return ""
 }

@@ -284,6 +284,6 @@ in `deploy/` — validated end-to-end on a live cluster.
 | ID | Dependency | Direction | Notes |
 | --- | --- | --- | --- |
 | D2 | Event-ingestion API | **provided by this repo** (Phase 1) | unblocks apparule/expendit analytics |
-| D1 | `account.cuesoft.io` facade | consumed, later | X-1: Firebase interim ratified — not blocking |
+| D1 | `account.cuesoft.io` facade | consumed, later | X-1: Google sign-in through the API — not blocking |
 | D3 | Upstat clause on privacy.cuesoft.io | consumed | UPS-005 copy |
 | X-5/X-7 | Aiven PG + Valkey, Brevo | consumed | shared data/email plane |

@@ -1,9 +1,9 @@
 /**
  * AuthProvider — the seam behind the single Google CTA (X-1, flows/auth.md:
- * Google sign-in only, product-wide; Firebase-backed in production).
+ * Google sign-in only, product-wide).
  *
- * TEST_MODE ships TestModeAuthProvider; FirebaseAuthProvider lands at
- * backend-integration time behind the same interface.
+ * TEST_MODE ships TestModeAuthProvider; SsoAuthProvider runs Google SSO
+ * through the API behind the same interface.
  */
 export interface AuthUser {
   id: string;
