@@ -149,6 +149,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Release deploys retry while Cloud Run cannot pull a fresh image.
 - Skip-to-content now mounts once from the root layout instead of only the
   dashboard shell, so marketing routes (`/`, `/signin`, `/docs/api`, public
   status pages, the 404) get the fleet-canonical (P15) first-focusable link

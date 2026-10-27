@@ -5,14 +5,14 @@
 # The web app is not here: it rides Firebase App Hosting rollouts from main.
 #
 # The Cloud Run resources (services, scheduler jobs, env, secrets, IAM) are created by
-# the cuesoft-iac stack (docs/deployment.md). This workflow only builds
+# the infrastructure-as-code stack (docs/deployment.md). This workflow only builds
 # the images and points the existing resources at the new digests.
 name: release
 
 on:
   push:
     branches: [main]
-    paths: ["api/**", ".github/workflows/release.yml"]
+    paths: ["api/**", ".github/workflows/release.yml", ".github/scripts/**"]
 
 permissions:
   contents: read
@@ -83,6 +83,11 @@ jobs:
       COMMON: docker.io/cuesoft/upstat-api-common@${{ needs.images.outputs.common }}
       OBSERVABILITY: docker.io/cuesoft/upstat-api-observability@${{ needs.images.outputs.observability }}
     steps:
+      - name: Checkout deploy scripts
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/scripts
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
         with:
@@ -94,13 +99,14 @@ jobs:
         uses: google-github-actions/setup-gcloud@v3
 
       # Deploy by digest, never by tag: Cloud Run pulls Docker Hub images
-      # through mirror.gcr.io, which has served stale manifests for tags.
+      # through mirror.gcr.io, which has served stale manifests for tags and
+      # can lag a fresh digest, so each deploy retries image pull failures.
       # common first: it runs the database migrations on start.
       - name: Deploy api-common
-        run: gcloud run services update upstat-api-common --region "$REGION" --image "$COMMON" --quiet
+        run: .github/scripts/deploy-with-retry.sh gcloud run services update upstat-api-common --region "$REGION" --image "$COMMON" --quiet
 
       - name: Deploy api-observability
-        run: gcloud run services update upstat-api-observability --region "$REGION" --image "$OBSERVABILITY" --quiet
+        run: .github/scripts/deploy-with-retry.sh gcloud run services update upstat-api-observability --region "$REGION" --image "$OBSERVABILITY" --quiet
 
       # Don't report success without checking the terminal state: every
       # service's latest revision must be the one serving and Ready.
