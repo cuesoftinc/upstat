@@ -5,7 +5,7 @@
 > §1–§7, `data-model.md` §3, and `deployment.md` §1 once ratified. It keeps
 > every **product** decision in [decisions.md](decisions.md) (Google-only
 > auth, ClickHouse, Aiven Postgres/Valkey, Brevo, Vertex AI, Cloud Run,
-> tag-gated deploys, OTel everywhere) and every **behavioural** contract in
+> merge-to-main deploys, OTel everywhere) and every **behavioural** contract in
 > the flow docs (monitor state machine, alert dispatch, analytics math,
 > query grammar). What it replaces is the **shape of the system**: service
 > boundaries, transports, data ownership, and where each piece of work runs.
@@ -693,7 +693,7 @@ Two independent watchers:
 
 ## 10. Deployment topology
 
-### 10.1 Cloud (X-3, X-6: tag-gated, `stg` only)
+### 10.1 Cloud (X-3, X-6: deploys on merge to main, `stg` only)
 
 | Unit | Cloud Run kind | Region(s) | Scaling | State |
 | --- | --- | --- | --- | --- |

@@ -68,7 +68,7 @@ dispatch cooldown cache); `429 rate_limited` + `Retry-After` (cataloged §1).
 | Unit (Go/pytest) | worker, dispatcher, rollups, hash | **evaluation-semantics transition table** (flows/monitor.md §2 — every edge incl. `nodata`); dispatch ordering + cooldown fixtures (flows/alert.md §3); visitor-hash rotation vectors; rollup idempotency (analytics-math.md §7) |
 | Contract | error catalog + query grammar | grammar: valid/invalid corpus with position-accurate errors; `uniques_additive:false` metadata presence |
 | Integration (compose) | web → api/common; events → rollup → stats | webhook signature fixture (documented recipe verifies) |
-| E2E smoke (release tag) | signin → create monitor → down-simulation → alert → recover | against sandbox in release.yml; uses a controllable target service |
+| E2E smoke (per deploy) | signin → create monitor → down-simulation → alert → recover | against sandbox in release.yml; uses a controllable target service |
 | Privacy invariants | events pipeline | raw IP/UA absent from storage + logs (grep + storage-scan test) |
 
 Web implementation (MVC boundaries, TEST_MODE, mock server, Vitest/Playwright

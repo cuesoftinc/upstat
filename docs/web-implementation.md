@@ -52,7 +52,7 @@
 - **Tests**: Vitest + Testing Library for unit/integration (components,
   controllers, mock handlers); Playwright e2e mirroring the design.md §8.4
   prototype flows, run in TEST_MODE against the mock server; both wired
-  into CI build+test (UX-5; X-6: merge-to-main never deploys).
+  into CI build+test (UX-5; X-6: CI itself never deploys).
 - **Legacy / dead-code policy**: before replacement, legacy trees are
   `git mv`-ed into `web/src/legacy/` (structure preserved, excluded from
   build & routing) — live paths carry zero dead code; after the replacement
@@ -871,7 +871,7 @@ a TEST_MODE boot looks like the designs:
 | Unit | Vitest + Testing Library | every `components/ui/*` module (variant axes, states, both themes, reduced-motion fallbacks — incl. the bespoke SVG charts: scale math, series-color stability, threshold tints); model/repository parsing incl. error-envelope handling; controller hooks |
 | Integration | Vitest | mock handlers (envelope + catalog codes, mixed-batch `202` semantics, monitor state-machine legality per the flows/monitor.md §2 transition table, position-accurate `invalid_query`); controller ↔ mock-server flows (MI-10 optimistic prepend + rollback on scripted failure; MI-1/MI-3 URL round-trips) |
 | E2E | Playwright, TEST_MODE against the mock server | the design.md §8.4 flows: **"Login"** (login → onboarding → B1 Home → every pillar via the NavRail, the create flows — dashboard, monitor, RUM property, declare-incident — and the drill-ins: APM service detail, monitor detail) and the **landing flow** (Part A scroll + `SCROLL_TO` anchors + the cross-page CTA handoff into "Login"); the **public status page** gets its own spec at `/status/upstat` — it is deliberately outside the in-app flow (§8.4), a separate entry point, not a dead end |
-| CI | build-and-test workflow (UX-5) | lint + typecheck + Vitest + Playwright on every PR; X-6: merge-to-main never deploys |
+| CI | build-and-test workflow (UX-5) | lint + typecheck + Vitest + Playwright on every PR; X-6: CI itself never deploys |
 
 The §8.4 rule that empty/loading/QA frames stay out of the prototype maps
 here too: Playwright walks real user paths (the empty-org onboarding path
@@ -922,7 +922,7 @@ policy — when that phase opens.
       table; contract types shared with models
 - [ ] Views contain no fetch calls and no gRPC imports (MVC boundary +
       X-8 cleanliness, enforced by review + lint rule)
-- [ ] Playwright §8.4 journeys green in CI; merge-to-main never deploys
+- [ ] Playwright §8.4 journeys green in CI; CI itself never deploys
       (X-6)
 - [ ] No dead code in live paths at any point: `src/legacy/` is the only
       quarantine location and trends to empty (§8); the proto/gRPC
