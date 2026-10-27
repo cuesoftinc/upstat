@@ -715,7 +715,7 @@ Scheduler (`upstat-run-checks`, §6.1); consumers of Kafka run as services
 that Cloud Run scales from zero on request. The web proxies `/api/v1/*` to
 the common service. Staging is GCP project
 `sandbox-e306a`, run.app URLs
-`https://<service>-805800737799.us-central1.run.app`. Provisioning goes through cuesoft-iac, which is also where Cloud
+`https://<service>-805800737799.us-central1.run.app`. Provisioning goes through the IaC stack, which is also where Cloud
 Run functions are provisioned today.
 
 ### 10.2 Self-host (compose + Helm)
@@ -767,7 +767,7 @@ docs/
 
 `functions/` is a new top-level directory. The standard has no home yet
 for function source that must also ship open-source for self-host
-(cuesoft-iac holds only provisioning). S-12 ratifies it.
+(the IaC stack holds only provisioning). S-12 ratifies it.
 
 ---
 
@@ -809,7 +809,7 @@ for function source that must also ship open-source for self-host
 | **S-9** | Tenancy defense in depth: Postgres RLS + ClickHouse row policies | engineering.md §2 (app-level only) | ⭐ ratify |
 | **S-10** | Consumers run as scale-to-zero services; `api/query` shares `api/common/pkg` via `replace`; new env names `CLICKHOUSE_URL`, `PROBE_URLS` | deployment.md §4; self-contained-service default | ⭐ ratify, propose names upstream |
 | **S-11** | Ingest quotas in **bytes/s** per key; `api/query` uses no Valkey | engineering.md §3 per-signal point quotas | ⭐ ratify |
-| **S-12** | Probe source lives in `functions/probe/` (Python, open-source, container for self-host); cuesoft-iac provisions it | — (no home for function source) | ⭐ ratify, and add `functions/` to the standard's layout |
+| **S-12** | Probe source lives in `functions/probe/` (Python, open-source, container for self-host); the IaC stack provisions it | — (no home for function source) | ⭐ ratify, and add `functions/` to the standard's layout |
 
 On ratification: record S-1…S-12 in decisions.md, update
 `.cuelabs/project.yaml` (`backend: {common,
