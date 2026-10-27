@@ -1,17 +1,17 @@
 # Deployment — Cloud Contract
 
-> Implements decision X-3. Cloud deploys follow the proven cueprise/getpp
+> Implements decision X-3. Cloud deploys follow proven
 > patterns (workflows verified 2026-07-16); provisioning goes through the
-> **cuesoft-iac** Pulumi ecosystem — never ad-hoc gcloud. Self-hosting via
+> **IaC stack** (Pulumi) — never ad-hoc gcloud. Self-hosting via
 > `deploy/` (compose/helm/terraform) is unchanged and shares only images.
 
 ## 1. Topology
 
 | Surface | Runs on | Provisioned by |
 | --- | --- | --- |
-| `api/common` (Go, gRPC/h2c) | Cloud Run `upstat-api-common` (HTTP/2 enabled), **min instances 0**; checks run when Cloud Scheduler calls `POST /internal/jobs/run-checks` every minute (flows/monitor.md §3) | cuesoft-iac stack `cuesoft` |
-| `api/observability` (Python) | Cloud Run `upstat-api-observability`, HTTP only, min instances 0; callable only by `upstat-common` | cuesoft-iac stack `cuesoft` |
-| Cloud Scheduler `upstat-run-checks` | Every minute, OIDC token to the common service; created paused until the PR that adds the endpoint deploys | cuesoft-iac stack `cuesoft` |
+| `api/common` (Go, gRPC/h2c) | Cloud Run `upstat-api-common` (HTTP/2 enabled), **min instances 0**; checks run when Cloud Scheduler calls `POST /internal/jobs/run-checks` every minute (flows/monitor.md §3) | IaC stack |
+| `api/observability` (Python) | Cloud Run `upstat-api-observability`, HTTP only, min instances 0; callable only by `upstat-common` | IaC stack |
+| Cloud Scheduler `upstat-run-checks` | Every minute, OIDC token to the common service; created paused until the PR that adds the endpoint deploys | IaC stack |
 | `web` (Next.js) | **Firebase App Hosting** backend `upstat-website` (upstat.cuesoft.io); proxies `/api/v1/*` to the common service | App Hosting backend |
 
 Ingest, query, alerting and probes are Planned (system-design.md §10.1) and
@@ -29,20 +29,18 @@ are not provisioned.
 | Secrets | Doppler project `upstat`, config `stg` |
 | GitHub environment `Sandbox` variables | `GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WORKLOAD_IDENTITY_PROVIDER`, `GCP_DEPLOY_SERVICE_ACCOUNT` |
 
-## 2. Provisioning (cuesoft-iac)
+## 2. Provisioning (IaC)
 
-- **Pulumi, bun runtime**; state in `gs://cuesoft-iac-pulumi-state-bucket`;
-  per-product stack (`Pulumi.<product>.yaml`) added alongside existing ones
-  (getpp, swaves, …).
-- Cloud Run services instantiate the shared module
-  `common/modules/gcp/cloud-run-service.ts`; the GitHub→GCP deploy identity
-  uses **Workload Identity Federation** (`common/helpers/wif.ts`) — no
-  service-account keys in GitHub.
-- Secrets/env flow from **Doppler** (`cueprise/cuesoft_stg` pattern) into
+- **Pulumi, bun runtime**; state in a GCS state bucket;
+  per-product stack (`Pulumi.<product>.yaml`).
+- Cloud Run services instantiate the shared Cloud Run service
+  module; the GitHub→GCP deploy identity uses **Workload Identity
+  Federation** — no service-account keys in GitHub.
+- Secrets/env flow from **Doppler** (the product's Doppler `stg` config) into
   Cloud Run env; the repo's `.env.example` files document the variable
   names, Doppler owns values.
 
-## 3. CI/CD (GitHub Actions, cueprise/getpp pattern)
+## 3. CI/CD (GitHub Actions)
 
 | Workflow | Trigger | Does |
 | --- | --- | --- |
@@ -55,7 +53,7 @@ to the sandbox; review and merge rights on `main` are the gate. The deploy job
 runs in the `Sandbox` environment, which holds the WIF variables. No version
 tags: images carry the commit sha and `latest`.
 
-Two hard-won rules inherited from cueprise, non-negotiable:
+Two hard-won rules, non-negotiable:
 
 1. **Deploy by digest, never by tag** — Cloud Run pulls Docker Hub images
    through the `mirror.gcr.io` cache, which has served stale manifests for

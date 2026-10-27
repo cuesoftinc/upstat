@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Docs describe provisioning without naming internal repositories.
 - Fleet-parity convergence: web deps aligned to the sibling pin set (Next
   16.2.11, React/React-DOM 19.2.8, `@types/node` ^24, `@testing-library/jest-dom`
   ^7, prettier ^3.9.6, `@scalar/api-reference-react` ^0.9.59, `@vitejs/plugin-react`

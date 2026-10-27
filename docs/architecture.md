@@ -274,7 +274,7 @@ rather than growing scope silently.
 
 ## 7. Deployment view
 
-Cloud: [deployment.md](deployment.md) (Cloud Run via cuesoft-iac, X-3/X-6 —
+Cloud: [deployment.md](deployment.md) (Cloud Run via the IaC stack, X-3/X-6 —
 every service min instances 0, Cloud Scheduler drives checks). Self-host: compose
 (mongo + services) and the standard-form Helm chart + terraform
 in `deploy/` — validated end-to-end on a live cluster.
