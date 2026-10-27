@@ -92,7 +92,7 @@ service MonitorService {
 
 A companion proto, `internal/proto/insight.proto`, defines `InsightService`
 (`GetMonitorInsight`). It is served by `api/observability` on its gRPC port
-(`:50051`) and consumed by this backend (`INSIGHT_SERVICE_GRPC_ADDRESS`), so it
+(`:50051`) and consumed by this backend (`INSIGHT_GRPC_ADDR`), so it
 is not part of the API this service exposes.
 
 ## Auth Model

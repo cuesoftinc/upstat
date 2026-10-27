@@ -22,7 +22,7 @@ service ships a `.env.example` to copy from.
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID for sign-in |
 | `JWT_SECRET` | Secret used to sign/verify JWTs |
 | `BASE_URL` | Public base URL of the backend |
-| `INSIGHT_SERVICE_GRPC_ADDRESS` | Address of the observability gRPC server |
+| `INSIGHT_GRPC_ADDR` | Address of the observability gRPC server |
 | `SERVICE_TOKEN_HASH` | Future/optional — not yet read by any service; api/common currently validates the shared gRPC auth token via `JWT_SECRET`, not a separate hash |
 
 ### `api/observability` (Python service)

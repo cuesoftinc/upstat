@@ -736,7 +736,7 @@ user/password) · `FIREBASE_PROJECT_ID` · `BREVO_API_KEY/FROM_EMAIL/FROM_NAME` 
 `GOOGLE_CLOUD_PROJECT`/Vertex region.
 
 Retired: `MONGO_URI`, `MONGO_DB`, `JWT_SECRET`,
-`INSIGHT_SERVICE_GRPC_ADDRESS`, `UPSTAT_GRPC_*`, `NEXT_PUBLIC_ENVOY_URL`.
+`INSIGHT_GRPC_ADDR`, `UPSTAT_GRPC_*`, `NEXT_PUBLIC_ENVOY_URL`.
 New on `common`: `SCHEDULER_AUDIENCE`, `SCHEDULER_INVOKER_EMAIL` (the run-checks guard) and `WORKER_ENABLED` (false on Cloud Run).
 `CLICKHOUSE_URL` and `PROBE_URLS` are new names and need adding to the
 delivery standard's fleet list (S-10).

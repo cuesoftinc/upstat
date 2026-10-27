@@ -26,7 +26,7 @@ type MonitorServiceServer struct {
 }
 
 func NewMonitorServiceServer(db *config.DB) *MonitorServiceServer {
-	insightServiceAddr := os.Getenv("INSIGHT_SERVICE_GRPC_ADDRESS")
+	insightServiceAddr := os.Getenv("INSIGHT_GRPC_ADDR")
 	if insightServiceAddr == "" {
 		insightServiceAddr = "localhost:50051"
 	}
