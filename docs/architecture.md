@@ -49,7 +49,7 @@ flowchart LR
 ### 1.2 Communication patterns
 
 - `UI -> GoBackend`: the web proxies `/api/v1/*` to the common service.
-- `PythonService -> GoBackend`: HTTP calls to `GET /v1/monitors/{id}/checks` with an optional Bearer session token (`UPSTAT_API_TOKEN`).
+- `PythonService -> GoBackend`: HTTP calls to `GET /v1/monitors/{id}/checks` with an optional Bearer session token (`API_TOKEN`).
 - `GoBackend -> Mongo`: persistence for monitors, checks, incidents.
 - `PythonService -> Mongo`: insight persistence.
 

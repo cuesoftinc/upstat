@@ -52,8 +52,8 @@ services:
       MONGO_URI: mongodb://mongo:27017
       MONGO_DB: ${MONGO_DB:-Upstat}
       API_URL: http://api-common:8080
-      UPSTAT_API_TOKEN: ${UPSTAT_API_TOKEN:-}
-      UPSTAT_API_CHECK_LIMIT: ${UPSTAT_API_CHECK_LIMIT:-100}
+      API_TOKEN: ${API_TOKEN:-}
+      API_CHECK_LIMIT: ${API_CHECK_LIMIT:-100}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
     depends_on:
       mongo:

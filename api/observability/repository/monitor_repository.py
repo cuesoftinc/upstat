@@ -15,7 +15,7 @@ REQUEST_TIMEOUT_SECONDS = 5
 
 
 def get_recent_checks(monitor_id: str) -> list[MonitorCheck]:
-    limit = int(os.getenv("UPSTAT_API_CHECK_LIMIT", DEFAULT_CHECK_LIMIT))
+    limit = int(os.getenv("API_CHECK_LIMIT", DEFAULT_CHECK_LIMIT))
 
     try:
         logger.debug(f"Requesting recent checks for monitor {monitor_id} with limit {limit}")
@@ -107,7 +107,7 @@ def _get(path: str, params: dict | None = None) -> dict:
     response = requests.get(
         f"{base}{path}",
         params=params,
-        headers=_auth_headers(os.getenv("UPSTAT_API_TOKEN")),
+        headers=_auth_headers(os.getenv("API_TOKEN")),
         timeout=REQUEST_TIMEOUT_SECONDS,
     )
     response.raise_for_status()

@@ -40,7 +40,7 @@ Boundary inventory:
 | Caller | Mechanism |
 | --- | --- |
 | Browser (HTTP surfaces) | API session cookie or bearer JWT |
-| api/observability → api/common | optional Bearer session token (`UPSTAT_API_TOKEN`) on authed routes |
+| api/observability → api/common | optional Bearer session token (`API_TOKEN`) on authed routes |
 | Tracking beacons | property public key (U-2) |
 | Public `GET /v1/status/{ownerId}` and `GET /v1/monitors/{id}/checks` | unauthenticated allowlist |
 

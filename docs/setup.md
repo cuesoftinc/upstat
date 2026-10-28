@@ -35,8 +35,8 @@ service ships a `.env.example` to copy from.
 | Variable | Description |
 |----------|-------------|
 | `API_URL` | Base URL of the Go backend (default `http://localhost:8080`) |
-| `UPSTAT_API_TOKEN` | Optional Bearer session token presented to the Go backend |
-| `UPSTAT_API_CHECK_LIMIT` | Max recent checks to request per monitor (default 50) |
+| `API_TOKEN` | Optional Bearer session token presented to the Go backend |
+| `API_CHECK_LIMIT` | Max recent checks to request per monitor (default 50) |
 | `MONGO_URI` / `MONGO_DB` | MongoDB connection string and database name |
 | `GROQ_API_KEY` | API key for LLM-rendered insights |
 

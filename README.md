@@ -90,7 +90,7 @@ make down    # stop
 ```
 
 Configuration is provided at runtime via environment variables (for example
-`MONGO_URI`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `UPSTAT_API_TOKEN` for the
+`MONGO_URI`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `API_TOKEN` for the
 observability service). See [docs/setup.md](docs/setup.md) for details; `make help` lists all
 targets. Never commit credentials or bake them into an image.
 

@@ -26,5 +26,5 @@ Natively: `pip install -r requirements.txt && uvicorn app.main:app --port 8081`.
 | Variable | Purpose |
 | --- | --- |
 | `API_URL` | Base URL of `api/common` (default `http://localhost:8080`) |
-| `UPSTAT_API_TOKEN` | Optional Bearer session token sent to `api/common` |
-| `UPSTAT_API_CHECK_LIMIT` | Recent checks fetched per monitor (default 50) |
+| `API_TOKEN` | Optional Bearer session token sent to `api/common` |
+| `API_CHECK_LIMIT` | Recent checks fetched per monitor (default 50) |
