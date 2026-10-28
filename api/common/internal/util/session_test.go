@@ -1,16 +1,10 @@
 package util
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
 )
 
 const testJWTSecret = "0123456789abcdef0123456789abcdef"
@@ -116,35 +110,5 @@ func TestSessionMiddleware(t *testing.T) {
 	h.ServeHTTP(rec, req)
 	if rec.Code != http.StatusOK || rec.Body.String() != "u1:Ada" {
 		t.Fatalf("authed = %d %q", rec.Code, rec.Body.String())
-	}
-}
-
-func TestAuthenticateInterceptor(t *testing.T) {
-	configureTestSession(t)
-	tok, _ := GenerateSessionToken("u1", "a@b.co", "Ada")
-	ok := func(ctx context.Context, req any) (any, error) {
-		id, _ := UserIDFromContext(ctx)
-		return id, nil
-	}
-	call := func(method string, md metadata.MD) (any, error) {
-		ctx := metadata.NewIncomingContext(context.Background(), md)
-		return AuthenticateInterceptor(ctx, nil, &grpc.UnaryServerInfo{FullMethod: method}, ok)
-	}
-
-	if _, err := call("/proto.MonitorService/ListMonitors", metadata.MD{}); status.Code(err) != codes.Unauthenticated {
-		t.Fatalf("anonymous = %v", err)
-	}
-	if got, err := call("/proto.MonitorService/ListMonitors", metadata.Pairs("authorization", "Bearer "+tok)); err != nil || got != "u1" {
-		t.Fatalf("bearer = %v, %v", got, err)
-	}
-	md := metadata.Pairs("cookie", "upstat_session="+tok, "origin", "http://localhost:3000")
-	if got, err := call("/proto.MonitorService/ListMonitors", md); err != nil || got != "u1" {
-		t.Fatalf("cookie = %v, %v", got, err)
-	}
-	if _, err := call("/proto.UserService/GoogleAuth", metadata.MD{}); status.Code(err) != codes.Unauthenticated {
-		t.Fatalf("removed GoogleAuth must need credentials, got %v", err)
-	}
-	if _, err := call("/proto.UserService/GetUser", metadata.MD{}); err != nil {
-		t.Fatalf("public method = %v", err)
 	}
 }

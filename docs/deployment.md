@@ -9,7 +9,7 @@
 
 | Surface | Runs on | Provisioned by |
 | --- | --- | --- |
-| `api/common` (Go, gRPC/h2c) | Cloud Run `upstat-api-common` (HTTP/2 enabled), **min instances 0**; checks run when Cloud Scheduler calls `POST /internal/jobs/run-checks` every minute (flows/monitor.md §3) | IaC stack |
+| `api/common` (Go, HTTP/h2c) | Cloud Run `upstat-api-common` (HTTP/2 enabled), **min instances 0**; checks run when Cloud Scheduler calls `POST /internal/jobs/run-checks` every minute (flows/monitor.md §3) | IaC stack |
 | `api/observability` (Python) | Cloud Run `upstat-api-observability`, HTTP only, min instances 0; callable only by `upstat-common` | IaC stack |
 | Cloud Scheduler `upstat-run-checks` | Every minute, OIDC token to the common service; created paused until the PR that adds the endpoint deploys | IaC stack |
 | `web` (Next.js) | **Firebase App Hosting** backend `upstat-website` (upstat.cuesoft.io); proxies `/api/v1/*` to the common service | App Hosting backend |

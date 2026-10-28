@@ -1,50 +1,47 @@
 # Upstat — API Surface
 
-> Current surface verified against `internal/proto/*.proto` and the web app.
-> The full gRPC reference lives in
-> [api/common/docs/grpc-api.md](../api/common/docs/grpc-api.md) — this file
-> maps it to the PRD and defines the target additions. Markers: **[Current]**,
-> **[PRD]**, **[Proposed]**.
+> Current surface verified against the api/common handlers and the web app.
+> Every route is HTTP/JSON; [api/openapi.yaml](api/openapi.yaml) is the
+> contract. This file maps it to the PRD and defines the target additions.
+> Markers: **[Current]**, **[PRD]**, **[Proposed]**.
 
 ## 1. Current surface **[Current]**
 
-### gRPC (api/common :8080, h2c; local gRPC-Web only)
-
-| Service | RPCs | Auth |
-| --- | --- | --- |
-| `UserService` | GetUser, CreateUser, UpdateUser, DeleteUser, GetAllUsers | GetUser public; CreateUser closed (Google sign-in creates accounts); rest JWT |
-| `MonitorService` | CreateMonitor, UpdateMonitor, GetMonitor, ListMonitors, DeleteMonitor, GetStatusPage, GetRecentChecks | GetStatusPage + GetRecentChecks public; rest JWT (owner from token) |
-| `InsightService` (served by api/observability :50051, consumed by api/common) | GetMonitorInsight | service-token |
-
-### HTTP
+### HTTP (api/common :8080, h2c)
 
 | Endpoint | Notes |
 | --- | --- |
 | `GET /health`, `GET /ready` (both services) | probes |
+| `GET /v1/monitors`, `POST /v1/monitors` (api/common) | list and create; session cookie or `Authorization: Bearer`; owner-scoped |
+| `GET /v1/monitors/{id}`, `PATCH /v1/monitors/{id}`, `DELETE /v1/monitors/{id}` (api/common) | read, update (name, target, type) and delete; owner-scoped; 404 `not_found` for another owner's monitor |
+| `GET /v1/monitors/{id}/checks?limit=` (api/common) | public; returns `monitor_id`, `days`, `recent_checks`, `uptime_90d_pct`; `limit` defaults to 50, capped at 500 |
+| `GET /v1/status/{ownerId}` (api/common) | public status page: `monitors`, `active_incidents`, `historical_incidents`, `uptime_percentage`, `total_checks`, `successful_checks` (checks counted over 24 hours) |
 | `GET /v1/auth/sso/google?cv=`, `GET /v1/auth/sso/google/callback` (api/common) | Google sign-in: PKCE start, state-checked callback that redirects to the web app `/auth/callback?handoff=` |
 | `POST /v1/auth/sso/exchange`, `GET /v1/auth/me`, `POST /v1/auth/logout` (api/common) | handoff-for-session exchange (sets the session cookie), identity read, cookie clear; credentialed CORS for allowed origins |
-| `GET /insights/{monitor_id}`, `POST /analyze/{monitor_id}` (observability :8081) | insight read/trigger |
+| `GET /insights/{monitor_id}`, `POST /analyze/{monitor_id}` (observability :8081) | insight read/trigger; observability reads checks from api/common over HTTP |
+
+Errors use one envelope: `{"error":{"code","message","details"}}` with stable
+snake_case codes (`bad_shape`, `not_found`, `internal`).
 
 ## 1a. Service topology for new surfaces **[Decided]**
 
 | Surface | Service | Port | Hostname | CORS/origin enforcement |
 | --- | --- | --- | --- | --- |
-| `/v1/events`, `/v1/stats`, `/v1/query`, `/v1/channels`, `/v1/monitors/*/rules` | **api/common** (Go — gains an HTTP mux alongside gRPC/h2c) | 8080 | `api-upstat.cuesoft.io` | in-app middleware (origin allowlist per property for /v1/events; standard CORS for user routes) |
+| `/v1/events`, `/v1/stats`, `/v1/query`, `/v1/channels`, `/v1/monitors/*/rules` | **api/common** (Go, HTTP mux with h2c) | 8080 | `api-upstat.cuesoft.io` | in-app middleware (origin allowlist per property for /v1/events; standard CORS for user routes) |
 | `upstat.js` static | web | 3000 | `upstat.cuesoft.io/upstat.js` | n/a (public asset) |
 | OTLP gRPC/HTTP (OBS-001) | ingest gateway (new service at OBS-001) | 4317/4318 | `ingest.upstat.cuesoft.io` | key-authed, no browser CORS |
-| Existing gRPC-Web | local only | 8080 | as today | current |
 
 ## 2. Target surface — monitors & alerts
 
 The alert surface is HTTP (**U-5: HTTP-only for new surfaces**) —
 `POST /v1/channels`, `/v1/channels/{id}/verify`, `/v1/monitors/{id}/rules`
 per [flows/alert.md](flows/alert.md) and
-[openapi.yaml](api/openapi.yaml). No gRPC alert service exists.
+[openapi.yaml](api/openapi.yaml).
 
 ## 3. Target surface — events & stats (M2/M3, the ecosystem "D2" contract) **[Proposed]**
 
-Plain HTTP/JSON — browser beacons can't speak gRPC and sibling servers
-shouldn't need proto toolchains for two counters.
+Plain HTTP/JSON, so browser beacons and sibling servers need no special
+client for two counters.
 
 ### 3.1 Ingestion
 
@@ -163,8 +160,7 @@ schema-as-privacy-boundary enforceable.
 ## 5. Conventions
 
 Shared ecosystem conventions (error envelope, pagination, idempotency) apply
-to the new HTTP surfaces exactly as written in apparule's api.md §4; gRPC
-error semantics stay as documented in grpc-api.md. **[Proposed]**
+to the HTTP surfaces as written in the shared api conventions. **[Proposed]**
 
 ---
 
@@ -181,6 +177,5 @@ error semantics stay as documented in grpc-api.md. **[Proposed]**
 | Service catalog | CRUD + telemetry-presence summary |
 | Keys | ingest-key CRUD with scopes/quotas |
 
-gRPC remains for the existing user/monitor control plane; all new surfaces
-are HTTP/JSON (ecosystem conventions). RUM/browser SDK (`upstat.js`) extends
+All surfaces are HTTP/JSON. RUM/browser SDK (`upstat.js`) extends
 the Phase-1 script with web-vitals + error capture — same property keys.

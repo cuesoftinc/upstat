@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
@@ -16,14 +15,11 @@ import (
 	"github.com/cuesoftinc/upstat/api/common/internal/config"
 	"github.com/cuesoftinc/upstat/api/common/internal/handler"
 	"github.com/cuesoftinc/upstat/api/common/internal/jobs"
-	pb "github.com/cuesoftinc/upstat/api/common/internal/proto"
 	"github.com/cuesoftinc/upstat/api/common/internal/repository"
 	"github.com/cuesoftinc/upstat/api/common/internal/service"
 	"github.com/cuesoftinc/upstat/api/common/internal/util"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 type healthResponse struct {
@@ -58,13 +54,6 @@ func main() {
 		slog.Info("monitor worker loop disabled; checks run via POST /internal/jobs/run-checks")
 	}
 
-	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(util.AuthenticateInterceptor),
-	)
-	pb.RegisterUserServiceServer(grpcServer, service.NewUserServiceServer(db))
-	pb.RegisterMonitorServiceServer(grpcServer, service.NewMonitorServiceServer(db))
-	reflection.Register(grpcServer)
-
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", healthCheck)
 	mux.HandleFunc("/ready", readyCheck)
@@ -78,14 +67,14 @@ func main() {
 		repository.NewUserRepository(db),
 	).Register(mux)
 
-	root := h2c.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.ProtoMajor == 2 && strings.HasPrefix(r.Header.Get("Content-Type"), "application/grpc") {
-			grpcServer.ServeHTTP(w, r)
-			return
-		}
+	handler.NewMonitorHandler(
+		repository.NewMonitorRepository(db),
+		repository.NewCheckResultRepository(db),
+		repository.NewIncidentRepository(db),
+		authCfg.IsAllowedOrigin,
+	).Register(mux)
 
-		mux.ServeHTTP(w, r)
-	}), &http2.Server{})
+	root := h2c.NewHandler(mux, &http2.Server{})
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -96,7 +85,7 @@ func main() {
 	srv := &http.Server{Addr: addr, Handler: root}
 
 	go func() {
-		slog.Info("server started (gRPC + HTTP)", "addr", addr)
+		slog.Info("server started", "addr", addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			slog.Error("could not start server", "error", err)
 			os.Exit(1)
@@ -107,7 +96,6 @@ func main() {
 	// which also stops the monitor worker).
 	<-ctx.Done()
 	slog.Info("shutting down server")
-	grpcServer.GracefulStop()
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

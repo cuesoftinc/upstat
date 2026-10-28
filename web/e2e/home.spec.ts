@@ -74,7 +74,7 @@ test("home renders every Part A section", async ({ page }) => {
   ).toBeVisible();
   await expect(
     page.getByText(
-      "Go gRPC services · Next.js + React/TS · ClickHouse · OpenTelemetry",
+      "Go services · Next.js + React/TS · ClickHouse · OpenTelemetry",
     ),
   ).toBeVisible();
   // CTA-dedupe canon: the one GitHub+Discord pair lives in A13; A8 carries

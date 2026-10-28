@@ -1,17 +1,18 @@
 # Upstat API (`api/common`)
 
-Go core service: gRPC (users, monitors, status pages) and HTTP `/health` +
-`/ready`, multiplexed on one port via h2c. Runs the monitor-check worker and
-talks to MongoDB; consumes ML insights from `api/observability` over gRPC.
+Go core service: HTTP/JSON (auth, monitors, status pages, `/health` +
+`/ready`) on one port (8080), with h2c so Cloud Run HTTP/2 works. Runs the
+monitor-check worker and talks to MongoDB. `api/observability` reads monitor
+checks from it over HTTP.
 
 ## Layout
 
 ```
-cmd/server            entrypoint — slog JSON, graceful shutdown (HTTP + gRPC)
+cmd/server            entrypoint — slog JSON, graceful shutdown
 cmd/make_service_token  mints service-to-service JWTs
-internal/config       env + Mongo client      internal/service   gRPC servers + worker
+internal/config       env + Mongo client      internal/service   check worker
 internal/repository   Mongo repositories      internal/model     models
-internal/util         JWT, interceptor        internal/proto     generated stubs (+ .proto sources)
+internal/util         JWT, session middleware  internal/handler   HTTP handlers
 ```
 
 ## Run
@@ -27,8 +28,6 @@ token: `SCHEDULER_AUDIENCE` must equal the token audience and
 `SCHEDULER_INVOKER_EMAIL` the verified `email` claim. Either unset returns 503,
 a bad token 401, a wrong email 403. Other job names return 404. Set
 `WORKER_ENABLED=false` on Cloud Run; it defaults to on locally.
-
-Regenerate stubs with the `protoc` command in [docs/grpc-api.md](docs/grpc-api.md).
 
 ## Test
 

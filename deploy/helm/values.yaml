@@ -11,14 +11,13 @@ services:
   api-common:
     image: cuesoft/upstat-api-common:latest
     port: 8080
-    h2c: true # gRPC + HTTP health multiplexed on one port
+    h2c: true # HTTP/1.1 and h2c on one port
     healthPath: /health
     readyPath: /ready
     env:
       PORT: "8080"
       MONGO_URI: mongodb://mongo:27017
       MONGO_DB: Upstat
-      INSIGHT_GRPC_ADDR: api-observability:50051
     # Inject secrets (e.g. JWT_SECRET, SESSION_SECRET, GOOGLE_CLIENT_SECRET) from a Kubernetes Secret instead of env:
     # envFrom:
     #   - secretRef: api-common-secrets
@@ -28,16 +27,11 @@ services:
     port: 8081
     healthPath: /health
     readyPath: /ready
-    extraPorts:
-      - name: grpc
-        port: 50051
     env:
       PORT: "8081"
-      GRPC_PORT: "50051"
-      GRPC_SERVER_ENABLED: "true"
       MONGO_URI: mongodb://mongo:27017
       MONGO_DB: Upstat
-      COMMON_GRPC_ADDR: api-common:8080
+      API_URL: http://api-common:8080
 
   web:
     image: cuesoft/upstat-web:latest
@@ -46,12 +40,6 @@ services:
     healthPath: /
     env:
       PORT: "3000"
-
-  envoy:
-    image: envoyproxy/envoy:v1.31.5
-    port: 8081
-    runAsUser: 101 # envoy user in the official image
-    envoyConfig: true # mounts envoy/envoy.yaml via ConfigMap (gRPC-Web -> api-common)
 
 # Optional Ingress (see templates/ingress.yaml). Disabled by default: the chart's
 # existing consumers publish through Cloud Run / App Hosting, not an ingress

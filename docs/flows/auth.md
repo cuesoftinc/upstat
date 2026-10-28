@@ -23,9 +23,9 @@ per /64.
 ## 2. Session & boundaries
 
 The session is an HttpOnly cookie carrying the API-signed JWT;
-`GET /v1/auth/me` reads it and `POST /v1/auth/logout` clears it. gRPC-Web
-calls send the cookie (or `authorization: Bearer <token>`), and the unary
-interceptor verifies it.
+`GET /v1/auth/me` reads it and `POST /v1/auth/logout` clears it. Authed
+HTTP routes read the cookie (or `Authorization: Bearer <token>`), and the
+session middleware verifies it.
 
 **Session restore [Decided 2026-07-22, platform-neutral]**: restore
 resolves **before either surface routes**: the web reads `/v1/auth/me`
@@ -39,19 +39,18 @@ Boundary inventory:
 
 | Caller | Mechanism |
 | --- | --- |
-| Browser (gRPC-Web + HTTP surfaces) | API session cookie or bearer JWT |
-| api/observability → api/common | `SERVICE_TOKEN` (machine identity, not user auth) |
+| Browser (HTTP surfaces) | API session cookie or bearer JWT |
+| api/observability → api/common | optional Bearer session token (`UPSTAT_API_TOKEN`) on authed routes |
 | Tracking beacons | property public key (U-2) |
-| Public status/GetRecentChecks | unauthenticated allowlist |
+| Public `GET /v1/status/{ownerId}` and `GET /v1/monitors/{id}/checks` | unauthenticated allowlist |
 
 ## 3. Migration & failure paths
 
 Link-by-email on first Google sign-in (Google emails are verified), with
-the stranded-user support path. The password sign-in in `GetUser` exists
+the stranded-user support path. The password sign-in exists
 only for the migration window: the **60-day window starts at the release
 tag that ships Google sign-in** (recorded in decisions.md when cut); after
-it, password sign-in is removed and the password fields deprecate out of
-`user.proto` at the next proto rev; RPC fates per grpc-api.md (normative).
+it, password sign-in is removed and the password fields are dropped.
 
 Failure paths: a Google outage fails sign-ins closed; existing sessions
 survive until the JWT expires. Email collision (a legacy row's email now

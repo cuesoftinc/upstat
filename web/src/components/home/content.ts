@@ -85,7 +85,7 @@ export const PLAN_ROWS: PlanFeatureRow[] = [
 
 /** A13 — the ratified stack line (verbatim; 2026-07-18 QA loop). */
 export const STACK_LINE =
-  "Go gRPC services · Next.js + React/TS · ClickHouse · OpenTelemetry";
+  "Go services · Next.js + React/TS · ClickHouse · OpenTelemetry";
 
 export const PROBLEM_CHIPS = [
   "Columnar telemetry store",

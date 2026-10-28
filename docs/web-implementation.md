@@ -14,10 +14,8 @@
 ## 1. The standard (ecosystem, shared across the three products)
 
 - **Stack**: Next.js 16 App Router + React 19 + TypeScript; Tailwind maps to
-  the token CSS variables (§3). All live UI is token/Tailwind-based; the one
-  non-UI holdover is the gRPC-Web control-plane client (`components/libs/grpc`)
-  — retained, not yet wired into any repository or page (X-8; targeted for
-  monitors-v2, §8).
+  the token CSS variables (§3). All live UI is token/Tailwind-based; the only
+  network layer is the HTTP repository client.
 - **Design tokens**: `web/src/design/tokens.css` — CSS custom properties
   mirroring design.md §2 exactly (dark on `:root`, the product default;
   light under `[data-theme="light"]`, honoring `prefers-color-scheme` with
@@ -122,9 +120,7 @@ store. MI coverage closed out: MI-1 URL-synced global time, MI-3 zoom stack
 grid editor, MI-10 slash-command incident composer, and MI-18 saved views.
 Mock endpoints added: `orgs/{id}/activate`, `rules/{id}/test` +
 `monitors/{id}/test` (MI-9 replay), `channels/{id}/verify`, `status/{slug}`,
-`views` CRUD, and a `/v1/reset` test seam. The gRPC/proto control-plane
-tree stays live per X-8 until monitors-v2 (§8).
-`scripts/check-boundaries.mjs` — legacy
+`views` CRUD, and a `/v1/reset` test seam. `scripts/check-boundaries.mjs` — legacy
 quarantine, views-never-fetch, no-raw-hex — is wired into `npm run lint`.
 Un-ignoring the registry from ESLint surfaced a stale negation pattern in
 the old ignore list (it didn't reach nested files, so the registry had been
@@ -319,14 +315,11 @@ prune landed: `styled-components` (+ its `next.config.ts` compiler flag),
 `chart.js`, `react-chartjs-2`, `recharts`, `@tanstack/react-query`,
 `js-cookie` (+ `@types/js-cookie`), `@iconify/react`,
 `@react-oauth/google`, and `@floating-ui/react-dom` are removed — zero
-live imports verified first; the X-8 gRPC control-plane pair
-(`grpc-web`, `google-protobuf` + `src/proto`/
-`src/models/repositories/grpc-client.ts`/
-`components/libs/grpc`) stays until monitors-v2 per §8. Dead code:
+live imports verified first. Dead code:
 MarketingFooter's unused `inline` variant axis removed (no consumer; the
 footer renders the one canonical stacked shape). The docs now describe
 only the current system (api.md §2 states the HTTP alert surface without
-the struck-through gRPC sketch; stale nav enumerations corrected).
+stale nav enumerations corrected).
 `package.json` scripts carry the org-canonical names and compositions
 (`dev/build/start/lint/lint:fix/typecheck/test/test:watch/test:e2e/
 check:boundaries`); the web tooling (boundary gate, prettier config,
@@ -778,9 +771,8 @@ on it:
 
 Unset (or `0`) → `SsoAuthProvider` (API session cookie) + the real API base from
 `NEXT_PUBLIC_API_BASE` (api/common HTTP). The new app consumes **HTTP/JSON
-only** (U-5/X-8 — no new gRPC-Web surface); until monitors-v2 lands, the
-real-backend monitor path is bridged inside the models seam (§8), never in
-views. TEST_MODE is how Playwright runs in CI and how W1–W3 are built
+only** (U-5/X-8); the real-backend monitor path lives inside the models
+seam (§8), never in views. TEST_MODE is how Playwright runs in CI and how W1–W3 are built
 before the backend surfaces exist.
 
 ## 6. Mock server & seed narrative
@@ -795,8 +787,8 @@ the flow-spec taxonomies (monitor states, check-error causes, channel
 states, incident phases, sev levels). Backed by one seeded in-memory store
 (module singleton, dev-persistent) with full CRUD; contract types shared
 with `src/models/`. The mock speaks the **monitors-v2 HTTP shape** for the
-monitor control plane (X-8) — the new views are HTTP-clean from day one
-even while the real backend is still gRPC (§8).
+monitor control plane (X-8); the real backend serves the same monitor
+routes over HTTP (api.md §1).
 
 | Group | Mocked endpoints (under `/api/mock/v1`) |
 | --- | --- |
@@ -887,19 +879,8 @@ passes QA — and it is **currently empty**. The guardrails stay armed:
 `scripts/check-boundaries.mjs` (wired into `npm run lint`) and the
 ESLint `no-restricted-imports` boundary fail any live import of
 `src/legacy/**`. `package.json` carries no unused dependencies — the
-only intentional exception is the X-8 gRPC pair below (`grpc-web`,
-`google-protobuf`), which backs the kept control-plane tree.
-
-One tree stays live by design: the gRPC-Web control plane. `src/proto/*`,
-`src/models/repositories/grpc-client.ts`, and the gRPC libs
-(`components/libs/grpc`) are
-monitor/user **control-plane code, not UI** — X-8 keeps the existing
-control plane on gRPC until monitors-v2 (OBS-006). At backend-integration
-time the monitor repository may wrap the gRPC-Web client *inside* the
-models seam (views stay HTTP-shaped, §5); when monitors-v2 flips the
-dashboard fully HTTP, the
-proto tree quarantines and retires in its own PR — synchronized with
-the backend migration, not the W stages.
+only network layer is the HTTP repository client in the models seam
+(views stay HTTP-shaped, §5). There is no generated client code and no proxy.
 
 `mobile/` (Part C companion) is untouched by W0–W3 and gets its own
 implementation standard — including its own application of the quarantine
@@ -919,13 +900,12 @@ policy — when that phase opens.
 - [ ] Every mocked endpoint speaks the engineering.md envelope with catalog
       codes; monitor transitions in the mock honor the flows/monitor.md §2
       table; contract types shared with models
-- [ ] Views contain no fetch calls and no gRPC imports (MVC boundary +
-      X-8 cleanliness, enforced by review + lint rule)
+- [ ] Views contain no fetch calls (MVC boundary,
+      enforced by review + lint rule)
 - [ ] Playwright §8.4 journeys green in CI; CI itself never deploys
       (X-6)
 - [ ] No dead code in live paths at any point: `src/legacy/` is the only
-      quarantine location and trends to empty (§8); the proto/gRPC
-      control plane retires only at monitors-v2
+      quarantine location and trends to empty (§8)
 
 ## 10. SEO plumbing (as-built, 2026-07-21)
 

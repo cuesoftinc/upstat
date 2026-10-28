@@ -547,14 +547,18 @@ func (h *AuthHandler) writeSSOStartError(w http.ResponseWriter, r *http.Request,
 
 // cors allows credentialed requests from the configured web origins only.
 func (h *AuthHandler) cors(next http.Handler) http.Handler {
+	return corsFor(h.cfg.IsAllowedOrigin, "GET, POST, OPTIONS", next)
+}
+
+func corsFor(allowed func(origin string) bool, methods string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
-		if origin != "" && h.cfg.IsAllowedOrigin(origin) {
+		if origin != "" && allowed(origin) {
 			w.Header().Add("Vary", "Origin")
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 			w.Header().Set("Access-Control-Allow-Credentials", "true")
 			if r.Method == http.MethodOptions {
-				w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+				w.Header().Set("Access-Control-Allow-Methods", methods)
 				w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
 				w.Header().Set("Access-Control-Max-Age", "600")
 			}

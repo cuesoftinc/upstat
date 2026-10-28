@@ -57,6 +57,8 @@ incidents, SLOs). Browsers and sibling products never need proto toolchains.
 
 ☑ Ratified
 
+> **Superseded 2026-10-28:** product gRPC, gRPC-Web and Envoy removed; service traffic is HTTP; OTLP ingest keeps gRPC 4317 alongside HTTP 4318.
+
 ## U-6 · Retention defaults per signal — published per UPS-003
 
 **Recommendation ⭐:** raw events 90d · hourly rollups 90d · daily rollups
@@ -177,6 +179,7 @@ blocks.
   **Browser gRPC-Web is a sunset path**: no new surface uses it
   (U-5); at monitors-v2 (OBS-006) the dashboard goes fully HTTP. Envoy is
   not deployed to the cloud. apparule/expendit never adopt gRPC. ☑
+  > **Superseded 2026-10-28:** product gRPC, gRPC-Web and Envoy removed; service traffic is HTTP; OTLP ingest keeps gRPC 4317 alongside HTTP 4318.
 - **X-9 Telemetry standard (RATIFIED, directive 2026-07-16)**: **OpenTelemetry
   everywhere** — traces, custom metrics, and logs from every service via OTel
   SDKs (Go: otel-go + slog bridge; Python: opentelemetry-python + logging
@@ -187,7 +190,7 @@ blocks.
   (OBS-001; gRPC 4317 + HTTP 4318, `Upstat-Ingest-Key` via
   OTEL_EXPORTER_OTLP_HEADERS) — sibling products are its first-party
   customers. **Sibling exporters default to OTLP/HTTP (4318)** — apparule
-  and expendit remain 100% HTTP in practice; only upstat hosts gRPC (X-8). Until OBS-001 ships, services instrument NOW with export
+  and expendit remain 100% HTTP in practice. Until OBS-001 ships, services instrument NOW with export
   env-gated (unset OTEL_EXPORTER_OTLP_ENDPOINT = no-op). Logs dual-emit:
   JSON stdout stays (Cloud Run native logging) + OTLP to upstat. Operational
   telemetry (X-9) is SEPARATE from product analytics events (upstat

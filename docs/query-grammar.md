@@ -27,7 +27,7 @@ Examples:
 | `service:api-common status:error` | error logs/spans for one service |
 | `service:api-common \| count() by level` | log counts grouped by level |
 | `metric:http.request.duration_ms service:web \| p95() by path` | p95 latency per path |
-| `-level:debug (service:web OR service:envoy) timeout` | free-text "timeout", two services, no debug |
+| `-level:debug (service:web OR service:worker) timeout` | free-text "timeout", two services, no debug |
 | `check:homepage \| rate()` | uptime check pass rate |
 
 ## 2. Facet namespace

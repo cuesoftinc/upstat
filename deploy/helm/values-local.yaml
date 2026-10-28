@@ -27,7 +27,6 @@ services:
   # `null` is what actually deletes it.
   api-common: null
   api-observability: null
-  envoy: null
   web:
     image: cuesoft/upstat-web:testmode
     imagePullPolicy: IfNotPresent   # image is imported into the cluster, never pulled

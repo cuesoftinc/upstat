@@ -4,9 +4,7 @@
 
 - [Docker](https://www.docker.com/) & Docker Compose (recommended path)
 - For native development: Go 1.26+ (see `api/common/go.mod`), Python 3.11+
-  (`api/observability`), Node.js 24 (see `web/.nvmrc`), MongoDB, and Envoy
-  (only needed for the target gRPC-Web control plane — not required for the
-  web app to function; see below)
+  (`api/observability`), Node.js 24 (see `web/.nvmrc`), MongoDB
 
 ## Configuration
 
@@ -30,33 +28,29 @@ service ships a `.env.example` to copy from.
 | `OAUTH_STATE_COOKIE` | Sign-in state cookie name (default `upstat_oauth_state`) |
 | `WEB_URL` | Web app origin the API redirects to after sign-in |
 | `PUBLIC_URL` | Public base URL of the backend |
-| `INSIGHT_GRPC_ADDR` | Address of the observability gRPC server |
-| `SERVICE_TOKEN_HASH` | Future/optional — not yet read by any service; api/common currently validates the shared gRPC auth token via `JWT_SECRET`, not a separate hash |
+| `SERVICE_TOKEN_HASH` | Future/optional — not yet read by any service; api/common validates session tokens via `JWT_SECRET`, not a separate hash |
 
 ### `api/observability` (Python service)
 
 | Variable | Description |
 |----------|-------------|
-| `COMMON_GRPC_ADDR` | Address of the Go backend gRPC server |
-| `UPSTAT_GRPC_AUTH_TOKEN` | Auth token presented to the Go backend |
-| `UPSTAT_GRPC_CHECK_LIMIT` | Max recent checks to request per monitor |
+| `API_URL` | Base URL of the Go backend (default `http://localhost:8080`) |
+| `UPSTAT_API_TOKEN` | Optional Bearer session token presented to the Go backend |
+| `UPSTAT_API_CHECK_LIMIT` | Max recent checks to request per monitor (default 50) |
 | `MONGO_URI` / `MONGO_DB` | MongoDB connection string and database name |
 | `GROQ_API_KEY` | API key for LLM-rendered insights |
-| `GRPC_PORT` | Port the observability gRPC server listens on |
-| `GRPC_SERVER_ENABLED` | Toggle the embedded gRPC server (`true`/`false`) |
 
 ## Quick start (Docker)
 
 ```bash
 cp .env.example .env
-make up        # build + start mongo, api-common (:8080), api-observability (:8081), envoy (:8082), web (:3000)
+make up        # build + start mongo, api-common (:8080), api-observability (:8081), web (:3000)
 make logs      # follow logs
 make down      # stop
 ```
 
 - API (common): http://localhost:8080 — health `/health`, readiness `/ready`
 - API (observability): http://localhost:8081 — health `/health`, readiness `/ready`
-- gRPC-Web proxy (Envoy): http://localhost:8082
 - Web: http://localhost:3000
 
 ## Running natively (without Docker)
@@ -72,13 +66,4 @@ cd api/observability && cp .env.example .env \
 
 # Web (dashboard + status pages)
 cd web && npm install && npm run dev
-
-# Envoy (gRPC-Web -> gRPC proxy) — only needed for the target gRPC-Web
-# control plane; the web app itself runs fine without it today (its data
-# path is the in-app mock CRUD server). The gRPC-Web client is retained
-# (web/src/components/libs/grpc) but not yet wired to anything that calls Envoy.
-# The config targets hostname `api-common` (the Compose/Kubernetes service name);
-# for a native run, point it at loopback first:
-#   echo "127.0.0.1 api-common" | sudo tee -a /etc/hosts
-envoy -c deploy/helm/envoy/envoy.yaml
 ```

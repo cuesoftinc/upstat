@@ -3,14 +3,13 @@ info:
   title: Upstat HTTP API
   version: 0.1.0-draft
   description: >-
-    Draft contract for the HTTP surfaces (events, stats, query, alerts-v2,
-    OTLP omitted — standard protocol). Monitors/users remain gRPC
-    (api/common/docs/grpc-api.md). Auth: Google SSO session tokens for user routes;
-    property public keys for ingestion (U-2).
+    Contract for the HTTP surfaces (events, stats, query, alerts-v2, monitors,
+    OTLP omitted — standard protocol). Auth: Google SSO session tokens for user
+    routes; property public keys for ingestion (U-2).
 servers:
   - url: https://api-upstat.cuesoft.io
   - url: http://localhost:8080
-tags: [{ name: events }, { name: stats }, { name: alerts }, { name: query }, { name: auth }]
+tags: [{ name: events }, { name: monitors }, { name: stats }, { name: alerts }, { name: query }, { name: auth }]
 paths:
   /v1/events:
     post:
@@ -21,6 +20,72 @@ paths:
         "202": { description: Per-item results, content: { application/json: { schema: { $ref: "#/components/schemas/EventBatchResult" } } } }
         "422": { description: ts_out_of_range / schema rejection }
         "429": { description: rate_limited (600/min sustained) }
+  /v1/monitors:
+    get:
+      tags: [monitors]
+      summary: List the signed-in user's monitors
+      security: [{ session: [] }]
+      responses:
+        "200": { description: Monitors owned by the caller, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Monitor" } } } } }
+        "401": { description: Unauthenticated }
+    post:
+      tags: [monitors]
+      summary: Create a monitor (active, status unknown, 60 s interval, 10 s timeout, failure threshold 3)
+      security: [{ session: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/MonitorCreate" } } } }
+      responses:
+        "201": { description: Created monitor, content: { application/json: { schema: { $ref: "#/components/schemas/Monitor" } } } }
+        "400": { description: "bad_shape (malformed JSON body or body over 64 KiB)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: Unauthenticated }
+        "422": { description: "bad_shape (name, type and target are required)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /v1/monitors/{id}:
+    get:
+      tags: [monitors]
+      summary: Get one monitor (owner only)
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      security: [{ session: [] }]
+      responses:
+        "200": { description: Monitor, content: { application/json: { schema: { $ref: "#/components/schemas/Monitor" } } } }
+        "401": { description: Unauthenticated }
+        "404": { description: not_found, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+    patch:
+      tags: [monitors]
+      summary: Update name, target or type; omitted fields keep their value (owner only)
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      security: [{ session: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/MonitorUpdate" } } } }
+      responses:
+        "200": { description: Updated monitor, content: { application/json: { schema: { $ref: "#/components/schemas/Monitor" } } } }
+        "400": { description: bad_shape (malformed JSON body or body over 64 KiB), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: Unauthenticated }
+        "404": { description: not_found, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "422": { description: bad_shape (name, type and target cannot be empty), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+    delete:
+      tags: [monitors]
+      summary: Delete a monitor (owner only)
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      security: [{ session: [] }]
+      responses:
+        "204": { description: Deleted }
+        "401": { description: Unauthenticated }
+        "404": { description: not_found, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /v1/monitors/{id}/checks:
+    get:
+      tags: [monitors]
+      summary: Recent checks and 90-day uptime for a monitor (public)
+      parameters:
+        - { $ref: "#/components/parameters/Id" }
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 500, default: 50 }, description: "Larger values are capped at 500" }
+      responses:
+        "200": { description: Check history, content: { application/json: { schema: { $ref: "#/components/schemas/MonitorHistory" } } } }
+        "400": { description: "bad_shape (limit must be a positive integer)", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /v1/status/{ownerId}:
+    get:
+      tags: [monitors]
+      summary: Public status page data for one owner's monitors (checks counted over the last 24 hours)
+      parameters: [{ name: ownerId, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: Status page, content: { application/json: { schema: { $ref: "#/components/schemas/StatusPage" } } } }
   /v1/stats:
     get: { tags: [stats], summary: "Rollup series (uniques_additive: false in metadata)", security: [{ session: [] }], responses: { "200": { description: Series } } }
   /v1/query:
@@ -82,7 +147,76 @@ components:
           properties:
             code: { type: string, description: snake_case stable (engineering.md §1) }
             message: { type: string }
-            details: { type: object }
+            details: { type: array, items: { type: string } }
+    MonitorCreate:
+      type: object
+      required: [name, type, target]
+      properties:
+        name: { type: string }
+        type: { type: string }
+        target: { type: string }
+    MonitorUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        type: { type: string }
+        target: { type: string }
+    Monitor:
+      type: object
+      properties:
+        id: { type: string }
+        owner_id: { type: string }
+        name: { type: string }
+        target: { type: string }
+        type: { type: string }
+        active: { type: boolean }
+        status: { type: string }
+        muted: { type: boolean }
+        interval_seconds: { type: integer }
+        timeout_seconds: { type: integer }
+        failure_threshold: { type: integer }
+        consecutive_failures: { type: integer }
+        last_checked_at: { type: [string, "null"], format: date-time }
+        last_response_time_ms: { type: [integer, "null"] }
+        last_status_code: { type: [integer, "null"] }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    Check:
+      type: object
+      properties:
+        id: { type: string }
+        monitor_id: { type: string }
+        up: { type: boolean }
+        status_code: { type: integer }
+        response_time_ms: { type: integer }
+        checked_at: { type: string, format: date-time }
+    MonitorHistory:
+      type: object
+      properties:
+        monitor_id: { type: string }
+        days: { type: array, items: {} }
+        recent_checks: { type: array, items: { $ref: "#/components/schemas/Check" } }
+        uptime_90d_pct: { type: [number, "null"], description: "null when the monitor has no checks in the last 90 days" }
+    Incident:
+      type: object
+      properties:
+        id: { type: string }
+        monitor_id: { type: string }
+        title: { type: string }
+        failure_reason: { type: string }
+        status: { type: string }
+        started_at: { type: string, format: date-time }
+        resolved_at: { type: [string, "null"], format: date-time }
+        duration_seconds: { type: integer }
+    StatusPage:
+      type: object
+      properties:
+        monitors: { type: array, items: { $ref: "#/components/schemas/Monitor" } }
+        active_incidents: { type: array, items: { $ref: "#/components/schemas/Incident" } }
+        historical_incidents: { type: array, items: { $ref: "#/components/schemas/Incident" } }
+        uptime_percentage: { type: number }
+        total_checks: { type: integer }
+        successful_checks: { type: integer }
     EventBatch:
       type: object
       required: [events]
