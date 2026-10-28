@@ -1,7 +1,7 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 
 /**
- * Mobile responsiveness sweep ([Directive 2026-07-19]): home, the public
+ * Mobile responsiveness sweep ([Specified 2026-07-19]): home, the public
  * status page and EVERY /dashboard/<area> route render inside the 390px
  * viewport — the document never side-scrolls, <main> never pans, and wide
  * visualizations/tables scroll inside their own horizontal-scroll
@@ -238,7 +238,7 @@ test("768 — sanity sweep, no route side-scrolls", async ({ page }) => {
   }
 });
 
-// [Directive 2026-07-19] with the rail EXPANDED (240px), every dashboard
+// [Specified 2026-07-19] with the rail EXPANDED (240px), every dashboard
 // route's content column must reflow cleanly at 1280 and 1440 — charts,
 // tables, widget grids and filter bars adapt; nothing overflows.
 test.describe("expanded rail — dashboard content reflows", () => {

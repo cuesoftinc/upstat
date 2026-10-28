@@ -9,7 +9,7 @@ import { SignInGate } from "./SignInGate";
  * /signin — the single auth screen (X-1: Google sign-in only, product-wide;
  * flows/auth.md; route standard: /signin is the ONLY auth route — no
  * /login or /signup exists, and stale links 404 on the branded page
- * [Directive 2026-07-19]). One CTA, nothing else. Composition per the X-1
+ * [Specified 2026-07-19]). One CTA, nothing else. Composition per the X-1
  * canon frame (124:6): centered bolt + wordmark over "Sign in to your
  * organization" over the Google CTA. SignInGate is the flows/auth.md §2
  * reverse guard: a signed-in visitor is replaced to /dashboard and never

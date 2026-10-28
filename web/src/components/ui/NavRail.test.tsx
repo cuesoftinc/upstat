@@ -53,7 +53,7 @@ describe("NavRail", () => {
     expect(screen.queryByRole("button", { name: "Logs" })).toBeNull();
   });
 
-  /* [Directive 2026-07-19] expandable rail — design.md §2 */
+  /* [Specified 2026-07-19] expandable rail — design.md §2 */
 
   it("sections cover every pillar in B order (Telemetry/Respond/Platform)", () => {
     expect(NAV_SECTIONS.map((s) => s.title)).toEqual([

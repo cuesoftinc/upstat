@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 /**
- * Expandable NavRail ([Directive 2026-07-19], design.md §2): collapsed 56px
+ * Expandable NavRail ([Specified 2026-07-19], design.md §2): collapsed 56px
  * ⇄ expanded 240px, foot chevron toggle, `nav.rail.expanded` persistence,
  * viewport default (expanded ≥1280px, collapsed below).
  */
