@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- The web reads its API base from `NEXT_PUBLIC_API_URL` instead of `NEXT_PUBLIC_API_BASE`.
 - Observability reads monitors and checks from api-common over HTTP.
 - Docs describe provisioning without naming internal repositories.
 - Fleet-parity convergence: web deps aligned to the sibling pin set (Next

@@ -3,10 +3,10 @@
 export const env = {
   /**
    * Base path the repository layer talks to: the in-app mock server in
-   * TEST_MODE, otherwise `NEXT_PUBLIC_API_BASE`
+   * TEST_MODE, otherwise `NEXT_PUBLIC_API_URL`
    * (api-upstat.cuesoft.io once the HTTP surfaces land).
    */
-  apiBase: process.env.NEXT_PUBLIC_API_BASE || "/api/mock",
+  apiBase: process.env.NEXT_PUBLIC_API_URL || "/api/mock",
   /** Opt-in product analytics (models/analytics.ts; never on in TEST_MODE). */
   analytics: process.env.NEXT_PUBLIC_ANALYTICS === "1",
   /**
