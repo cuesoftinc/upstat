@@ -2,7 +2,7 @@
  * Nice-number axis scale for the bespoke charts (design.md §8.2; the
  * TimeseriesPanel master's 0 / 200 ms / 400 ms / 600 ms ladder, Figma
  * 50:407): ticks step on a 1 / 2 / 2.5 / 5 × 10^k grid covering the data
- * domain. Mirrors expendit's merged `niceScale` (cross-repo chart canon).
+ * domain. Standard nice-scale tick ladder.
  *
  * Bounds snap outward to a step multiple only when the dead band that
  * adds is small (≤ half a step) — a small dip below zero never pulls a

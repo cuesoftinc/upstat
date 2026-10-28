@@ -77,7 +77,7 @@ test("dashboard chrome theme toggle flips + persists (theme-parity canon)", asyn
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   // Deterministic OS scheme — system-mode assertions must not depend on
-  // the runner's OS (theme contract note, SKILL.md).
+  // the runner's OS (theme contract note).
   await page.emulateMedia({ colorScheme: "light" });
   await signIn(page);
   const html = page.locator("html");

@@ -23,7 +23,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   // Absolute base for og/twitter images, canonicals and other metadata
-  // URLs (SEO plumbing, fleet canon).
+  // URLs (SEO plumbing).
   metadataBase: new URL("https://upstat.cuesoft.io"),
   title: "Upstat",
   description: "All your telemetry. One open platform.",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
 
 // No maximumScale: pinch-zoom must stay available (2026-07-21 a11y audit
 // blocker — axe meta-viewport on every route; siblings' viewport export is
-// the fleet pattern).
+// the usual pattern).
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -54,7 +54,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body>
-        {/* P15 fleet canon: first focusable on every route; targets the
+        {/* first focusable on every route; targets the
             route's single <main id="main">. */}
         <SkipLink />
         {/* pre-paint: applies the persisted `upstat.theme` override, the

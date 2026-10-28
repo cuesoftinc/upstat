@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { MarketingFooter } from "./MarketingFooter";
 
-/** The ratified column/link set (SKILL.md parity canon, 2026-07-19). */
+/** The ratified column/link set (parity canon, 2026-07-19). */
 const CANON: Record<string, [string, string][]> = {
   Product: [
     ["Features", "/#features"], // differentiated 2026-07-19
@@ -30,7 +30,7 @@ const CANON: Record<string, [string, string][]> = {
   ],
 };
 
-describe("MarketingFooter (parity canon, SKILL.md 2026-07-19)", () => {
+describe("MarketingFooter (parity canon, 2026-07-19)", () => {
   it("renders the brand block and every canonical column link", () => {
     render(<MarketingFooter />);
     // bolt + lowercase wordmark and the master 290:2 tagline

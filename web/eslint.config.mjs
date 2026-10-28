@@ -21,7 +21,7 @@ const eslintConfig = defineConfig([
   // W3 enforcement gate (paired with scripts/check-boundaries.mjs):
   // src/legacy is quarantined — no live import may reach it. These
   // patterns cover the org's pruned/banned styled kits and date
-  // libraries (web-implementation.md §8, org SKILL).
+  // libraries (web-implementation.md §8).
   {
     files: ["src/**/*.{ts,tsx}"],
     rules: {

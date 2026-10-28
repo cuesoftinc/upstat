@@ -25,7 +25,7 @@ export default function SignInPage() {
         data-testid="signin-screen"
         className="font-ui flex min-h-screen items-center justify-center bg-bg px-[var(--space-4)] text-text"
       >
-        {/* id + tabIndex: the SkipLink (root layout, P15) targets #main and
+        {/* id + tabIndex: the SkipLink (root layout) targets #main and
             moves programmatic focus there — not just a scroll jump. */}
         <main
           id="main"
@@ -55,7 +55,7 @@ export default function SignInPage() {
             </p>
           )}
 
-          {/* Legal consent line (sibling parity: apparule/expendit signin) —
+          {/* Legal consent line (matches the other sign-in screens) —
               links open the canonical Cuesoft policies in a new tab. */}
           <p className="text-[13px] leading-[1.45] text-text-2">
             By continuing you agree to the{" "}

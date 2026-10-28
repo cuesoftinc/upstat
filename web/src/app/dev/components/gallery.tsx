@@ -1590,7 +1590,7 @@ export function ComponentGallery() {
           (live-QA sweep: this page had zero). Component instances inside
           keep their own semantics — StatusPageHeader demos legitimately
           render <h1>, so this dev-only page has extra h1s by design.
-          id + tabIndex: the SkipLink (root layout, P15) targets #main. */}
+          id + tabIndex: the SkipLink (root layout) targets #main. */}
       <main id="main" tabIndex={-1}>
         <GalleryAll />
 

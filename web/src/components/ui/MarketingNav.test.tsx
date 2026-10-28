@@ -11,7 +11,7 @@ const renderNav = (props: Parameters<typeof MarketingNav>[0] = {}) =>
     </ThemeProvider>,
   );
 
-describe("MarketingNav (parity canon, SKILL.md 2026-07-19, revised same day)", () => {
+describe("MarketingNav (parity canon, 2026-07-19, revised same day)", () => {
   it("renders the four canonical links with the ratified hrefs", () => {
     renderNav();
     expect(NAV_LINKS.map((l) => l.label)).toEqual([

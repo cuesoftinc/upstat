@@ -79,14 +79,14 @@ export function TopBar({
       >
         <Search aria-hidden="true" className="size-3.5 shrink-0" />
         <span className="hidden flex-1 text-left md:block">Search</span>
-        {/* fleet-standard invocation hint (P12) — "/" still works and is
+        {/* standard invocation hint — "/" still works and is
             listed in the ? cheatsheet */}
         <span className="hidden md:inline-flex">
           <KbdChip keys="⌘K" />
         </span>
       </button>
 
-      {/* theme-parity canon (SKILL.md 2026-07-19): the toggle lives in the
+      {/* theme-parity canon (2026-07-19): the toggle lives in the
           chrome utility area, next to the bell */}
       <ThemeToggle />
 

@@ -18,7 +18,7 @@ export interface MarketingNavProps {
 }
 
 /**
- * The canonical nav links (SKILL.md nav-parity canon, 2026-07-19).
+ * The canonical nav links (nav-parity canon, 2026-07-19).
  * Features anchors the feature-highlights band; Platform anchors the
  * 8-pillar grid — differentiated 2026-07-19 (both previously /#pillars).
  */
@@ -211,7 +211,7 @@ function FeaturesDropdown({ href }: { href: string }) {
 }
 
 /**
- * MarketingNav — nav-parity canon (SKILL.md 2026-07-19, revised same day):
+ * MarketingNav — nav-parity canon (2026-07-19, revised same day):
  * logo · Features · Platform · Docs · GitHub star badge · ThemeToggle ·
  * Sign in text link · Try Cloud primary CTA (both → /signin). Features
  * additionally discloses the A1 pillar mini feature map on desktop
@@ -221,7 +221,7 @@ function FeaturesDropdown({ href }: { href: string }) {
  * marketing container (design.md §2: 1152px content at 1440, rails
  * x144/x1296).
  *
- * Mobile (SKILL.md mobile clause, [Revised 2026-07-19]): below `md` the
+ * Mobile (mobile clause, [Revised 2026-07-19]): below `md` the
  * bar keeps the Try Cloud CTA beside the hamburger; the menu-button
  * disclosure (`aria-expanded`) opens a panel carrying the 4 links +
  * ThemeToggle + Sign in — no canonical link may be unreachable at any

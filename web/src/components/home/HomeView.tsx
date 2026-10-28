@@ -52,7 +52,7 @@ export function HomeView() {
         onTryCloud={onTryCloud}
       />
 
-      {/* id + tabIndex: the SkipLink (root layout, P15) targets #main and
+      {/* id + tabIndex: the SkipLink (root layout) targets #main and
           moves programmatic focus there — not just a scroll jump. */}
       <main id="main" tabIndex={-1}>
         <HeroSection
@@ -96,7 +96,7 @@ export function HomeView() {
       </main>
 
       {/* A10 footer — the canonical parity shape (brand block + 4 columns +
-          legal bar) is the component default (SKILL.md canon 2026-07-19) */}
+          legal bar) is the component default (canon 2026-07-19) */}
       <MarketingFooter />
     </div>
   );

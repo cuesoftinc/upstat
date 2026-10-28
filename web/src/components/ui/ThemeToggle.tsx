@@ -29,7 +29,7 @@ export function themeToggleLabel(preference: ThemePreference): string {
 
 /**
  * ThemeToggle — the tri-state cycle control (theme contract, ratified
- * 2026-07-20, identical across apparule, expendit and upstat): cycles
+ * 2026-07-20, shared by all products): cycles
  * light → dark → system with a distinct icon per mode (sun / moon /
  * monitor). Lives in the marketing nav, the dashboard TopBar utility
  * area and Settings; the choice persists via ThemeProvider

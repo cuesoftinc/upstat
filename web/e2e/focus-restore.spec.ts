@@ -1,5 +1,4 @@
-// Overlay focus-restore + dismissal canon (2026-07-21 a11y audit, fleet
-// finding P4): closing the command palette must return focus to the element
+// Overlay focus-restore + dismissal lock (2026-07-21 a11y audit): closing the command palette must return focus to the element
 // that opened it, and Escape must dismiss from ANYWHERE inside the dialog.
 // Before the fix Escape was bound on the search input only — after Tab
 // moved focus to an option the palette became un-dismissable — and closing
@@ -34,9 +33,7 @@ test("palette: Escape works from an option and focus returns to the trigger", as
   await expect(trigger).toBeFocused();
 });
 
-test("palette: ⌘K toggles it (fleet-standard invocation, P12)", async ({
-  page,
-}) => {
+test("palette: ⌘K toggles it (standard invocation)", async ({ page }) => {
   await signIn(page);
   const anchor = page.getByTestId("rail-toggle");
   await anchor.focus();

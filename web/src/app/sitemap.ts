@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 /**
- * Public marketing surface only (SEO plumbing, fleet canon): the home
+ * Public marketing surface only (SEO plumbing): the home
  * page, the public Scalar API reference, and upstat's own public status
  * page (the dogfood instance — live 200 unauthenticated). Auth (/signin)
  * and app (/dashboard/*) routes stay out by design; customer /status/*

@@ -136,10 +136,10 @@ export const ARCHITECTURE_FLOW = [
 ];
 
 export const GITHUB_URL = "https://github.com/cuesoftinc/upstat";
-// canonical invite (SKILL.md parity canon 2026-07-19, verified live)
+// canonical invite (parity canon 2026-07-19, verified live)
 export const DISCORD_URL = "https://discord.gg/CDfZxxrxbb";
-// real GitBook destinations (docs.upstat.cuesoft.io was NXDOMAIN —
-// user-reported dead link 2026-07-19; canon hrefs, verified 200)
+// real GitBook destinations (docs.upstat.cuesoft.io does not resolve;
+// canon hrefs, verified 200)
 export const SELF_HOST_DOCS_URL =
   "https://cuesoft.gitbook.io/upstat/system/deployment";
 // CTA-dedupe destinations (canon "Community CTA placement", 2026-07-19):
@@ -151,4 +151,4 @@ export const ROADMAP_URL = "https://cuesoft.gitbook.io/upstat/product/roadmap";
 export const CUELABS_URL = "https://cuelabs.cuesoft.io";
 
 // A10 footer columns/copyright: superseded by the canonical parity footer
-// (SKILL.md 2026-07-19) — MarketingFooter now owns the column set + legal bar.
+// (2026-07-19) — MarketingFooter now owns the column set + legal bar.

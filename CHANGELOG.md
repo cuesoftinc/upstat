@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Monitor CRUD, recent checks and status page endpoints on api-common.
 - `POST /internal/jobs/run-checks` on api/common, guarded by scheduler OIDC token.
 - `WORKER_ENABLED` flag to turn off the in-process monitor loop.
-- Staging estate documented: Cloud Run, Cloud Scheduler, Valkey, Doppler `stg`.
+- Staging estate documented: Cloud Run, Cloud Scheduler, Valkey and the `stg` secrets config.
 - Release workflow deploys both API services to Sandbox on merge to main.
 - Datadog service catalog entry for the Upstat system.
 - `@axe-core/playwright` a11y smoke coverage for home, `/signin`, and the
@@ -64,7 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `NEXT_PUBLIC_TEST_MODE` is switched on with `true` instead of `1`.
 - Observability reads monitors and checks from api-common over HTTP.
 - Docs describe provisioning without naming internal repositories.
-- Fleet-parity convergence: web deps aligned to the sibling pin set (Next
+- Parity convergence: web deps aligned to the sibling pin set (Next
   16.2.11, React/React-DOM 19.2.8, `@types/node` ^24, `@testing-library/jest-dom`
   ^7, prettier ^3.9.6, `@scalar/api-reference-react` ^0.9.59, `@vitejs/plugin-react`
   ^6.0.4, plus a `repository` field); generic time/PRNG helpers moved out of
@@ -80,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   open; dismissal and focus-restore behavior are unchanged (#206).
 - The demo chart's crosshair tooltip follows the hero loop without shifting
   layout — home CLS lands at ~0 (#206).
-- The skip-to-content link converges on the fleet-canonical implementation
+- The skip-to-content link converges on the canonical implementation
   (#206).
 - `/docs/api`'s Scalar reference now loads on user intent instead of shipping
   eagerly with the route (#198).
@@ -158,12 +158,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Release deploys retry while Cloud Run cannot pull a fresh image.
 - Skip-to-content now mounts once from the root layout instead of only the
   dashboard shell, so marketing routes (`/`, `/signin`, `/docs/api`, public
-  status pages, the 404) get the fleet-canonical (P15) first-focusable link
+  status pages, the 404) get the canonical first-focusable link
   too — every route's `<main>` carries the matching `id="main"` +
   `tabIndex={-1}` target, and the e2e coverage now locks the flow on a
   marketing route in addition to the dashboard (#211).
 - Docs currency pass: corrected the dark/light design-token inversion, the
-  redis and Aiven-Postgres-vs-current-state mismatches, Resend→Brevo (X-7),
+  redis and managed-Postgres-vs-current-state mismatches, Resend→Brevo (X-7),
   and the mock-CRUD-vs-gRPC-Web control-plane framing across the README and
   docs/ (web-implementation, architecture, overview, setup); reconciled the
   legacy-signin retirement failure mode with engineering.md and the
@@ -171,9 +171,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   language from prd/roadmap/pages/design in favor of describing the current
   system only (history stays in this file) (#209).
 - Session-restore gate hardening (flows/auth.md §2, ratified 2026-07-22):
-  the dashboard now sits behind a session gate — nothing app-side paints
+  the dashboard now sits behind a session gate (nothing app-side paints
   until the restored session settles, and a signed-out visitor is replaced
-  to `/signin` — while `/signin` gains the reverse guard (a signed-in
+  to `/signin`), while `/signin` gains the reverse guard (a signed-in
   visitor is replaced to `/dashboard` and never sees the CTA). A failed
   session read reads as signed out instead of throwing past the seam; the
   provider contract (return `null`, never throw) is documented on

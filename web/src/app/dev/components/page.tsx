@@ -5,7 +5,7 @@ import { ComponentGallery } from "./gallery";
 // Dev-only component gallery for the stage QA loops — every §8.2/§8.2b
 // component in its variants, dark then light. Hidden from production
 // builds unless TEST_MODE (sandbox deployments run TEST_MODE, so the
-// gallery stays visible there by design — the org canon, apparule pattern).
+// gallery stays visible there by design by design).
 export const metadata = { title: "Component gallery — Upstat dev" };
 
 export default function DevComponentsPage() {

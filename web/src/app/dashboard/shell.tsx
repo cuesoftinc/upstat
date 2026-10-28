@@ -220,7 +220,7 @@ function ShellChrome({ children }: { children: ReactNode }) {
         ) : null}
 
         {/* tabIndex={-1}: the SkipLink target must take programmatic focus
-            so activation actually moves the keyboard user (P15). */}
+            so activation actually moves the keyboard user. */}
         <main
           id="main"
           tabIndex={-1}

@@ -6,7 +6,7 @@ const TEST_USER: AuthUser = {
   email: "ibukun@cuesoft.io",
 };
 
-// Fleet canon (P16): TEST_MODE session keys are `<product>.test-session`;
+// TEST_MODE session keys are `<product>.test-session`;
 // upstat keeps sessionStorage (already the dictated storage).
 const SESSION_KEY = "upstat.test-session";
 

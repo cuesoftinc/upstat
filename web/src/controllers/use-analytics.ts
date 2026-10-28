@@ -1,8 +1,7 @@
 "use client";
 
 /**
- * Analytics controller — the ecosystem canon name (`use-analytics.ts`,
- * same module in apparule/expendit): the hook-shaped controller surface
+ * Analytics controller — the standard controller name (`use-analytics.ts`): the hook-shaped controller surface
  * over the models-layer tracker. Upstat's transport is the real
  * `POST /v1/events` client (models/analytics.ts) — the models seam stays
  * the only network layer; this module owns the controller ergonomics.
