@@ -1,7 +1,7 @@
 # Flow: Uptime Monitor (create → check → status)
 
 > The M1 core from the user's side plus the **evaluation semantics** the
-> worker implements — window behaviour, no-data policy, flapping. Grounded in
+> worker implements, window behaviour, no-data policy, flapping. Grounded in
 > the existing implementation (`monitor_worker_service.go`, `checker_service.go`)
 > and marks deltas. Preconditions: authed (Google-only, flows/auth.md).
 
@@ -10,15 +10,15 @@
 | Field | Validation | Notes |
 | --- | --- | --- |
 | Name | 1–80 chars, unique per owner | `409 name_taken` |
-| Target | absolute `http(s)://` URL; DNS-resolvable not required at save; URL userinfo (`user:pass@`) rejected (`422 invalid_target`) | **Cloud: RFC-1918/link-local/loopback/metadata (169.254.169.254) targets are DENIED (`422 target_not_allowed`), enforced at check time on every resolved IP (DNS-rebinding-safe: resolve, validate, pin)** — SSRF hard rule, REVISES the earlier warn-only default. Self-host: allowed by default, deny-list configurable |
-| Type | `website \| server \| api \| blog` | display taxonomy only — checks behave identically **[Current]** |
+| Target | absolute `http(s)://` URL; DNS-resolvable not required at save; URL userinfo (`user:pass@`) rejected (`422 invalid_target`) | **Cloud: RFC-1918/link-local/loopback/metadata (169.254.169.254) targets are DENIED (`422 target_not_allowed`), enforced at check time on every resolved IP (DNS-rebinding-safe: resolve, validate, pin)**, SSRF hard rule, REVISES the earlier warn-only default. Self-host: allowed by default, deny-list configurable |
+| Type | `website \| server \| api \| blog` | display taxonomy only, checks behave identically **[Current]** |
 | Interval | 30s–24h, default 60s **[Current default]** | sub-30s is a paid-tier conversation, out of scope |
 | Timeout | 1s–60s, default 10s; must be < interval | `422 timeout_gte_interval` |
 | Failure threshold | 1–10, default 3 | consecutive failures before `down` |
 
 Edits apply from the next scheduled check; in-flight checks complete under
 old config. Pausing (`active: false`) stops scheduling and freezes status at
-`paused` (a distinct display state — not `up`, not `down`).
+`paused` (a distinct display state, not `up`, not `down`).
 
 ## 2. Evaluation semantics (the contract the worker honours)
 
@@ -46,7 +46,7 @@ stateDiagram-v2
   `nodata`, never a synthetic `down`. **Mechanism [Decided]**: evaluated
   lazily at read time (status queries compare `lastCheckedAt` vs 2×interval)
   AND materialized by a sweep in the worker loop (so alert rules with
-  `on: nodata` fire without reads). A crashed worker can't write anything —
+  `on: nodata` fire without reads). A crashed worker can't write anything -
   lazy evaluation is what keeps the UI honest; the sweep catches up on
   restart. Alerting treats `nodata` per-rule (opt-in).
 - **Pause/resume side-effects [Decided]**: pause freezes status at `paused`,
@@ -77,7 +77,7 @@ Each check persists: `up`, `status_code` (0 = transport error),
 `response_time_ms`, `checked_at` (90d retention, U-6). The monitor page
 (pages.md B7) renders: UptimeCard strip (90d), response-time chart, incident
 list, ML insight panel. Uptime % = passing ÷ completed checks over the window
-(`nodata` gaps excluded from the denominator — shown as gray, counted as
+(`nodata` gaps excluded from the denominator, shown as gray, counted as
 neither).
 
 ## 4. Error taxonomy (user-visible on check detail)
@@ -86,7 +86,7 @@ neither).
 | --- | --- |
 | `timeout` | no response within timeout (measured across the whole redirect chain) |
 | `dns` | resolution failed |
-| `tls` | handshake/cert failure (incl. expired cert — cert-expiry *warning* checks are OBS-011 later) |
+| `tls` | handshake/cert failure (incl. expired cert, cert-expiry *warning* checks are OBS-011 later) |
 | `refused` | connection refused |
 | `http_4xx` / `http_5xx` | response ≥400 |
 | `too_many_redirects` | >5 redirects |

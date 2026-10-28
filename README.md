@@ -1,6 +1,6 @@
 # Upstat
 
-Open-source uptime and status monitoring — schedule health checks against your
+Open-source uptime and status monitoring, schedule health checks against your
 services, record incidents, expose status pages, and surface ML-powered
 reliability insights.
 
@@ -18,15 +18,15 @@ description of the components and how they fit together, see
 [docs/overview.md](docs/overview.md).
 
 > **Scope note:** the diagram below is current state (uptime/status core).
-> Upstat's ratified direction is a full observability platform — see
+> Upstat's ratified direction is a full observability platform, see
 > [docs/prd.md §9](docs/prd.md) and [docs/decisions.md](docs/decisions.md).
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    WEB[web dashboard<br/>Next.js] -->|HTTP| AC[api/common — Go<br/>monitor worker · checks · incidents<br/>monitors · users]
-    OBS[api/observability — Python<br/>ML anomaly detection · insights] -->|HTTP /v1/monitors/id/checks| AC
+    WEB[web dashboard<br/>Next.js] -->|HTTP| AC[api/common, Go<br/>monitor worker · checks · incidents<br/>monitors · users]
+    OBS[api/observability, Python<br/>ML anomaly detection · insights] -->|HTTP /v1/monitors/id/checks| AC
     AC --> MG[(MongoDB)]
     OBS --> MG
 ```
@@ -52,15 +52,15 @@ flowchart LR
 
 ```
 api/
-  common/          Go service — HTTP backend: monitors, checks, incidents, users
-  observability/   Python service — reliability analytics, ML anomaly detection, insights
+  common/          Go service, HTTP backend: monitors, checks, incidents, users
+  observability/   Python service, reliability analytics, ML anomaly detection, insights
 web/               Next.js dashboard + status pages (mock CRUD server; HTTP repository client)
 mobile/
   flutter/         Flutter app (placeholder)
   android/         Native Android (placeholder)
   ios/             Native iOS (placeholder)
 deploy/
-  docker/          Placeholder — the compose stack lives at the repo root (docker-compose.yml)
+  docker/          Placeholder, the compose stack lives at the repo root (docker-compose.yml)
   helm/            Helm chart (deploys all services to Kubernetes)
   terraform/       Infrastructure as code
 docker-compose.yml Local orchestration: mongo, api-common, api-observability, web
@@ -78,7 +78,7 @@ function (never by its language).
 
 - [Docker](https://www.docker.com/) & Docker Compose (recommended path)
 - For native development: [Go](https://go.dev/) 1.26+, [Node.js](https://nodejs.org/)
-  24 (`web/.nvmrc`), Python 3.11+
+  24 (`web/.nvmrc`), Python 3.12+
 
 ### Quick start
 
@@ -95,10 +95,10 @@ observability service). See [docs/setup.md](docs/setup.md) for details; `make he
 targets. Never commit credentials or bake them into an image.
 
 ## Documentation
-- [Hosted docs](https://cuesoft.gitbook.io/upstat) — the full documentation site (auto-synced from `docs/`)
+- [Hosted docs](https://cuesoft.gitbook.io/upstat), the full documentation site (auto-synced from `docs/`)
 
-- [Project overview](docs/overview.md) — architecture and components
-- [Local setup](docs/setup.md) — development environment and per-service run commands
+- [Project overview](docs/overview.md), architecture and components
+- [Local setup](docs/setup.md), development environment and per-service run commands
 
 ## Contributing
 
@@ -107,7 +107,7 @@ and our [Code of Conduct](CODE_OF_CONDUCT.md) before opening a PR.
 
 ## Security
 
-Please report vulnerabilities privately — see our [Security policy](SECURITY.md).
+Please report vulnerabilities privately, see our [Security policy](SECURITY.md).
 
 ## License
 

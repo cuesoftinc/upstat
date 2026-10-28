@@ -10,7 +10,7 @@
 | Kind | Config | Verification |
 | --- | --- | --- |
 | Webhook | URL (https only) + optional secret | "Verify" sends a signed test event; channel unusable until a 2xx returns (`verified: true`) |
-| Email (Brevo REST API, X-7 — no SMTP) | address | 6-digit code mailed; entered in-app; 15min expiry, 3 attempts |
+| Email (Brevo REST API, X-7, no SMTP) | address | 6-digit code mailed; entered in-app; 15min expiry, 3 attempts |
 
 - Channels are owner-scoped and reusable across monitors.
 - Webhook signing: `X-Upstat-Signature: hex(hmac-sha256(secret, body))` +
@@ -28,7 +28,7 @@
 Per monitor: `on: down | recovered | nodata | all` **(nodata opt-in)**,
 `cooldown_minutes` (default 30, 0–1440). One rule may fan out to many
 channels. Defaults on first channel creation: a `down+recovered` rule is
-offered pre-filled for every existing monitor (bulk opt-in sheet) — empty
+offered pre-filled for every existing monitor (bulk opt-in sheet), empty
 alerting after setup is a product failure.
 
 ## 3. Dispatch semantics
@@ -52,14 +52,14 @@ sequenceDiagram
 - **At-least-once, durably [Decided]**: every dispatch writes a
   `DISPATCH { rule, channel, transition, state: pending|delivered|failed,
   attempts, next_attempt_at }` row BEFORE delivery; a crash-recovery scan on
-  worker start re-drives `pending` rows — the transition and its
+  worker start re-drives `pending` rows, the transition and its
   notifications can't be lost together. Per-attempt webhook timeout **10s**;
   retry ladder 1s/5s/25s then `failed`.
 - **Ordering**: `recovered` dispatch on a channel waits for the paired
   `down` dispatch to reach a terminal state (`delivered` OR `failed` after
   retries); if the `down` ended `failed`, the `recovered` message prepends
   "(missed: was down since {t})" so the recipient gets the full story.
-- **Cooldown** applies per rule per state-direction — a `down` at minute 0
+- **Cooldown** applies per rule per state-direction, a `down` at minute 0
   suppresses re-`down` noise until cooldown lapses, but never suppresses the
   `recovered`.
 - **Renotify** (delta, optional): `renotify_minutes` re-sends "still down"
@@ -88,7 +88,7 @@ Webhook (versioned envelope):
 }
 ```
 
-Email: subject `[Upstat] {name} is DOWN` / `RECOVERED — was down 14m`;
+Email: subject `[Upstat] {name} is DOWN` / `RECOVERED, was down 14m`;
 body = status, cause, duration, per-monitor page link, unsubscribe →
 channel settings. No target URL in the subject (URLs in subjects trip spam
 filters and leak internals into notification previews).

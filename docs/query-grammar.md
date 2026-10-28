@@ -1,8 +1,8 @@
-# Upstat — Shared Query Grammar
+# Upstat, Shared Query Grammar
 
 > The one grammar behind every pillar's QueryBar, `POST /v1/query`, dashboard
 > widgets, and monitor rules (design.md §3, api.md §6). Everything here is
-> **[Proposed]** — ratify before OBS-001 implementation freezes it.
+> **[Proposed]**, ratify before OBS-001 implementation freezes it.
 
 ## 1. Shape
 
@@ -46,7 +46,7 @@ indexes ranked by cardinality (design.md MI-13).
 
 ## 3. Semantics
 
-- **Time never appears in the query** — the global TimePicker supplies
+- **Time never appears in the query**, the global TimePicker supplies
   `[from, to)`; monitor rules supply their evaluation window. One less thing
   to parse, and every query is reusable across ranges.
 - Terms AND; explicit `OR` requires parentheses; `-` negates a single term.
@@ -54,7 +54,7 @@ indexes ranked by cardinality (design.md MI-13).
   name, event name); quoted strings match phrases.
 - `| aggregation` returns series/tables; without it, the raw stream
   (log lines, spans, events) paginates.
-- Unknown facets are **errors, not empty results** (MI-13 underline) —
+- Unknown facets are **errors, not empty results** (MI-13 underline) -
   silent-empty is how users lose an hour.
 - Case: facet names lowercase; values case-sensitive except `level`.
 
@@ -70,10 +70,10 @@ indexes ranked by cardinality (design.md MI-13).
 One internal query service parses the grammar into an AST, validates facets
 against the catalog/indexes, then compiles per store: ClickHouse SQL for
 logs/spans/metrics (U-1 ratified), **Postgres** for control-plane data (X-5).
-**Persistence [Decided — unified]: both monitors AND dashboard widgets
+**Persistence [Decided, unified]: both monitors AND dashboard widgets
 persist the AST** (widgets additionally cache the display string).
 
-### AST v1 (versioned JSON — the compatibility contract)
+### AST v1 (versioned JSON, the compatibility contract)
 
 ```json
 {
@@ -95,7 +95,7 @@ persist the AST** (widgets additionally cache the display string).
 Rules the string grammar adds to §1 **[Decided]**:
 - **Quoting/escaping**: values with `:`/spaces/parens are double-quoted;
   `\"` escapes a quote; facet names never need quoting.
-- **Nesting**: parentheses nest arbitrarily — `(a OR (b c)) -d` is legal;
+- **Nesting**: parentheses nest arbitrarily, `(a OR (b c)) -d` is legal;
   the AST is the normative structure.
 - **Typing**: facets are typed at registration (string/number/duration);
   numeric comparators on string facets → `invalid_query`.
@@ -107,14 +107,14 @@ Rules the string grammar adds to §1 **[Decided]**:
 | fn | logs/events | spans | metrics | checks |
 | --- | --- | --- | --- | --- |
 | `count()` | row count | span count | point count | check count |
-| `rate()` | rows/sec | spans/sec | — (use the metric) | **pass ratio** (passing ÷ completed — the documented exception) |
+| `rate()` | rows/sec | spans/sec | n/a (use the metric) | **pass ratio** (passing ÷ completed, the documented exception) |
 | `sum/avg/min/max/p50/p95/p99(field)` | numeric attr | field required (e.g. `trace.duration_ms`) | over values | `response_time_ms` |
-| `uniq(field)` | distinct attr values | distinct field | distinct series | — |
+| `uniq(field)` | distinct attr values | distinct field | distinct series | n/a |
 
 Bare `p95()` with no field is `invalid_query` everywhere except metrics
 (where the selected series' value is implicit).
 
 ## 5. URL representation
 
-`?q=<url-encoded query>&from=…&to=…&live=1` on every explorer — shareable,
+`?q=<url-encoded query>&from=…&to=…&live=1` on every explorer, shareable,
 back/forward-safe (MI-1), and the exact payload of `POST /v1/query`.

@@ -1,19 +1,19 @@
-# Upstat — Engineering Contracts
+# Upstat, Engineering Contracts
 
 > Error catalog, authorization matrix, rate limits, testing strategy, logging
 > rules. Ecosystem envelope (inlined, normative):
-> `{"error": {"code": "snake_case_stable", "message": "human copy", "details": {}}}` —
+> `{"error": {"code": "snake_case_stable", "message": "human copy", "details": {}}}` -
 > codes stable, cross-tenant access always `not_found`.
 
 ## 1. Error catalog (product families)
 
-Flow-spec-owned codes: monitors (flows/monitor.md — `name_taken`,
-`timeout_gte_interval`), alerts (flows/alert.md — `channel_unverified`,
-`verification_expired`), events (analytics-math.md — `ts_out_of_range`,
-schema/origin rejections with per-reason counters), auth (flows/auth.md —
+Flow-spec-owned codes: monitors (flows/monitor.md, `name_taken`,
+`timeout_gte_interval`), alerts (flows/alert.md, `channel_unverified`,
+`verification_expired`), events (analytics-math.md, `ts_out_of_range`,
+schema/origin rejections with per-reason counters), auth (flows/auth.md -
 `return_to_not_allowed`, `handoff_invalid`), query
-(`invalid_query{position, hint}` — query-grammar.md §3's error-not-empty
-rule), ingest (`quota_exceeded`, `key_scope_mismatch` — OBS-001).
+(`invalid_query{position, hint}`, query-grammar.md §3's error-not-empty
+rule), ingest (`quota_exceeded`, `key_scope_mismatch`, OBS-001).
 
 ## 2. Authorization matrix
 
@@ -24,22 +24,22 @@ owner-only model as "owner=everything, others=nothing" until then:
 | Resource / action | viewer | member | admin | owner |
 | --- | --- | --- | --- | --- |
 | Dashboards/explorers read | ✓ | ✓ | ✓ | ✓ |
-| Monitors create/edit/pause | — | ✓ | ✓ | ✓ |
-| Alert channels create/verify | — | ✓ | ✓ | ✓ |
-| Channel delete; rules bulk ops | — | — | ✓ | ✓ |
-| Properties + ingest keys | — | — | ✓ | ✓ |
-| Key rotation/revocation | — | — | ✓ | ✓ |
-| Incidents declare/update | — | ✓ | ✓ | ✓ |
-| SLOs define | — | — | ✓ | ✓ |
-| Org members, retention settings | — | — | — | ✓ |
+| Monitors create/edit/pause | n/a | ✓ | ✓ | ✓ |
+| Alert channels create/verify | n/a | ✓ | ✓ | ✓ |
+| Channel delete; rules bulk ops | n/a | n/a | ✓ | ✓ |
+| Properties + ingest keys | n/a | n/a | ✓ | ✓ |
+| Key rotation/revocation | n/a | n/a | ✓ | ✓ |
+| Incidents declare/update | n/a | ✓ | ✓ | ✓ |
+| SLOs define | n/a | n/a | ✓ | ✓ |
+| Org members, retention settings | n/a | n/a | n/a | ✓ |
 | Public status pages (read) | ✓ (world) | ✓ | ✓ | ✓ |
-| Status-page config | — | — | ✓ | ✓ |
+| Status-page config | n/a | n/a | ✓ | ✓ |
 
 Role source **[Decided]**: org roles live in the control-plane DB (not
-session token claims) — resolved per request alongside org context.
+session token claims), resolved per request alongside org context.
 
 Machine identities: `SERVICE_TOKEN` (observability↔common, fixed scope);
-property public keys (write-only ingest, U-2) — neither ever grants user-API
+property public keys (write-only ingest, U-2), neither ever grants user-API
 access.
 
 ## 3. Rate limits
@@ -53,16 +53,16 @@ access.
 | Channel verification sends | 5/hr per channel |
 | OTLP ingest (OBS-001) | per-key quotas, defaults: 10k metric points/s, 5k log lines/s, 1k spans/s **[Decided defaults]** |
 | `/v1/events` pre-auth | 1,000 req/min per IP (invalid-key flood guard) |
-| Insights `GET /insights/*`, `POST /analyze/*` | **bearer-authed (REVISED — was open)**; analyze 6/min per user (LLM cost guard) |
+| Insights `GET /insights/*`, `POST /analyze/*` | **bearer-authed (REVISED, was open)**; analyze 6/min per user (LLM cost guard) |
 
-Limit store: **shared Aiven Valkey** (X-5; user `upstat`, keys `upstat:*`; this is Valkey's role here, plus
+Limit store: **shared managed Valkey** (X-5; user `upstat`, keys `upstat:*`; this is Valkey's role here, plus
 dispatch cooldown cache); `429 rate_limited` + `Retry-After` (cataloged §1).
 
 ## 4. Testing strategy
 
 | Layer | Scope | Non-negotiables |
 | --- | --- | --- |
-| Unit (Go/pytest) | worker, dispatcher, rollups, hash | **evaluation-semantics transition table** (flows/monitor.md §2 — every edge incl. `nodata`); dispatch ordering + cooldown fixtures (flows/alert.md §3); visitor-hash rotation vectors; rollup idempotency (analytics-math.md §7) |
+| Unit (Go/pytest) | worker, dispatcher, rollups, hash | **evaluation-semantics transition table** (flows/monitor.md §2, every edge incl. `nodata`); dispatch ordering + cooldown fixtures (flows/alert.md §3); visitor-hash rotation vectors; rollup idempotency (analytics-math.md §7) |
 | Contract | error catalog + query grammar | grammar: valid/invalid corpus with position-accurate errors; `uniques_additive:false` metadata presence |
 | Integration (compose) | web → api/common; events → rollup → stats | webhook signature fixture (documented recipe verifies) |
 | E2E smoke (per deploy) | signin → create monitor → down-simulation → alert → recover | against sandbox in release.yml; uses a controllable target service |
@@ -77,7 +77,7 @@ Ecosystem conventions (request-id line, ids not emails). **Never-log list**
 (CI grep-gated): raw visitor IP/UA, channel secrets & webhook URLs' auth
 components, service tokens, ingest keys, monitor target credentials (if URL
 userinfo is ever supported: reject instead). Upstat monitors Upstat: its own
-services run the tracking script + uptime checks + (later) OTLP — every new
+services run the tracking script + uptime checks + (later) OTLP, every new
 pillar's first customer is this repo, and the public status page (Phase 0)
 is the standing proof.
 
@@ -91,10 +91,10 @@ is the standing proof.
 
 ## CORS contract (ecosystem standard)
 
-- Env: **`CORS_ORIGINS`** — comma-separated exact origins; no wildcard in
+- Env: **`CORS_ORIGINS`**, comma-separated exact origins; no wildcard in
   cloud; `http://localhost:3000` default for native dev.
 - Behaviour: echo the request Origin **only if allowlisted**; `Vary: Origin`;
-  `Allow-Credentials: false` (bearer auth — no cookies);
+  `Allow-Credentials: false` (bearer auth, no cookies);
   methods `GET,POST,PUT,PATCH,DELETE,OPTIONS`; headers
   `Authorization, Content-Type, Idempotency-Key, X-Org-Id`; preflight 204
   with `Access-Control-Max-Age: 600`.
@@ -105,10 +105,10 @@ is the standing proof.
 - Traces: OTel SDK auto-instrumentation (HTTP server/client, gRPC, DB) +
   manual spans on domain operations; W3C traceparent propagated on every
   outbound call (incl. service-to-service).
-- Metrics: OTel Meter API — each service registers its KPI instruments
+- Metrics: OTel Meter API, each service registers its KPI instruments
   (request histograms come free; domain counters per the flow specs'
   instrumentation sections are PRODUCT events via upstat /v1/events, NOT
-  OTel metrics — keep the pipelines separate).
+  OTel metrics, keep the pipelines separate).
 - Logs: slog/logging → OTel bridge dual-emit (JSON stdout for Cloud Run +
   OTLP to upstat). The never-log list applies to BOTH pipelines.
 - Export: direct OTLP, env-gated (no endpoint ⇒ no-op); receiver = upstat

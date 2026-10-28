@@ -1,11 +1,11 @@
-# Upstat — System Architecture
+# Upstat, System Architecture
 
 > Canonical structure (ecosystem standard): current state → target state →
 > service breakdown → deep dives → deployment → dependencies. Markers:
-> **[Current]**, **[PRD]**, **[Directive]**, **[Decided]** — see
+> **[Current]**, **[PRD]**, **[Directive]**, **[Decided]**, see
 > [decisions.md](decisions.md) for ratification detail.
 
-## 1. Context — current state **[Current]**
+## 1. Context, current state **[Current]**
 
 This diagram describes the main components of Upstat and how they interact.
 
@@ -62,13 +62,13 @@ flowchart LR
   server (`web/src/app/api/mock/v1`); the proxied HTTP path (shown above) is the
   intended control-plane path, not yet wired (web-implementation.md §1).
 
-## 2. Context — target state **[Decided]**
+## 2. Context, target state **[Decided]**
 
 ```mermaid
 flowchart LR
     subgraph Monitored & tracked
         SITE[Customer websites<br/>tracking script]
-        SIB[Sibling products<br/>apparule, expendit servers]
+        SIB[Sibling products<br/>servers]
         TGT[Monitored targets<br/>HTTP endpoints]
     end
 
@@ -97,7 +97,7 @@ flowchart LR
     STATUS --> GO
 ```
 
-## 3. Service breakdown — backend + observability internals **[Current]**
+## 3. Service breakdown, backend + observability internals **[Current]**
 
 ```mermaid
 flowchart LR
@@ -130,15 +130,15 @@ flowchart LR
 
 ## 4. The events layer (M2 + M3) **[Decided]**
 
-This is the design for what sibling roadmaps call **dependency D2** — Upstat
+This is the design for what sibling roadmaps call **dependency D2**, Upstat
 as the ecosystem's standardized event tracker **[PRD §4.2]**.
 
-- **Ingestion**: `POST /v1/events` — plain HTTP/JSON (browser `sendBeacon`
+- **Ingestion**: `POST /v1/events`, plain HTTP/JSON (browser `sendBeacon`
   compatible), authenticated by a *write-only property key* + origin
   allowlist + rate limiting. Payloads validate against a closed schema
   (name + coarse dims only) so sensitive data is rejected structurally
   (data-model.md §2).
-- **Tracking script**: `upstat.js` — a few KB, cookieless; auto page-views on
+- **Tracking script**: `upstat.js`, a few KB, cookieless; auto page-views on
   history changes + `upstat("event", "demo_start")` for custom events.
 - **Aggregation**: the observability service gains a rollup worker (hour/day
   buckets, approximate uniques via the daily-rotating `visitor_hash`).
@@ -167,7 +167,7 @@ sequenceDiagram
 ## 5. Alerting (MON-001) **[Decided]**
 
 The monitor worker already tracks `consecutiveFailures` vs `failureThreshold`
-and flips `status` — alerting hooks that transition:
+and flips `status`, alerting hooks that transition:
 
 ```mermaid
 sequenceDiagram
@@ -193,15 +193,15 @@ provider-independent and may ship first if the email decision stalls.
 ### 6.1 Ingestion architecture
 
 > **X-5 note:** once X-5 ships, every "MongoDB" control-plane box in this
-> file's diagrams becomes **Aiven Postgres** — Phase-1 events land in
+> file's diagrams becomes **managed Postgres**, Phase-1 events land in
 > Postgres partitioned tables with a scheduled retention job (data-model
 > §3), not Mongo TTL. Diagrams update as touched.
 
 **OpenTelemetry-native**: OTLP (gRPC 4317 + HTTP 4318) is the single
-first-party intake — and per **X-9** the ecosystem's: apparule and expendit
+first-party intake, and per **X-9** the ecosystem's: the sibling products
 ship their traces/metrics/logs here (direct SDK export, ingest-key authed),
 making the sibling products this gateway's first customers
-for traces, metrics, and logs — customers use standard OTel SDKs/collectors,
+for traces, metrics, and logs, customers use standard OTel SDKs/collectors,
 no proprietary agent to build or maintain. Complements: the existing HTTP
 events API + `upstat.js` (RUM), StatsD-compat shim (metrics), uptime checker
 (synthetics).
@@ -217,7 +217,7 @@ flowchart LR
     JS -->|/v1/events + vitals| GW
     AGENTLESS -->|statsd shim| GW
     GW --> BUF[[Buffer/queue]]
-    BUF --> CH[(ClickHouse — one store<br/>metrics + logs + traces, U-1)]
+    BUF --> CH[(ClickHouse, one store<br/>metrics + logs + traces, U-1)]
     BUF --> MG[(MongoDB<br/>control plane: orgs, monitors,<br/>dashboards, incidents, SLOs)]
     CH --> Q[Query layer]
     MG --> Q
@@ -226,7 +226,7 @@ flowchart LR
 
 ### 6.2 Ingestion operations
 
-- **Buffering**: Phase 1 (/v1/events) has **no external buffer** — direct
+- **Buffering**: Phase 1 (/v1/events) has **no external buffer**, direct
   Postgres inserts; overload answers `429` (never silent drop; rejected
   counters tell the truth). OBS-001 (OTLP) uses **ClickHouse async_insert**
   as the buffer with gateway backpressure → `429 quota_exceeded`; ingest SLO
@@ -243,18 +243,18 @@ flowchart LR
 
 MongoDB cannot serve high-cardinality timeseries or log search at platform
 scale. **Proposal: ClickHouse as the unified telemetry store** (metrics,
-logs, traces in columnar tables — the Signoz/HyperDX-proven pattern), with
+logs, traces in columnar tables, the Signoz/HyperDX-proven pattern), with
 MongoDB retained solely as the control plane. Alternative split
 (VictoriaMetrics + OpenSearch) rejected for operational surface. Self-host
 compose gains one ClickHouse container; helm adds a StatefulSet or external
-endpoint — mirrors the existing "chart deploys no DB" stance. **[Ratify
+endpoint, mirrors the existing "chart deploys no DB" stance. **[Ratify
 before OBS-001 implementation.]**
 
 ### 6.4 Query layer
 
 One internal query service translating the shared QueryBar grammar
 (design.md §3) to store-specific queries; all pillars and the monitor
-evaluator consume it — monitors are "saved queries + thresholds on a
+evaluator consume it, monitors are "saved queries + thresholds on a
 schedule", nothing pillar-specific.
 
 ### 6.5 Honesty stance for the build-out
@@ -274,16 +274,16 @@ rather than growing scope silently.
 
 ## 7. Deployment view
 
-Cloud: [deployment.md](deployment.md) (Cloud Run via the IaC stack, X-3/X-6 —
+Cloud: [deployment.md](deployment.md) (Cloud Run via your infrastructure-as-code stack, X-3/X-6 -
 every service min instances 0, Cloud Scheduler drives checks). Self-host: compose
 (mongo + services) and the standard-form Helm chart + terraform
-in `deploy/` — validated end-to-end on a live cluster.
+in `deploy/`, validated end-to-end on a live cluster.
 
 ## 8. Cross-repo dependencies
 
 | ID | Dependency | Direction | Notes |
 | --- | --- | --- | --- |
-| D2 | Event-ingestion API | **provided by this repo** (Phase 1) | unblocks apparule/expendit analytics |
-| D1 | `account.cuesoft.io` facade | consumed, later | X-1: Google sign-in through the API — not blocking |
+| D2 | Event-ingestion API | **provided by this repo** (Phase 1) | unblocks sibling-product analytics |
+| D1 | `account.cuesoft.io` facade | consumed, later | X-1: Google sign-in through the API, not blocking |
 | D3 | Upstat clause on privacy.cuesoft.io | consumed | UPS-005 copy |
-| X-5/X-7 | Aiven PG + Valkey, Brevo | consumed | shared data/email plane |
+| X-5/X-7 | managed Postgres + Valkey, Brevo | consumed | shared data/email plane |

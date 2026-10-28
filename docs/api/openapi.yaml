@@ -4,7 +4,7 @@ info:
   version: 0.1.0-draft
   description: >-
     Contract for the HTTP surfaces (events, stats, query, alerts-v2, monitors,
-    OTLP omitted — standard protocol). Auth: Google SSO session tokens for user
+    OTLP omitted; standard protocol). Auth: Google SSO session tokens for user
     routes; property public keys for ingestion (U-2).
 servers:
   - url: https://api-upstat.cuesoft.io
