@@ -28,7 +28,7 @@ service ships a `.env.example` to copy from.
 | `OAUTH_STATE_COOKIE` | Sign-in state cookie name (default `upstat_oauth_state`) |
 | `WEB_URL` | Web app origin the API redirects to after sign-in |
 | `PUBLIC_URL` | Public base URL of the backend |
-| `SERVICE_TOKEN_HASH` | Future/optional, not yet read by any service; api/common validates session tokens via `JWT_SECRET`, not a separate hash |
+| `SERVICE_TOKEN_HASH` | Future/optional — not yet read by any service; api/common validates session tokens via `JWT_SECRET`, not a separate hash |
 
 ### `api/observability` (Python service)
 
@@ -49,14 +49,14 @@ make logs      # follow logs
 make down      # stop
 ```
 
-- API (common): http://localhost:8080, health `/health`, readiness `/ready`
-- API (observability): http://localhost:8081, health `/health`, readiness `/ready`
+- API (common): http://localhost:8080 — health `/health`, readiness `/ready`
+- API (observability): http://localhost:8081 — health `/health`, readiness `/ready`
 - Web: http://localhost:3000
 
 ## Running natively (without Docker)
 
 ```bash
-# Go backend, listens on :8080 (override with PORT)
+# Go backend — listens on :8080 (override with PORT)
 cd api/common && cp .env.example .env && go run ./cmd/server
 
 # Python observability service

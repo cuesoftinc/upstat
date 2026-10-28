@@ -1,4 +1,4 @@
-# Upstat, API Surface
+# Upstat — API Surface
 
 > Current surface verified against the api/common handlers and the web app.
 > Every route is HTTP/JSON; [api/openapi.yaml](api/openapi.yaml) is the
@@ -31,14 +31,14 @@ snake_case codes (`bad_shape`, `not_found`, `internal`).
 | `upstat.js` static | web | 3000 | `upstat.cuesoft.io/upstat.js` | n/a (public asset) |
 | OTLP gRPC/HTTP (OBS-001) | ingest gateway (new service at OBS-001) | 4317/4318 | `ingest.upstat.cuesoft.io` | key-authed, no browser CORS |
 
-## 2. Target surface, monitors & alerts
+## 2. Target surface — monitors & alerts
 
-The alert surface is HTTP (**U-5: HTTP-only for new surfaces**) -
+The alert surface is HTTP (**U-5: HTTP-only for new surfaces**) —
 `POST /v1/channels`, `/v1/channels/{id}/verify`, `/v1/monitors/{id}/rules`
 per [flows/alert.md](flows/alert.md) and
 [openapi.yaml](api/openapi.yaml).
 
-## 3. Target surface, events & stats (M2/M3, the ecosystem "D2" contract) **[Proposed]**
+## 3. Target surface — events & stats (M2/M3, the ecosystem "D2" contract) **[Proposed]**
 
 Plain HTTP/JSON, so browser beacons and sibling servers need no special
 client for two counters.
@@ -69,13 +69,13 @@ Origin: enforced against the property allowlist  (browser calls)
 ```
 
 Rules: batch ≤ 100. **Mixed-batch semantics [Decided]:** the endpoint returns
-`202 {accepted: n, rejected: m, rejections: [{index, code}]}`, per-item
+`202 {accepted: n, rejected: m, rejections: [{index, code}]}` — per-item
 rejection codes (`unknown_event`, `unknown_dim`, `ts_out_of_range`,
 `bad_shape`) so sibling consumers can debug; whole-request 4xx is reserved
 for auth (`401`), origin (`403 origin_not_allowed`), rate (`429`), and
 malformed JSON (`400`). Unknown dims reject the item (privacy by schema);
 per-key rate limits; `visitor_hash` computed server-side (cookieless,
-browser events only, see §3.4a).
+browser events only — see §3.4a).
 
 ### 3.2 The tracking script (UPS-003 install surface)
 
@@ -110,12 +110,12 @@ owned), `422 invalid_period | range_too_large | ts_out_of_range`.
 | Consumer | Events (registered names) | Constraint |
 | --- | --- | --- |
 | Sibling measurements product, web (landing) | `page_view`, `demo_start`, `github_click`, `try_cloud_click`, `self_host_click` | counters only |
-| Sibling measurements product, api | `auth_signin_completed`, `auth_signin_failed`, `vault_capture_started`, `vault_qc_failed{code}`, `vault_session_saved{method}`, `vault_manual_entry`, `request_started`, `request_submitted`, `request_paid`, `request_delivered`, `request_disputed{reason}`, `consent_recorded{document}` | counters + listed dims only, never measurement values or amounts |
+| Sibling measurements product, api | `auth_signin_completed`, `auth_signin_failed`, `vault_capture_started`, `vault_qc_failed{code}`, `vault_session_saved{method}`, `vault_manual_entry`, `request_started`, `request_submitted`, `request_paid`, `request_delivered`, `request_disputed{reason}`, `consent_recorded{document}` | counters + listed dims only — never measurement values or amounts |
 | Sibling expenses product, web (landing) | `page_view`, `try_cloud_click`, `self_host_click`, `github_click`, `demo_interact` | counters only |
-| Sibling expenses product, api | `auth_signin_completed`, `auth_migration_completed`, `auth_migration_stranded`, `upload_success{file_type}`, `import_confirmed`, `import_discarded`, `report_generation{kind}`, `bank_link_created`, `bank_sync_completed`, `bank_reauth_required`, `consent_recorded{document}` | counters + `file_type`/`kind` dims only, never amounts/descriptions/institutions |
-| upstat itself | `page_view` on upstat.cuesoft.io, `try_cloud_click`, `self_host_click`, `github_click` (landing CTAs, registered 2026-07-18 ahead of W2 instrumentation, per §3.4a registry-first), `auth_signin_completed`, `auth_migration_completed`, `monitor_created`, `monitor_state_changed{to}` | dogfooding (§5 reliability showcase); landing events counters only |
+| Sibling expenses product, api | `auth_signin_completed`, `auth_migration_completed`, `auth_migration_stranded`, `upload_success{file_type}`, `import_confirmed`, `import_discarded`, `report_generation{kind}`, `bank_link_created`, `bank_sync_completed`, `bank_reauth_required`, `consent_recorded{document}` | counters + `file_type`/`kind` dims only — never amounts/descriptions/institutions |
+| upstat itself | `page_view` on upstat.cuesoft.io, `try_cloud_click`, `self_host_click`, `github_click` (landing CTAs — registered 2026-07-18 ahead of W2 instrumentation, per §3.4a registry-first), `auth_signin_completed`, `auth_migration_completed`, `monitor_created`, `monitor_state_changed{to}` | dogfooding (§5 reliability showcase); landing events counters only |
 
-### 3.4a Registry-as-schema **[Decided, closes the dims contradiction]**
+### 3.4a Registry-as-schema **[Decided — closes the dims contradiction]**
 
 The registry table IS the ingest schema: the §3.1 "closed vocabulary" =
 `page_view`'s browser dims (`path`, `referrer_host`, `device_class`,
@@ -127,7 +127,7 @@ not registered for that event (`unknown_dim`). Value enums live with the
 registry row's source doc.
 
 **Uniques eligibility:** server-emitted events (sibling `api` rows) carry the
-*server's* IP/UA, they are `unique_ineligible: true` in the registry and
+*server's* IP/UA — they are `unique_ineligible: true` in the registry and
 excluded from uniques math (analytics-math.md §4a); only browser events count
 visitors.
 
@@ -137,19 +137,19 @@ sibling expenses product `statement_confirmed{kind}` (flows/statement-mapping.md
 `auth_migration_stranded` is REMOVED from the registry (it is a support-ticket
 tag, not an ingest event).
 
-This table is the **master event registry** for the ecosystem, sibling repos'
+This table is the **master event registry** for the ecosystem — sibling repos'
 instrumentation sections reference it; adding an event means updating this
 table first (same PR discipline as error codes, engineering.md §1).
-New event names are registered per property (no free-form names), keeps the
+New event names are registered per property (no free-form names) — keeps the
 schema-as-privacy-boundary enforceable.
 
-## 4. Gap analysis, requirement → current → needed
+## 4. Gap analysis — requirement → current → needed
 
 | Requirement | Current | Gap |
 | --- | --- | --- |
 | UPS-001 landing | `/` exists; Figma design available | apply design + demo cards (web only) |
 | UPS-002 app entry | auth + dashboard work | CTAs; D1 later |
-| UPS-003 setup docs | self-host docs only | user guides for monitors/script/alerts/retention, after those features exist |
+| UPS-003 setup docs | self-host docs only | user guides for monitors/script/alerts/retention — after those features exist |
 | UPS-004 example cards | components exist | landing embed with demo data |
 | UPS-005 privacy | nothing | privacy page + D3 clause |
 | MON-001 alerts | status flips silently | AlertService + worker dispatch + channels |
@@ -164,7 +164,7 @@ to the HTTP surfaces as written in the shared api conventions. **[Proposed]**
 
 ---
 
-## 6. Observability platform surface (2026-07-16) **[Proposed]**, deltas
+## 6. Observability platform surface (2026-07-16) **[Proposed]** — deltas
 
 | Group | Surface |
 | --- | --- |
@@ -178,4 +178,4 @@ to the HTTP surfaces as written in the shared api conventions. **[Proposed]**
 | Keys | ingest-key CRUD with scopes/quotas |
 
 All surfaces are HTTP/JSON. RUM/browser SDK (`upstat.js`) extends
-the Phase-1 script with web-vitals + error capture, same property keys.
+the Phase-1 script with web-vitals + error capture — same property keys.

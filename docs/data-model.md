@@ -1,4 +1,4 @@
-# Upstat, Data Model
+# Upstat — Data Model
 
 > Companion to [prd.md](prd.md) / [architecture.md](architecture.md).
 > Markers: **[Current]**, **[PRD]**, **[Proposed]**.
@@ -73,7 +73,7 @@ erDiagram
 (Field lists are representative of `internal/model/*.go` + repository structs;
 insight shape comes from the observability service's generator.)
 
-## 2. Target additions **[Proposed]**, the analytics/events layer (M2/M3)
+## 2. Target additions **[Proposed]** — the analytics/events layer (M2/M3)
 
 ```mermaid
 erDiagram
@@ -88,7 +88,7 @@ erDiagram
         string ownerId
         string name "e.g. app.example.com"
         string public_key "format pk_<8 random bytes hex>; write-only"
-        string previous_key "valid 24h after rotation (grace overlap), the rotation contract"
+        string previous_key "valid 24h after rotation (grace overlap) — the rotation contract"
         json allowed_origins "CORS allowlist for beacons"
         datetime created_at
     }
@@ -147,17 +147,17 @@ erDiagram
 
 Modeling notes:
 
-- **`EVENT.dims` is a closed, validated vocabulary**, the schema is the
+- **`EVENT.dims` is a closed, validated vocabulary** — the schema is the
   privacy boundary (prd.md §6): free-form payloads are rejected at ingest so
   sibling products *cannot* leak financial/measurement data into analytics
   even by accident.
 - **`visitor_hash`**: cookieless uniques via
   `hash(daily_salt, property, ip, user_agent)`; the salt rotates daily and raw
-  IPs are never stored. **[Proposed, the privacy-defining choice, ratify]**
+  IPs are never stored. **[Proposed — the privacy-defining choice, ratify]**
 - **Rollups are the query surface**; raw `EVENT` rows exist to rebuild rollups
   and are the first thing retention deletes.
 - **Alerting is monitor-scoped** with owner-scoped reusable channels; email
-  requires a provider decision (prd.md §8.2, old SMTP plumbing was
+  requires a provider decision (prd.md §8.2 — old SMTP plumbing was
   deliberately removed and should return via one well-chosen provider).
 
 ## 3. Storage mapping
@@ -182,7 +182,7 @@ Modeling notes:
 | Class | Data | Rules |
 | --- | --- | --- |
 | Visitor data | events, visitor_hash | cookieless, anonymized, no cross-property joins; disclosed on the privacy page (UPS-005) |
-| Customer data | monitors, targets, alert configs | targets may embed internal hostnames, treat as confidential |
+| Customer data | monitors, targets, alert configs | targets may embed internal hostnames — treat as confidential |
 | Operational | checks, rollups, insights | safe for internal metrics |
 
 ---
@@ -253,11 +253,11 @@ one profile field, `ORG.timezone` (IANA, default `UTC`; set at org creation,
 editable in Settings, pages.md B12). It exists so report rendering and
 time-bucketing *display* resolve in the org's timezone while storage and
 rollups stay UTC ([analytics-math.md](analytics-math.md) §3). The `country`
-in `EVENT.dims` (§2) is a coarse *event* dimension, **not** org identity -
+in `EVENT.dims` (§2) is a coarse *event* dimension, **not** org identity —
 no address or country identity field exists. Tier 2 (provider-verified
 financial identity) is N/A until billing enters the PRD.
 
-### Telemetry-plane DDL sketch (ClickHouse, U-1, draft to finalize at OBS-001)
+### Telemetry-plane DDL sketch (ClickHouse, U-1 — draft to finalize at OBS-001)
 
 ```sql
 CREATE TABLE metrics_points (
@@ -289,7 +289,7 @@ CREATE TABLE spans (
   TTL toDateTime(start) + INTERVAL 7 DAY;
 ```
 
-`org_id` leads every ORDER BY, the tenancy-isolation primitive (queries are
+`org_id` leads every ORDER BY — the tenancy-isolation primitive (queries are
 always org-scoped; cross-org reads are structurally awkward by design).
 
 Retention defaults extend §4's table: metrics 13mo (rollup-thinned), logs

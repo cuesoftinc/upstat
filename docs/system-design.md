@@ -1,6 +1,6 @@
-# Upstat, System Design
+# Upstat — System Design
 
-> **Status: [Proposed] v2.1, draft for ratification (2026-09-24).** This
+> **Status: [Proposed] v2.1 — draft for ratification (2026-09-24).** This
 > document replaces the system design described across `architecture.md`
 > §1–§7, `data-model.md` §3, and `deployment.md` §1 once ratified. It keeps
 > every **product** decision in [decisions.md](decisions.md) (Google-only
@@ -65,7 +65,7 @@
 
 ## Contents
 
-1. Why redesign, audit findings
+1. Why redesign — audit findings
 2. Design drivers
 3. Architecture overview
 4. Services
@@ -76,14 +76,14 @@
 9. Reliability, failure modes, and capacity
 10. Deployment topology
 11. Repository layout
-12. Reuse map, keep, change, retire
+12. Reuse map — keep, change, retire
 13. Decisions to ratify
 14. Migration plan
 15. Open questions
 
 ---
 
-## 1. Why redesign, audit findings **[Current]**
+## 1. Why redesign — audit findings **[Current]**
 
 The code on `main` is small: roughly 2.3k lines of Go (`api/common`), 1.6k
 lines of Python (`api/observability`), and 38k lines of TypeScript in `web`,
@@ -101,7 +101,7 @@ grow into that target without being rebuilt, for these reasons:
 | F6 | **Telemetry in the control-plane store.** Check results sit in Mongo, and Phase 1 plans to put events in Postgres and later move them to ClickHouse. | data-model.md §3, features.md U1-0. | Everything gets built twice, and the control-plane database carries the highest-write workload. |
 | F7 | **Ingestion is planned as a custom gateway that also writes storage.** | api.md §1a. | Mixes a thin gateway with persistence, and reinvents loaders that already exist (the OTel Collector, ClickHouse's Kafka engine). |
 | F8 | **An unused browser protocol layer (resolved 2026-10-28).** | The web read `/api/mock/v1` and never called the generated client. | The client and its proxy are removed; the web has one HTTP repository client. |
-| F9 | **The docs contradict themselves.** architecture.md §6.6 excludes APM/tracing/logs, while prd.md §9 makes them core. | n/a | Contributors can't tell which design is current. |
+| F9 | **The docs contradict themselves.** architecture.md §6.6 excludes APM/tracing/logs, while prd.md §9 makes them core. | — | Contributors can't tell which design is current. |
 
 What *is* solid and carries forward: the behavioural contracts (flows/*,
 analytics-math, query grammar, engineering error catalog and authz
@@ -137,7 +137,7 @@ flowchart LR
     end
 
     subgraph Edge
-        WEB[web, Next.js<br/>App Hosting + CDN]
+        WEB[web — Next.js<br/>App Hosting + CDN]
     end
 
     subgraph Go, CRUD
@@ -145,7 +145,7 @@ flowchart LR
         QRY[api/query, Go<br/>reads ClickHouse]
     end
 
-    GW[api/ingest, Node<br/>thin gateway]
+    GW[api/ingest — Node<br/>thin gateway]
     PRB[probe · Cloud Run functions<br/>Python · 2 regions, planned]
 
     subgraph Python, processing
@@ -153,7 +153,7 @@ flowchart LR
         OBS[api/observability, Python<br/>anomaly · insights]
     end
 
-    LD[Loaders, stock, no custom code<br/>OTel Collector · ClickHouse Kafka engine]
+    LD[Loaders — stock, no custom code<br/>OTel Collector · ClickHouse Kafka engine]
     PG[(Postgres)]
     CH[(ClickHouse)]
     R[(Valkey)]
@@ -192,14 +192,14 @@ standard: `api/common` 8080, then each service in the order it was added.
 
 | Unit | Lang | Role | Responsibility | Owns | Port |
 | --- | --- | --- | --- | --- | --- |
-| `web` | Next.js | Frontend | Landing, dashboard, public status pages (ISR), `/docs/api`, serves `upstat.js` | n/a | 3000 |
+| `web` | Next.js | Frontend | Landing, dashboard, public status pages (ISR), `/docs/api`, serves `upstat.js` | — | 3000 |
 | `api/common` | **Go** | **CRUD (write)** | Control-plane API: Google SSO sessions, orgs/roles, monitors, rules, channels, incidents, SLOs, dashboards, keys, event registry, catalog, status pages. **Check scheduler** (lookup-then-write) that calls the probe functions and relays their results to Kafka. **Outbox publisher.** Persists every decision Python makes (transitions, incidents, deliveries, insights). Owns the Postgres **and** ClickHouse schemas (migrations). | **Postgres** (sole client) | 8080 |
 | `api/observability` | **Python** | Processing | Anomaly detection, insight narratives (Vertex AI; Groq/Gemini BYO key for self-host), log patterns (OBS-012), forecasting | nothing: reads via `api/query`, emits via Kafka | 8081 |
 | `api/ingest` | **Node** (NestJS) | Thin gateway | OTLP over HTTP and gRPC, and `/v1/events`: key auth, scope, byte quotas, origin allowlist, event-registry validation, `visitor_hash` → Kafka. **OTLP payloads pass through unparsed.** | nothing | 8082 (+4317/4318 in self-host) |
 | `api/query` | **Go** | **CRUD (read)** | Parses the shared grammar, compiles an org-scoped query to SQL, routes by time range (raw/1m/1h), enforces limits, caches in memory. Serves explorers, dashboards, `/v1/stats`, and the Python services' reads. | read-only ClickHouse user | 8083 |
 | `api/alerting` | **Python** | Processing | **Evaluator:** multi-region quorum, the monitor state machine (flows/monitor.md §2), nodata timers, metric/log/trace/SLO-burn rules via `api/query`. **Notifier:** rules → channels, cooldown, flapping, retries, webhook signing, Brevo. | working state in Valkey (rebuildable); Planned | 8084 |
 | `probe` | **Python** | Serverless function | One HTTP check per call: SSRF-safe dial, DNS/connect/TLS/TTFB timings (pycurl), certificate expiry. Planned: **Cloud Run functions in 2 regions** (us-central1, us-east4); runs as a container for self-host. | nothing; no secrets, no IAM roles | n/a |
-| Loaders | stock | Infrastructure | **OpenTelemetry Collector** (contrib image, configuration only): Kafka OTLP topics → ClickHouse. **ClickHouse Kafka table engine:** JSON topics (events, check results) → ClickHouse. | n/a | n/a |
+| Loaders | stock | Infrastructure | **OpenTelemetry Collector** (contrib image, configuration only): Kafka OTLP topics → ClickHouse. **ClickHouse Kafka table engine:** JSON topics (events, check results) → ClickHouse. | — | — |
 
 **Retired:** the in-process
 `MonitorWorker`, the Phase-1 rollup worker
@@ -234,7 +234,7 @@ process memory and enforces the per-org concurrency cap per instance.
 That drops a dependency from the read path at the cost of cache hits
 across instances, which is fine at this scale.
 
-### 5.2 Control plane, Postgres
+### 5.2 Control plane — Postgres
 
 Every tenant-owned table carries `org_id`. Row-level security is on, with
 the policy `org_id = current_setting('upstat.org_id')`. `api/common` sets
@@ -314,7 +314,7 @@ replaces `password_hash` (accounts key on the Google-verified email); monitors g
 auto-opened monitor incidents and declared SRE incidents. **No telemetry
 in Postgres.**
 
-### 5.3 Telemetry plane, ClickHouse
+### 5.3 Telemetry plane — ClickHouse
 
 Schemas are Go-owned migrations in `api/common/migrations/clickhouse`.
 
@@ -654,7 +654,7 @@ engineering.md unchanged.
 | Kafka down (managed 3-node HA) | UI reads and writes (outbox accumulates) | Ingest returns 503 (SDKs retry); check results can't be relayed, so monitors go `nodata`, not `down` | Outbox and relays resume |
 | Postgres down | Ingest, query, alerting (config cached in memory) | UI writes; scheduling stops, so monitors go `nodata` | Resume |
 | One probe region down | The other region's result decides (fewer reported) | Region shown as missing on check detail | n/a |
-| A slow target | Everything else: each check is its own function call with its own timeout | n/a | n/a |
+| A slow target | Everything else: each check is its own function call with its own timeout | — | — |
 | Valkey down | Ingest (local quota pre-debit), `common` (rate limits fail open), alerting (fail-open notifications) | Exact quotas and cooldowns, and uniques salts for the rest of the day | Rebuild |
 | `api/alerting` down | Checks run and results queue in Kafka | Alerts delayed until it restarts; nothing lost | Consumer resumes from offset |
 | `api/common` deploy | Cloud Scheduler retries on the next minute | Brief UI write blip; at most one pass skipped | n/a |
@@ -768,7 +768,7 @@ for function source that must also ship open-source for self-host
 
 ---
 
-## 12. Reuse map, keep, change, retire
+## 12. Reuse map — keep, change, retire
 
 | Existing code | Fate |
 | --- | --- |
@@ -800,11 +800,11 @@ for function source that must also ship open-source for self-host
 | **S-5** | **Multi-region probing**, quorum `min_failing_regions = 2` of 2; regions `us-central1`, `us-east4` (Planned) | in-check retries; single worker | ⭐ regions ruled (§15 Q1) |
 | **S-6** | Telemetry loading uses **stock components only** (OTel Collector, ClickHouse Kafka engine); the gateway forwards raw OTLP | api.md §1a "ingest gateway writes storage"; `/v1/otlp/*` prefix → standard paths | ⭐ ratify |
 | **S-7** | **All service traffic is HTTP** (done 2026-10-28) | X-8 | Done |
-| **S-8** | Config propagation by **transactional outbox → compacted topics** | n/a | ⭐ ratify |
+| **S-8** | Config propagation by **transactional outbox → compacted topics** | — | ⭐ ratify |
 | **S-9** | Tenancy defense in depth: Postgres RLS + ClickHouse row policies | engineering.md §2 (app-level only) | ⭐ ratify |
 | **S-10** | Consumers run as scale-to-zero services; `api/query` shares `api/common/pkg` via `replace`; new env names `CLICKHOUSE_URL`, `PROBE_URLS` | deployment.md §4; self-contained-service default | ⭐ ratify, propose names upstream |
 | **S-11** | Ingest quotas in **bytes/s** per key; `api/query` uses no Valkey | engineering.md §3 per-signal point quotas | ⭐ ratify |
-| **S-12** | Probe source lives in `functions/probe/` (Python, open-source, container for self-host); your infrastructure-as-code stack provisions it | n/a (no home for function source) | ⭐ ratify, and add `functions/` to the standard's layout |
+| **S-12** | Probe source lives in `functions/probe/` (Python, open-source, container for self-host); your infrastructure-as-code stack provisions it | — (no home for function source) | ⭐ ratify, and add `functions/` to the standard's layout |
 
 On ratification: record S-1…S-12 in decisions.md, update
 `.cuelabs/project.yaml` (`backend: {common,

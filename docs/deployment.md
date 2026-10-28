@@ -1,4 +1,4 @@
-# Deployment, Cloud Contract
+# Deployment — Cloud Contract
 
 > Implements decision X-3. Cloud deploys follow proven
 > patterns (workflows verified 2026-07-16); provisioning goes through the
@@ -34,7 +34,7 @@ are not provisioned.
 - One infrastructure-as-code stack per product; state lives in a remote state bucket.
 - Cloud Run services instantiate the shared Cloud Run service
   module; the GitHub→GCP deploy identity uses **Workload Identity
-  Federation**, no service-account keys in GitHub.
+  Federation** — no service-account keys in GitHub.
 - Secrets/env flow from **your secrets manager** (the product's `stg` config) into
   Cloud Run env; the repo's `.env.example` files document the variable
   names, your secrets manager owns values.
@@ -54,12 +54,12 @@ tags: images carry the commit sha and `latest`.
 
 Two hard-won rules, non-negotiable:
 
-1. **Deploy by digest, never by tag**, Cloud Run pulls Docker Hub images
+1. **Deploy by digest, never by tag** — Cloud Run pulls Docker Hub images
    through the `mirror.gcr.io` cache, which has served stale manifests for
    tags; the staging workflow threads `steps.build.outputs.digest` into the
    deploy step.
 2. **WIF only** (`google-github-actions/auth@v3` with
-   `workload_identity_provider` + `service_account`), no JSON keys.
+   `workload_identity_provider` + `service_account`) — no JSON keys.
 
 The single protected GitHub environment is **`Sandbox`** (X-6): required
 reviewers and the four `GCP_*` variables above. No other deploy environments
@@ -86,5 +86,5 @@ exist.
 ## 5. Not in this phase
 
 Writing these workflows + the infrastructure-as-code stack is **implementation work**, out of
-scope for the docs phase, this document is the contract they'll be built
+scope for the docs phase — this document is the contract they'll be built
 against. Docker Hub repos already exist for every image name above.

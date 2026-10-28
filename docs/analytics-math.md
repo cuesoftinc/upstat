@@ -1,4 +1,4 @@
-# Upstat, Analytics Math Contract (events → rollups → stats)
+# Upstat — Analytics Math Contract (events → rollups → stats)
 
 > The exact math behind the events layer (M2/M3, decisions U-2/U-3/U-6):
 > visitor hashing, sessionization, rollups, uniques, and the honesty rules
@@ -14,8 +14,8 @@ visitor_hash = hex( SHA-256( daily_salt ‖ property_id ‖ ip ‖ user_agent ) 
 - `daily_salt`: 32 random bytes per UTC day, **selected by the event's `ts`
   day** (not arrival time) so late events hash consistently with their
   bucket; a day's salt is destroyed **48h after that day ends** (aligned with
-  the ingest window §5, after destruction no event can legally arrive for
-  it). Cross-day linkage remains cryptographically dead, the privacy
+  the ingest window §5 — after destruction no event can legally arrive for
+  it). Cross-day linkage remains cryptographically dead — the privacy
   guarantee UPS-005 publishes is unchanged (no salt ever spans two days).
 - `ip` is used pre-hash only; never stored. Proxied requests use the
   left-most public address in `X-Forwarded-For` as seen by our LB.
@@ -27,19 +27,19 @@ visitor_hash = hex( SHA-256( daily_salt ‖ property_id ‖ ip ‖ user_agent ) 
 
 A *visit* = consecutive events with the same `visitor_hash` on one property
 with gaps < 30 min. Computed inside the rollup job into a dedicated
-**`VISIT_ROLLUP`** row family `(property, period, bucket)`, columns:
+**`VISIT_ROLLUP`** row family `(property, period, bucket)` — columns:
 `visits`, `bounce_visits`, `total_visit_seconds` (data-model §2 gains the
 entity). Attribution rules **[Decided]**: a visit belongs to the bucket of
 its **first event**; a *bounce* = a visit whose only **page_view** count is
 1 (custom events don't break bounce-ness); visits have no dims (dims apply
-to event rollups only, the cardinality-explosion guard). Event `ROLLUP`
+to event rollups only — the cardinality-explosion guard). Event `ROLLUP`
 rows are per `(name, single-dim-key, dim-value)`, never dim cross-products,
 capped at the **top 1,000 dim values per bucket** (the tail aggregates to
 `__other__`). Derived UI metrics:
 
 | Metric | Formula | Honesty note |
 | --- | --- | --- |
-| Bounce rate | bounce_visits ÷ visits | undefined (-) when visits = 0 |
+| Bounce rate | bounce_visits ÷ visits | undefined (—) when visits = 0 |
 | Avg. visit duration | total_visit_seconds ÷ (visits − bounce_visits) | bounces excluded; label says "engaged visits" |
 | Pages / visit | page_view count ÷ visits | |
 
@@ -54,16 +54,16 @@ keyed `(property, period, bucket, name, dims)`:
 - Daily rollups aggregate from raw events (not from hourly rollups) so daily
   uniques are exact for the day.
 - Idempotent upserts: the job recomputes every bucket whose **end** is
-  within the trailing 48h, late events self-heal; a bucket becomes immutable
+  within the trailing 48h — late events self-heal; a bucket becomes immutable
   only once `bucket_end < now − 48h`, which (with the §5 accept window)
   guarantees nothing accepted can target an immutable bucket.
 - Bucket keys and storage are **UTC**; display bucketing resolves in the org
-  timezone (`ORG.timezone`, data-model.md §5 / X-10), presentation only,
+  timezone (`ORG.timezone`, data-model.md §5 / X-10) — presentation only,
   rollup keys never shift.
 
 ## 4. Uniques across ranges (the non-additivity rule)
 
-`Σ uniques(day)` over-counts multi-day visitors, but cross-day linkage is
+`Σ uniques(day)` over-counts multi-day visitors — but cross-day linkage is
 deliberately impossible (§1), so **cross-day "unique visitors" does not
 exist in this product**. Normative UI rules:
 
@@ -73,14 +73,14 @@ exist in this product**. Normative UI rules:
 | Multi-day | *daily-average uniques* (labeled exactly that) + the per-day series; never a summed "total uniques" |
 
 Any chart or API consumer summing uniques across buckets is wrong by
-specification, `/v1/stats` returns `uniques_additive: false` in range
+specification — `/v1/stats` returns `uniques_additive: false` in range
 metadata to make the contract machine-visible.
 
 
 ## 4a. Server-emitted events (sibling APIs)
 
 Events from sibling *servers* (registry `api` rows) carry the sending
-server's IP/UA, hashing them would fabricate visitors. They are marked
+server's IP/UA — hashing them would fabricate visitors. They are marked
 `unique_ineligible` in the registry (api.md §3.4a): counted in `count`,
 **excluded from `uniques` and visit math entirely**. `/v1/stats` for such
 events returns `uniques: null`.
@@ -89,7 +89,7 @@ events returns `uniques: null`.
 
 Events accept client `ts` within `[now − 48h, now + 5min]`; outside →
 rejected (`422 ts_out_of_range`, counted in the property's rejected
-counter). The 48h floor matches the rollup self-heal window, nothing
+counter). The 48h floor matches the rollup self-heal window — nothing
 accepted can land in an immutable bucket.
 
 ## 6. Rate limits & rejection accounting
@@ -97,7 +97,7 @@ accepted can land in an immutable bucket.
 Per property key: 600 events/min sustained, burst 1,200 **[Decided
 defaults]**; over-limit → `429` with `Retry-After`. All rejections
 (schema, origin, rate, ts) increment per-property `rejected{reason}`
-counters visible in property settings, silent data loss is not acceptable
+counters visible in property settings — silent data loss is not acceptable
 even for rejected data.
 
 ## 7. Acceptance

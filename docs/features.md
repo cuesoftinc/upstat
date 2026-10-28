@@ -1,23 +1,23 @@
-# Upstat, Granular Feature Register
+# Upstat — Granular Feature Register
 
 > Roadmap phases decomposed into implementation-sized units (each ≈ one PR).
 > IDs stable for PR references (`feat(U1-3): …`).
 
-## Phase 0, Landing + privacy
+## Phase 0 — Landing + privacy
 
 | ID | Unit | Delivers | Refs | Deps |
 | --- | --- | --- | --- | --- |
-| U0-1 | Design tokens package | `upstat/tokens` (#00E09E) → CSS vars/Tailwind; dark-first | design.md §2/§7 | n/a |
+| U0-1 | Design tokens package | `upstat/tokens` (#00E09E) → CSS vars/Tailwind; dark-first | design.md §2/§7 | — |
 | U0-2 | Landing build | apply Figma design: hero, pillar grid, ingestion diagram, cloud-vs-oss | pages.md A1–A10 | U0-1 |
 | U0-3 | Demo cards | example uptime/analytics cards w/ synthetic data | pages.md A4, UPS-004 | U0-2 |
 | U0-4 | Privacy page | cookieless model disclosure per analytics-math §1 | UPS-005 | U0-2 |
-| U0-5 | Self status page | configure GetStatusPage for upstat itself, link from landing | prd §5 showcase | n/a |
+| U0-5 | Self status page | configure GetStatusPage for upstat itself, link from landing | prd §5 showcase | — |
 
-## Phase 1, Events layer (D2: unblocks siblings)
+## Phase 1 — Events layer (D2: unblocks siblings)
 
 | ID | Unit | Delivers | Refs | Deps |
 | --- | --- | --- | --- | --- |
-| U1-0 | Postgres control-plane provisioning | managed Postgres (X-5) schema for events/rollups/properties | data-model, X-5 | n/a |
+| U1-0 | Postgres control-plane provisioning | managed Postgres (X-5) schema for events/rollups/properties | data-model, X-5 | — |
 | U1-1 | Property + key model | PROPERTY rows, write-only keys (24h rotation grace), origin allowlists | data-model §2, U-2 | U1-0 |
 | U1-2 | Ingest endpoint | POST /v1/events: schema/origin/ts/rate validation, rejection counters | api.md §3.1, analytics-math §5–6 | U1-1 |
 | U1-3 | visitor_hash | daily salt rotation, hash pipeline, no-raw-IP storage test | analytics-math §1 | U1-2 |
@@ -27,19 +27,19 @@
 | U1-7 | Property settings UI | keys, origins, rejection counters | pages.md B12 | U1-1 |
 | U1-8 | Sibling onboarding | register sibling-product events per master registry | api.md §3.4 | U1-2 |
 
-## Phase 2, Honest dashboards + alerting
+## Phase 2 — Honest dashboards + alerting
 
 | ID | Unit | Delivers | Refs | Deps |
 | --- | --- | --- | --- | --- |
 | U2-1 | Traffic pillar on real data | /v1/stats wiring, mock routes deleted | ANA-002, pages.md B6 | U1-6 |
-| U2-2 | `nodata` + flapping semantics | worker state machine per contract + transition tests | flows/monitor §2 | n/a |
-| U2-3 | Alert channels | webhook (signed) + email (Brevo) + verification flows | flows/alert §1, U-4 | n/a |
+| U2-2 | `nodata` + flapping semantics | worker state machine per contract + transition tests | flows/monitor §2 | — |
+| U2-3 | Alert channels | webhook (signed) + email (Brevo) + verification flows | flows/alert §1, U-4 | — |
 | U2-4 | Alert rules + dispatcher | rules CRUD, dispatch ordering/cooldown/retries, flapping guard | flows/alert §2–3 | U2-2, U2-3 |
 | U2-5 | Alert UX | channels/rules UI, triggered feed MI-14, bulk opt-in sheet | pages.md B8 | U2-4 |
 | U2-6 | Setup docs (UPS-003) | monitor/script/alert/retention user guides → GitBook | flows/*, analytics-math | U1-4, U2-4 |
-| U2-7 | Control-plane Postgres migration | Mongo→PG per X-5, parity harness | X-5, engineering §4 | n/a |
+| U2-7 | Control-plane Postgres migration | Mongo→PG per X-5, parity harness | X-5, engineering §4 | — |
 
-## Phases 3–7, Observability pillars (each gated on U-1 ClickHouse)
+## Phases 3–7 — Observability pillars (each gated on U-1 ClickHouse)
 
 | ID | Unit | Delivers | Refs |
 | --- | --- | --- | --- |
@@ -60,7 +60,7 @@
 | U6-2 | RUM pages complete | vitals dashboards, error tracking UI; bounce/SEO pages resolve honestly | pages.md B6, ANA-002 | U6-1 |
 | U7-1 | Incidents v2 | sev/roles/timeline composer (MI-10), postmortem template on resolve | pages.md B9, data-model §5 | U2-4 |
 | U7-2 | SLOs | SLI sources (check/metric ratio/latency), 30d rolling windows, SLOCards (MI-15) | pages.md B10 | U3-4 |
-| U7-3 | Burn-rate monitors | fast/slow burn rules (2h @ 14.4x, 24h @ 6x, Google SRE defaults) | U7-2, U3-6 | U7-2 |
+| U7-3 | Burn-rate monitors | fast/slow burn rules (2h @ 14.4x, 24h @ 6x — Google SRE defaults) | U7-2, U3-6 | U7-2 |
 
 Acceptance per pillar = its pages.md section + the engineering.md privacy/
 retention gates; every pillar ships explorer + retention + monitors together

@@ -1,6 +1,6 @@
 # Upstat
 
-Open-source uptime and status monitoring, schedule health checks against your
+Open-source uptime and status monitoring — schedule health checks against your
 services, record incidents, expose status pages, and surface ML-powered
 reliability insights.
 
@@ -18,7 +18,7 @@ description of the components and how they fit together, see
 [docs/overview.md](docs/overview.md).
 
 > **Scope note:** the diagram below is current state (uptime/status core).
-> Upstat's ratified direction is a full observability platform, see
+> Upstat's ratified direction is a full observability platform — see
 > [docs/prd.md §9](docs/prd.md) and [docs/decisions.md](docs/decisions.md).
 
 ## Architecture
@@ -95,10 +95,10 @@ observability service). See [docs/setup.md](docs/setup.md) for details; `make he
 targets. Never commit credentials or bake them into an image.
 
 ## Documentation
-- [Hosted docs](https://cuesoft.gitbook.io/upstat), the full documentation site (auto-synced from `docs/`)
+- [Hosted docs](https://cuesoft.gitbook.io/upstat) — the full documentation site (auto-synced from `docs/`)
 
-- [Project overview](docs/overview.md), architecture and components
-- [Local setup](docs/setup.md), development environment and per-service run commands
+- [Project overview](docs/overview.md) — architecture and components
+- [Local setup](docs/setup.md) — development environment and per-service run commands
 
 ## Contributing
 
@@ -107,7 +107,7 @@ and our [Code of Conduct](CODE_OF_CONDUCT.md) before opening a PR.
 
 ## Security
 
-Please report vulnerabilities privately, see our [Security policy](SECURITY.md).
+Please report vulnerabilities privately — see our [Security policy](SECURITY.md).
 
 ## License
 
