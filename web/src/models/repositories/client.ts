@@ -5,7 +5,7 @@ import { ApiError, type ApiErrorBody } from "../errors";
  * HTTP client for the repository layer — the ONLY place the app talks to the
  * network (web-standard MVC rule).
  *
- * TEST_MODE (`NEXT_PUBLIC_TEST_MODE=1`) targets the in-app mock server at
+ * TEST_MODE (`NEXT_PUBLIC_TEST_MODE=true`) targets the in-app mock server at
  * `/api/mock`; otherwise the real API base from `NEXT_PUBLIC_API_BASE`
  * (api-upstat.cuesoft.io once the HTTP surfaces land).
  */

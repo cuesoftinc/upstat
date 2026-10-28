@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- `NEXT_PUBLIC_TEST_MODE` is switched on with `true` instead of `1`.
 - Observability reads monitors and checks from api-common over HTTP.
 - Docs describe provisioning without naming internal repositories.
 - Fleet-parity convergence: web deps aligned to the sibling pin set (Next
