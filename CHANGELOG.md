@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- The web reads its API base from `NEXT_PUBLIC_API_URL` instead of `NEXT_PUBLIC_API_BASE`.
 - `NEXT_PUBLIC_TEST_MODE` is switched on with `true` instead of `1`.
 - Observability reads monitors and checks from api-common over HTTP.
 - Docs describe provisioning without naming internal repositories.

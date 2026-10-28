@@ -770,7 +770,7 @@ on it:
    repositories are identical in both modes except for the base URL.
 
 Unset (or `0`) → `SsoAuthProvider` (API session cookie) + the real API base from
-`NEXT_PUBLIC_API_BASE` (api/common HTTP). The new app consumes **HTTP/JSON
+`NEXT_PUBLIC_API_URL` (api/common HTTP). The new app consumes **HTTP/JSON
 only** (U-5/X-8); the real-backend monitor path lives inside the models
 seam (§8), never in views. TEST_MODE is how Playwright runs in CI and how W1–W3 are built
 before the backend surfaces exist.

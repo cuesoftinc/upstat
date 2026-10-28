@@ -20,7 +20,7 @@ npm run dev
 `NEXT_PUBLIC_*` values are inlined at build time — set them in the root
 `.env` (see `.env.example`). See `web/src/config/env.ts` for the full list:
 
-- `NEXT_PUBLIC_API_BASE` — base path the repository layer talks to (defaults
+- `NEXT_PUBLIC_API_URL` — base path the repository layer talks to (defaults
   to the in-app mock server, `/api/mock`).
 - `NEXT_PUBLIC_ANALYTICS` — opt-in product analytics (`1` to enable; never on
   in `TEST_MODE`).

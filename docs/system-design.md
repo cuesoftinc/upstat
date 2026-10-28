@@ -607,7 +607,7 @@ backend implements that contract; it does not redesign it:
    (today it covers 9 paths). It becomes the source for Scalar (`/docs/api`)
    and for request validation in `common` and `query`.
 2. **Contract tests:** run the web's Vitest controller and model suites
-   with `NEXT_PUBLIC_API_BASE` pointed at a compose stack, next to the
+   with `NEXT_PUBLIC_API_URL` pointed at a compose stack, next to the
    mock. Divergence fails CI.
 3. Cut the web over surface by surface: when a surface's real endpoints
    pass the contract suite, its `apiBase` flips. TEST_MODE and the mock
