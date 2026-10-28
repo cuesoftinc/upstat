@@ -4,7 +4,7 @@
 > document replaces the system design described across `architecture.md`
 > §1–§7, `data-model.md` §3, and `deployment.md` §1 once ratified. It keeps
 > every **product** decision in [decisions.md](decisions.md) (Google-only
-> auth, ClickHouse, Aiven Postgres/Valkey, Brevo, Vertex AI, Cloud Run,
+> auth, ClickHouse, managed Postgres/Valkey, Brevo, Vertex AI, Cloud Run,
 > merge-to-main deploys, OTel everywhere) and every **behavioural** contract in
 > the flow docs (monitor state machine, alert dispatch, analytics math,
 > query grammar). What it replaces is the **shape of the system**: service
@@ -21,10 +21,10 @@
 > - **Probes are serverless functions**, the only use the standard allows
 >   for functions.
 >
-> Services are named by function and connected through Aiven Kafka.
+> Services are named by function and connected through managed Kafka.
 >
 > **Amendment, 2026-10-13: the shared message bus (decisions.md X-11).**
-> Upstat's Kafka is the one service shared with Expendit and Apparule,
+> Upstat's Kafka is the one service shared with the sibling products,
 > under the CueLABS delivery standard's `references/shared-messaging.md`.
 > That service has three shared lanes, two partitions each, about
 > 250 KiB/s for all products, no compaction, and fixed retention, so
@@ -52,14 +52,14 @@
 > - **Pointers only:** every payload goes by `data_ref` into Upstat's
 >   storage prefix; other products can read the lanes.
 > - **One Kafka user, `upstat`;** consumer groups `upstat-<service>`.
-> - **Keep-alive:** Expendit owns it; Upstat runs no heartbeat or watchdog.
+> - **Keep-alive:** the sibling expenses product owns it; Upstat runs no heartbeat or watchdog.
 > - **Request ids:** every request carries a `request_id`, kept when it is
 >   re-sent; the owner keeps the first result per `request_id` and drops
 >   later ones.
 > - **Never block a partition:** a message that keeps failing becomes a
 >   failed result on `cuelabs.results` (or is recorded as failed by
 >   `common`), and is then committed.
-> - **Environments:** only the deployed services (Doppler `stg`) connect to
+> - **Environments:** only the deployed services (your secrets manager (`stg` config)) connect to
 >   the shared service; local runs use the compose broker, so a laptop
 >   never joins a shared consumer group.
 
@@ -140,24 +140,24 @@ flowchart LR
         WEB[web — Next.js<br/>App Hosting + CDN]
     end
 
-    subgraph Go — CRUD
-        COMMON[api/common — Go<br/>auth · orgs · CRUD · scheduler · outbox]
-        QRY[api/query — Go<br/>reads ClickHouse]
+    subgraph Go, CRUD
+        COMMON[api/common, Go<br/>auth · orgs · CRUD · scheduler · outbox]
+        QRY[api/query, Go<br/>reads ClickHouse]
     end
 
     GW[api/ingest — Node<br/>thin gateway]
     PRB[probe · Cloud Run functions<br/>Python · 2 regions, planned]
 
-    subgraph Python — processing
-        ALR[api/alerting — Python<br/>quorum · state machine · notify]
-        OBS[api/observability — Python<br/>anomaly · insights]
+    subgraph Python, processing
+        ALR[api/alerting, Python<br/>quorum · state machine · notify]
+        OBS[api/observability, Python<br/>anomaly · insights]
     end
 
     LD[Loaders — stock, no custom code<br/>OTel Collector · ClickHouse Kafka engine]
     PG[(Postgres)]
     CH[(ClickHouse)]
     R[(Valkey)]
-    K[[Aiven Kafka]]
+    K[[managed Kafka]]
 
     BR --> WEB
     WEB -->|proxies /api/v1/*| COMMON
@@ -223,10 +223,10 @@ Python probe function).
 
 | Store | Holds | Written by | Read by | Source of truth? |
 | --- | --- | --- | --- | --- |
-| **Aiven Postgres** (`sandbox-db`, database and user `upstat`) | Control plane (§5.2) + outbox | `api/common` | `api/common` | Yes |
-| **ClickHouse** (ClickHouse Cloud account, S-4; not in the GCP IaC) | Spans, logs, metrics, check results, events, rollups, usage (§5.3) | **only from Kafka**, by the stock loaders (insert-only user) | `api/query` (read-only user) | Yes, for telemetry |
-| **Aiven Kafka** | Handoffs + compacted config (§5.4) | per topic | per topic | No; a durable buffer. Config topics are rebuildable from Postgres. |
-| **Aiven Valkey** (`sandbox-cache`, user `upstat`, keys `upstat:*`) | `common`: per-user API rate limits (engineering.md §3). `ingest`: per-key byte quotas, pre-auth IP limits, daily visitor-hash salts. `alerting`: evaluator working state, cooldown stamps, 30-min flapping windows. | those three | same | No. Losing it is survivable (§9.2). |
+| **Managed Postgres** (database and user `upstat`) | Control plane (§5.2) + outbox | `api/common` | `api/common` | Yes |
+| **ClickHouse** (ClickHouse Cloud account, S-4; not in the GCP infrastructure-as-code) | Spans, logs, metrics, check results, events, rollups, usage (§5.3) | **only from Kafka**, by the stock loaders (insert-only user) | `api/query` (read-only user) | Yes, for telemetry |
+| **Managed Kafka** | Handoffs + compacted config (§5.4) | per topic | per topic | No; a durable buffer. Config topics are rebuildable from Postgres. |
+| **Managed Valkey** (user `upstat`, keys `upstat:*`) | `common`: per-user API rate limits (engineering.md §3). `ingest`: per-key byte quotas, pre-auth IP limits, daily visitor-hash salts. `alerting`: evaluator working state, cooldown stamps, 30-min flapping windows. | those three | same | No. Losing it is survivable (§9.2). |
 | **Cloud Storage** `upstat/<env>/…` | Postmortem bodies, exports, ClickHouse backups, ML model artifacts | common, observability, CH backup | same | Yes, for blobs |
 
 `api/query` deliberately does **not** use Valkey. It caches results in
@@ -351,7 +351,7 @@ predicate.
 
 ### 5.4 Kafka events (on the shared bus)
 
-Upstat uses the CueLABS shared message bus (decisions.md X-11; the
+Upstat uses the shared message bus (decisions.md X-11; the
 standard's `shared-messaging.md` is the source of lanes, envelope, limits
 and operations). Only control-plane hand-offs ride it; telemetry goes
 through the OpenTelemetry Collector (amendment at the top). This table
@@ -628,7 +628,7 @@ engineering.md unchanged.
 | **Machine identity** | Ingest keys: sha256 at rest, shown once, 24 h rotation grace, scoped, write-only. Between services: Kafka ACLs (a SASL user per service with topic-level grants) and Cloud Run IAM for the synchronous calls (`common → probe`, `Python → query`). The `SERVICE_TOKEN` scheme retires. |
 | **SSRF (probes)** | Resolve → reject private, loopback, link-local, CGNAT, metadata, and IPv6 ULA ranges → connect to the validated IP only (pycurl `RESOLVE` pinning, re-checked on every redirect hop). The functions have **no VPC connector, a dedicated service account with zero IAM roles, and no secrets in their environment**. Even a bypass reaches no internal network, and a metadata token grants nothing. Self-host: deny-list configurable. |
 | **Privacy** | IP and user agent are consumed and dropped inside the gateway; daily salts expire on their own; the never-log list (engineering.md §5) is CI-grep-gated; the storage-scan test runs against ClickHouse `events`. |
-| **Secrets** | Doppler `upstat/stg`, delivered to Cloud Run env. Per-service, least-privilege credentials for Kafka, ClickHouse, and Postgres. |
+| **Secrets** | your secrets manager, delivered to Cloud Run env. Per-service, least-privilege credentials for Kafka, ClickHouse, and Postgres. |
 | **Abuse** | Pre-auth per-IP limits at the gateway, per-key byte quotas, per-user API limits in `common`, and a per-org monitor cap so the probe fleet can't be turned into a DDoS tool. |
 
 ---
@@ -651,7 +651,7 @@ engineering.md unchanged.
 | Failure | What keeps working | What degrades | Recovery |
 | --- | --- | --- | --- |
 | ClickHouse down | Ingest accepts (Kafka buffers 24 h); uptime checks, evaluation, alerts | Explorers, dashboards, metric/log rules (evaluator emits a `rule.eval_error` meta-alert), fresh status bars | Loaders drain the backlog |
-| Kafka down (Aiven 3-node HA) | UI reads and writes (outbox accumulates) | Ingest returns 503 (SDKs retry); check results can't be relayed, so monitors go `nodata`, not `down` | Outbox and relays resume |
+| Kafka down (managed 3-node HA) | UI reads and writes (outbox accumulates) | Ingest returns 503 (SDKs retry); check results can't be relayed, so monitors go `nodata`, not `down` | Outbox and relays resume |
 | Postgres down | Ingest, query, alerting (config cached in memory) | UI writes; scheduling stops, so monitors go `nodata` | Resume |
 | One probe region down | The other region's result decides (fewer reported) | Region shown as missing on check detail | n/a |
 | A slow target | Everything else: each check is its own function call with its own timeout | — | — |
@@ -704,16 +704,16 @@ Two independent watchers:
 | probe (Python) | Cloud Run functions | us-central1, us-east4 | 0-N per region, concurrency > 1 | Planned, 2 regions |
 | Loader: OTel Collector (stock image) | Service | us-central1 | 0-5 | Planned |
 | Loader: ClickHouse Kafka engine | inside ClickHouse | n/a | n/a | Planned |
-| Postgres (`sandbox-db`), Valkey (`sandbox-cache`), Kafka | Aiven | us-central1 | n/a | Postgres and Valkey in use |
-| ClickHouse | ClickHouse Cloud account, outside the GCP IaC | n/a | n/a | Planned |
+| Postgres, Valkey, Kafka | Managed services | us-central1 | n/a | Postgres and Valkey in use |
+| ClickHouse | ClickHouse Cloud account, outside the GCP infrastructure-as-code | n/a | n/a | Planned |
 | Firestore (Mongo-compatible) | GCP sandbox | us-central1 | n/a | In use |
 
 Every service is a Cloud Run service with min instances 0. Work that needs a clock is driven by Cloud
 Scheduler (`upstat-run-checks`, §6.1); consumers of Kafka run as services
 that Cloud Run scales from zero on request. The web proxies `/api/v1/*` to
 the common service. Staging is GCP project
-`sandbox-e306a`, run.app URLs
-`https://<service>-805800737799.us-central1.run.app`. Provisioning goes through the IaC stack, which is also where Cloud
+`<project-id>`, run.app URLs
+`https://<service>-<project-number>.us-central1.run.app`. Provisioning goes through your infrastructure-as-code stack, which is also where Cloud
 Run functions are provisioned today.
 
 ### 10.2 Self-host (compose + Helm)
@@ -744,18 +744,18 @@ delivery standard's fleet list (S-10).
 
 ```
 api/
-  common/          Go — CRUD owner (module github.com/cuesoftinc/upstat/api/common)
+  common/          Go, CRUD owner (module github.com/cuesoftinc/upstat/api/common)
     cmd/server/
     internal/{config,handler,middleware,model,repository,service,router,scheduler,outbox,consumer}
     migrations/{postgres,clickhouse}/   Go owns both schemas
     pkg/{auth,kafkax,configbus,httpx}   shared with api/query via replace ../common
     contract/      JSON Schemas for every Kafka message (Go, Python, Node validate against them)
-  query/           Go — grammar parser, AST, SQL builder, tier router (read-only)
-  ingest/          Node (NestJS) — src/{health,otlp,events,auth,quota}
-  alerting/        Python (FastAPI shell + consumers) — evaluator/, notifier/, channel/{webhook,brevo}
-  observability/   Python — insights/ML (existing layout; repository/ rewritten)
+  query/           Go, grammar parser, AST, SQL builder, tier router (read-only)
+  ingest/          Node (NestJS), src/{health,otlp,events,auth,quota}
+  alerting/        Python (FastAPI shell + consumers), evaluator/, notifier/, channel/{webhook,brevo}
+  observability/   Python, insights/ML (existing layout; repository/ rewritten)
 functions/
-  probe/           Python — Cloud Run function (functions-framework) + Dockerfile for self-host
+  probe/           Python, Cloud Run function (functions-framework) + Dockerfile for self-host
 deploy/{docker,helm,terraform}
   docker/otel-collector.yaml   loader config (stock image)
 web/               unchanged layout
@@ -764,7 +764,7 @@ docs/
 
 `functions/` is a new top-level directory. The standard has no home yet
 for function source that must also ship open-source for self-host
-(the IaC stack holds only provisioning). S-12 ratifies it.
+(your infrastructure-as-code stack holds only provisioning). S-12 ratifies it.
 
 ---
 
@@ -794,9 +794,9 @@ for function source that must also ship open-source for self-host
 | ID | Decision | Supersedes | Recommendation |
 | --- | --- | --- | --- |
 | **S-1** | Units: web · `api/common` (Go, CRUD) · `api/query` (Go, reads) · `api/ingest` (Node, gateway) · `api/alerting` (Python) · `api/observability` (Python) · probe (Python functions) · stock loaders | architecture.md §1–3, api.md §1a, deployment.md §1 | ⭐ ratify |
-| **S-2** | **Aiven Kafka** between services; synchronous only for `common → probe` and `Python → query` | architecture.md §6.2 "no external buffer", X-8 internal service calls | ⭐ ratify. Fallback if the budget is refused: a Postgres job table + ClickHouse `async_insert`, losing the ClickHouse-outage buffer |
+| **S-2** | **Managed Kafka** between services; synchronous only for `common → probe` and `Python → query` | architecture.md §6.2 "no external buffer", X-8 internal service calls | ⭐ ratify. Fallback if the budget is refused: a Postgres job table + ClickHouse `async_insert`, losing the ClickHouse-outage buffer |
 | **S-3** | Check results, events, and rollups live **only in ClickHouse**; Phase 1 writes events there directly | features.md U1-0 / U2-7, data-model.md §3 | ⭐ ratify |
-| **S-4** | ClickHouse on **ClickHouse Cloud** (account outside the GCP IaC; Planned) | n/a | ⭐ ClickHouse Cloud |
+| **S-4** | ClickHouse on **ClickHouse Cloud** (account outside the GCP infrastructure-as-code; Planned) | n/a | ⭐ ClickHouse Cloud |
 | **S-5** | **Multi-region probing**, quorum `min_failing_regions = 2` of 2; regions `us-central1`, `us-east4` (Planned) | in-check retries; single worker | ⭐ regions ruled (§15 Q1) |
 | **S-6** | Telemetry loading uses **stock components only** (OTel Collector, ClickHouse Kafka engine); the gateway forwards raw OTLP | api.md §1a "ingest gateway writes storage"; `/v1/otlp/*` prefix → standard paths | ⭐ ratify |
 | **S-7** | **All service traffic is HTTP** (done 2026-10-28) | X-8 | Done |
@@ -804,7 +804,7 @@ for function source that must also ship open-source for self-host
 | **S-9** | Tenancy defense in depth: Postgres RLS + ClickHouse row policies | engineering.md §2 (app-level only) | ⭐ ratify |
 | **S-10** | Consumers run as scale-to-zero services; `api/query` shares `api/common/pkg` via `replace`; new env names `CLICKHOUSE_URL`, `PROBE_URLS` | deployment.md §4; self-contained-service default | ⭐ ratify, propose names upstream |
 | **S-11** | Ingest quotas in **bytes/s** per key; `api/query` uses no Valkey | engineering.md §3 per-signal point quotas | ⭐ ratify |
-| **S-12** | Probe source lives in `functions/probe/` (Python, open-source, container for self-host); the IaC stack provisions it | — (no home for function source) | ⭐ ratify, and add `functions/` to the standard's layout |
+| **S-12** | Probe source lives in `functions/probe/` (Python, open-source, container for self-host); your infrastructure-as-code stack provisions it | — (no home for function source) | ⭐ ratify, and add `functions/` to the standard's layout |
 
 On ratification: record S-1…S-12 in decisions.md, update
 `.cuelabs/project.yaml` (`backend: {common,
@@ -822,7 +822,7 @@ flip, so the mock keeps serving anything not yet real.
 | Phase | Delivers | Exit criteria | Maps to |
 | --- | --- | --- | --- |
 | **A. Foundations** | Provision Postgres, Kafka, ClickHouse, Valkey (cloud + compose); `common` rebuilt on HTTP + Postgres: auth, orgs, members, keys/properties, event registry, outbox, Postgres + ClickHouse migrations | Web auth/org/keys surfaces run against real `common`; contract suite green for them | UX-1…UX-3, U1-0, U1-1 |
-| **B. Events (D2)** | `api/ingest` (Node) with `/v1/events` + `visitor_hash`; ClickHouse Kafka engine + events MVs + visits; `api/query` minimal (`/v1/stats`); `upstat.js` | apparule/expendit events visible in `/v1/stats`; storage-scan privacy test green; **D2 declared delivered** | U1-2…U1-8, U2-1 |
+| **B. Events (D2)** | `api/ingest` (Node) with `/v1/events` + `visitor_hash`; ClickHouse Kafka engine + events MVs + visits; `api/query` minimal (`/v1/stats`); `upstat.js` | sibling-product events visible in `/v1/stats`; storage-scan privacy test green; **D2 declared delivered** | U1-2…U1-8, U2-1 |
 | **C. Uptime v2** | `functions/probe` in 2 regions; Cloud Scheduler-driven run-checks + relay in `common`; `api/alerting` (Python evaluator + notifier, webhook + Brevo); retire `MonitorWorker` | Release smoke: down → alert → recover across regions; transition-table tests green; one region killed ≠ down | U2-2…U2-5, UX-7 |
 | **D. OTLP + explorers** | OTLP pass-through in `api/ingest`; stock collector loader; traces/logs/metrics tables + rollups; `query` grammar complete; explorers flip off mock; metric/log rules in the evaluator | Siblings export OTLP (X-9) and see their own traces; grammar corpus (30/30) green | U3-*, U4-*, U5-*, UX-8 |
 | **E. Intelligence** | `observability` on Kafka + `api/query`; Vertex renderer; log patterns | Insights appear from transitions | U-8, OBS-012 |

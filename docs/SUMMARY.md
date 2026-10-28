@@ -15,6 +15,7 @@
 
 ## System
 - [Architecture](architecture.md)
+- [System Design](system-design.md)
 - [Data Model](data-model.md)
 - [API Surface](api.md)
 - [Query Grammar](query-grammar.md)

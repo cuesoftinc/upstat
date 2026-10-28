@@ -2,7 +2,7 @@
 
 > Canonical structure (ecosystem standard): current state → target state →
 > service breakdown → deep dives → deployment → dependencies. Markers:
-> **[Current]**, **[PRD]**, **[Directive]**, **[Decided]** — see
+> **[Current]**, **[PRD]**, **[Specified]**, **[Decided]** — see
 > [decisions.md](decisions.md) for ratification detail.
 
 ## 1. Context — current state **[Current]**
@@ -68,7 +68,7 @@ flowchart LR
 flowchart LR
     subgraph Monitored & tracked
         SITE[Customer websites<br/>tracking script]
-        SIB[Sibling products<br/>apparule, expendit servers]
+        SIB[Sibling products<br/>servers]
         TGT[Monitored targets<br/>HTTP endpoints]
     end
 
@@ -188,20 +188,20 @@ sequenceDiagram
 Email provider is an open decision (prd.md §8.2); webhooks are
 provider-independent and may ship first if the email decision stalls.
 
-## 6. Observability platform expansion (2026-07-16) **[Directive]**
+## 6. Observability platform expansion (2026-07-16) **[Specified]**
 
 ### 6.1 Ingestion architecture
 
 > **X-5 note:** once X-5 ships, every "MongoDB" control-plane box in this
-> file's diagrams becomes **Aiven Postgres** — Phase-1 events land in
+> file's diagrams becomes **managed Postgres** — Phase-1 events land in
 > Postgres partitioned tables with a scheduled retention job (data-model
 > §3), not Mongo TTL. Diagrams update as touched.
 
 **OpenTelemetry-native**: OTLP (gRPC 4317 + HTTP 4318) is the single
-first-party intake — and per **X-9** the ecosystem's: apparule and expendit
+first-party intake, and per **X-9** the ecosystem's: the sibling products
 ship their traces/metrics/logs here (direct SDK export, ingest-key authed),
 making the sibling products this gateway's first customers
-for traces, metrics, and logs — customers use standard OTel SDKs/collectors,
+for traces, metrics, and logs, customers use standard OTel SDKs/collectors,
 no proprietary agent to build or maintain. Complements: the existing HTTP
 events API + `upstat.js` (RUM), StatsD-compat shim (metrics), uptime checker
 (synthetics).
@@ -274,7 +274,7 @@ rather than growing scope silently.
 
 ## 7. Deployment view
 
-Cloud: [deployment.md](deployment.md) (Cloud Run via the IaC stack, X-3/X-6 —
+Cloud: [deployment.md](deployment.md) (Cloud Run via your infrastructure-as-code stack, X-3/X-6 —
 every service min instances 0, Cloud Scheduler drives checks). Self-host: compose
 (mongo + services) and the standard-form Helm chart + terraform
 in `deploy/` — validated end-to-end on a live cluster.
@@ -283,7 +283,7 @@ in `deploy/` — validated end-to-end on a live cluster.
 
 | ID | Dependency | Direction | Notes |
 | --- | --- | --- | --- |
-| D2 | Event-ingestion API | **provided by this repo** (Phase 1) | unblocks apparule/expendit analytics |
+| D2 | Event-ingestion API | **provided by this repo** (Phase 1) | unblocks sibling-product analytics |
 | D1 | `account.cuesoft.io` facade | consumed, later | X-1: Google sign-in through the API — not blocking |
 | D3 | Upstat clause on privacy.cuesoft.io | consumed | UPS-005 copy |
-| X-5/X-7 | Aiven PG + Valkey, Brevo | consumed | shared data/email plane |
+| X-5/X-7 | managed Postgres + Valkey, Brevo | consumed | shared data/email plane |

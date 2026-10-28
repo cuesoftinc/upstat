@@ -3,7 +3,7 @@
 > Component-level inventory referencing [design.md](design.md) (`MI-n`).
 > Upstat's target is a **full observability & SRE platform** (Datadog-class);
 > the earlier PRD §5 "lightweight, avoid enterprise observability" restraint
-> no longer applies. **[Directive]**
+> no longer applies. **[Specified]**
 
 ## Part A — Public home page (upstat.cuesoft.io)
 
@@ -22,11 +22,11 @@ community-driven") remains the visual base, extended for the new pillars.
 | A5 | How ingestion works | OTLP/agent diagram: your services → OTel SDK/collector → Upstat | copyable snippet tabs (Go/Python/Node/k8s) |
 | A6 | Reliability showcase | Upstat's own public status page embedded (self-referential trust, PRD §5) | |
 | A7 | Open-source | compose snippet, architecture diagram, GitHub/CONTRIBUTING | |
-| A8 | Community | public-status card ("View live →" → https://upstat.cuesoft.io/status/upstat — the product's own status page, dogfooding B7) · roadmap · CueLABS™ **[Revised 2026-07-19]** — community-CTA placement canon: GitHub/Discord moments live in exactly three spots — the nav star badge, the A13 developers pair (#upstat-lab copy), and the footer Community column | |
+| A8 | Community | public-status card ("View live →" → https://upstat.cuesoft.io/status/upstat, the product's own status page, dogfooding B7) · roadmap · CueLABS™ **[Revised 2026-07-19]**, community-CTA placement canon: GitHub/Discord moments live in exactly three spots, the nav star badge, the A13 developers pair (#upstat-lab copy), and the footer Community column | |
 | A9 | Cloud vs Self-host table | per-column CTAs · docs deep-link rows under the compose line — "Self-host guide" (→ cuesoft.gitbook.io/upstat/system/deployment) + "Query grammar" (→ cuesoft.gitbook.io/upstat/system/query-grammar); label copy with hyperlinks, no raw URL strings on canvas **[Revised 2026-07-19]** | |
 | A10 | Footer | standard + privacy (UPS-005) | |
 
-Iteration 1 additions **[Directive 2026-07-18]** — existing rows keep their
+Iteration 1 additions **[Specified 2026-07-18]** — existing rows keep their
 IDs (cross-referenced elsewhere); each new row notes where it slots into the
 page order.
 
@@ -35,7 +35,7 @@ page order.
 | A11 | Feature deep-dives | benefit-led deep-dive per pillar (richer than the A3 card grid, slots after A3): headline benefit, 2–3 proof points, real product screenshot — alternating left/right layout | scroll-linked screenshot swap per pillar |
 | A12 | How it works | 3 steps (install snippet → send data → see everything) — each step carries a **real screen thumbnail** from the Stage-4 templates (design.md §8.1), no abstract art; extends A5's diagram | step thumbnail → matching A4 demo card |
 | A13 | For developers — Contribute | stack line (**Go services · Next.js + React/TS · ClickHouse · OpenTelemetry** — corrected 2026-07-18 QA loop: the web app is Next.js 16.x + React/TS, verified against `web/package.json`; the store is ClickHouse by the ratified R2 decision, not a generic "columnstore"), "interesting problems" list (ingestion pipeline, query grammar, TSDB), good-first-issues + CONTRIBUTING links, Discord invite, GitHub badge — expands A7's repo links, slots after A7 · the one body section carrying the GitHub + Discord pair (#upstat-lab copy) per the community-CTA placement canon **[Revised 2026-07-19]** | star badge: count populated at runtime — no number in static designs |
-| A14 | Self-host | data-ownership pitch (your telemetry, your box), tabbed snippet **Docker Compose \| Helm** (CodeSnippet `tab=docker/helm`, same master as the SDK tabs): mirrored two-line commands — `git clone https://github.com/cuesoftinc/upstat` then `cd upstat && docker compose up --build -d` (Makefile `up` target) vs `cd upstat && helm install upstat deploy/helm` — only the final command differs, with a muted caption under the block ("Compose ships MongoDB; the Helm chart expects yours (MONGO_URI). All 8 pillars come up on :3000.") **[Ratified 2026-07-20]**, what ships in the box (every pillar, no feature gates), self-host docs link — pairs with A9 | copy button on the snippet |
+| A14 | Self-host | data-ownership pitch (your telemetry, your box), tabbed snippet **Docker Compose \| Helm** (CodeSnippet `tab=docker/helm`, same master as the SDK tabs): mirrored two-line commands, `git clone https://github.com/cuesoftinc/upstat` then `cd upstat && docker compose up --build -d` (Makefile `up` target) vs `cd upstat && helm install upstat deploy/helm`, only the final command differs, with a muted caption under the block ("Compose ships MongoDB; the Helm chart expects yours (MONGO_URI). All 8 pillars come up on :3000.") **[Ratified 2026-07-20]**, what ships in the box (every pillar, no feature gates), self-host docs link, pairs with A9 | copy button on the snippet |
 | A15 | FAQ | 4–5 product Q&As: cloud vs self-host? · OTel-compatible? · what happens at retention limits? · is everything open-source? · how is this not Datadog? | accordion, single-open |
 | A16 | Final CTA band | full-width closing band: one-line pitch + dual CTA **Try Cloud** / **Self Host** (mirrors A2), sits above A10 | |
 
@@ -46,7 +46,7 @@ RUM/Analytics · Synthetics/Uptime · Monitors · Incidents · SLOs · Service
 Catalog · Settings**. Global TimePicker + QueryBar grammar shared across
 pillars. Every pillar's empty state = MI-16 inline onboarding.
 
-Screen states **[Directive 2026-07-18]**: the B1/B2/B4/B5 templates ship
+Screen states **[Specified 2026-07-18]**: the B1/B2/B4/B5 templates ship
 explicit empty (EmptyState/MI-16 + first-run copy; demo-data toggle where
 specced) and loading (Skeleton) frames per the three-frame rule in
 design.md §8.1.
@@ -56,7 +56,7 @@ design.md §8.1.
   SLO burn cards (MI-15), watched dashboards row. (Deploy markers CUT from
   v1 — no deploy-events API exists; aspirational item for the service
   catalog era.)
-- First-run onboarding **[Directive 2026-07-18]**: create-org screen (name +
+- First-run onboarding **[Specified 2026-07-18]**: create-org screen (name +
   IANA timezone per X-10/B12) → "send your first data" getting-started
   screen (ingestion key + copyable snippet + MI-16 waiting-for-data state);
   resolves to Home on first datapoint.
@@ -67,7 +67,7 @@ design.md §8.1.
   latency, SLO, status, service map, markdown.
 - Template variables (`$env`, `$service`) with dropdown bar; JSON
   import/export of dashboard definitions **[Proposed: portable format]**.
-- Create-dashboard flow + widget picker **[Directive 2026-07-18]**: name →
+- Create-dashboard flow + widget picker **[Specified 2026-07-18]**: name →
   widget picker overlay (type grid from the list above) → lands in MI-11
   edit mode.
 
@@ -87,7 +87,7 @@ design.md §8.1.
   header (MI-6); live tail (MI-4); expand pivots (MI-5).
 - Patterns view **[Designed 2026-07-20; as built 2026-07-20]**: a
   "Patterns" tab beside the explorer list (`?tab=patterns`, deep-linkable)
-  — LogPatternRow per clustered template (expand chevron · count ·
+, LogPatternRow per clustered template (expand chevron · count ·
   7-bucket trend sparkline · Mono template with `<placeholders>` ·
   dominant-level chip), expanding to indented sample LogLines (Figma "B4 —
   Logs (patterns)"). As built the clustering runs in the mock over the
@@ -114,15 +114,15 @@ design.md §8.1.
   grouped by fingerprint).
 - Website-traffic analytics live in this pillar — B6 is the product's
   analytics surface (ANA-002).
-- Property create **[Directive 2026-07-18]**: RUM property-create screen
+- Property create **[Specified 2026-07-18]**: RUM property-create screen
   (site/domain → property key issuance + browser-SDK snippet; keys managed
   in B12).
 - Deeper analytics drill-down (U6-2) **[Designed 2026-07-20; as built
   2026-07-20]**: `/dashboard/rum/drilldown`, routed from the pillar header
-  — funnel row (FunnelStageCard chain — page views → sessions →
+, funnel row (FunnelStageCard chain, page views → sessions →
   conversions, per-stage conversion %), retention weekly-cohort grid (the
   Heatmap construction re-axised to 8 Monday-aligned cohorts × wk 0–6),
-  top pages / top referrers TopLists (Figma "B6 — RUM analytics drill-down
+  top pages / top referrers TopLists (Figma "B6, RUM analytics drill-down
   (U6-2)"). **[Decided 2026-07-20]** the conversion stage counts the
   registered signup event (`auth_signin_completed`, api.md §3.4) and the
   definition is labeled in-page (accuracy canon); page views/sessions are
@@ -136,20 +136,20 @@ design.md §8.1.
   view.
 - Monitors (existing CRUD) → "Uptime checks" within Synthetics: HTTP checks
   (existing), multi-step API checks and browser checks **[Designed
-  2026-07-20; as built 2026-07-20]** — the builder
+  2026-07-20; as built 2026-07-20]**, the builder
   (`/dashboard/uptime/new`, type tabs HTTP / Multi-step / Browser) composes
-  SyntheticStepRow steps (HTTP request / assertion / wait; add, reorder —
-  keyboard grip + pointer drag —, delete) plus a browser-check panel (URL ·
+  SyntheticStepRow steps (HTTP request / assertion / wait; add, reorder
+  (keyboard grip + pointer drag), delete) plus a browser-check panel (URL ·
   viewport Select · screenshot-on-failure Switch); the run view
   (`/dashboard/uptime/checks/{id}`, `?run=` selects) is a per-step
   pass/fail timeline (StepResultRow + UptimeCard context + failure-
   screenshot card) with stop-at-first-failure semantics. Figma "B7 —
-  Synthetic check builder (multi-step)" and "B7 — Synthetic check run
+  Synthetic check builder (multi-step)" and "B7, Synthetic check run
   (multi-step results)". **[Decided 2026-07-20]** the HTTP tab stays the
   classic Monitor create; multi-step/browser checks are a separate
   `/v1/synthetics` entity until monitors-v2 unifies signals; the run
-  view's UptimeCard context is derived — the monitor watching the first
-  HTTP step's host — not a configured link. The real runner lands with
+  view's UptimeCard context is derived, the monitor watching the first
+  HTTP step's host, not a configured link. The real runner lands with
   OBS-011.
 - UptimeCards + per-monitor page: check history, response-time chart,
   incidents, insight panel (existing ML insight surfaces here).
@@ -158,10 +158,10 @@ design.md §8.1.
   = slug `upstat` (U0-5 config = create the slugged page over the existing
   `GetStatusPage` data). Builder **[Designed 2026-07-20; as built
   2026-07-20]**: settings surface (`/dashboard/settings/status-page`,
-  linked from the overview) — branding rows (page name · slug),
+  linked from the overview), branding rows (page name · slug),
   StatusPageBuilderRow component list (add/rename/reorder, monitor mapping
   via Select) and a public-URL preview row; the public page it produces is
-  the existing `/status/{slug}` construction — saved names, order and the
+  the existing `/status/{slug}` construction, saved names, order and the
   page-name header render there directly (orgs without a saved document
   keep deriving components from their live monitors). Subscribe affordance
   **[Later]**.
@@ -176,13 +176,13 @@ design.md §8.1.
   **[Decided 2026-07-20]** read literally as a grouped view of the
   monitors list: the B8 rules list carries a List | By state toggle
   (URL-addressable `?view=state`); By state groups rules worst-first —
-  Triggered (alert) / Warn / OK / No data / Muted — with counts, any mute
+  Triggered (alert) / Warn / OK / No data / Muted, with counts, any mute
   window winning over evaluation state (the rule editor's mute
   semantics). Uptime checks remain surfaced on B7 until monitors-v2
   unifies them as MONITOR_RULEs (the B7 coexistence contract).
-- Create-monitor form **[Directive 2026-07-18]**: monitor type picker →
+- Create-monitor form **[Specified 2026-07-18]**: monitor type picker →
   rule editor as a dedicated create screen.
-- Rule test/replay state **[Directive 2026-07-18]**: the MI-9 replay
+- Rule test/replay state **[Specified 2026-07-18]**: the MI-9 replay
   rendered as its own frame — trigger bands + would-have-fired markers over
   the last 24h.
 
@@ -194,7 +194,7 @@ design.md §8.1.
   postmortem**: a composer modal with the incident timeline auto-filled
   (frozen into the doc) plus impact / root-cause / action-items sections;
   the saved doc lists on the incident detail and stamps `postmortem_key`.
-- Declare-incident modal state **[Directive 2026-07-18]**: modal (sev
+- Declare-incident modal state **[Specified 2026-07-18]**: modal (sev
   picker, title, commander assignment) reachable from an alert row or
   manually.
 
@@ -212,22 +212,22 @@ design.md §8.1.
   tab bar (the §8.2b tab grammar) under the page title; each tab is a
   real sub-route, deep-linkable, and the bare `/dashboard/settings`
   redirects to the first tab (`/general`). Seven tabs: **General**
-  (`/general`) · **Members** (`/members` — members/roles) · **Keys &
-  properties** (`/keys` — API keys & ingestion tokens (per-pillar scopes)
-  + property keys (RUM)) · **Integrations** (`/integrations` — webhooks,
-  Slack; carries the status-page builder handoff — the B7 builder stays a
+  (`/general`) · **Members** (`/members`, members/roles) · **Keys &
+  properties** (`/keys`, API keys & ingestion tokens (per-pillar scopes)
+  + property keys (RUM)) · **Integrations** (`/integrations`, webhooks,
+  Slack; carries the status-page builder handoff, the B7 builder stays a
   focused sub-screen at `/dashboard/settings/status-page` outside the tab
-  shell) · **Data & privacy** (`/retention`, its pre-tab URL — retention
+  shell) · **Data & privacy** (`/retention`, its pre-tab URL, retention
   per signal; privacy/data controls) · **Appearance** (`/appearance` —
   tri-state theme, colorblind mode) · **Usage** (`/usage`, its pre-tab
   URL).
-- **General — organization profile**: name, **timezone (IANA)** — all
+- **General, organization profile**: name, **timezone (IANA)**, all
   report rendering and time-bucketing (dashboards, uptime day boundaries,
   rollup display, scheduled reports) resolve in the org timezone; storage
   stays UTC (analytics-math.md §3). Deliberately the entire upstat
   identity requirement per X-10 tier-1-minimal (decisions.md).
-- **Usage — metering per pillar** **[Designed 2026-07-20; as built
-  2026-07-20]** — /dashboard/settings/usage: UsageMeterRow per pillar
+- **Usage, metering per pillar** **[Designed 2026-07-20; as built
+  2026-07-20]**, /dashboard/settings/usage: UsageMeterRow per pillar
   (measure · MTD value · MTD bar · plan column verbatim "Self-host:
   unlimited · Cloud: announced at GA", accuracy canon; Figma "B12 —
   Settings (usage metering)"); values computed from the seeded telemetry
@@ -236,7 +236,7 @@ design.md §8.1.
   peaks (the design.md §8.2b contract) — the earlier "scaled to the
   largest meter" phrasing is cross-unit and unimplementable as stated.
 
-## Part C — Mobile companion (later; parity direction **[Directive]**)
+## Part C — Mobile companion (later; parity direction **[Specified]**)
 
 Sketch: on-call-first app — incident push, ack/resolve, sev timeline
 posting, monitor mute, status overview. Not scheduled before B-pillar

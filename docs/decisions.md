@@ -19,7 +19,7 @@
 documents external-or-StatefulSet options (same stance as Mongo today).
 
 ☑ Ratified: option (a) ClickHouse — **control-plane note revised by X-5:**
-the control plane migrates Mongo→**Aiven Postgres**; "Mongo stays" in the
+the control plane migrates Mongo→**managed Postgres**; "Mongo stays" in the
 option text is superseded
 
 ## U-2 · Browser event auth (ANA-001) — gates Phase 1 (events layer, "D2")
@@ -92,7 +92,7 @@ observability-service touch, not as its own phase.
 Six deferred items from the user-ratified catalog shipped in one wave —
 the interpretation decisions live where each surface is specced:
 **A1** Features pillar-map dropdown (supplements the 4-text-links nav
-parity canon; the link inventory is unchanged — pages.md A1) · **§5**
+parity canon; the link inventory is unchanged, pages.md A1) · **§5**
 colorblind mode (`upstat.colorvision`, theme-contract persistence;
 design.md §5) · **§5** chart data-table toggle (design.md §5) · **B4**
 virtualized log stream (bespoke spacer windowing; pages.md B4) · **B9**
@@ -103,39 +103,37 @@ blocks.
 
 ☑ Ratified
 
-## Cross-cutting
+## Cross-cutting (shared with sibling products)
 
 - **X-1 account.cuesoft.io / identity (RATIFIED)**: interim + sandbox identity
-  is **Firebase Authentication on GCP project `sandbox-e306a`** ("sandbox") —
-  Google sign-in + email flows come from Firebase; services verify Firebase ID
-  tokens (OIDC-compatible). `account.cuesoft.io` **is not built yet** — each app replicates the
+  is **Google sign-in run by each product's API**: the API completes the
+  Google OAuth code flow (redirect, handoff exchange) and issues its own
+  session JWT in an HttpOnly session cookie, which services verify.
+  `account.cuesoft.io` **is not built yet**, so each app replicates the
   sign-in/sign-up screens **in-app** (own UI per its design system,
-  Firebase Auth underneath: Google sign-in + email/password flows). The
-  central facade fronts the same Firebase project later without contract
-  changes; in-app screens then become optional, not obsolete. **HARDENED
-  2026-07-16: Google sign-in is the ONLY method — no username/password
-  signup or login, product-wide.** Email/Password provider disabled at
-  the Firebase project; backends reject non-Google-provider tokens
-  (`provider_not_allowed`); UI ships exactly one auth CTA. **AMENDED
-  2026-10-28: the API owns Google sign-in** (OAuth redirect, handoff
-  exchange, HttpOnly session cookie carrying the API-signed JWT); Firebase
-  is no longer in the sign-in path. Full contract:
-  [flows/auth.md](flows/auth.md). Environment/secrets live in **Doppler**
-  — resolved: Doppler access works via the IaC token; **services read
-  project `upstat`, config `stg`** (dev* = local convenience; prd empty until
-  a production exists). Valkey user `upstat` (keys `upstat:*`) provisioned by the IaC. ☑
+  Google sign-in underneath). The central facade fronts the same Google
+  identity later without contract changes; in-app screens then become
+  optional, not obsolete. **HARDENED 2026-07-16: Google sign-in is the ONLY
+  method, no username/password signup or login, product-wide.** The API
+  exposes no other sign-in route and rejects unverified Google emails; UI
+  ships exactly one auth CTA. **AMENDED 2026-10-28: the API owns Google
+  sign-in**; Firebase Authentication is not in the sign-in path. Full
+  contract: [flows/auth.md](flows/auth.md). Environment/secrets live in
+  **your secrets manager** (the product's `stg` config); variable names are
+  documented in `.env.example`. Valkey user `upstat` (keys `upstat:*`) is
+  provisioned by your infrastructure-as-code. ☑
 - **X-2 Docs platform**: GitBook space per product, Git-synced; Scalar API
   refs. **RATIFIED 2026-07-20**: every product ships a public `/docs/api`
   route embedding the Scalar interactive reference, rendered live from the
   repo's `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); the
   footer Docs column's "API reference" links it (was the GitBook
   api-surface page). ☑
-- **X-3 Cloud deployment target (RATIFIED, directive)**: all backend
+- **X-3 Cloud deployment target (RATIFIED)**: all backend
   services run on **Google Cloud Run** (per-service containers — the same
-  `cuesoft/<repo>-<service>` images), provisioned by the IaC stack; frontends deploy to **Firebase App
+  `cuesoft/<repo>-<service>` images), provisioned by your infrastructure-as-code stack; frontends deploy to **Firebase App
   Hosting**. Helm + terraform in `deploy/` remain the **self-host** path —
   cloud and self-host share images, not manifests. ☑
-- **X-4 AI platform (RATIFIED, directive 2026-07-16)**: AI features use
+- **X-4 AI platform (RATIFIED 2026-07-16)**: AI features use
   **Vertex AI** (Gemini via `{region}-aiplatform.googleapis.com`, ADC from the
   calling service's own service account;
   reference model `gemini-2.5-flash-lite`, region `us-central1`). No
@@ -143,32 +141,32 @@ blocks.
   stays inside GCP, which strengthens every privacy disclosure. Self-host
   fallback: bring-your-own Gemini/Groq key via env (existing code path). ☑
 - **X-5 Data plane (RATIFIED 2026-07-16, per-product DB decided by delegation)**:
-  **Aiven Postgres** for the control plane (users, monitors, dashboards,
+  **managed Postgres** for the control plane (users, monitors, dashboards,
   rules, incidents, SLOs) — migrating from Mongo with the monitors-v2/OBS
   work; **ClickHouse** remains the telemetry store (U-1 unchanged).
-  **Shared Valkey**: the sandbox **Aiven Valkey** instance (`sandbox-cache`),
+  **Shared Valkey**: the sandbox **managed Valkey** instance,
   tenancy by a per-product user (`upstat`) limited to `upstat:*` keys;
-  credentials in Doppler. **Doppler is the env
+  credentials in your secrets manager. **your secrets manager is the env
   source of truth**: project `upstat` with `dev / dev_personal / stg / prd`
   configs (already created). **Object storage**: the **default Cloud Storage bucket** in
-  `sandbox-e306a` (per-product prefixes `upstat/<env>/…`) for capture
+  `<project-id>` (per-product prefixes `upstat/<env>/…`) for capture
   media, exports, and artifacts. Self-host compose keeps its bundled
   stores. ☑
 - **X-6 Environments & deploy gating (RATIFIED 2026-07-16, deliberate
   deviation from the norm)**: `stg` = **sandbox** and is the ONLY
   environment — no production deployment exists for these products. Secrets
-  live in Doppler `<project>/stg`. Because these repos are **open-source**,
+  live in your secrets manager (`stg` config). Because these repos are **open-source**,
   merge-to-main must NOT deploy: main-merge runs build+test only. **Deploys
   happen exclusively on tag creation (`v*`)**, treated as production-grade:
   a GitHub tag ruleset restricts `v*` creation to owner-level access, and the
   deploy workflow additionally runs in a protected GitHub environment. ☑
-  **Revised 2026-10-27 (owner):** "Deploy on merge to main". A merge to
+  **Revised 2026-10-27:** "Deploy on merge to main". A merge to
   `main` that touches `api/**` deploys the API services to the sandbox; no
   `v*` tags, since the open-source products cut no releases yet.
-- **X-7 Transactional email (RATIFIED, directive 2026-07-16)**: **Brevo REST
+- **X-7 Transactional email (RATIFIED 2026-07-16)**: **Brevo REST
   API** for all product email (alert emails, money-event receipts, purge
   confirmations…) with `BREVO_API_KEY`, `BREVO_FROM_EMAIL`,
-  `BREVO_FROM_NAME` in Doppler. **No SMTP anywhere** — existing SMTP/gomail
+  `BREVO_FROM_NAME` in your secrets manager. **No SMTP anywhere**, existing SMTP/gomail
   plumbing retires when next touched. Revises U-4's Resend pick where it
   applied. ☑
 - **X-8 Protocol standard (RATIFIED 2026-07-16)**: ecosystem APIs are
@@ -178,9 +176,9 @@ blocks.
   gRPC fine with end-to-end HTTP/2 (h2c) — already how api/common works.
   **Browser gRPC-Web is a sunset path**: no new surface uses it
   (U-5); at monitors-v2 (OBS-006) the dashboard goes fully HTTP. Envoy is
-  not deployed to the cloud. apparule/expendit never adopt gRPC. ☑
+  not deployed to the cloud. sibling products never adopt gRPC. ☑
   > **Superseded 2026-10-28:** product gRPC, gRPC-Web and Envoy removed; service traffic is HTTP; OTLP ingest keeps gRPC 4317 alongside HTTP 4318.
-- **X-9 Telemetry standard (RATIFIED, directive 2026-07-16)**: **OpenTelemetry
+- **X-9 Telemetry standard (RATIFIED 2026-07-16)**: **OpenTelemetry
   everywhere** — traces, custom metrics, and logs from every service via OTel
   SDKs (Go: otel-go + slog bridge; Python: opentelemetry-python + logging
   handler; Next: @opentelemetry/sdk-node), W3C `traceparent` propagation
@@ -189,42 +187,42 @@ blocks.
   for tail sampling/fan-out). **Receiver: upstat's OTLP ingest gateway**
   (OBS-001; gRPC 4317 + HTTP 4318, `Upstat-Ingest-Key` via
   OTEL_EXPORTER_OTLP_HEADERS) — sibling products are its first-party
-  customers. **Sibling exporters default to OTLP/HTTP (4318)** — apparule
-  and expendit remain 100% HTTP in practice. Until OBS-001 ships, services instrument NOW with export
+  customers. **Sibling exporters default to OTLP/HTTP (4318)**, and
+  they remain 100% HTTP in practice. Until OBS-001 ships, services instrument NOW with export
   env-gated (unset OTEL_EXPORTER_OTLP_ENDPOINT = no-op). Logs dual-emit:
   JSON stdout stays (Cloud Run native logging) + OTLP to upstat. Operational
   telemetry (X-9) is SEPARATE from product analytics events (upstat
   /v1/events counters) — never mix the pipelines. Env names standard:
   OTEL_SERVICE_NAME, OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_OTLP_HEADERS,
   OTEL_RESOURCE_ATTRIBUTES. ☑
-- **X-10 Identity, profile & KYC tiers (RATIFIED, directive 2026-07-16)**: layered on
+- **X-10 Identity, profile & KYC tiers (RATIFIED 2026-07-16)**: layered on
   X-1 — Google-only sign-in stays the sole credential; tiers add profile data and
   verification, never alternative logins. **Tier 0 — Google identity** (all
   products): Google-verified email; grants all read/basic use.
-  **Tier 1 — self-attested profile & location** (captured in product
-  profile/settings; sensitive PII, never logged): apparule = bio + profile
+  **Tier 1, self-attested profile & location** (captured in product
+  profile/settings; sensitive PII, never logged): sibling measurements product = bio + profile
   location {city, state, country} powering proximity-ranked designer
   recommendations ("near me") and delivery-address pre-fill (delivery address
-  itself stays frozen per order); expendit = tax-jurisdiction location —
-  state_of_residence for individuals, registered_address for company orgs —
+  itself stays frozen per order); sibling expenses product = tax-jurisdiction location
+  (state_of_residence for individuals, registered_address for company orgs),
   which resolves the remittance authority (State IRS vs FIRS); upstat = org
   timezone (IANA) only, for accurate report rendering and time-bucketing —
-  deliberately the entire upstat requirement. **Tier 2 — provider-verified
+  deliberately the entire upstat requirement. **Tier 2, provider-verified
   financial identity** (only where money moves or government filings
   generate; store provider refs + verification state, never raw government
-  IDs): apparule designer payouts = Paystack bank resolution, BVN-backed
-  (already ratified A-2 — canonized as the ecosystem pattern); expendit
-  filing identity = TIN (+ RC number + registered address for companies)
+  IDs): sibling designer payouts = Paystack bank resolution, BVN-backed
+  (already ratified A-2, canonized as the ecosystem pattern); sibling expenses
+  product filing identity = TIN (+ RC number + registered address for companies)
   required at filing-pack generation (422 tax_identity_incomplete); v1
   verification is format validation + attestation, provider-verified arrives
   with direct e-filing (post-v1); upstat = N/A until billing enters the PRD.
   **Rules**: tiers gate capabilities, never sign-in; KYC state machines +
-  error codes live in flow docs (apparule kyc_incomplete/post_unavailable is
+  error codes live in flow docs (a sibling's kyc_incomplete/post_unavailable is
   the template); tier-2 fields are high-sensitivity in every data-model §4
   classification; verification is delegated to the money/filing provider —
   no in-house document review. ☑
-- **X-11 Shared message bus (RATIFIED, boss 2026-10-13)**: expendit, apparule
-  and upstat share **one Aiven Kafka service** under the CueLABS delivery
+- **X-11 Shared message bus (RATIFIED, boss 2026-10-13)**: the sibling
+  products and upstat share **one managed Kafka service** under the CueLABS delivery
   standard's `references/shared-messaging.md` (the contract; read it before
   designing any Kafka use). Three topics ("lanes") serve every product:
   `cuelabs.uploads` (gateway → control plane), `cuelabs.requests` (control
@@ -236,10 +234,10 @@ blocks.
   topics: config travels in requests or as a snapshot object. Retention is
   the service's fixed setting, so nothing may depend on the bus keeping a
   message for more than a day; each control plane re-sends overdue work
-  from its own store. One Kafka user per product (`expendit`, `apparule`,
+  from its own store. One Kafka user per product (one per sibling product, plus
   `upstat`); consumer groups `<product>-<service>`. The service powers off
   after 24 h with no traffic and drops its messages: **keep-alive owner is
-  expendit** (its `api/common` reaper sends a heartbeat every 6 h and powers
-  the service back on through the Aiven API); apparule and upstat run no
+  the sibling expenses product** (its `api/common` reaper sends a heartbeat every 6 h and powers
+  the service back on through the managed-service API); the other products run no
   heartbeat or watchdog. Bulk data never rides the bus (upstat telemetry
   goes through the OpenTelemetry Collector instead). ☑

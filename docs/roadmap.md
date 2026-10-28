@@ -18,7 +18,7 @@ status is public; privacy stance published.
 
 ## Phase 1 — Events layer (M3 first: unblock the ecosystem)
 
-> Highest cross-repo leverage: apparule Phase 0 and expendit Phase 3 are
+> Highest cross-repo leverage: the sibling products' first analytics phases are
 > blocked on this (their "D2").
 
 | Item | Requirement |
@@ -29,12 +29,12 @@ status is public; privacy stance published.
 | Rollup worker in api/observability (hour/day, approx uniques) | ANA-001 |
 | `GET /v1/stats` | ANA-002 dependency |
 | Scheduled retention job (Postgres partitioned events, X-5) + documented policy | ANA-003 |
-| Register sibling consumers (apparule, expendit event names) | ECO-TRACK |
+| Register sibling consumers (sibling event names) | ECO-TRACK |
 
 **Exit criteria:** sibling products' events flow end-to-end and appear in
 stats queries; retention enforced by the scheduled job; D2 declared
 **delivered** to the other repos. **Phase 1 includes provisioning the
-Aiven Postgres control plane (new unit U1-0)** — events never touch Mongo;
+managed Postgres control plane (new unit U1-0)** — events never touch Mongo;
 U2-7 then migrates only the pre-existing Mongo control-plane data.
 
 ## Phase 2 — Honest dashboards + alerting
@@ -64,7 +64,7 @@ within one check interval; UPS-003 docs published.
 | ID | Dependency | Direction | Blocks |
 | --- | --- | --- | --- |
 | D1 | `account.cuesoft.io` contract | consumed | Phase 3 identity |
-| **D2** | Event-ingestion API | **provided by this repo (Phase 1)** | apparule P0 analytics, expendit P3 analytics |
+| **D2** | Event-ingestion API | **provided by this repo (Phase 1)** | sibling-product analytics |
 | D3 | Upstat clause on privacy.cuesoft.io | consumed | Phase 0 privacy copy |
 | D4 | Email provider decision | internal | Phase 2 email alerts (webhooks unaffected) |
 

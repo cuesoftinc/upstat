@@ -86,7 +86,7 @@ erDiagram
     PROPERTY {
         objectid _id PK
         string ownerId
-        string name "e.g. apparule.cuesoft.io"
+        string name "e.g. app.example.com"
         string public_key "format pk_<8 random bytes hex>; write-only"
         string previous_key "valid 24h after rotation (grace overlap) — the rotation contract"
         json allowed_origins "CORS allowlist for beacons"
@@ -189,7 +189,7 @@ Modeling notes:
 
 ## 5. Observability platform entities (2026-07-16) **[Proposed]**
 
-Control plane additions (**Aiven Postgres** per X-5; entity names keep their shapes):
+Control plane additions (**managed Postgres** per X-5; entity names keep their shapes):
 
 ```mermaid
 erDiagram
@@ -247,8 +247,8 @@ erDiagram
         json environments }
 ```
 
-Identity posture (X-10, ratified 2026-07-16 — [decisions.md](decisions.md)):
-upstat is **tier 0 + tier-1-minimal** — Google identity (X-1) plus exactly
+Identity posture (X-10, ratified 2026-07-16, [decisions.md](decisions.md)):
+upstat is **tier 0 + tier-1-minimal**, Google identity (X-1) plus exactly
 one profile field, `ORG.timezone` (IANA, default `UTC`; set at org creation,
 editable in Settings, pages.md B12). It exists so report rendering and
 time-bucketing *display* resolve in the org's timezone while storage and

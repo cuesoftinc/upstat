@@ -22,7 +22,7 @@ distinct mandates:
 | --- | --- | --- |
 | **M1 — Uptime & status monitoring** | "uptime checks, microservice status" (§3 features grid) | **Implemented**: monitors (interval, timeout, failure threshold), scheduled checker, check results, incidents, public status page, ML-assisted insights |
 | **M2 — Website analytics** | "website stats", "traffic", "tracking scripts" (§3, §5) | **UI shell only**: dashboard pages for traffic/bounce/SEO/page-load exist on mock `/api/dashboard/*` routes; no ingestion, no tracking script |
-| **M3 — Ecosystem event tracker** | "serves as the standardized event tracking service for other products" (§4.2) | **Missing** — and both sibling PRDs depend on it (apparule "Demo Starts"/"GitHub Clicks", expendit "Upload Success"/"Report Generation"). This repo *provides* what their roadmaps call dependency **D2** |
+| **M3 — Ecosystem event tracker** | "serves as the standardized event tracking service for other products" (§4.2) | **Missing** — and both sibling PRDs depend on it (sibling "Demo Starts"/"GitHub Clicks", "Upload Success"/"Report Generation"). This repo *provides* what their roadmaps call dependency **D2** |
 
 The PRD's §5 restraint governs all three: *"initial functionality must focus on
 uptime and basic analytics, avoiding overpromises of complex enterprise
@@ -59,7 +59,7 @@ demonstrate Cuesoft's engineering standards and infrastructure stability
 | ID | Requirement | Notes |
 | --- | --- | --- |
 | ECO-AUTH | Identity via `account.cuesoft.io` | External (D1); current local JWT + Google auth is the interim |
-| **ECO-TRACK** | **Be** the standardized cross-product event tracker | Upstat is the *provider* of the ecosystem's D2. Contract in api.md §3; consumers: apparule, expendit, cuesoft.io properties |
+| **ECO-TRACK** | **Be** the standardized cross-product event tracker | Upstat is the *provider* of the ecosystem's D2. Contract in api.md §3; consumers: the sibling products and cuesoft.io properties |
 | ECO-SUPPORT | Managed-client monitoring reports via `clients.cuesoft.io` | Report generation/export needed first (roadmap P3) |
 
 ### 3.3 Derived requirements **[Proposed]** (implied by §3 features grid + M-mandates)
@@ -94,7 +94,7 @@ demonstrate Cuesoft's engineering standards and infrastructure stability
 | Concern | Requirement |
 | --- | --- |
 | Visitor privacy | UPS-005: disclose exactly what the tracking script collects; default to cookieless, anonymized collection **[Proposed]** (data-model.md §4) |
-| Ecosystem events | Events from sibling products are counters + coarse dimensions only — never measurement data (apparule) or financial data (expendit); enforce by schema, not convention (api.md §3.2) |
+| Ecosystem events | Events from sibling products are counters + coarse dimensions only — never measurement data or financial data; enforce by schema, not convention (api.md §3.2) |
 | Legal | Upstat clause in central `privacy.cuesoft.io` hub (D3) **[PRD §7]** |
 
 ## 7. Success metrics **[Proposed]**
@@ -103,7 +103,7 @@ demonstrate Cuesoft's engineering standards and infrastructure stability
 | --- | --- |
 | Monitors created; % monitors with ≥1 alert channel | M1 adoption + MON-001 uptake |
 | Properties with live tracking script; events/day ingested | M2/M3 adoption |
-| Sibling-product events flowing (apparule, expendit) | ECO-TRACK delivered — unblocks two roadmaps |
+| Sibling-product events flowing (sibling products) | ECO-TRACK delivered, unblocks two roadmaps |
 | upstat.cuesoft.io's own public status page uptime | §5 reliability showcase, self-referential |
 
 ## 8. Open questions
@@ -121,7 +121,7 @@ demonstrate Cuesoft's engineering standards and infrastructure stability
 
 ---
 
-## 9. Scope expansion — full observability platform (2026-07-16) **[Directive]**
+## 9. Scope expansion — full observability platform (2026-07-16) **[Specified]**
 
 Look and feel: **datadoghq.com** ([design.md](design.md)). Upstat's target is
 now "almost everything a full-fledged observability and SRE platform can do":
@@ -138,7 +138,7 @@ apply to them).
 - New gating decision **R2**: unified telemetry store (ClickHouse proposed).
 - The three earlier mandates map in: M1 → Synthetics/Uptime pillar,
   M2/M3 → RUM/Analytics pillar (events layer unchanged as its foundation).
-- Platform structure **[Directive]**: home page (shared open-source pattern:
+- Platform structure **[Specified]**: home page (shared open-source pattern:
   Discord, GitHub, preview, Try Cloud / Self Host) + dashboard + an eventual
   mobile companion (on-call-first) — out of current scope per §4's non-goals;
   `mobile/*` are placeholder directories only. Docs on GitBook (Git-synced from

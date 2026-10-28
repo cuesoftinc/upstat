@@ -7,13 +7,13 @@
 
 ## 1. Error catalog (product families)
 
-Flow-spec-owned codes: monitors (flows/monitor.md — `name_taken`,
-`timeout_gte_interval`), alerts (flows/alert.md — `channel_unverified`,
-`verification_expired`), events (analytics-math.md — `ts_out_of_range`,
+Flow-spec-owned codes: monitors (flows/monitor.md, `name_taken`,
+`timeout_gte_interval`), alerts (flows/alert.md, `channel_unverified`,
+`verification_expired`), events (analytics-math.md, `ts_out_of_range`,
 schema/origin rejections with per-reason counters), auth (flows/auth.md —
 `return_to_not_allowed`, `handoff_invalid`), query
-(`invalid_query{position, hint}` — query-grammar.md §3's error-not-empty
-rule), ingest (`quota_exceeded`, `key_scope_mismatch` — OBS-001).
+(`invalid_query{position, hint}`, query-grammar.md §3's error-not-empty
+rule), ingest (`quota_exceeded`, `key_scope_mismatch`, OBS-001).
 
 ## 2. Authorization matrix
 
@@ -30,10 +30,10 @@ owner-only model as "owner=everything, others=nothing" until then:
 | Properties + ingest keys | — | — | ✓ | ✓ |
 | Key rotation/revocation | — | — | ✓ | ✓ |
 | Incidents declare/update | — | ✓ | ✓ | ✓ |
-| SLOs define | — | — | ✓ | ✓ |
-| Org members, retention settings | — | — | — | ✓ |
+| SLOs define | —   | —   | ✓ | ✓ |
+| Org members, retention settings | —   | —   | —   | ✓ |
 | Public status pages (read) | ✓ (world) | ✓ | ✓ | ✓ |
-| Status-page config | — | — | ✓ | ✓ |
+| Status-page config | —   | —   | ✓ | ✓ |
 
 Role source **[Decided]**: org roles live in the control-plane DB (not
 session token claims) — resolved per request alongside org context.
@@ -55,7 +55,7 @@ access.
 | `/v1/events` pre-auth | 1,000 req/min per IP (invalid-key flood guard) |
 | Insights `GET /insights/*`, `POST /analyze/*` | **bearer-authed (REVISED — was open)**; analyze 6/min per user (LLM cost guard) |
 
-Limit store: **shared Aiven Valkey** (X-5; user `upstat`, keys `upstat:*`; this is Valkey's role here, plus
+Limit store: **shared managed Valkey** (X-5; user `upstat`, keys `upstat:*`; this is Valkey's role here, plus
 dispatch cooldown cache); `429 rate_limited` + `Retry-After` (cataloged §1).
 
 ## 4. Testing strategy
@@ -105,10 +105,10 @@ is the standing proof.
 - Traces: OTel SDK auto-instrumentation (HTTP server/client, gRPC, DB) +
   manual spans on domain operations; W3C traceparent propagated on every
   outbound call (incl. service-to-service).
-- Metrics: OTel Meter API — each service registers its KPI instruments
+- Metrics: OTel Meter API, each service registers its KPI instruments
   (request histograms come free; domain counters per the flow specs'
   instrumentation sections are PRODUCT events via upstat /v1/events, NOT
-  OTel metrics — keep the pipelines separate).
+  OTel metrics, keep the pipelines separate).
 - Logs: slog/logging → OTel bridge dual-emit (JSON stdout for Cloud Run +
   OTLP to upstat). The never-log list applies to BOTH pipelines.
 - Export: direct OTLP, env-gated (no endpoint ⇒ no-op); receiver = upstat

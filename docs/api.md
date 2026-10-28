@@ -109,10 +109,10 @@ owned), `422 invalid_period | range_too_large | ts_out_of_range`.
 
 | Consumer | Events (registered names) | Constraint |
 | --- | --- | --- |
-| apparule web (landing) | `page_view`, `demo_start`, `github_click`, `try_cloud_click`, `self_host_click` | counters only |
-| apparule api | `auth_signin_completed`, `auth_signin_failed`, `vault_capture_started`, `vault_qc_failed{code}`, `vault_session_saved{method}`, `vault_manual_entry`, `request_started`, `request_submitted`, `request_paid`, `request_delivered`, `request_disputed{reason}`, `consent_recorded{document}` | counters + listed dims only — never measurement values or amounts |
-| expendit web (landing) | `page_view`, `try_cloud_click`, `self_host_click`, `github_click`, `demo_interact` | counters only |
-| expendit api | `auth_signin_completed`, `auth_migration_completed`, `auth_migration_stranded`, `upload_success{file_type}`, `import_confirmed`, `import_discarded`, `report_generation{kind}`, `bank_link_created`, `bank_sync_completed`, `bank_reauth_required`, `consent_recorded{document}` | counters + `file_type`/`kind` dims only — never amounts/descriptions/institutions |
+| Sibling measurements product, web (landing) | `page_view`, `demo_start`, `github_click`, `try_cloud_click`, `self_host_click` | counters only |
+| Sibling measurements product, api | `auth_signin_completed`, `auth_signin_failed`, `vault_capture_started`, `vault_qc_failed{code}`, `vault_session_saved{method}`, `vault_manual_entry`, `request_started`, `request_submitted`, `request_paid`, `request_delivered`, `request_disputed{reason}`, `consent_recorded{document}` | counters + listed dims only — never measurement values or amounts |
+| Sibling expenses product, web (landing) | `page_view`, `try_cloud_click`, `self_host_click`, `github_click`, `demo_interact` | counters only |
+| Sibling expenses product, api | `auth_signin_completed`, `auth_migration_completed`, `auth_migration_stranded`, `upload_success{file_type}`, `import_confirmed`, `import_discarded`, `report_generation{kind}`, `bank_link_created`, `bank_sync_completed`, `bank_reauth_required`, `consent_recorded{document}` | counters + `file_type`/`kind` dims only — never amounts/descriptions/institutions |
 | upstat itself | `page_view` on upstat.cuesoft.io, `try_cloud_click`, `self_host_click`, `github_click` (landing CTAs — registered 2026-07-18 ahead of W2 instrumentation, per §3.4a registry-first), `auth_signin_completed`, `auth_migration_completed`, `monitor_created`, `monitor_state_changed{to}` | dogfooding (§5 reliability showcase); landing events counters only |
 
 ### 3.4a Registry-as-schema **[Decided — closes the dims contradiction]**
@@ -131,9 +131,9 @@ registry row's source doc.
 excluded from uniques math (analytics-math.md §4a); only browser events count
 visitors.
 
-Pending registration (added now): apparule `request_quoted`,
+Pending registration (added now): sibling measurements product `request_quoted`,
 `request_declined{reason}`, `payout_released` (flows/designer.md);
-expendit `statement_confirmed{kind}` (flows/statement-mapping.md).
+sibling expenses product `statement_confirmed{kind}` (flows/statement-mapping.md).
 `auth_migration_stranded` is REMOVED from the registry (it is a support-ticket
 tag, not an ingest event).
 
@@ -155,7 +155,7 @@ schema-as-privacy-boundary enforceable.
 | MON-001 alerts | status flips silently | AlertService + worker dispatch + channels |
 | ANA-001 ingestion + script | nothing | §3.1–3.2 |
 | ANA-002 real dashboards | mock routes | `/v1/stats` + traffic page rewire |
-| ECO-TRACK (D2) | nothing | §3 shipped = apparule/expendit unblocked |
+| ECO-TRACK (D2) | nothing | §3 shipped = sibling products unblocked |
 
 ## 5. Conventions
 

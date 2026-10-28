@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - [Docker](https://www.docker.com/) & Docker Compose (recommended path)
-- For native development: Go 1.26+ (see `api/common/go.mod`), Python 3.11+
+- For native development: Go 1.26+ (see `api/common/go.mod`), Python 3.12+
   (`api/observability`), Node.js 24 (see `web/.nvmrc`), MongoDB
 
 ## Configuration

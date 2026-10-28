@@ -25,8 +25,8 @@ description of the components and how they fit together, see
 
 ```mermaid
 flowchart LR
-    WEB[web dashboard<br/>Next.js] -->|HTTP| AC[api/common — Go<br/>monitor worker · checks · incidents<br/>monitors · users]
-    OBS[api/observability — Python<br/>ML anomaly detection · insights] -->|HTTP /v1/monitors/id/checks| AC
+    WEB[web dashboard<br/>Next.js] -->|HTTP| AC[api/common, Go<br/>monitor worker · checks · incidents<br/>monitors · users]
+    OBS[api/observability, Python<br/>ML anomaly detection · insights] -->|HTTP /v1/monitors/id/checks| AC
     AC --> MG[(MongoDB)]
     OBS --> MG
 ```
@@ -52,15 +52,15 @@ flowchart LR
 
 ```
 api/
-  common/          Go service — HTTP backend: monitors, checks, incidents, users
-  observability/   Python service — reliability analytics, ML anomaly detection, insights
+  common/          Go service, HTTP backend: monitors, checks, incidents, users
+  observability/   Python service, reliability analytics, ML anomaly detection, insights
 web/               Next.js dashboard + status pages (mock CRUD server; HTTP repository client)
 mobile/
   flutter/         Flutter app (placeholder)
   android/         Native Android (placeholder)
   ios/             Native iOS (placeholder)
 deploy/
-  docker/          Placeholder — the compose stack lives at the repo root (docker-compose.yml)
+  docker/          Placeholder, the compose stack lives at the repo root (docker-compose.yml)
   helm/            Helm chart (deploys all services to Kubernetes)
   terraform/       Infrastructure as code
 docker-compose.yml Local orchestration: mongo, api-common, api-observability, web
@@ -78,7 +78,7 @@ function (never by its language).
 
 - [Docker](https://www.docker.com/) & Docker Compose (recommended path)
 - For native development: [Go](https://go.dev/) 1.26+, [Node.js](https://nodejs.org/)
-  24 (`web/.nvmrc`), Python 3.11+
+  24 (`web/.nvmrc`), Python 3.12+
 
 ### Quick start
 
