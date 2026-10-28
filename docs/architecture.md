@@ -16,7 +16,7 @@ flowchart LR
     end
 
     subgraph Backend
-        GoBackend[Go gRPC Backend]
+        GoBackend[Go HTTP Backend]
         PythonService[Python Observability Service]
     end
 
@@ -26,13 +26,13 @@ flowchart LR
 
     UI -->|proxies /api/v1/*| GoBackend
     Scheduler[Cloud Scheduler] -->|POST /internal/jobs/run-checks, OIDC| GoBackend
-    PythonService -->|gRPC| GoBackend
+    PythonService -->|HTTP| GoBackend
     GoBackend -->|MongoDB reads/writes| Mongo
     PythonService -->|Insight persistence| Mongo
     GoBackend -->|Monitor worker writes check results| Mongo
     UI -->|Reads dashboards/status pages| GoBackend
 
-    click GoBackend "api/common/cmd/server/main.go" "Go gRPC backend entrypoint"
+    click GoBackend "api/common/cmd/server/main.go" "Go backend entrypoint"
     click PythonService "api/observability/app/main.py" "Python FastAPI analytics service entrypoint"
     click Mongo "docker-compose.yml" "Database configuration (compose)"
 ```
@@ -42,14 +42,14 @@ flowchart LR
 
 - **Frontend**: Next.js / React application in `web`.
 - **Cloud Scheduler**: job `upstat-run-checks` calls the Go backend every minute on Cloud Run.
-- **Go Backend**: gRPC server in `api/common`, exposing `MonitorService` and `UserService`.
-- **Python Observability Service**: FastAPI service in `api/observability`, calling Go backend via gRPC to analyze recent monitor checks.
+- **Go Backend**: HTTP server in `api/common` (port 8080, h2c), serving auth, monitor and status page routes.
+- **Python Observability Service**: FastAPI service in `api/observability`, reading recent monitor checks from the Go backend over HTTP (`API_URL`) to analyze them. It serves HTTP only on port 8081.
 - **MongoDB**: Primary database for monitors, check results, incidents, and insights.
 
 ### 1.2 Communication patterns
 
 - `UI -> GoBackend`: the web proxies `/api/v1/*` to the common service.
-- `PythonService -> GoBackend`: gRPC client calls using shared proto definitions in `api/common/internal/proto/user.proto`.
+- `PythonService -> GoBackend`: HTTP calls to `GET /v1/monitors/{id}/checks` with an optional Bearer session token (`UPSTAT_API_TOKEN`).
 - `GoBackend -> Mongo`: persistence for monitors, checks, incidents.
 - `PythonService -> Mongo`: insight persistence.
 
@@ -102,7 +102,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     subgraph Backend
-        GoServer[Go gRPC Backend]
+        GoServer[Go HTTP Backend]
         MonitorWorker[Monitor Worker]
         Mongo[MongoDB]
     end
@@ -110,21 +110,21 @@ flowchart LR
     subgraph PythonService
         PythonAPI[Python FastAPI Service]
         InsightGenerator[Insight Generator / ML Pipeline]
-        PythonRepo[gRPC Monitor Repository]
+        PythonRepo[HTTP Monitor Repository]
         InsightsDB[Insight Storage]
     end
 
     MonitorWorker -->|writes check results| Mongo
     GoServer -->|reads/writes monitors, incidents, checks| Mongo
-    PythonRepo -->|gRPC GetRecentChecks| GoServer
+    PythonRepo -->|HTTP GET checks| GoServer
     InsightGenerator -->|reads recent checks| PythonRepo
     InsightGenerator -->|writes insights| InsightsDB
     PythonAPI -->|endpoint triggers| InsightGenerator
     PythonAPI -->|serves insight results| Client[Client / Frontend]
 
-    click GoServer "api/common/cmd/server/main.go" "Go gRPC backend entrypoint"
+    click GoServer "api/common/cmd/server/main.go" "Go backend entrypoint"
     click MonitorWorker "api/common/internal/service/monitor_worker_service.go" "Periodic monitor scheduler"
-    click PythonRepo "api/observability/repository/monitor_repository.py" "Python gRPC client for checks"
+    click PythonRepo "api/observability/repository/monitor_repository.py" "Python HTTP client for checks"
     click InsightGenerator "api/observability/service/insight_generator.py" "Insight generation pipeline"
 ```
 

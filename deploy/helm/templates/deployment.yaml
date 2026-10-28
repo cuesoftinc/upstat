@@ -66,16 +66,4 @@ spec:
           {{- end }}
           resources:
             {{- toYaml ($svc.resources | default dict) | nindent 12 }}
-          {{- if $svc.envoyConfig }}
-          volumeMounts:
-            - name: envoy-config
-              mountPath: /etc/envoy
-              readOnly: true
-          {{- end }}
-      {{- if $svc.envoyConfig }}
-      volumes:
-        - name: envoy-config
-          configMap:
-            name: {{ $.Chart.Name }}-envoy-config
-      {{- end }}
 {{- end }}

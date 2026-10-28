@@ -2,70 +2,49 @@ import logging
 import os
 from datetime import datetime, timedelta, timezone
 
-import grpc
-from proto import user_pb2, user_pb2_grpc
+import requests
 
 from model.incident_context import IncidentContext
 from model.monitor import MonitorCheck
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_GRPC_ADDRESS = "localhost:8080"
+DEFAULT_API_URL = "http://localhost:8080"
 DEFAULT_CHECK_LIMIT = 50
+REQUEST_TIMEOUT_SECONDS = 5
 
 
 def get_recent_checks(monitor_id: str) -> list[MonitorCheck]:
-    address = os.getenv("COMMON_GRPC_ADDR", DEFAULT_GRPC_ADDRESS)
-    token = os.getenv("UPSTAT_GRPC_AUTH_TOKEN")
-    limit = int(os.getenv("UPSTAT_GRPC_CHECK_LIMIT", DEFAULT_CHECK_LIMIT))
+    limit = int(os.getenv("UPSTAT_API_CHECK_LIMIT", DEFAULT_CHECK_LIMIT))
 
     try:
-        logger.info(f"Connecting to gRPC server at {address}")
-        with grpc.insecure_channel(address) as channel:
-            logger.info(f"Connected to gRPC server at {address}")
-            stub = user_pb2_grpc.MonitorServiceStub(channel)
-            request = user_pb2.GetRecentChecksRequest(
-                monitor_id=monitor_id,
-                limit=limit,
-            )
-            logger.debug(f"Requesting recent checks for monitor {monitor_id} with limit {limit}")
-            response = stub.GetRecentChecks(
-                request,
-                timeout=5,
-                metadata=_auth_metadata(token),
-            )
-            logger.info(f"Successfully retrieved {len(response.checks)} checks for monitor {monitor_id}")
-
-        return [convert_proto_check(check) for check in response.checks]
+        logger.debug(f"Requesting recent checks for monitor {monitor_id} with limit {limit}")
+        body = _get(f"/v1/monitors/{monitor_id}/checks", params={"limit": limit})
+        checks = body.get("recent_checks") or []
+        logger.info(f"Successfully retrieved {len(checks)} checks for monitor {monitor_id}")
+        return [convert_check(check) for check in checks]
     except Exception as e:
-        logger.error(f"Failed to get recent checks from gRPC server: {type(e).__name__} - {str(e)}")
+        logger.error(f"Failed to get recent checks from the API: {type(e).__name__} - {str(e)}")
         raise
 
 
-def get_monitor(monitor_id: str):
-    address = os.getenv("COMMON_GRPC_ADDR", DEFAULT_GRPC_ADDRESS)
-    token = os.getenv("UPSTAT_GRPC_AUTH_TOKEN")
-
+def get_monitor(monitor_id: str) -> dict | None:
     try:
-        with grpc.insecure_channel(address) as channel:
-            stub = user_pb2_grpc.MonitorServiceStub(channel)
-            request = user_pb2.GetMonitorRequest(id=monitor_id)
-            response = stub.GetMonitor(request, timeout=5, metadata=_auth_metadata(token))
-            return response.monitor if response is not None else None
+        return _get(f"/v1/monitors/{monitor_id}")
     except Exception as e:
-        logger.error(f"Failed to get monitor from gRPC server: {type(e).__name__} - {str(e)}")
+        logger.error(f"Failed to get monitor from the API: {type(e).__name__} - {str(e)}")
         return None
 
 
 def get_monitor_name(monitor_id: str) -> str | None:
     monitor = get_monitor(monitor_id)
-    return monitor.name if monitor is not None else None
+    return monitor.get("name") if monitor is not None else None
 
 
 def get_incident_context(monitor_id: str) -> IncidentContext:
     monitor = get_monitor(monitor_id)
-    owner_id = monitor.owner_id if monitor is not None else None
-    monitor_name = monitor.name if monitor is not None else None
+    owner_id = monitor.get("owner_id") if monitor is not None else None
+    monitor_name = monitor.get("name") if monitor is not None else None
     incident_context = IncidentContext(
         monitor_id=monitor_id,
         owner_id=owner_id,
@@ -75,89 +54,78 @@ def get_incident_context(monitor_id: str) -> IncidentContext:
     if not owner_id:
         return incident_context
 
-    address = os.getenv("COMMON_GRPC_ADDR", DEFAULT_GRPC_ADDRESS)
-    token = os.getenv("UPSTAT_GRPC_AUTH_TOKEN")
-
     try:
-        with grpc.insecure_channel(address) as channel:
-            stub = user_pb2_grpc.MonitorServiceStub(channel)
-            request = user_pb2.GetStatusPageRequest(owner_id=owner_id)
-            response = stub.GetStatusPage(request, timeout=5, metadata=_auth_metadata(token))
-
-        incidents = [
-            incident
-            for incident in list(response.active_incidents) + list(response.historical_incidents)
-            if incident.monitor_id == monitor_id
-        ]
+        body = _get(f"/v1/status/{owner_id}")
+        active = [i for i in body.get("active_incidents") or [] if i.get("monitor_id") == monitor_id]
+        historical = [i for i in body.get("historical_incidents") or [] if i.get("monitor_id") == monitor_id]
+        incidents = active + historical
 
         if not incidents:
             return incident_context
 
-        last_incident = None
-        for incident in incidents:
-            started_at = _parse_checked_at(incident.started_at)
-            if last_incident is None or started_at > _parse_checked_at(last_incident.started_at):
-                last_incident = incident
-
-        last_event_time = None
-        if last_incident is not None:
-            if last_incident.resolved_at:
-                last_event_time = _parse_checked_at(last_incident.resolved_at)
-            else:
-                last_event_time = _parse_checked_at(last_incident.started_at)
+        last_incident = max(incidents, key=lambda i: _parse_checked_at(i.get("started_at")))
+        resolved_at = last_incident.get("resolved_at")
+        started_at = _parse_checked_at(last_incident.get("started_at"))
+        last_event_time = _parse_checked_at(resolved_at) if resolved_at else started_at
 
         recent_incident_count = sum(
             1
             for incident in incidents
-            if _parse_checked_at(incident.started_at) >= _recent_window()
+            if _parse_checked_at(incident.get("started_at")) >= _recent_window()
         )
 
-        seconds_since_last = None
-        if last_event_time is not None:
-            seconds_since_last = int((datetime.now(timezone.utc) - last_event_time).total_seconds())
-
-        incident_context = IncidentContext(
+        return IncidentContext(
             monitor_id=monitor_id,
             owner_id=owner_id,
             monitor_name=monitor_name,
-            active_incident_count=len([i for i in response.active_incidents if i.monitor_id == monitor_id]),
+            active_incident_count=len(active),
             historical_incident_count=len(incidents),
             recent_incident_count=recent_incident_count,
-            time_since_last_incident_seconds=seconds_since_last,
-            last_incident_severity=last_incident.severity if last_incident is not None else None,
-            last_incident_summary=last_incident.failure_reason if last_incident is not None else None,
-            last_incident_started_at=_parse_checked_at(last_incident.started_at) if last_incident is not None else None,
-            last_incident_resolved_at=_parse_checked_at(last_incident.resolved_at) if last_incident is not None and last_incident.resolved_at else None,
+            time_since_last_incident_seconds=int((datetime.now(timezone.utc) - last_event_time).total_seconds()),
+            last_incident_severity=None,
+            last_incident_summary=last_incident.get("failure_reason"),
+            last_incident_started_at=started_at,
+            last_incident_resolved_at=_parse_checked_at(resolved_at) if resolved_at else None,
         )
-
-        return incident_context
     except Exception as e:
-        logger.error(f"Failed to get incident context from gRPC server: {type(e).__name__} - {str(e)}")
+        logger.error(f"Failed to get incident context from the API: {type(e).__name__} - {str(e)}")
         return incident_context
 
 
-def convert_proto_check(check: user_pb2.MonitorCheck) -> MonitorCheck:
+def convert_check(check: dict) -> MonitorCheck:
     return MonitorCheck(
-        monitor_id=check.monitor_id,
-        success=check.success,
-        response_time_ms=check.response_time,
-        status_code=check.status_code,
-        checked_at=_parse_checked_at(check.checked_at),
+        monitor_id=check.get("monitor_id", ""),
+        success=bool(check.get("up")),
+        response_time_ms=check.get("response_time_ms", 0),
+        status_code=check.get("status_code", 0),
+        checked_at=_parse_checked_at(check.get("checked_at")),
     )
 
 
-def _auth_metadata(token: str | None) -> tuple[tuple[str, str], ...]:
+def _get(path: str, params: dict | None = None) -> dict:
+    base = os.getenv("API_URL", DEFAULT_API_URL).rstrip("/")
+    response = requests.get(
+        f"{base}{path}",
+        params=params,
+        headers=_auth_headers(os.getenv("UPSTAT_API_TOKEN")),
+        timeout=REQUEST_TIMEOUT_SECONDS,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def _auth_headers(token: str | None) -> dict[str, str]:
     if not token:
-        return ()
-    return (("authorization", f"Bearer {token}"),)
-
-
-def _parse_checked_at(value: str) -> datetime:
-    if not value:
-        return datetime.now(timezone.utc)
-
-    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        return {}
+    return {"Authorization": f"Bearer {token}"}
 
 
 def _recent_window() -> datetime:
     return datetime.now(timezone.utc) - timedelta(days=30)
+
+
+def _parse_checked_at(value: str | None) -> datetime:
+    if not value:
+        return datetime.now(timezone.utc)
+
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))

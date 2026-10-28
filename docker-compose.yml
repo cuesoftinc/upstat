@@ -2,10 +2,9 @@
 # Usage: cp .env.example .env  &&  make up
 #
 # Service wiring:
-#   api-common (Go)          gRPC + HTTP /health on :8080 (h2c), MongoDB, monitor worker
-#   api-observability (Py)   FastAPI /health on :8081, internal gRPC on :50051, ML insights
-#   The two call each other over gRPC on the compose network (lazy clients), so
-#   neither hard-depends on the other — both only wait for mongo.
+#   api-common (Go)          HTTP API and /health on :8080, MongoDB, monitor worker
+#   api-observability (Py)   FastAPI /health on :8081, ML insights; reads api-common over HTTP
+#   Neither hard-depends on the other; both only wait for mongo.
 services:
   mongo:
     image: mongo:7
@@ -38,7 +37,6 @@ services:
       GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:8080/v1/auth/sso/google/callback}
       WEB_URL: ${WEB_URL:-http://localhost:3000}
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080/}
-      INSIGHT_GRPC_ADDR: api-observability:50051
     depends_on:
       mongo:
         condition: service_healthy
@@ -53,26 +51,12 @@ services:
       PORT: "8081"
       MONGO_URI: mongodb://mongo:27017
       MONGO_DB: ${MONGO_DB:-Upstat}
-      COMMON_GRPC_ADDR: api-common:8080
-      UPSTAT_GRPC_AUTH_TOKEN: ${UPSTAT_GRPC_AUTH_TOKEN:-}
-      UPSTAT_GRPC_CHECK_LIMIT: ${UPSTAT_GRPC_CHECK_LIMIT:-100}
+      API_URL: http://api-common:8080
+      UPSTAT_API_TOKEN: ${UPSTAT_API_TOKEN:-}
+      UPSTAT_API_CHECK_LIMIT: ${UPSTAT_API_CHECK_LIMIT:-100}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
-      GRPC_PORT: "50051"
-      GRPC_SERVER_ENABLED: "true"
     depends_on:
       mongo:
-        condition: service_healthy
-    restart: unless-stopped
-
-  # gRPC-Web proxy: browser gRPC-Web (:8082 on the host) -> native gRPC (api-common:8080).
-  envoy:
-    image: envoyproxy/envoy:v1.31.5
-    volumes:
-      - ./deploy/helm/envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
-    ports:
-      - "8082:8081"
-    depends_on:
-      api-common:
         condition: service_healthy
     restart: unless-stopped
 
@@ -84,16 +68,11 @@ services:
       # web/Dockerfile.dockerignore.
       context: .
       dockerfile: web/Dockerfile
-      # NEXT_PUBLIC_* are inlined into the standalone build, so pass them here.
-      args:
-        NEXT_PUBLIC_ENVOY_URL: ${NEXT_PUBLIC_ENVOY_URL:-http://localhost:8082}
     ports:
       - "3000:3000"
     depends_on:
       api-common:
         condition: service_healthy
-      envoy:
-        condition: service_started
     restart: unless-stopped
 
 volumes:

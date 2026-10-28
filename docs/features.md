@@ -70,8 +70,8 @@ retention gates; every pillar ships explorer + retention + monitors together
 
 | ID | Unit | Refs |
 | --- | --- | --- |
-| UX-1 | Google-only auth through the API session (gRPC metadata + HTTP) + migration | flows/auth |
-| UX-2 | Error envelope (HTTP) + gRPC status mapping | engineering §1 |
+| UX-1 | Google-only auth through the API session (HTTP) + migration | flows/auth |
+| UX-2 | Error envelope (HTTP) | engineering §1 |
 | UX-3 | Authz (owner-model now, org-ready matrix) | engineering §2 |
 | UX-4 | Never-log gate + storage-scan privacy test | engineering §5 |
 | UX-5 | build-and-test.yml + release.yml (deploys on merge) | deployment.md, X-6 |

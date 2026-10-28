@@ -3,10 +3,7 @@
 > Error catalog, authorization matrix, rate limits, testing strategy, logging
 > rules. Ecosystem envelope (inlined, normative):
 > `{"error": {"code": "snake_case_stable", "message": "human copy", "details": {}}}` —
-> codes stable, cross-tenant access always `not_found`;
-> gRPC surfaces map the same codes onto status codes
-> (`INVALID_ARGUMENT`/`UNAUTHENTICATED`/`PERMISSION_DENIED`/`NOT_FOUND`/
-> `ALREADY_EXISTS`/`RESOURCE_EXHAUSTED`/`FAILED_PRECONDITION`).
+> codes stable, cross-tenant access always `not_found`.
 
 ## 1. Error catalog (product families)
 

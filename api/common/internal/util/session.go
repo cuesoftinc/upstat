@@ -92,6 +92,24 @@ func SessionMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+type contextKey string
+
+const (
+	userIDContextKey contextKey = "userId"
+	emailContextKey  contextKey = "email"
+	nameContextKey   contextKey = "name"
+)
+
+func UserIDFromContext(ctx context.Context) (string, bool) {
+	userID, ok := ctx.Value(userIDContextKey).(string)
+	return userID, ok
+}
+
+func EmailFromContext(ctx context.Context) (string, bool) {
+	email, ok := ctx.Value(emailContextKey).(string)
+	return email, ok
+}
+
 func NameFromContext(ctx context.Context) (string, bool) {
 	name, ok := ctx.Value(nameContextKey).(string)
 	return name, ok

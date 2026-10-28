@@ -17,16 +17,10 @@ const eslintConfig = defineConfig([
     // legacy policy (web-implementation.md §8); retired in dedicated
     // `chore(web): retire legacy <area>` PRs later.
     "src/legacy/**",
-    // X-8 exception (§8 tranche 3): the gRPC-Web control-plane client
-    // stays in place until monitors-v2 — not UI, not retro-linted.
-    "src/models/repositories/grpc-client.ts",
-    "src/proto/**",
-    "src/components/libs/grpc/**",
   ]),
   // W3 enforcement gate (paired with scripts/check-boundaries.mjs):
-  // src/legacy is quarantined — no live import may reach it. The
-  // gRPC-Web control-plane client is exempted above (globalIgnores, X-8);
-  // these patterns cover the org's pruned/banned styled kits and date
+  // src/legacy is quarantined — no live import may reach it. These
+  // patterns cover the org's pruned/banned styled kits and date
   // libraries (web-implementation.md §8, org SKILL).
   {
     files: ["src/**/*.{ts,tsx}"],

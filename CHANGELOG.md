@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Monitor CRUD, recent checks and status page endpoints on api-common.
 - `POST /internal/jobs/run-checks` on api/common, guarded by scheduler OIDC token.
 - `WORKER_ENABLED` flag to turn off the in-process monitor loop.
 - Staging estate documented: Cloud Run, Cloud Scheduler, Valkey, Doppler `stg`.
@@ -59,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Observability reads monitors and checks from api-common over HTTP.
 - Docs describe provisioning without naming internal repositories.
 - Fleet-parity convergence: web deps aligned to the sibling pin set (Next
   16.2.11, React/React-DOM 19.2.8, `@types/node` ^24, `@testing-library/jest-dom`
@@ -131,6 +133,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Removed
 
+- Product gRPC services, protobuf clients and the Envoy gRPC-Web proxy.
 - `api/common/Makefile` (no sibling repo carries one — the root `Makefile`
   is the org entrypoint) and the duplicated `src/generated/` block in
   `web/.prettierignore` (#209).

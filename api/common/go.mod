@@ -6,10 +6,10 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/joho/godotenv v1.5.1
 	go.mongodb.org/mongo-driver v1.17.10
-	golang.org/x/crypto v0.58.0
+	golang.org/x/crypto v0.58.0 // indirect
 	google.golang.org/api v0.307.0
-	google.golang.org/grpc v1.84.0
-	google.golang.org/protobuf v1.36.12
+	google.golang.org/grpc v1.84.0 // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
 )
 
 require golang.org/x/net v0.61.0

@@ -12,10 +12,8 @@ reliability insights.
 Upstat is a monorepo containing the clients, backend services, deployment
 configuration, and documentation for the platform. A Go backend owns monitor
 state and check execution, a Python service adds analytics and anomaly
-detection, and a Next.js frontend serves its dashboard. gRPC-Web through an
-Envoy proxy is the target control-plane path; the client is retained but not
-yet wired — the shipped web app currently reads and writes dashboard data
-through its in-app mock CRUD server (`/api/mock/v1`). For a deeper
+detection, and a Next.js frontend serves its dashboard. All traffic between
+the browser and the services is HTTP/JSON. For a deeper
 description of the components and how they fit together, see
 [docs/overview.md](docs/overview.md).
 
@@ -27,19 +25,16 @@ description of the components and how they fit together, see
 
 ```mermaid
 flowchart LR
-    WEB[web dashboard<br/>Next.js] -->|gRPC-Web, target| ENV[Envoy]
-    ENV -->|gRPC| AC[api/common — Go<br/>monitor worker · checks · incidents<br/>MonitorService · UserService]
-    OBS[api/observability — Python<br/>ML anomaly detection · insights] -->|gRPC GetRecentChecks| AC
+    WEB[web dashboard<br/>Next.js] -->|HTTP| AC[api/common — Go<br/>monitor worker · checks · incidents<br/>monitors · users]
+    OBS[api/observability — Python<br/>ML anomaly detection · insights] -->|HTTP /v1/monitors/id/checks| AC
     AC --> MG[(MongoDB)]
     OBS --> MG
 ```
 
-- **Target control plane:** the browser speaks **gRPC-Web**; **Envoy**
-  translates it to native **gRPC** for the Go backend and applies CORS. This
-  client is retained (`web/src/components/libs/grpc`) but not yet wired — the
-  shipped web app currently serves dashboard data from its in-app mock CRUD
-  server (`/api/mock/v1`) instead.
-- The **observability** service is a gRPC client of the Go backend: it pulls
+- The **web** app talks to the Go backend over HTTP/JSON through its
+  repository client; the dashboard still reads its data from the in-app mock
+  CRUD server (`/api/mock/v1`).
+- The **observability** service is an HTTP client of the Go backend: it pulls
   recent checks, runs anomaly detection / insight generation, and persists the
   results.
 
@@ -47,10 +42,9 @@ flowchart LR
 
 | Layer          | Technology                                             |
 | -------------- | ------------------------------------------------------ |
-| Backend API    | Go 1.26, gRPC, MongoDB (`api/common`)                  |
-| Observability  | Python, FastAPI, scikit-learn, gRPC (`api/observability`) |
-| Web            | Next.js, React, TypeScript; mock CRUD server (current data path), gRPC-Web control plane (target, unwired) |
-| Proxy          | Envoy (gRPC-Web → gRPC, target control plane)           |
+| Backend API    | Go 1.26, HTTP/JSON, MongoDB (`api/common`)             |
+| Observability  | Python, FastAPI, scikit-learn (`api/observability`)       |
+| Web            | Next.js, React, TypeScript; mock CRUD server (current data path), HTTP repository client |
 | Mobile         | Flutter (placeholder)                                  |
 | Infrastructure | Docker, Helm, Terraform                                |
 
@@ -58,18 +52,18 @@ flowchart LR
 
 ```
 api/
-  common/          Go service — gRPC backend: monitors, checks, incidents, users
+  common/          Go service — HTTP backend: monitors, checks, incidents, users
   observability/   Python service — reliability analytics, ML anomaly detection, insights
-web/               Next.js dashboard + status pages (mock CRUD server; gRPC-Web client retained for the target control plane)
+web/               Next.js dashboard + status pages (mock CRUD server; HTTP repository client)
 mobile/
   flutter/         Flutter app (placeholder)
   android/         Native Android (placeholder)
   ios/             Native iOS (placeholder)
 deploy/
   docker/          Placeholder — the compose stack lives at the repo root (docker-compose.yml)
-  helm/            Helm chart (deploys all services, including Envoy, to Kubernetes)
+  helm/            Helm chart (deploys all services to Kubernetes)
   terraform/       Infrastructure as code
-docker-compose.yml Local orchestration: mongo, api-common, api-observability, envoy, web
+docker-compose.yml Local orchestration: mongo, api-common, api-observability, web
 docs/              Project documentation
 scripts/           Developer and CI helper scripts
 ```
@@ -84,21 +78,20 @@ function (never by its language).
 
 - [Docker](https://www.docker.com/) & Docker Compose (recommended path)
 - For native development: [Go](https://go.dev/) 1.26+, [Node.js](https://nodejs.org/)
-  24 (`web/.nvmrc`), Python 3.11+, and Envoy (only needed for the target
-  gRPC-Web control plane, not for the web app to function)
+  24 (`web/.nvmrc`), Python 3.11+
 
 ### Quick start
 
 ```bash
 cp .env.example .env
-make up      # build + start mongo, api-common (:8080), api-observability (:8081), envoy (:8082), web (:3000)
+make up      # build + start mongo, api-common (:8080), api-observability (:8081), web (:3000)
 make logs    # follow logs
 make down    # stop
 ```
 
 Configuration is provided at runtime via environment variables (for example
-`MONGO_URI`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and the inter-service gRPC auth
-token). See [docs/setup.md](docs/setup.md) for details; `make help` lists all
+`MONGO_URI`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `UPSTAT_API_TOKEN` for the
+observability service). See [docs/setup.md](docs/setup.md) for details; `make help` lists all
 targets. Never commit credentials or bake them into an image.
 
 ## Documentation

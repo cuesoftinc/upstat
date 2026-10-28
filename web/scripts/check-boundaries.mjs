@@ -15,7 +15,7 @@
  *                         exceptions only (design.md §7 per repo)
  *   - fetchOnlyIn         fetch() confined to the repositories client (MVC —
  *                         views/controllers never fetch)
- *   - viewBoundaries      views never fetch or import repositories/gRPC;
+ *   - viewBoundaries      views never fetch or import repositories;
  *                         controllers never fetch (MVC network seam)
  */
 
@@ -68,12 +68,8 @@ const REPO_RULES = {
       isView: (path) =>
         path.startsWith("src/app/") && !path.startsWith("src/app/api/"),
       isController: (path) => path.startsWith("src/controllers/"),
-      // No repository imports and no gRPC/proto imports in views (MVC + the
-      // X-8 control-plane exception lives behind the repositories).
-      viewForbiddenImports: [
-        /from\s+["']@\/models\/repositories/,
-        /from\s+["'](@\/proto|grpc-web|google-protobuf)/,
-      ],
+      // No repository imports in views (MVC).
+      viewForbiddenImports: [/from\s+["']@\/models\/repositories/],
     }),
     rawHex({
       // Token rule scope (design.md §7): ui primitives + view markup/styles.
@@ -197,7 +193,7 @@ function fetchOnlyIn({ files, prefixes }) {
   };
 }
 
-/** Views never fetch or import repositories/gRPC; controllers never fetch —
+/** Views never fetch or import repositories; controllers never fetch —
  *  the repositories are the only network seam. */
 function viewBoundaries({ isView, isController, viewForbiddenImports }) {
   return {

@@ -9,8 +9,6 @@ export const env = {
   apiBase: process.env.NEXT_PUBLIC_API_BASE || "/api/mock",
   /** Opt-in product analytics (models/analytics.ts; never on in TEST_MODE). */
   analytics: process.env.NEXT_PUBLIC_ANALYTICS === "1",
-  /** gRPC-Web endpoint (Envoy) for the X-8 control-plane client. */
-  envoyUrl: process.env.NEXT_PUBLIC_ENVOY_URL || "http://localhost:8082",
   /**
    * TEST_MODE (web-standard): NEXT_PUBLIC_TEST_MODE=1 →
    * - GoogleAuthButton signs straight in (no Google redirect), and

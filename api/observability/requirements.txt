@@ -1,7 +1,4 @@
 fastapi==0.143.0
-grpcio==1.84.0
-grpcio-tools==1.84.0
-protobuf==7.36.2
 pydantic==2.14.1
 uvicorn==0.54.0
 scikit-learn==1.9.1

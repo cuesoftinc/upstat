@@ -72,7 +72,7 @@ describe("HomeView (pages.md Part A — Figma frame 135:2)", () => {
     // A13 developers — the ratified stack line, verbatim
     expect(
       screen.getByText(
-        "Go gRPC services · Next.js + React/TS · ClickHouse · OpenTelemetry",
+        "Go services · Next.js + React/TS · ClickHouse · OpenTelemetry",
       ),
     ).toBeInTheDocument();
     // A8 community — the public-status CARD (canvas 225:11191 + pages.md

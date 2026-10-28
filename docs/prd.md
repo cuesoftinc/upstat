@@ -114,9 +114,8 @@ demonstrate Cuesoft's engineering standards and infrastructure stability
 2. ~~**Alert channels order**~~ **RESOLVED (U-4: webhooks first, Brevo email)**. Original — email first (needs an SMTP/provider decision —
    note the old SMTP plumbing was deliberately removed), webhook second,
    Slack later? MON-001 assumes email→webhook.
-3. ~~**gRPC-Web vs REST**~~ **RESOLVED (U-5: new surfaces HTTP)**. Original — monitors stay gRPC (works today);
-   event ingestion + stats query are proposed as plain HTTP/JSON (browser
-   beacons + simpler consumer contract). Confirm the split is acceptable.
+3. ~~**Protocol split**~~ **RESOLVED (U-5, superseded 2026-10-28)**. Every
+   surface is HTTP/JSON: monitors, event ingestion and stats query.
 4. **Managed-client reports** (ECO-SUPPORT) — format and cadence owned by
    `clients.cuesoft.io`? Blocks roadmap P3 shape.
 

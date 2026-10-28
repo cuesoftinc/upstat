@@ -18,8 +18,6 @@ COPY --from=deps /app/web/node_modules ./node_modules
 COPY web/ ./
 COPY docs/api/openapi.yaml /app/docs/api/openapi.yaml
 # NEXT_PUBLIC_* are inlined at build time.
-ARG NEXT_PUBLIC_ENVOY_URL
-ENV NEXT_PUBLIC_ENVOY_URL=$NEXT_PUBLIC_ENVOY_URL
 # TEST_MODE is a build-time switch like every other NEXT_PUBLIC_*: Next inlines
 # it at `next build`, so a container env var at runtime would be ignored. Unset
 # by default, so production images are byte-identical to before.

@@ -24,8 +24,6 @@ npm run dev
   to the in-app mock server, `/api/mock`).
 - `NEXT_PUBLIC_ANALYTICS` — opt-in product analytics (`1` to enable; never on
   in `TEST_MODE`).
-- `NEXT_PUBLIC_ENVOY_URL` — gRPC-Web endpoint (Envoy) for the retained,
-  not-yet-wired control-plane client.
 - `NEXT_PUBLIC_TEST_MODE` — `1` signs straight in (no Firebase) and targets
   the in-app mock server; used by local dev and Playwright.
 
