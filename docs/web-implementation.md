@@ -35,7 +35,7 @@
   that talks to the network); controllers = `web/src/controllers/`
   (feature-scoped hooks/orchestration, own all state; views never fetch);
   views = `web/src/app/**` routes + composed components, render-only.
-- **TEST_MODE**: `NEXT_PUBLIC_TEST_MODE=1` → GoogleAuthButton navigates
+- **TEST_MODE**: `NEXT_PUBLIC_TEST_MODE=true` → GoogleAuthButton navigates
   straight to the dashboard (no Google redirect), and the API client targets the
   in-app mock server (§5). Auth sits behind an `AuthProvider` interface
   (`TestModeAuthProvider` in TEST_MODE, `SsoAuthProvider` otherwise — X-1
@@ -756,7 +756,7 @@ query duality; MI-1 back/forward restore).
 
 ## 5. TEST_MODE contract
 
-`NEXT_PUBLIC_TEST_MODE=1` (build-time inlined, like all `NEXT_PUBLIC_*` —
+`NEXT_PUBLIC_TEST_MODE=true` (build-time inlined, like all `NEXT_PUBLIC_*` —
 [setup.md](setup.md)) switches exactly two seams; nothing else may branch
 on it:
 

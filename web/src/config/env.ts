@@ -10,9 +10,9 @@ export const env = {
   /** Opt-in product analytics (models/analytics.ts; never on in TEST_MODE). */
   analytics: process.env.NEXT_PUBLIC_ANALYTICS === "1",
   /**
-   * TEST_MODE (web-standard): NEXT_PUBLIC_TEST_MODE=1 →
+   * TEST_MODE (web-standard): NEXT_PUBLIC_TEST_MODE=true →
    * - GoogleAuthButton signs straight in (no Google redirect), and
    * - the repository client targets the in-app mock server (/api/mock).
    */
-  testMode: process.env.NEXT_PUBLIC_TEST_MODE === "1",
+  testMode: process.env.NEXT_PUBLIC_TEST_MODE === "true",
 } as const;
