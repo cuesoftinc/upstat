@@ -88,7 +88,7 @@ function envScale(env: string | undefined): number {
  * surface as staged LOG lines (started → canary → full → finished over
  * ~2min) and as a short post-deploy latency/error blip on the service's
  * metrics, so the log stream visibly correlates with metric shifts
- * (realism directive 2026-07-19). Chart deploy MARKERS stay cut per
+ * (realism). Chart deploy MARKERS stay cut per
  * pages.md B1 — no deploy-events API is implied.
  */
 const DEPLOY_PERIOD = 6 * HOUR;
