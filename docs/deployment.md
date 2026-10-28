@@ -44,7 +44,7 @@ are not provisioned.
 | Workflow | Trigger | Does |
 | --- | --- | --- |
 | `build-and-test.yml` | PRs **and** push to `main` | build + tests per service; **no deploy, no image push** (`release.yml` deploys) |
-| `release.yml` | **push to `main` touching `api/**`** | buildx (GHA cache) → push `upstat-api-{common,observability}` images (tags: sha, `latest`) → Cloud Run services updated **by image digest** via WIF in the `Sandbox` environment → fails unless every newest revision is Ready and common answers `/ready`. The website is not in it: App Hosting rolls out from `main` |
+| `release.yml` | **push to `main` touching `api/**`** | buildx (GHA cache) → push `cuesoft/upstat-api-{common,observability}` (tags: sha, `latest`) → Cloud Run services updated **by image digest** via WIF in the `Sandbox` environment → fails unless every newest revision is Ready and common answers `/ready`. The website is not in it: App Hosting rolls out from `main` |
 
 **Gating (X-6, revised 2026-10-27):** `stg` (sandbox) is the only
 environment. A merge to `main` that touches `api/**` deploys the API services
@@ -54,7 +54,7 @@ tags: images carry the commit sha and `latest`.
 
 Two hard-won rules, non-negotiable:
 
-1. **Deploy by digest, never by tag**, Cloud Run pulls images from the container registry
+1. **Deploy by digest, never by tag**, Cloud Run pulls Docker Hub images
    through the `mirror.gcr.io` cache, which has served stale manifests for
    tags; the staging workflow threads `steps.build.outputs.digest` into the
    deploy step.
@@ -87,4 +87,4 @@ exist.
 
 Writing these workflows + the infrastructure-as-code stack is **implementation work**, out of
 scope for the docs phase, this document is the contract they'll be built
-against. Container registry repositories already exist for every image name above.
+against. Docker Hub repos already exist for every image name above.
