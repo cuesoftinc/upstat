@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 /**
  * Demo-completeness features (PR3): portable dashboard JSON import (B2 /
  * api.md §6), RUM devices+geo breakdowns (B6), logs-in-span (B5 span
- * drawer), declare-incident from an alert row (B9 [Directive]), and the
+ * drawer), declare-incident from an alert row (B9 [Specified]), and the
  * Features/Platform nav-anchor differentiation.
  */
 

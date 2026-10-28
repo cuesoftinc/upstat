@@ -49,7 +49,7 @@ export default function MonitorsPage() {
   };
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  // pages.md B9 [Directive]: declare-incident reachable FROM an alert row
+  // pages.md B9 [Specified]: declare-incident reachable FROM an alert row
   const [declareFrom, setDeclareFrom] = useState<AlertEvent | null>(null);
 
   const rules = ctrl.rules.data ?? [];
@@ -260,7 +260,7 @@ export default function MonitorsPage() {
                 {(ctrl.feed.data ?? []).map((event) => (
                   <li key={event.id}>
                     {/* clicking an active alert opens declare-incident
-                        prefilled (pages.md B9 [Directive]) */}
+                        prefilled (pages.md B9 [Specified]) */}
                     <AlertFeedRow
                       event={event}
                       onClick={

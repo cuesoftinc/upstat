@@ -36,7 +36,7 @@ export interface NavRailItemProps {
   href?: string;
   onClick?: () => void;
   /** layout=expanded — icon + inline label row, no flyout (design.md §2
-   *  [Directive 2026-07-19] expandable rail). Default stays the 56px rail
+   *  [Specified 2026-07-19] expandable rail). Default stays the 56px rail
    *  behavior, so existing call sites are untouched. */
   expanded?: boolean;
 }
@@ -44,7 +44,7 @@ export interface NavRailItemProps {
 /**
  * NavRailItem — §8.2b: default / hover (flyout label) / active (brand
  * accent bar + brand icon, both layouts). `expanded` renders the 228px
- * icon+label row ([Directive 2026-07-19]); collapsed keeps the flyout.
+ * icon+label row ([Specified 2026-07-19]); collapsed keeps the flyout.
  * With `href` it renders a next/link <a>; otherwise a <button>.
  */
 export function NavRailItem({
@@ -384,7 +384,7 @@ function RailBody({
 }
 
 /**
- * NavRail — product nav (design.md §2, [Directive 2026-07-19] expandable
+ * NavRail — product nav (design.md §2, [Specified 2026-07-19] expandable
  * rail supersedes flyout-only): collapsed 56px icon rail ⇄ expanded 240px
  * icon+label rows in Telemetry/Respond/Platform groups. Foot chevron
  * toggles; the choice persists (`nav.rail.expanded`); expanded is the

@@ -12,13 +12,13 @@ import { useSettingsController } from "@/controllers/settings";
 export interface DeclareIncidentModalProps {
   open: boolean;
   onClose: () => void;
-  /** Prefill for the from-an-alert path (pages.md B9 [Directive]). */
+  /** Prefill for the from-an-alert path (pages.md B9 [Specified]). */
   initialTitle?: string;
   initialSev?: string;
 }
 
 /**
- * Declare-incident modal (Figma 173:5805; pages.md B9 [Directive]) —
+ * Declare-incident modal (Figma 173:5805; pages.md B9 [Specified]) —
  * reachable from an alert row (prefilled) or manually: sev picker · title
  * · commander assignment; declaring lands on the incident timeline.
  */
