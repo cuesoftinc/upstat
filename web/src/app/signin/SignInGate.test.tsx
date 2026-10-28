@@ -7,7 +7,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace, push: vi.fn(), prefetch: vi.fn() }),
 }));
 
-// Fleet P16 session shape: `upstat.test-session`, sessionStorage, JSON user.
+// Session shape: `upstat.test-session`, sessionStorage, JSON user.
 const SESSION = JSON.stringify({
   id: "usr_ibukun",
   name: "Ibukun",

@@ -1,9 +1,8 @@
 "use client";
 
 /**
- * Theme provider — tri-state light | dark | system (SKILL.md theme parity
- * canon; theme contract ratified 2026-07-20, identical across apparule,
- * expendit and upstat):
+ * Theme provider — tri-state light | dark | system (theme parity
+ * canon; theme contract ratified 2026-07-20, shared across products):
  *
  * - `preference` is what the user chose; persisted at `upstat.theme`
  *   ("light"/"dark"/"system" stored explicitly; KEY ABSENT = dark, the

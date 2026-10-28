@@ -461,7 +461,7 @@ export function StatusPageSection() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Appearance (theme-parity canon, SKILL.md 2026-07-19)                 */
+/* Appearance (theme-parity canon, 2026-07-19)                 */
 /* ------------------------------------------------------------------ */
 
 export function AppearanceSection() {

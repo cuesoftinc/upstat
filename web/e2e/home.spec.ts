@@ -133,7 +133,7 @@ test("home renders every Part A section", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
-test("nav + footer carry the canonical parity links (SKILL.md canon)", async ({
+test("nav + footer carry the canonical parity links (canon)", async ({
   page,
 }) => {
   await page.goto("/");
@@ -365,7 +365,7 @@ test("Self Host CTA scrolls to the self-host section (A14)", async ({
   await page.getByRole("button", { name: "Self Host" }).first().click();
   await expect(page.locator("#self-host")).toBeInViewport();
   // the section's guide link points at the REAL GitBook deployment guide —
-  // docs.upstat.cuesoft.io was NXDOMAIN (user-reported dead link 2026-07-19)
+  // docs.upstat.cuesoft.io does not resolve
   await expect(
     page.locator("#self-host").getByRole("link", { name: /Self-host guide/ }),
   ).toHaveAttribute(
@@ -545,7 +545,7 @@ test("A1 Features pillar-map dropdown — hover/click open, Escape, deep links",
   await expect(page.locator("#pillar-4")).toBeInViewport();
 });
 
-test("mobile nav is a menu-button disclosure at 390w (SKILL.md mobile clause)", async ({
+test("mobile nav is a menu-button disclosure at 390w (mobile clause)", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -624,9 +624,9 @@ test("mobile nav is a menu-button disclosure at 390w (SKILL.md mobile clause)", 
 });
 
 // Type contract — the landing's key roles render the Figma Home frame's
-// (135:2) computed type (fleet font-weight audit 2026-07-20): Display/44
+// (135:2) computed type (font-weight audit 2026-07-20): Display/44
 // Semi Bold hero, 28/600 section headings, 16/600 pillar titles, and the
-// fleet font-smoothing standard (grayscale antialiasing — Figma rasterizes
+// font-smoothing standard (grayscale antialiasing — Figma rasterizes
 // grayscale; subpixel reads heavier than the approved canvas).
 test.describe("type contract — Figma Home frame roles", () => {
   test("per-role computed family/weight/size and smoothing match", async ({

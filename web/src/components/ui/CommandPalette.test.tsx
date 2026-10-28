@@ -49,7 +49,7 @@ describe("CommandPalette", () => {
     ).toHaveAttribute("aria-modal", "true");
   });
 
-  it("returns focus to the opener on close (fleet P4)", async () => {
+  it("returns focus to the opener on close", async () => {
     function Harness() {
       const [open, setOpen] = useState(false);
       return (

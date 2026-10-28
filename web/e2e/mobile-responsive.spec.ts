@@ -14,7 +14,7 @@ const TABLET = { width: 768, height: 1024 };
 
 // Pinch-zoom stays available (2026-07-21 a11y audit blocker: the root
 // viewport export shipped maximumScale:1 — axe meta-viewport on 18/18
-// route-loads; siblings' viewport export is the fleet pattern).
+// route-loads; siblings' viewport export is the usual pattern).
 test("viewport meta never disables pinch-zoom", async ({ page }) => {
   await page.goto("/");
   const content = await page

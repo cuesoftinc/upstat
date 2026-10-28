@@ -5,7 +5,7 @@ import Link from "next/link";
  */
 export default function NotFound() {
   return (
-    // id + tabIndex: the SkipLink (root layout, P15) targets #main and
+    // id + tabIndex: the SkipLink (root layout) targets #main and
     // moves programmatic focus there — not just a scroll jump.
     <main
       id="main"

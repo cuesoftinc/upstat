@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-// Route metadata for the client-composed signin screen (fleet P9 pattern:
+// Route metadata for the client-composed signin screen (Next.js metadata pattern:
 // "Sign in — {Product}"; the page itself is a client component).
 export const metadata: Metadata = {
   title: "Sign in — Upstat",

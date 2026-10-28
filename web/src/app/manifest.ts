@@ -6,7 +6,7 @@ import type { MetadataRoute } from "next";
  * Identity mirrors the root layout metadata; colors are the dark-primary
  * design tokens (tokens.css :root, design.md §2) — the manifest is static
  * server output, so the values are inlined rather than var()-bound.
- * Locked in e2e/seo.spec.ts (fleet-shared): 200 + product name + icons
+ * Locked in e2e/seo.spec.ts: 200 + product name + icons
  * resolve.
  */
 export default function manifest(): MetadataRoute.Manifest {

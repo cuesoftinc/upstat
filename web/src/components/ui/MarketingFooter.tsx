@@ -15,14 +15,14 @@ export interface FooterColumn {
 }
 
 export interface MarketingFooterProps {
-  /** Column set — defaults to the canonical parity columns (SKILL.md). */
+  /** Column set — defaults to the canonical parity columns. */
   columns?: FooterColumn[];
   showBrand?: boolean;
   className?: string;
 }
 
 /**
- * Canonical footer columns (SKILL.md "Marketing nav, footer & theme parity
+ * Canonical footer columns ("Marketing nav, footer & theme parity
  * canon", ratified 2026-07-19) — Product / Docs / Community / Legal.
  */
 const COLUMNS: FooterColumn[] = [
@@ -75,7 +75,7 @@ const SECURITY_URL =
 const LICENSE_URL = "https://github.com/cuesoftinc/upstat/blob/main/LICENSE";
 
 /**
- * MarketingFooter — parity canon (SKILL.md 2026-07-19, supersedes the A10
+ * MarketingFooter — parity canon (2026-07-19, supersedes the A10
  * ad-hoc columns): brand block + Product/Docs/Community/Legal columns +
  * legal bar (verbatim copyright with linked "Cuesoft Inc." and "MIT
  * License", language selector — English-only for now, ratified — and the
@@ -97,7 +97,7 @@ export function MarketingFooter({
           content sits on the 1152 rails (outer px-6 supplies the gutters).
           Sibling-parity mobile structure (2026-07-19): brand + 4 columns in
           ONE responsive grid — full-width brand row at 390, 2-col link
-          columns, one 5-col row at md+ (apparule/expendit stacking) */}
+          columns, one 5-col row at md+ */}
       <div className="mx-auto grid max-w-[1152px] grid-cols-2 gap-8 md:grid-cols-5">
         {showBrand && (
           <div className="col-span-2 flex max-w-56 flex-col gap-2 md:col-span-1">

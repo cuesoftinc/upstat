@@ -41,7 +41,7 @@ export function CommandPalette({
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
-  // Focus restore (fleet P4): the palette opens programmatically ("/",
+  // Focus restore: the palette opens programmatically ("/",
   // ⌘K or the TopBar search button), so closing must hand focus back to
   // whatever element had it before the input grabbed focus. The P4 lock
   // asserts the restore the moment the palette is gone — Radix's own

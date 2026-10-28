@@ -4,7 +4,7 @@
 // data-theme always carries the RESOLVED theme; system tracks
 // prefers-color-scheme live via a matchMedia listener. Upstat stays
 // dark-first in design (tokens :root is dark), but the CONTRACT is the
-// same as apparule/expendit.
+// same across products.
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";

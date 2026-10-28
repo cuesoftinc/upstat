@@ -111,7 +111,7 @@
   /* NavRail width — resolved PRE-PAINT by navRailInitScript (NavRail.tsx):
      html[data-nav-expanded] flips it, so the app frame never paints
      collapsed and then slides open (the 56→240px entrance moved every
-     dashboard's content column — the fleet's worst CLS source). */
+     dashboard's content column — the worst CLS source). */
   --nav-rail-w: 56px;
 
   --widget-h-value: 117px; /* QueryValue stat tile (label + 28 value + spark) */
@@ -197,7 +197,7 @@ html[data-nav-expanded] {
     font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
     background: var(--color-bg);
     color: var(--color-text);
-    /* Fleet font-smoothing standard (2026-07-20 type audit): grayscale
+    /* Font-smoothing standard (2026-07-20 type audit): grayscale
        antialiasing everywhere — Figma rasterizes grayscale, and macOS
        subpixel rendering reads visibly heavier than the approved canvas.
        Same pair apparule and expendit ship. */

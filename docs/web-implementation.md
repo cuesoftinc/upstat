@@ -60,8 +60,7 @@
   policy: §8.
 - **Process**: stages W0 → W3 (§2), PR per stage; conventional commits; QA
   loops evaluate the implementation against the Figma file (tokens,
-  geometry, states, interactions) before a stage closes; docs + the org
-  SKILL.md updated with every deviation.
+  geometry, states, interactions) before a stage closes; docs updated with every deviation.
 - **Component reuse policy [Decided 2026-07-18]**: pixel-fidelity to the
   Figma file wins. All **visual** components are built in-house from the
   token layer, no styled component kits in new code (no MUI, no
@@ -87,12 +86,12 @@ file passes (screenshot comparison + token/geometry/state checks against the
 Style Guide, component sets, and screen frames — the same standard as the
 design-phase QA loops, design.md §8).
 
-| Stage | Scope | Closes when |
-| --- | --- | --- |
-| **W0 Foundations** | `tokens.css` (§3) + Tailwind mapping · Inter/JetBrains Mono via `next/font` + the §2 type ramp in the Tailwind theme · MVC skeleton (`models/`, `controllers/`, `components/ui/`) · `AuthProvider` interface + `TestModeAuthProvider` · new `/signin` (single GoogleAuthButton screen; the ONLY auth route per the route standard, X-1) · mock server + seed dataset (§5–6) · Vitest + Playwright harnesses wired into CI build+test (UX-5) | tokens render both themes correctly vs the Style Guide page (dark default); TEST_MODE boots to a stubbed `/dashboard` against the mock server; `/signup` gone from routing (flows/auth.md); CI green |
-| **W1 Components** | `components/ui/*` per the design.md §8.1 build order (Stage 1 atoms → Stage 2 molecules → Stage 3 panels/chrome) and the §8.2/§8.2b contract rows, the bespoke-SVG chart set included · MI specs MI-1…MI-18 · unit tests per component. The §8.2b Marketing (Stage 5) rows land at the top of W2 instead, they have no consumer before it | every built component passes QA vs its Figma component set (variants, states, both themes, motion specs) |
-| **W2 Home — DONE (as built 2026-07-19, PR #146)** | Marketing kit (§8.2b Stage-5 rows) · Part A screens (§4): A1–A10 + iteration rows A11–A16 · demo cards on §8.3 synthetic data (U0-3) · live GitHub star fetch at runtime (A1 badge + A13 — no static count, per the as-built MarketingNav note) · dogfood instrumentation: `page_view` per the api.md §3.4 registry row, env-gated until the events layer (Phase 1) is live; CTA-click events are registered in the §3.4 master registry **before** W2 instruments them (registry-first discipline, api.md §3.4a) | QA vs the Stage-5 Figma page; Playwright covers the landing flow (§8.4) incl. the cross-page CTA handoff into the app |
-| **W3 Dashboards — DONE (as built 2026-07-19, PR #152)** | Part B routes (§4) under the `/dashboard` IA: NavRail (12 pillars) + TopBar chrome · first-run onboarding (create-org → send-your-first-data, MI-16) · B1–B12 screens with their create flows (dashboard + widget picker, monitor type-picker → rule editor, RUM property, declare-incident modal) and drill-ins · public status page route · feature controllers per pillar | QA vs the Stage-4 Figma frames + §8.4 prototype flows; Playwright covers the §8.4 "Login" journey (§7) |
+| Stage                                                   | Scope                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Closes when                                                                                                                                                                                          |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **W0 Foundations**                                      | `tokens.css` (§3) + Tailwind mapping · Inter/JetBrains Mono via `next/font` + the §2 type ramp in the Tailwind theme · MVC skeleton (`models/`, `controllers/`, `components/ui/`) · `AuthProvider` interface + `TestModeAuthProvider` · new `/signin` (single GoogleAuthButton screen; the ONLY auth route per the route standard, X-1) · mock server + seed dataset (§5–6) · Vitest + Playwright harnesses wired into CI build+test (UX-5)                                                                       | tokens render both themes correctly vs the Style Guide page (dark default); TEST_MODE boots to a stubbed `/dashboard` against the mock server; `/signup` gone from routing (flows/auth.md); CI green |
+| **W1 Components**                                       | `components/ui/*` per the design.md §8.1 build order (Stage 1 atoms → Stage 2 molecules → Stage 3 panels/chrome) and the §8.2/§8.2b contract rows, the bespoke-SVG chart set included · MI specs MI-1…MI-18 · unit tests per component. The §8.2b Marketing (Stage 5) rows land at the top of W2 instead, they have no consumer before it                                                                                                                                                                         | every built component passes QA vs its Figma component set (variants, states, both themes, motion specs)                                                                                             |
+| **W2 Home — DONE (as built 2026-07-19, PR #146)**       | Marketing kit (§8.2b Stage-5 rows) · Part A screens (§4): A1–A10 + iteration rows A11–A16 · demo cards on §8.3 synthetic data (U0-3) · live GitHub star fetch at runtime (A1 badge + A13 — no static count, per the as-built MarketingNav note) · dogfood instrumentation: `page_view` per the api.md §3.4 registry row, env-gated until the events layer (Phase 1) is live; CTA-click events are registered in the §3.4 master registry **before** W2 instruments them (registry-first discipline, api.md §3.4a) | QA vs the Stage-5 Figma page; Playwright covers the landing flow (§8.4) incl. the cross-page CTA handoff into the app                                                                                |
+| **W3 Dashboards — DONE (as built 2026-07-19, PR #152)** | Part B routes (§4) under the `/dashboard` IA: NavRail (12 pillars) + TopBar chrome · first-run onboarding (create-org → send-your-first-data, MI-16) · B1–B12 screens with their create flows (dashboard + widget picker, monitor type-picker → rule editor, RUM property, declare-incident modal) and drill-ins · public status page route · feature controllers per pillar                                                                                                                                      | QA vs the Stage-4 Figma frames + §8.4 prototype flows; Playwright covers the §8.4 "Login" journey (§7)                                                                                               |
 
 **W2 as-built (2026-07-19, PR #146).** Radix convergence complete — Modal/Sheet,
 Tooltip, Select type-ahead, Switch, Checkbox, NotificationPopover, and the
@@ -116,21 +115,22 @@ against the mock server, plus the public `/status/[slug]` page, live-
 derived from declared incidents, not a static embed, and first-run
 onboarding (create-org → send-your-first-data) backed by a multi-org mock
 store. MI coverage closed out: MI-1 URL-synced global time, MI-3 zoom stack
-+ breadcrumb chip, MI-4 live tail, MI-2 synced crosshair, MI-11/12 widget
-grid editor, MI-10 slash-command incident composer, and MI-18 saved views.
-Mock endpoints added: `orgs/{id}/activate`, `rules/{id}/test` +
-`monitors/{id}/test` (MI-9 replay), `channels/{id}/verify`, `status/{slug}`,
-`views` CRUD, and a `/v1/reset` test seam. `scripts/check-boundaries.mjs`, legacy
-quarantine, views-never-fetch, no-raw-hex, is wired into `npm run lint`.
-Un-ignoring the registry from ESLint surfaced a stale negation pattern in
-the old ignore list (it didn't reach nested files, so the registry had been
-silently unlinted); 12 latent errors were fixed once it was linted for
-real. The `/dev/components` gallery now carries the shared pattern's
-production guard — `notFound()` when `NODE_ENV=production` and not
-TEST_MODE. `Select` moved to the ARIA 1.2 combobox pattern and
-`ShortcutCheatsheet` to a semantic `<dl>`. Playwright's §8.4 journey runs
-serialized against the shared mock store, reset to a clean seed via
-`/v1/reset` at the start of the run for hermetic e2e.
+
+- breadcrumb chip, MI-4 live tail, MI-2 synced crosshair, MI-11/12 widget
+  grid editor, MI-10 slash-command incident composer, and MI-18 saved views.
+  Mock endpoints added: `orgs/{id}/activate`, `rules/{id}/test` +
+  `monitors/{id}/test` (MI-9 replay), `channels/{id}/verify`, `status/{slug}`,
+  `views` CRUD, and a `/v1/reset` test seam. `scripts/check-boundaries.mjs`, legacy
+  quarantine, views-never-fetch, no-raw-hex, is wired into `npm run lint`.
+  Un-ignoring the registry from ESLint surfaced a stale negation pattern in
+  the old ignore list (it didn't reach nested files, so the registry had been
+  silently unlinted); 12 latent errors were fixed once it was linted for
+  real. The `/dev/components` gallery now carries the shared pattern's
+  production guard — `notFound()` when `NODE_ENV=production` and not
+  TEST_MODE. `Select` moved to the ARIA 1.2 combobox pattern and
+  `ShortcutCheatsheet` to a semantic `<dl>`. Playwright's §8.4 journey runs
+  serialized against the shared mock store, reset to a clean seed via
+  `/v1/reset` at the start of the run for hermetic e2e.
 
 **System-QA as-built (2026-07-19).** Full-system pass over the TEST_MODE
 prod build (all journeys + MI spot-checks at 1440/390). Fixes landed:
@@ -167,7 +167,7 @@ flex (`<main>` is `flex-1`); every pillar screen verified at both rail
 widths, `e2e/navrail.spec.ts` covers toggle + persistence + viewport
 defaults.
 
-**Nav/footer parity + theme toggle as-built (2026-07-19, SKILL.md
+**Nav/footer parity + theme toggle as-built (2026-07-19,
 "Marketing nav, footer & theme parity canon").** MarketingNav carries the
 canonical shape — Features(/#features) · Platform(/#pillars) ·
 Docs(GitBook root) · GitHub star badge (live runtime count, never
@@ -222,7 +222,7 @@ facet sidebars (logs, metrics) stack above their streams below `lg`;
 stat-tile and card grids start single-column and widen at `sm`/`lg`/`xl`;
 the B2 12-col widget grid stacks single-column in reading order below
 `md` (drag/resize affordances stay desktop-only, positions are 12-col
-coordinates); wide visualizations scroll horizontally *inside* their
+coordinates); wide visualizations scroll horizontally _inside_ their
 panels, never the document, `Table`, the bespoke APM service/endpoint
 tables and trace-result rows, `TraceWaterfall` (560px min canvas),
 `Heatmap`, `LogHistogram`, the service-map topology (880px min canvas)
@@ -477,7 +477,7 @@ route 200, a rendered operation from the spec, the served document, the
 footer handoff, the header/scroll sanity and the embed-theme sync.
 Payload: Scalar is the app's heaviest dependency, so `DocsApiView`
 renders it through `ScalarApiReferenceLazy` — a `next/dynamic`
-`ssr: false` boundary gated on USER INTENT (fleet-uniform, perf audit +
+`ssr: false` boundary gated on USER INTENT (perf audit +
 payload diet 2026-07-21). A `ssr: false` boundary alone only moves
 Scalar out of the first-load chunks (the async group still downloads
 right after hydration — settled /docs/api JS stayed ~1378K encoded /
@@ -489,8 +489,7 @@ Scalar; any human interacting mounts it within their first gesture.
 The placeholder reserves the embed's viewport slice
 (`100dvh − --scalar-custom-header-height`) so the swap-in shifts no
 layout; the nav/footer chrome stays SSR'd and interactive throughout.
-`e2e/docs-api-payload.spec.ts` (byte-identical fleet spec, keyed by
-package name — the seo.spec.ts pattern) locks the settled pre-intent
+`e2e/docs-api-payload.spec.ts` (keyed by package name, the seo.spec.ts pattern) locks the settled pre-intent
 budget (measured + 20% headroom, CDP-recorded encoded transfer; CI
 prod build only) AND that intent still mounts the full reference with
 the spec fetch intact.
@@ -600,7 +599,7 @@ clipboard payload, caption persistence and the 1440/390 container fit.
 
 - **Pinch-zoom stays available.** The root `viewport` export carries no
   `maximumScale` (the audit's 18/18-route axe `meta-viewport` blocker;
-  siblings' viewport export is the fleet pattern). Locked in
+  siblings' viewport export is the common pattern). Locked in
   `mobile-responsive.spec.ts`.
 - **Rail items are real links.** `NavRailItem` renders a next/link `<a>`
   when given `href`; `NavRail` takes `hrefFor` (pillar key → route — the
@@ -611,7 +610,7 @@ clipboard payload, caption persistence and the 1440/390 container fit.
   when `hrefFor` is set (the link navigates). The `g …` chords keep their
   programmatic `router.push` (keyboard.ts). Unit: `NavRail.test.tsx`
   link-mode lock; e2e: `navrail.spec.ts` navigates by link role + href.
-- **Palette dismissal + focus restore (fleet P4).** `CommandPalette` is
+- **Palette dismissal + focus restore.** `CommandPalette` is
   a Radix Dialog (deferral sweep below): Escape dismisses from anywhere
   inside it, it is announced `aria-modal` (set explicitly — Radix hides
   the outside tree instead of announcing modality), and it snapshots the
@@ -623,7 +622,7 @@ clipboard payload, caption persistence and the 1440/390 container fit.
 
 **Deferral sweep as-built (2026-07-21).** Register closeout, one pass:
 
-- **Overlay canon closed (SKILL.md canonical-libraries).** Every
+- **Overlay canon closed (canonical libraries).** Every
   behavior-bearing overlay rides a `@radix-ui` primitive: the W2 set
   (Modal/Sheet, Tooltip, Select, Switch, Checkbox, the NavRail mobile
   drawer, NotificationPopover, IncidentComposer autocomplete) plus
@@ -644,7 +643,7 @@ clipboard payload, caption persistence and the 1440/390 container fit.
 - **Crosshair tooltip moves by transform only (CLS).** The
   TimeseriesPanel plot wrapper is an inline-size container and the
   crosshair tooltip positions via `translateX(calc(<x>cqw ± own-width
-  flip))`, never `left`, so the hero's 8s crosshair loop produces
+flip))`, never `left`, so the hero's 8s crosshair loop produces
   zero layout-shift entries. Home layout-stability probe (prod build):
   0.0108 → 0.0001, the tooltip gone from the shift sources.
 - **Web app manifest.** `src/app/manifest.ts` (App Router convention,
@@ -654,8 +653,8 @@ clipboard payload, caption persistence and the 1440/390 container fit.
   (`--color-bg`), the §10 favicon/apple-icon set. Locked in
   `e2e/seo.spec.ts` (§10).
 - **SkipLink byte-parity.** `components/ui/SkipLink.tsx` is the
-  byte-identical fleet canonical (sha256 `907bb788…`, default export);
-  the dashboard shell consumes the default export. P15 behavior and the
+  canonical file (sha256 `907bb788…`, default export);
+  the dashboard shell consumes the default export. Existing behavior and the
   `skip-link.spec.ts` lock are unchanged.
 
 ## 3. Token mapping — design.md §2 → `web/src/design/tokens.css`
@@ -686,14 +685,14 @@ Select is three-way (System / Dark (default) / Light) over the same
 cycle order; e2e pins the cycle, an emulated OS flip in system mode and
 reload persistence.
 
-| Group | Token names (as built in `tokens.css`) |
-| --- | --- |
-| Color | `--color-bg` · `--color-bg-elev` · `--color-border` · `--color-text` · `--color-text-2` · `--color-brand` · `--color-brand-deep` · `--color-on-brand` · `--color-ok` · `--color-warn` · `--color-crit` · `--color-nodata` (the `--color-` prefix is the Tailwind v4 `@theme` convention; the Figma variables carry the bare names) |
-| Series palette | `--color-series-1` … `--color-series-8` — the §2 8-step categorical set, identical both modes; series→color assignment stable per view session |
-| Spacing | step-named on the 4px grid: `--space-1: 4px` `--space-2: 8px` `--space-3: 12px` `--space-4: 16px` `--space-6: 24px` `--space-8: 32px` `--space-12: 48px` `--space-16: 64px` — no off-scale values (data views may compress to the 4px sub-grid: 2px hairline gaps in dense tables, §2) |
-| Radii | `--radius: 4px` (the product radius — denser than siblings); fully-round pills/dots/avatars use the Tailwind `rounded-full` utility (no separate custom property) |
-| Motion | `--duration-fast: 120ms` · `--duration-base: 200ms` · `--duration-slow: 300ms` · `--duration-entrance: 250ms` · `--ease-standard: cubic-bezier(0.2, 0, 0, 1)` · `--ease-exit: cubic-bezier(0.4, 0, 1, 1)` |
-| Z layers | `--z-base: 0` · `--z-sticky: 10` · `--z-dropdown: 20` · `--z-overlay: 30` · `--z-modal: 40` (the §2 "sheet/modal 40" layer) · `--z-toast: 50` |
+| Group          | Token names (as built in `tokens.css`)                                                                                                                                                                                                                                                                                             |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Color          | `--color-bg` · `--color-bg-elev` · `--color-border` · `--color-text` · `--color-text-2` · `--color-brand` · `--color-brand-deep` · `--color-on-brand` · `--color-ok` · `--color-warn` · `--color-crit` · `--color-nodata` (the `--color-` prefix is the Tailwind v4 `@theme` convention; the Figma variables carry the bare names) |
+| Series palette | `--color-series-1` … `--color-series-8` — the §2 8-step categorical set, identical both modes; series→color assignment stable per view session                                                                                                                                                                                     |
+| Spacing        | step-named on the 4px grid: `--space-1: 4px` `--space-2: 8px` `--space-3: 12px` `--space-4: 16px` `--space-6: 24px` `--space-8: 32px` `--space-12: 48px` `--space-16: 64px` — no off-scale values (data views may compress to the 4px sub-grid: 2px hairline gaps in dense tables, §2)                                             |
+| Radii          | `--radius: 4px` (the product radius — denser than siblings); fully-round pills/dots/avatars use the Tailwind `rounded-full` utility (no separate custom property)                                                                                                                                                                  |
+| Motion         | `--duration-fast: 120ms` · `--duration-base: 200ms` · `--duration-slow: 300ms` · `--duration-entrance: 250ms` · `--ease-standard: cubic-bezier(0.2, 0, 0, 1)` · `--ease-exit: cubic-bezier(0.4, 0, 1, 1)`                                                                                                                          |
+| Z layers       | `--z-base: 0` · `--z-sticky: 10` · `--z-dropdown: 20` · `--z-overlay: 30` · `--z-modal: 40` (the §2 "sheet/modal 40" layer) · `--z-toast: 50`                                                                                                                                                                                      |
 
 Notes: status semantics are sacred — `ok/warn/crit/nodata` are reserved for
 state, never decoration, and `ok` stays visually distinct from `brand`
@@ -728,26 +727,26 @@ controllers catch as a second net. Locked by the e2e cold-start pair in
 `signin.spec.ts`. The public `/status/{slug}` entry point stays outside
 the gate by construction (it never mounts the shell).
 
-| pages.md | Route | Screen |
-| --- | --- | --- |
-| Part A (A1–A16) | `/` | Public home page |
-| flows/auth.md · design.md §8.1 Stage 4 | `/signin` | Single auth screen, GoogleAuthButton + legal consent line (Terms/Privacy open the canonical https://terms.cuesoft.io / https://privacy.cuesoft.io in a new tab; X-1; the only auth route, stale `/login` links 404 on the branded page (stub removed 2026-07-19); there is no `/signup`) |
-| X-2 | `/docs/api` | Public API reference — Scalar embed rendering `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); marketing nav chrome, minimal legal strip **[Ratified 2026-07-20]** |
-| B1 | `/dashboard` | Home — org health: incidents banner (MI-14), triggered monitors, SLO burn (MI-15), watched dashboards |
-| B1 first-run | `/dashboard/onboarding` | create-org (name + IANA timezone, X-10) → send-your-first-data (ingestion key + snippet + MI-16 waiting-for-data; resolves to `/dashboard` on first datapoint) |
-| B2 | `/dashboard/dashboards` · `/dashboard/dashboards/{id}` | List (org-shared, favorites) · grid editor (MI-11/12); create flow = name → widget-picker overlay → edit mode |
-| B3 | `/dashboard/metrics` · `/dashboard/metrics/summary` | Metrics explorer (QueryBar + MI-2/3, save-to-dashboard) · metrics catalog/tag explorer |
-| B4 | `/dashboard/logs` | Logs explorer — FacetSidebar + QueryBar + virtualized LogLine list + histogram (MI-4/5/6) · `?tab=patterns` = the Patterns tab (LogPatternRow clusters, OBS-012) |
-| B5 | `/dashboard/traces` · `/dashboard/traces/services/{service}` · `/dashboard/traces/explorer` · `/dashboard/traces/map` | Service list · service page (endpoints, latency distribution, deps) · trace explorer + TraceWaterfall/span drawer (MI-7) · service map |
-| B6 | `/dashboard/rum` · `/dashboard/rum/new` · `/dashboard/rum/drilldown` | RUM/analytics (pages, vitals, errors) · property create (key issuance + SDK snippet) · U6-2 drill-down (funnel, weekly cohort retention, top lists) |
-| B7 | `/dashboard/uptime` · `/dashboard/uptime/{id}` · `/dashboard/uptime/new` · `/dashboard/uptime/checks/{id}` (+ `/edit`) | Uptime checks (the absorbed monitor core) · per-monitor page (90d strip, response-time chart, incidents, insight panel) · synthetic check builder (HTTP / Multi-step / Browser tabs, OBS-011) · synthetic run view (`?run=` selects; StepResultRow timeline) + builder edit |
-| B7 public | `status.upstat.cuesoft.io/{slug}` → `/status/{slug}` | Public status page — host-based rewrite onto the same app **[Proposed]**; unauthenticated, deliberately outside `/dashboard` (a separate entry point, design.md §8.4) |
-| B8 | `/dashboard/monitors` · `/dashboard/monitors/new` · `/dashboard/monitors/{id}` | Monitors list + triggered feed (MI-14) · type picker → rule editor · detail with MI-9 test-replay frame |
-| B9 | `/dashboard/incidents` · `/dashboard/incidents/{id}` | Incident feed · timeline composer (MI-10); declare-incident is a modal, not a route |
-| B10 | `/dashboard/slos` | SLO list + define (SLI source, target, window) |
-| B11 | `/dashboard/services` | Service catalog (telemetry-presence, owner, repo/runbook) |
-| B12 | `/dashboard/settings` → `/dashboard/settings/general` (redirect, live IA) + routed tabs `/dashboard/settings/general` · `/members` · `/keys` · `/integrations` · `/retention` · `/appearance` · `/usage` **[Ratified 2026-07-20]** | Settings shell, title + underline tab bar (`RouteTabs`: tablist-of-links, `aria-current`, roving tabindex, mobile h-scroll); tabs: General (org profile, IANA timezone, X-10) · Members & roles · Keys & properties (API keys & ingestion tokens + RUM property keys) · Integrations (alert channels + status-page builder handoff) · Data & privacy (retention per signal + privacy rows; keeps the `/retention` URL) · Appearance (theme + color vision) · Usage metering per pillar (OBS-012; keeps the `/usage` URL) |
-| B12 | `/dashboard/settings/status-page` | Status-page builder (B7) — a focused sub-screen outside the tab shell, linked from the Integrations tab |
+| pages.md                               | Route                                                                                                                                                                                                                              | Screen                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Part A (A1–A16)                        | `/`                                                                                                                                                                                                                                | Public home page                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| flows/auth.md · design.md §8.1 Stage 4 | `/signin`                                                                                                                                                                                                                          | Single auth screen, GoogleAuthButton + legal consent line (Terms/Privacy open the canonical https://terms.cuesoft.io / https://privacy.cuesoft.io in a new tab; X-1; the only auth route, stale `/login` links 404 on the branded page (stub removed 2026-07-19); there is no `/signup`)                                                                                                                                                                                                                                 |
+| X-2                                    | `/docs/api`                                                                                                                                                                                                                        | Public API reference — Scalar embed rendering `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); marketing nav chrome, minimal legal strip **[Ratified 2026-07-20]**                                                                                                                                                                                                                                                                                                                                          |
+| B1                                     | `/dashboard`                                                                                                                                                                                                                       | Home — org health: incidents banner (MI-14), triggered monitors, SLO burn (MI-15), watched dashboards                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| B1 first-run                           | `/dashboard/onboarding`                                                                                                                                                                                                            | create-org (name + IANA timezone, X-10) → send-your-first-data (ingestion key + snippet + MI-16 waiting-for-data; resolves to `/dashboard` on first datapoint)                                                                                                                                                                                                                                                                                                                                                           |
+| B2                                     | `/dashboard/dashboards` · `/dashboard/dashboards/{id}`                                                                                                                                                                             | List (org-shared, favorites) · grid editor (MI-11/12); create flow = name → widget-picker overlay → edit mode                                                                                                                                                                                                                                                                                                                                                                                                            |
+| B3                                     | `/dashboard/metrics` · `/dashboard/metrics/summary`                                                                                                                                                                                | Metrics explorer (QueryBar + MI-2/3, save-to-dashboard) · metrics catalog/tag explorer                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| B4                                     | `/dashboard/logs`                                                                                                                                                                                                                  | Logs explorer — FacetSidebar + QueryBar + virtualized LogLine list + histogram (MI-4/5/6) · `?tab=patterns` = the Patterns tab (LogPatternRow clusters, OBS-012)                                                                                                                                                                                                                                                                                                                                                         |
+| B5                                     | `/dashboard/traces` · `/dashboard/traces/services/{service}` · `/dashboard/traces/explorer` · `/dashboard/traces/map`                                                                                                              | Service list · service page (endpoints, latency distribution, deps) · trace explorer + TraceWaterfall/span drawer (MI-7) · service map                                                                                                                                                                                                                                                                                                                                                                                   |
+| B6                                     | `/dashboard/rum` · `/dashboard/rum/new` · `/dashboard/rum/drilldown`                                                                                                                                                               | RUM/analytics (pages, vitals, errors) · property create (key issuance + SDK snippet) · U6-2 drill-down (funnel, weekly cohort retention, top lists)                                                                                                                                                                                                                                                                                                                                                                      |
+| B7                                     | `/dashboard/uptime` · `/dashboard/uptime/{id}` · `/dashboard/uptime/new` · `/dashboard/uptime/checks/{id}` (+ `/edit`)                                                                                                             | Uptime checks (the absorbed monitor core) · per-monitor page (90d strip, response-time chart, incidents, insight panel) · synthetic check builder (HTTP / Multi-step / Browser tabs, OBS-011) · synthetic run view (`?run=` selects; StepResultRow timeline) + builder edit                                                                                                                                                                                                                                              |
+| B7 public                              | `status.upstat.cuesoft.io/{slug}` → `/status/{slug}`                                                                                                                                                                               | Public status page — host-based rewrite onto the same app **[Proposed]**; unauthenticated, deliberately outside `/dashboard` (a separate entry point, design.md §8.4)                                                                                                                                                                                                                                                                                                                                                    |
+| B8                                     | `/dashboard/monitors` · `/dashboard/monitors/new` · `/dashboard/monitors/{id}`                                                                                                                                                     | Monitors list + triggered feed (MI-14) · type picker → rule editor · detail with MI-9 test-replay frame                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| B9                                     | `/dashboard/incidents` · `/dashboard/incidents/{id}`                                                                                                                                                                               | Incident feed · timeline composer (MI-10); declare-incident is a modal, not a route                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| B10                                    | `/dashboard/slos`                                                                                                                                                                                                                  | SLO list + define (SLI source, target, window)                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| B11                                    | `/dashboard/services`                                                                                                                                                                                                              | Service catalog (telemetry-presence, owner, repo/runbook)                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| B12                                    | `/dashboard/settings` → `/dashboard/settings/general` (redirect, live IA) + routed tabs `/dashboard/settings/general` · `/members` · `/keys` · `/integrations` · `/retention` · `/appearance` · `/usage` **[Ratified 2026-07-20]** | Settings shell, title + underline tab bar (`RouteTabs`: tablist-of-links, `aria-current`, roving tabindex, mobile h-scroll); tabs: General (org profile, IANA timezone, X-10) · Members & roles · Keys & properties (API keys & ingestion tokens + RUM property keys) · Integrations (alert channels + status-page builder handoff) · Data & privacy (retention per signal + privacy rows; keeps the `/retention` URL) · Appearance (theme + color vision) · Usage metering per pillar (OBS-012; keeps the `/usage` URL) |
+| B12                                    | `/dashboard/settings/status-page`                                                                                                                                                                                                  | Status-page builder (B7) — a focused sub-screen outside the tab shell, linked from the Integrations tab                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 Part C (mobile on-call companion) has no web routes — later phase, out of
 W0–W3 (§8). Deep-linkable state rides the query string, not new routes:
@@ -790,25 +789,25 @@ with `src/models/`. The mock speaks the **monitors-v2 HTTP shape** for the
 monitor control plane (X-8); the real backend serves the same monitor
 routes over HTTP (api.md §1).
 
-| Group | Mocked endpoints (under `/api/mock/v1`) |
-| --- | --- |
-| Events (dogfood ingest) | `POST /v1/events` — batch ≤100, mixed-batch `202 {accepted, rejected, rejections:[{index, code}]}` semantics (api.md §3.1) |
-| Stats | `GET /v1/stats` — series/totals + `uniques_additive: false`; `422 invalid_period / range_too_large / ts_out_of_range` (api.md §3.3) |
-| Query | `POST /v1/query` — shared grammar over the seeded telemetry; scripted invalid queries return position-accurate `400 invalid_query {position, hint}` (query-grammar.md §3) |
-| Alert channels & rules | `POST /v1/channels` · `POST /v1/channels/{id}/verify` · `GET /v1/channels-list` · `DELETE /v1/channels/{id}` · `PUT/GET /v1/monitors/{id}/rules` — incl. `channel_unverified`, `verification_expired` (flows/alert.md, openapi.yaml) |
-| Monitors (uptime) | CRUD + check history per flows/monitor.md (validation codes `name_taken`, `timeout_gte_interval`, `invalid_target`, `target_not_allowed`) · `POST /v1/monitors/{id}/test` — MI-9 24h replay returning trigger bands + would-have-fired markers · triggered feed (api.md §6) |
-| Dashboards | CRUD + portable JSON import/export (B2) |
-| Incidents | declare/update/resolve · timeline entries (slash-command results, MI-10) · postmortem attach (api.md §6) |
-| SLOs | CRUD + status/burn endpoints (api.md §6) |
-| Service catalog | CRUD + telemetry-presence summary (api.md §6) |
-| Keys | ingest-key CRUD (per-pillar scopes, quotas, 24h rotation grace) · property keys + origin allowlists + rejection counters (B12, U1-7) |
-| Org & members | org profile (name + IANA timezone, X-10) · members/roles per the engineering.md §2 matrix |
-| Status page (public) | status-page read by slug — powers `/status/{slug}` unauthenticated (B7; the `GetStatusPage` data shape) |
-| Status page (builder) | `GET/PUT /v1/status-page` — the B7 builder document (branding + ordered component list; `invalid_slug`, `slug_taken`, `monitor_not_found`); the public read renders it |
-| Synthetics | `/v1/synthetics` CRUD · `GET/POST /v1/synthetics/{id}/runs` + `GET …/runs/{runId}` — multi-step/browser checks with deterministic per-step run replay, stop-at-first-failure (OBS-011; step/browser validation codes) |
-| Log patterns | `GET /v1/logs/patterns` — deterministic template clustering over the stream's own line generator (B4 Patterns tab, OBS-012) |
-| Usage | `GET /v1/usage` — month-to-date meters per pillar, computed from the seeded telemetry volumes; org-timezone month boundaries (B12, OBS-012) |
-| RUM drill-down | `GET /v1/rum/drilldown` — funnel (page views → sessions → `auth_signin_completed` conversions) + weekly cohort retention (B6 U6-2) |
+| Group                   | Mocked endpoints (under `/api/mock/v1`)                                                                                                                                                                                                                                     |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Events (dogfood ingest) | `POST /v1/events` — batch ≤100, mixed-batch `202 {accepted, rejected, rejections:[{index, code}]}` semantics (api.md §3.1)                                                                                                                                                  |
+| Stats                   | `GET /v1/stats` — series/totals + `uniques_additive: false`; `422 invalid_period / range_too_large / ts_out_of_range` (api.md §3.3)                                                                                                                                         |
+| Query                   | `POST /v1/query` — shared grammar over the seeded telemetry; scripted invalid queries return position-accurate `400 invalid_query {position, hint}` (query-grammar.md §3)                                                                                                   |
+| Alert channels & rules  | `POST /v1/channels` · `POST /v1/channels/{id}/verify` · `GET /v1/channels-list` · `DELETE /v1/channels/{id}` · `PUT/GET /v1/monitors/{id}/rules` — incl. `channel_unverified`, `verification_expired` (flows/alert.md, openapi.yaml)                                        |
+| Monitors (uptime)       | CRUD + check history per flows/monitor.md (validation codes `name_taken`, `timeout_gte_interval`, `invalid_target`, `target_not_allowed`) · `POST /v1/monitors/{id}/test` — MI-9 24h replay returning trigger bands + would-have-fired markers · triggered feed (api.md §6) |
+| Dashboards              | CRUD + portable JSON import/export (B2)                                                                                                                                                                                                                                     |
+| Incidents               | declare/update/resolve · timeline entries (slash-command results, MI-10) · postmortem attach (api.md §6)                                                                                                                                                                    |
+| SLOs                    | CRUD + status/burn endpoints (api.md §6)                                                                                                                                                                                                                                    |
+| Service catalog         | CRUD + telemetry-presence summary (api.md §6)                                                                                                                                                                                                                               |
+| Keys                    | ingest-key CRUD (per-pillar scopes, quotas, 24h rotation grace) · property keys + origin allowlists + rejection counters (B12, U1-7)                                                                                                                                        |
+| Org & members           | org profile (name + IANA timezone, X-10) · members/roles per the engineering.md §2 matrix                                                                                                                                                                                   |
+| Status page (public)    | status-page read by slug — powers `/status/{slug}` unauthenticated (B7; the `GetStatusPage` data shape)                                                                                                                                                                     |
+| Status page (builder)   | `GET/PUT /v1/status-page` — the B7 builder document (branding + ordered component list; `invalid_slug`, `slug_taken`, `monitor_not_found`); the public read renders it                                                                                                      |
+| Synthetics              | `/v1/synthetics` CRUD · `GET/POST /v1/synthetics/{id}/runs` + `GET …/runs/{runId}` — multi-step/browser checks with deterministic per-step run replay, stop-at-first-failure (OBS-011; step/browser validation codes)                                                       |
+| Log patterns            | `GET /v1/logs/patterns` — deterministic template clustering over the stream's own line generator (B4 Patterns tab, OBS-012)                                                                                                                                                 |
+| Usage                   | `GET /v1/usage` — month-to-date meters per pillar, computed from the seeded telemetry volumes; org-timezone month boundaries (B12, OBS-012)                                                                                                                                 |
+| RUM drill-down          | `GET /v1/rum/drilldown` — funnel (page views → sessions → `auth_signin_completed` conversions) + weekly cohort retention (B6 U6-2)                                                                                                                                          |
 
 **Seed narrative — the docs-coherent Figma dataset.** The store seeds the
 same mock content the Figma screens render (design.md §8.3 design-prep), so
@@ -857,12 +856,12 @@ a TEST_MODE boot looks like the designs:
 
 ## 7. Test strategy
 
-| Layer | Tooling | Scope |
-| --- | --- | --- |
-| Unit | Vitest + Testing Library | every `components/ui/*` module (variant axes, states, both themes, reduced-motion fallbacks — incl. the bespoke SVG charts: scale math, series-color stability, threshold tints); model/repository parsing incl. error-envelope handling; controller hooks |
-| Integration | Vitest | mock handlers (envelope + catalog codes, mixed-batch `202` semantics, monitor state-machine legality per the flows/monitor.md §2 transition table, position-accurate `invalid_query`); controller ↔ mock-server flows (MI-10 optimistic prepend + rollback on scripted failure; MI-1/MI-3 URL round-trips) |
-| E2E | Playwright, TEST_MODE against the mock server | the design.md §8.4 flows: **"Login"** (login → onboarding → B1 Home → every pillar via the NavRail, the create flows, dashboard, monitor, RUM property, declare-incident, and the drill-ins: APM service detail, monitor detail) and the **landing flow** (Part A scroll + `SCROLL_TO` anchors + the cross-page CTA handoff into "Login"); the **public status page** gets its own spec at `/status/upstat`, it is deliberately outside the in-app flow (§8.4), a separate entry point, not a dead end |
-| CI | build-and-test workflow (UX-5) | lint + typecheck + Vitest + Playwright on every PR; X-6: CI itself never deploys |
+| Layer       | Tooling                                       | Scope                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ----------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Unit        | Vitest + Testing Library                      | every `components/ui/*` module (variant axes, states, both themes, reduced-motion fallbacks — incl. the bespoke SVG charts: scale math, series-color stability, threshold tints); model/repository parsing incl. error-envelope handling; controller hooks                                                                                                                                                                                                                                             |
+| Integration | Vitest                                        | mock handlers (envelope + catalog codes, mixed-batch `202` semantics, monitor state-machine legality per the flows/monitor.md §2 transition table, position-accurate `invalid_query`); controller ↔ mock-server flows (MI-10 optimistic prepend + rollback on scripted failure; MI-1/MI-3 URL round-trips)                                                                                                                                                                                             |
+| E2E         | Playwright, TEST_MODE against the mock server | the design.md §8.4 flows: **"Login"** (login → onboarding → B1 Home → every pillar via the NavRail, the create flows, dashboard, monitor, RUM property, declare-incident, and the drill-ins: APM service detail, monitor detail) and the **landing flow** (Part A scroll + `SCROLL_TO` anchors + the cross-page CTA handoff into "Login"); the **public status page** gets its own spec at `/status/upstat`, it is deliberately outside the in-app flow (§8.4), a separate entry point, not a dead end |
+| CI          | build-and-test workflow (UX-5)                | lint + typecheck + Vitest + Playwright on every PR; X-6: CI itself never deploys                                                                                                                                                                                                                                                                                                                                                                                                                       |
 
 The §8.4 rule that empty/loading/QA frames stay out of the prototype maps
 here too: Playwright walks real user paths (the empty-org onboarding path
@@ -892,8 +891,7 @@ policy, when that phase opens.
       exactly, both themes, dark default; no raw hex in components (CI
       grep-gated; the destructive-label `#FFFFFF` exception carries its
       code comment)
-- [ ] W0–W3 each closed by a Figma QA loop before merge; deviations landed
-      in docs + the org SKILL.md
+- [ ] W0–W3 each closed by a Figma QA loop before merge; deviations landed in docs
 - [ ] TEST_MODE boots to `/dashboard` with the §6 seed rendering the
       Figma-coherent narrative; no Google redirect; the empty-org path
       reaches onboarding + MI-16 states
@@ -909,8 +907,7 @@ policy, when that phase opens.
 
 ## 10. SEO plumbing (as-built, 2026-07-21)
 
-Fleet-uniform discoverability layer (same construction in all three
-products; per-product values only):
+Discoverability layer (per-product values only):
 
 - **`src/app/sitemap.ts`**, public marketing routes only: `/`,
   `/docs/api`, and `/status/upstat` (the dogfood status page, live 200
@@ -927,21 +924,20 @@ products; per-product values only):
   file convention): BrandMark bolt + lowercase wordmark + tagline on the
   dark token canvas; `twitter:card = summary_large_image`.
 - **Route metadata gaps closed**, `/signin` gets "Sign in, Upstat"
-  (fleet P9 pattern) and `/status/{slug}` gets per-org
+  and `/status/{slug}` gets per-org
   `generateMetadata` ("{slug} status, Upstat"), both were leaking the
   root fallback.
 - **Icons**, `src/app/favicon.ico` (16/32/48/256 PNG-in-ICO) and
   `src/app/apple-icon.png` (180×180): the BrandMark bolt in brand green on
-  the dark tile (byte-identical with the sibling products', neither product's mark).
+  the dark tile (neither product's mark).
 - **Provenance** — all three binaries are generated from the design tokens
-  by `web/scripts/generate-brand-assets.mjs` (byte-identical across repos,
-  config keyed by package name; Inter via `INTER_WOFF2` or the official
+  by `web/scripts/generate-brand-assets.mjs` (config keyed by package name; Inter via `INTER_WOFF2` or the official
   distribution).
 - **Web manifest** — `src/app/manifest.ts` (App Router convention):
   name/short_name/description mirror the root metadata, theme/background
   are the dark-primary `--color-bg`, icons are the favicon + apple-icon
   set above.
-- **Lock** — `web/e2e/seo.spec.ts` (byte-identical across repos) asserts
+- **Lock** — `web/e2e/seo.spec.ts` asserts
   sitemap 200 + exact route set, robots policy + sitemap reference,
   canonical on `/`, og:image resolves 200 at 1200×630, twitter card,
   the served favicon's sha256 equals upstat's mark while differing from

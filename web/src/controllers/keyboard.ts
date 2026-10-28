@@ -5,7 +5,7 @@
  * ⌘K/Ctrl+K or `/` search, `?` overlay cheatsheet. Sequences time out
  * after 800ms; shortcuts never fire while typing in an
  * input/textarea/select — except ⌘K, which toggles the palette from
- * anywhere (fleet standard P12, expendit parity).
+ * anywhere (standard palette invocation).
  */
 
 import { useRouter } from "next/navigation";
@@ -73,7 +73,7 @@ export function useKeyboardMap(): KeyboardMapState {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      // Fleet-standard palette invocation (P12): ⌘K/Ctrl+K toggles the
+      // Standard palette invocation: ⌘K/Ctrl+K toggles the
       // palette alongside "/" (the log-search idiom stays). Handled ahead
       // of the modifier and typing-target guards — like expendit's, it
       // works from anywhere, inputs included.

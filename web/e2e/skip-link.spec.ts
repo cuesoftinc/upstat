@@ -1,4 +1,4 @@
-// Skip link — fleet canon (P15, a11y audit 2026-07-21): first focusable on
+// Skip link: first focusable on
 // EVERY route, mounted once from the root layout — not just the dashboard
 // shell (the rail + chrome there are 9+ tab stops before <main>). The first
 // Tab on a fresh page load must land on "Skip to content", and activating it

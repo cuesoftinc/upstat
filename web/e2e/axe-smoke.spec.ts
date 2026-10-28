@@ -1,4 +1,4 @@
-// a11y smoke gate (fleet parity — apparule/expendit axe-core coverage,
+// a11y smoke gate (axe-core coverage,
 // docs+chore currency-and-parity wave): zero critical axe violations on
 // the marketing home, /signin, and one representative dashboard route.
 // Not a regression lock for a specific historical bug (see the sibling
