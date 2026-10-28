@@ -28,7 +28,7 @@ flowchart LR
   generation, and persists insights.
 - **Data** — MongoDB stores monitors, check results, incidents, and insights.
 - **Auth**: Google single sign-on run by the Go backend (PKCE, one-time
-  handoff code, session JWT and cookie); the observability service calls the Go backend with an optional Bearer session token (`UPSTAT_API_TOKEN`).
+  handoff code, session JWT and cookie); the observability service calls the Go backend with an optional Bearer session token (`API_TOKEN`).
 
 The key architectural boundary: the Go backend owns operational monitoring
 (scheduling, checks, state), and the observability service owns analytics and
