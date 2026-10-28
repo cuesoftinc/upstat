@@ -121,7 +121,7 @@ demonstrate Cuesoft's engineering standards and infrastructure stability
 
 ---
 
-## 9. Scope expansion, full observability platform (2026-07-16) **[Directive]**
+## 9. Scope expansion, full observability platform (2026-07-16) **[Specified]**
 
 Look and feel: **datadoghq.com** ([design.md](design.md)). Upstat's target is
 now "almost everything a full-fledged observability and SRE platform can do":
@@ -138,7 +138,7 @@ apply to them).
 - New gating decision **R2**: unified telemetry store (ClickHouse proposed).
 - The three earlier mandates map in: M1 → Synthetics/Uptime pillar,
   M2/M3 → RUM/Analytics pillar (events layer unchanged as its foundation).
-- Platform structure **[Directive]**: home page (shared open-source pattern:
+- Platform structure **[Specified]**: home page (shared open-source pattern:
   Discord, GitHub, preview, Try Cloud / Self Host) + dashboard + an eventual
   mobile companion (on-call-first), out of current scope per §4's non-goals;
   `mobile/*` are placeholder directories only. Docs on GitBook (Git-synced from

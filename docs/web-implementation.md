@@ -1,10 +1,10 @@
 # Upstat, Web Implementation Standard
 
 > How `web/` gets rebuilt: the **CueLABS™ Web Implementation Standard**
-> (ratified 2026-07-18, org-wide **[Directive]**) carried in full, plus the
+> (ratified 2026-07-18, org-wide **[Specified]**) carried in full, plus the
 > Upstat-specific addendum, stage plan, token mapping, route map, TEST_MODE
 > contract, mock server, test strategy, legacy quarantine policy. Markers as in
-> [design.md](design.md): **[Directive]** = user-stated direction,
+> [design.md](design.md): **[Specified]** = stated direction,
 > **[Proposed]** = ratifiable decision, **[Decided <date>]** = ratified.
 > Companion contracts: [engineering.md](engineering.md) (errors, authz,
 > limits), [design.md](design.md) (tokens, components, MI catalog),
@@ -154,7 +154,7 @@ legends label grouped series by their distinguishing tag VALUE, the
 shared `service:` key prefix is dropped, the master's label idiom (full
 name on the title tooltip).
 
-**Expandable NavRail as-built (2026-07-19, [Directive] design.md §2).**
+**Expandable NavRail as-built (2026-07-19, [Specified] design.md §2).**
 Collapsed 56px icon rail (hover flyouts) ⇄ expanded 240px icon+label rows
 under the Telemetry/Respond/Platform section groups (B-order preserved;
 Home ungrouped at top). Foot chevron toggles (`aria-expanded`, focusable);
@@ -301,7 +301,7 @@ the extracted shared `DeclareIncidentModal`; **A1/A-footer nav anchors
 differentiated**, Features → `/#features` (the A11 feature-highlights
 band), Platform → `/#pillars`. Adjudicated Figma-parity restyles landed
 with the design-side updates: FAQItem → product radius + 4px-grid padding;
-StatusPill → 4px-grid padding. **Expanded-rail reflow ([Directive
+StatusPill → 4px-grid padding. **Expanded-rail reflow ([Specified
 2026-07-19] + mobile clarification)**: with the 240px rail, every
 dashboard route reflows cleanly at 1280/1440 (e2e sweep asserts no
 document side-scroll and no element outside a scroll container, both
@@ -569,7 +569,7 @@ links, back/forward, NavRail pillar highlight and the mobile h-scroll;
 the colorblind, theme-select, status-page and mobile sweeps migrated to
 the tab routes.
 
-Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
+Screen-state parity **[Specified 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states, the
 three-frame rule applies to the implementation exactly as it does to the
 Figma templates (EmptyState/MI-16 + first-run copy; Skeleton loading; a
@@ -710,7 +710,7 @@ values, latencies, counts, per the §2 `tnum` rule.
 
 ## 4. Route map, pages.md Part A/B → app routes
 
-The new IA mounts at **`/dashboard`** **[Directive 2026-07-18, route
+The new IA mounts at **`/dashboard`** **[Specified 2026-07-18, route
 standard]**, `/` home · `/signin` the only auth route · all app surfaces
 under `/dashboard/<area>`, canonical across the CueLABS™ products. Rail
 order per pages.md Part B.

@@ -3,7 +3,7 @@
 > Component-level inventory referencing [design.md](design.md) (`MI-n`).
 > Upstat's target is a **full observability & SRE platform** (Datadog-class);
 > the earlier PRD §5 "lightweight, avoid enterprise observability" restraint
-> no longer applies. **[Directive]**
+> no longer applies. **[Specified]**
 
 ## Part A, Public home page (upstat.cuesoft.io)
 
@@ -26,7 +26,7 @@ community-driven") remains the visual base, extended for the new pillars.
 | A9 | Cloud vs Self-host table | per-column CTAs · docs deep-link rows under the compose line, "Self-host guide" (→ cuesoft.gitbook.io/upstat/system/deployment) + "Query grammar" (→ cuesoft.gitbook.io/upstat/system/query-grammar); label copy with hyperlinks, no raw URL strings on canvas **[Revised 2026-07-19]** | |
 | A10 | Footer | standard + privacy (UPS-005) | |
 
-Iteration 1 additions **[Directive 2026-07-18]**, existing rows keep their
+Iteration 1 additions **[Specified 2026-07-18]**, existing rows keep their
 IDs (cross-referenced elsewhere); each new row notes where it slots into the
 page order.
 
@@ -46,7 +46,7 @@ RUM/Analytics · Synthetics/Uptime · Monitors · Incidents · SLOs · Service
 Catalog · Settings**. Global TimePicker + QueryBar grammar shared across
 pillars. Every pillar's empty state = MI-16 inline onboarding.
 
-Screen states **[Directive 2026-07-18]**: the B1/B2/B4/B5 templates ship
+Screen states **[Specified 2026-07-18]**: the B1/B2/B4/B5 templates ship
 explicit empty (EmptyState/MI-16 + first-run copy; demo-data toggle where
 specced) and loading (Skeleton) frames per the three-frame rule in
 design.md §8.1.
@@ -56,7 +56,7 @@ design.md §8.1.
   SLO burn cards (MI-15), watched dashboards row. (Deploy markers CUT from
   v1, no deploy-events API exists; aspirational item for the service
   catalog era.)
-- First-run onboarding **[Directive 2026-07-18]**: create-org screen (name +
+- First-run onboarding **[Specified 2026-07-18]**: create-org screen (name +
   IANA timezone per X-10/B12) → "send your first data" getting-started
   screen (ingestion key + copyable snippet + MI-16 waiting-for-data state);
   resolves to Home on first datapoint.
@@ -67,7 +67,7 @@ design.md §8.1.
   latency, SLO, status, service map, markdown.
 - Template variables (`$env`, `$service`) with dropdown bar; JSON
   import/export of dashboard definitions **[Proposed: portable format]**.
-- Create-dashboard flow + widget picker **[Directive 2026-07-18]**: name →
+- Create-dashboard flow + widget picker **[Specified 2026-07-18]**: name →
   widget picker overlay (type grid from the list above) → lands in MI-11
   edit mode.
 
@@ -114,7 +114,7 @@ design.md §8.1.
   grouped by fingerprint).
 - Website-traffic analytics live in this pillar, B6 is the product's
   analytics surface (ANA-002).
-- Property create **[Directive 2026-07-18]**: RUM property-create screen
+- Property create **[Specified 2026-07-18]**: RUM property-create screen
   (site/domain → property key issuance + browser-SDK snippet; keys managed
   in B12).
 - Deeper analytics drill-down (U6-2) **[Designed 2026-07-20; as built
@@ -180,9 +180,9 @@ design.md §8.1.
   window winning over evaluation state (the rule editor's mute
   semantics). Uptime checks remain surfaced on B7 until monitors-v2
   unifies them as MONITOR_RULEs (the B7 coexistence contract).
-- Create-monitor form **[Directive 2026-07-18]**: monitor type picker →
+- Create-monitor form **[Specified 2026-07-18]**: monitor type picker →
   rule editor as a dedicated create screen.
-- Rule test/replay state **[Directive 2026-07-18]**: the MI-9 replay
+- Rule test/replay state **[Specified 2026-07-18]**: the MI-9 replay
   rendered as its own frame, trigger bands + would-have-fired markers over
   the last 24h.
 
@@ -194,7 +194,7 @@ design.md §8.1.
   postmortem**: a composer modal with the incident timeline auto-filled
   (frozen into the doc) plus impact / root-cause / action-items sections;
   the saved doc lists on the incident detail and stamps `postmortem_key`.
-- Declare-incident modal state **[Directive 2026-07-18]**: modal (sev
+- Declare-incident modal state **[Specified 2026-07-18]**: modal (sev
   picker, title, commander assignment) reachable from an alert row or
   manually.
 
@@ -236,7 +236,7 @@ design.md §8.1.
   peaks (the design.md §8.2b contract), the earlier "scaled to the
   largest meter" phrasing is cross-unit and unimplementable as stated.
 
-## Part C, Mobile companion (later; parity direction **[Directive]**)
+## Part C, Mobile companion (later; parity direction **[Specified]**)
 
 Sketch: on-call-first app, incident push, ack/resolve, sev timeline
 posting, monitor mute, status overview. Not scheduled before B-pillar

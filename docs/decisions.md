@@ -128,12 +128,12 @@ blocks.
   repo's `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); the
   footer Docs column's "API reference" links it (was the GitBook
   api-surface page). ☑
-- **X-3 Cloud deployment target (RATIFIED, directive)**: all backend
+- **X-3 Cloud deployment target (RATIFIED)**: all backend
   services run on **Google Cloud Run** (per-service containers, the same
   `cuesoft/<repo>-<service>` images), provisioned by your infrastructure-as-code stack; frontends deploy to **Firebase App
   Hosting**. Helm + terraform in `deploy/` remain the **self-host** path -
   cloud and self-host share images, not manifests. ☑
-- **X-4 AI platform (RATIFIED, directive 2026-07-16)**: AI features use
+- **X-4 AI platform (RATIFIED 2026-07-16)**: AI features use
   **Vertex AI** (Gemini via `{region}-aiplatform.googleapis.com`, ADC from the
   calling service's own service account;
   reference model `gemini-2.5-flash-lite`, region `us-central1`). No
@@ -160,10 +160,10 @@ blocks.
   happen exclusively on tag creation (`v*`)**, treated as production-grade:
   a GitHub tag ruleset restricts `v*` creation to owner-level access, and the
   deploy workflow additionally runs in a protected GitHub environment. ☑
-  **Revised 2026-10-27 (owner):** "Deploy on merge to main". A merge to
+  **Revised 2026-10-27:** "Deploy on merge to main". A merge to
   `main` that touches `api/**` deploys the API services to the sandbox; no
   `v*` tags, since the open-source products cut no releases yet.
-- **X-7 Transactional email (RATIFIED, directive 2026-07-16)**: **Brevo REST
+- **X-7 Transactional email (RATIFIED 2026-07-16)**: **Brevo REST
   API** for all product email (alert emails, money-event receipts, purge
   confirmations…) with `BREVO_API_KEY`, `BREVO_FROM_EMAIL`,
   `BREVO_FROM_NAME` in your secrets manager. **No SMTP anywhere**, existing SMTP/gomail
@@ -178,7 +178,7 @@ blocks.
   (U-5); at monitors-v2 (OBS-006) the dashboard goes fully HTTP. Envoy is
   not deployed to the cloud. sibling products never adopt gRPC. ☑
   > **Superseded 2026-10-28:** product gRPC, gRPC-Web and Envoy removed; service traffic is HTTP; OTLP ingest keeps gRPC 4317 alongside HTTP 4318.
-- **X-9 Telemetry standard (RATIFIED, directive 2026-07-16)**: **OpenTelemetry
+- **X-9 Telemetry standard (RATIFIED 2026-07-16)**: **OpenTelemetry
   everywhere**, traces, custom metrics, and logs from every service via OTel
   SDKs (Go: otel-go + slog bridge; Python: opentelemetry-python + logging
   handler; Next: @opentelemetry/sdk-node), W3C `traceparent` propagation
@@ -195,7 +195,7 @@ blocks.
   /v1/events counters), never mix the pipelines. Env names standard:
   OTEL_SERVICE_NAME, OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_OTLP_HEADERS,
   OTEL_RESOURCE_ATTRIBUTES. ☑
-- **X-10 Identity, profile & KYC tiers (RATIFIED, directive 2026-07-16)**: layered on
+- **X-10 Identity, profile & KYC tiers (RATIFIED 2026-07-16)**: layered on
   X-1, Google-only sign-in stays the sole credential; tiers add profile data and
   verification, never alternative logins. **Tier 0, Google identity** (all
   products): Google-verified email; grants all read/basic use.

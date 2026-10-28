@@ -2,7 +2,7 @@
 
 > Canonical structure (ecosystem standard): current state → target state →
 > service breakdown → deep dives → deployment → dependencies. Markers:
-> **[Current]**, **[PRD]**, **[Directive]**, **[Decided]**, see
+> **[Current]**, **[PRD]**, **[Specified]**, **[Decided]**, see
 > [decisions.md](decisions.md) for ratification detail.
 
 ## 1. Context, current state **[Current]**
@@ -188,7 +188,7 @@ sequenceDiagram
 Email provider is an open decision (prd.md §8.2); webhooks are
 provider-independent and may ship first if the email decision stalls.
 
-## 6. Observability platform expansion (2026-07-16) **[Directive]**
+## 6. Observability platform expansion (2026-07-16) **[Specified]**
 
 ### 6.1 Ingestion architecture
 

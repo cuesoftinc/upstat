@@ -2,7 +2,7 @@
 
 > Reference feel: **datadoghq.com**, dense, data-first observability UI with
 > a confident purple identity; marketing site clean and product-led. Markers:
-> **[Directive]** = user-stated direction (2026-07-16), **[Proposed]** =
+> **[Specified]** = stated direction (2026-07-16), **[Proposed]** =
 > ratifiable decision. Pages in [pages.md](pages.md) reference
 > microinteractions here as `MI-n`.
 
@@ -75,7 +75,7 @@ verified in both themes), the one extra constraint the teal brand imposes.
 
 ### Layout
 
-- Left product nav (Datadog pattern) **[Directive 2026-07-19]**: expandable
+- Left product nav (Datadog pattern) **[Specified 2026-07-19]**: expandable
   rail, collapsed 56px icon rail (flyout labels on hover) ⇄ expanded 240px
   with icon+label rows grouped by pillar section (Telemetry / Respond /
   Platform); sections = pillars (§pages.md B). Chevron toggle at the rail foot
@@ -88,7 +88,7 @@ verified in both themes), the one extra constraint the teal brand imposes.
   Escape, and item selection close it. Active item = brand accent bar +
   brand icon in both states.
   Top bar: org/env switcher · **global time picker** · search (`/`) ·
-  theme toggle · incidents bell (**[Directive 2026-07-19]** the toggle joins
+  theme toggle · incidents bell (**[Specified 2026-07-19]** the toggle joins
   the utility cluster; see the parity canon below).
 - Views: filter bar (query pills) → visualization canvas → detail drawer
   (right, 480px) for point/line/span inspection.
@@ -109,7 +109,7 @@ verified in both themes), the one extra constraint the teal brand imposes.
   interior grids on the container: pillar grid 4×270px cols, how-it-works
   3×368px cols, both 24px gutters. All 15 sections re-audited to zero
   deviation.
-- Marketing nav, footer & theme parity **[Directive 2026-07-19]** (SKILL.md
+- Marketing nav, footer & theme parity **[Specified 2026-07-19]** (SKILL.md
   "Marketing nav, footer & theme parity canon", ratified 2026-07-19): all
   three products share ONE link inventory, same sections, counts and
   destinations; upstat renders it in its own dark visual design.
@@ -155,7 +155,7 @@ verified in both themes), the one extra constraint the teal brand imposes.
 | Radii (product) | 4px |
 | Product note | data views may compress to the 4px sub-grid (2px hairline gaps in dense tables) |
 
-- **Cursor affordance**: enabled interactive controls show `cursor: pointer`, one base-layer rule on `button:not(:disabled)`, `[role="button"]:not([aria-disabled="true"])`, `select:not(:disabled)`, `summary`, `label[for]`; links use the native pointer; disabled controls keep the default cursor. [Directive 2026-07-19]
+- **Cursor affordance**: enabled interactive controls show `cursor: pointer`, one base-layer rule on `button:not(:disabled)`, `[role="button"]:not([aria-disabled="true"])`, `select:not(:disabled)`, `summary`, `label[for]`; links use the native pointer; disabled controls keep the default cursor. [Specified 2026-07-19]
 
 These rows are standardized in the org SKILL.md, a change here is an
 ecosystem change, PR'd to all three design.md files together.
@@ -232,7 +232,7 @@ ecosystem change, PR'd to all three design.md files together.
 | --- | --- | --- |
 | Home (public) | `/` page + Figma landing design | pages.md Part A (Datadog-style product-led marketing) |
 | Dashboard | monitor CRUD + mock analytics pages | pages.md Part B, pillar-based observability app |
-| Mobile | responsive-web exemplars: `Marketing, Home @390 (menu open + footer stack)` and `B1, Home @390 (rail overlay drawer)` | later: on-call/incident companion app sketch (pages.md Part C), parity direction **[Directive; exemplars added 2026-07-20]** |
+| Mobile | responsive-web exemplars: `Marketing, Home @390 (menu open + footer stack)` and `B1, Home @390 (rail overlay drawer)` | later: on-call/incident companion app sketch (pages.md Part C), parity direction **[Specified; exemplars added 2026-07-20]** |
 
 ## 7. Figma Style Guide (source of truth for tokens)
 
@@ -278,7 +278,7 @@ this doc must never diverge.
 | 4 Screen templates | dashboard home, monitors list+detail, alert config, traffic (real-data layout), status page (slug public view), settings (route-backed tabs, underline tab grammar under the page title **[Ratified 2026-07-20]**), **/signin** (the single Google CTA screen per X-1) | app design |
 | 5 Landing | extend Desktop-1: pillar grid (8), ingestion diagram section, demo cards, cloud-vs-oss · **marketing kit**: MarketingNav + PillarDropdown, PillarCard, CodeSnippet + Tabs, CloudVsSelfHostTable | landing v2 |
 
-**Stage 4 screen-state rule [Directive 2026-07-18].** Every data-driven
+**Stage 4 screen-state rule [Specified 2026-07-18].** Every data-driven
 screen template ships **three frames**: default (populated), **empty**
 (EmptyState + first-run copy; a demo-data toggle where the screen's spec
 calls for one), and **loading** (Skeleton). First application: the pages.md
@@ -330,7 +330,7 @@ recorded here since the file never stated it: component sets are
 `icon/brand-<name>` (`icon/brand-google`, `icon/brand-github`). The single
 auth CTA component is named **GoogleAuthButton** in every product (§8.2b).
 
-**Canvas hygiene [Directive 2026-07-18]**, design canvases carry **product
+**Canvas hygiene [Specified 2026-07-18]**, design canvases carry **product
 copy only**: spec annotations (MI references, requirement IDs,
 implementation notes) live in component descriptions and in these docs,
 never on screens. A screen frame must read as the shipped product would.
@@ -410,8 +410,8 @@ project license, the copy reads **MIT**.
 | --- | --- |
 | **App chrome** | |
 | BrandMark | glyph-only / glyph + lowercase `upstat` wordmark, the ONE product mark (filled bolt, brand green) **[Adjudicated 2026-07-20, systemic]**: it renders at every brand site, NavRail head, /signin (124:6), the public status page header (132:3530), marketing nav and footer brand block; the green "U" tile is retired everywhere |
-| NavRail / NavRailItem | pillar icon ×12 · item: default / hover (flyout label) / active (brand accent) · rail chrome 56px: flyout-open / collapsed, **as built (2026-07-17):** NavRailItem is the variant set; NavRail ships as a single chrome component with rail states documented in its description, **[Directive 2026-07-19]:** rail is expandable; NavRail is now a variant set `state=collapsed` (56px) / `state=expanded` (240px icon+label rows, pillar section groups, foot chevron toggle, `upstat` wordmark); NavRailItem gains a `layout=rail/expanded` axis (expanded row 228px: default / hover raised bg / active accent bar); toggle persists per user, default expanded ≥1280px; exemplar `B1, Home (rail expanded)`, **[Adjudicated 2026-07-20]:** Home AND Dashboards sit ungrouped above the TELEMETRY group; the foot is a bordered chevron-square toggle + the signed-in user's avatar (no text button); the head is the bolt brand mark + `upstat` wordmark; item labels keep the fuller product names (RUM / Analytics · Synthetics / Uptime · Service Catalog); item icons per the §8.1 rail-icon list |
-| TopBar | org/env switcher closed/open · global TimePicker slot · search (`/`) field · bell: idle / unread-badge / flash (MI-14), **as built (2026-07-17):** single chrome component, switcher/bell states documented in its description; bell badge states are CountBadge instances, **[Directive 2026-07-19]:** utility cluster now search · ThemeToggle · bell (theme parity canon); the master's flex spacer right-pins the cluster at any instance width, **[Adjudicated 2026-07-20]:** code matches the master's 43px bar height, lowercase `prod` env chip, "Search" placeholder (no ellipsis) and the TimePicker's "Custom" / "● LIVE" casing (the calendar glyph survives only as the <md collapse affordance) |
+| NavRail / NavRailItem | pillar icon ×12 · item: default / hover (flyout label) / active (brand accent) · rail chrome 56px: flyout-open / collapsed, **as built (2026-07-17):** NavRailItem is the variant set; NavRail ships as a single chrome component with rail states documented in its description, **[Specified 2026-07-19]:** rail is expandable; NavRail is now a variant set `state=collapsed` (56px) / `state=expanded` (240px icon+label rows, pillar section groups, foot chevron toggle, `upstat` wordmark); NavRailItem gains a `layout=rail/expanded` axis (expanded row 228px: default / hover raised bg / active accent bar); toggle persists per user, default expanded ≥1280px; exemplar `B1, Home (rail expanded)`, **[Adjudicated 2026-07-20]:** Home AND Dashboards sit ungrouped above the TELEMETRY group; the foot is a bordered chevron-square toggle + the signed-in user's avatar (no text button); the head is the bolt brand mark + `upstat` wordmark; item labels keep the fuller product names (RUM / Analytics · Synthetics / Uptime · Service Catalog); item icons per the §8.1 rail-icon list |
+| TopBar | org/env switcher closed/open · global TimePicker slot · search (`/`) field · bell: idle / unread-badge / flash (MI-14), **as built (2026-07-17):** single chrome component, switcher/bell states documented in its description; bell badge states are CountBadge instances, **[Specified 2026-07-19]:** utility cluster now search · ThemeToggle · bell (theme parity canon); the master's flex spacer right-pins the cluster at any instance width, **[Adjudicated 2026-07-20]:** code matches the master's 43px bar height, lowercase `prod` env chip, "Search" placeholder (no ellipsis) and the TimePicker's "Custom" / "● LIVE" casing (the calendar glyph survives only as the <md collapse affordance) |
 | ThemeToggle | theme: dark (moon) / light (sun) / system (lucide `icon/monitor`), 26px hairline button, the variant shows the state you are ON, token-bound · cycle order light → dark → system; system follows live `prefers-color-scheme` · lives on the marketing nav AND the TopBar utility cluster (parity canon) · persists at localStorage `upstat.theme`, default dark when unset, **[Revised 2026-07-20]** |
 | Modal / Sheet | modal sm/lg · right sheet · header + body slot + footer actions · z `sheet/modal 40` (§2 layers) |
 | CommandPalette / SearchOverlay | empty / results / no-results · result row: icon + label + kbd hint (`/` search, MI-17) |
@@ -449,7 +449,7 @@ project license, the copy reads **MIT**.
 | WidgetTypePicker | layout: row (the in-shell "Choose a visualization" strip) / grid (create-flow modal overlay, pages.md B2) · 11 widget types (the pages.md B2 list) · composes WidgetTypeCell, iteration-1 addition **[built 2026-07-18]** |
 | **Marketing (Stage 5)** | |
 | MarketingNav + PillarDropdown | default / pillar-dropdown open (mini feature map ×8, reuses PillarCard) · 4 text links pinned to the parity canon: Features · Platform (anchors to the landing pillar grid) · Docs · GitHub, the GitHub item renders as a compact star badge (GitHubMark 14 + star glyph 12 + neutral "Star" label, no count, no invented figure; the pages.md A13 live star count is runtime behavior; construction adjudicated fleet-wide 2026-07-20) · ThemeToggle · "Sign in" text link (`/signin`) + "Try Cloud" brand CTA **[Revised 2026-07-19]**, **as built (2026-07-20):** the dropdown ships as `FeaturesDropdown` (hover/chevron-click disclosure, chevron flips ▴ while open, Escape/focus-out close, rows deep-link `/#pillar-n`); the Features link keeps `/#features` |
-| MarketingFooter | brand block (wordmark + tagline) + 4 pinned columns Product / Docs / Community / Legal (4·4·4·3 links, parity canon) + legal bar verbatim "© Cuesoft Inc. 2026. Upstat. CueLABS™ Division. MIT License." · language selector (English-only pre-i18n) · security-policy affordance, **[Directive 2026-07-19]** |
+| MarketingFooter | brand block (wordmark + tagline) + 4 pinned columns Product / Docs / Community / Legal (4·4·4·3 links, parity canon) + legal bar verbatim "© Cuesoft Inc. 2026. Upstat. CueLABS™ Division. MIT License." · language selector (English-only pre-i18n) · security-policy affordance, **[Specified 2026-07-19]** |
 | PillarCard | pillar ×8 (icon + pillar color accent) · default / hover (lift + accent) |
 | CodeSnippet + Tabs | tab: Go / Python / Node / k8s / docker / helm (active/inactive) · copy: idle / copied-check · mono block on `bg-elev`, **as built (2026-07-17):** the tab axis is the variant set; copy idle/copied-check is handled via instance overrides, not a variant dimension · `tab=docker/helm` is the A14 self-host pair: mirrored two-line commands (only the final command differs: `docker compose up --build -d` vs `helm install upstat deploy/helm`) with a muted MONGO_URI caption under the block in the section, tab-independent **[Ratified 2026-07-20]** |
 | CloudVsSelfHostTable | 2 plan columns × feature rows (check / dash) · per-column CTA footer, **as built (2026-07-18):** carries a "Managed upgrades & backups" row; no invented SLA figures |
