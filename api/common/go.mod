@@ -7,12 +7,12 @@ require (
 	github.com/joho/godotenv v1.5.1
 	go.mongodb.org/mongo-driver v1.17.10
 	golang.org/x/crypto v0.58.0 // indirect
-	google.golang.org/api v0.307.0
+	google.golang.org/api v0.309.0
 	google.golang.org/grpc v1.84.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 )
 
-require golang.org/x/net v0.61.0
+require golang.org/x/net v0.62.0
 
 require (
 	cloud.google.com/go/auth v0.24.1-0.20261001053825-dbc26066f70a // indirect
