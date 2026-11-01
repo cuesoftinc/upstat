@@ -5,18 +5,20 @@ profile: cuelabs
 surfaces:
   web: active
   backend:
-    common: planned
-    observability: planned
+    common: active
+    observability: active
+    analytics: active
+    query: active
   mobile:
     flutter: planned
 
 capabilities:
-  grpc: planned
+  grpc: active # OTLP ingest only (S-7)
   firebaseAuth: planned
 
 deployment:
   web: firebase-app-hosting
-  api: none
+  api: cloud-run
   selfHost: helm
   infrastructure: terraform
 

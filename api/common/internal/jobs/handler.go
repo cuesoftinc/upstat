@@ -14,6 +14,7 @@ import (
 const (
 	Path         = "/internal/jobs/"
 	RunChecksJob = "run-checks"
+	PruneJob     = "prune"
 )
 
 type Runner interface {
@@ -29,10 +30,12 @@ type errorResponse struct {
 	Error string `json:"error"`
 }
 
-// Handler serves POST /internal/jobs/run-checks behind the scheduler OIDC guard.
+// Handler serves POST /internal/jobs/{name} behind the scheduler OIDC
+// guard: run-checks every minute, and the other jobs in Jobs (prune, daily).
 type Handler struct {
 	Verifier TokenVerifier
 	Checks   Runner
+	Jobs     map[string]func(context.Context) error
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +43,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if strings.TrimPrefix(r.URL.Path, Path) != RunChecksJob {
+	name := strings.TrimPrefix(r.URL.Path, Path)
+	run := h.Jobs[name]
+	if name == RunChecksJob {
+		run = h.Checks.RunOnce
+	}
+	if run == nil {
 		writeJSON(w, http.StatusNotFound, errorResponse{Error: "not found"})
 		return
 	}
@@ -51,12 +59,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	start := time.Now()
-	if err := h.Checks.RunOnce(r.Context()); err != nil {
-		slog.Error("job failed", "job", RunChecksJob, "error", err)
+	if err := run(r.Context()); err != nil {
+		slog.Error("job failed", "job", name, "error", err)
 		writeJSON(w, http.StatusInternalServerError, errorResponse{Error: "job failed"})
 		return
 	}
-	writeJSON(w, http.StatusOK, response{Job: RunChecksJob, Ms: time.Since(start).Milliseconds()})
+	writeJSON(w, http.StatusOK, response{Job: name, Ms: time.Since(start).Milliseconds()})
 }
 
 // authorize fails closed: unset scheduler config is 503, the token is never logged.

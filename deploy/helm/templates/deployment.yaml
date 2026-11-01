@@ -26,6 +26,10 @@ spec:
         - name: {{ $name }}
           image: {{ $svc.image }}
           imagePullPolicy: {{ $svc.imagePullPolicy | default "IfNotPresent" }}
+          {{- with $svc.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ $svc.port }}

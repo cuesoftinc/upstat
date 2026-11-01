@@ -1,0 +1,79 @@
+# The telemetry loader (system-design.md §6.3, D5): the stock contrib
+# collector, configuration only. api/observability (the gateway) forwards
+# raw OTLP here with the org in the X-Upstat-Org-Id header; the collector
+# stamps it on the resource as upstat.org_id and writes ClickHouse, whose
+# tables api/common's migrations own (create_schema: false). api/common
+# sends check results here too, already carrying upstat.org_id.
+#
+# The collector is private: only the gateway and api/common reach it.
+#
+# Synchronous by design (S-14): Cloud Run bills it per request, so nothing
+# may wait in a background batch or queue after a request is answered.
+# Each request is written to ClickHouse before the collector replies, and
+# ClickHouse's async inserts do the batching server-side. A ClickHouse
+# outage turns into errors the gateway passes on (503 with a retry hint),
+# and the senders' OTLP exporters retry: the outage buffer is the client's.
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+        include_metadata: true
+
+processors:
+  # A header always wins over anything a customer put in the payload; with
+  # no header (api/common) the payload's attribute stands.
+  resource/org:
+    attributes:
+      - key: upstat.org_id
+        from_context: metadata.x-upstat-org-id
+        action: upsert
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 80
+    spike_limit_percentage: 20
+
+exporters:
+  clickhouse:
+    endpoint: ${env:CLICKHOUSE_ENDPOINT}
+    database: ${env:CLICKHOUSE_DATABASE}
+    username: ${env:CLICKHOUSE_USER}
+    password: ${env:CLICKHOUSE_PASSWORD}
+    create_schema: false
+    async_insert: true
+    logs_table_name: otel_logs
+    traces_table_name: otel_traces
+    metrics_tables:
+      gauge: {name: otel_metrics_gauge}
+      sum: {name: otel_metrics_sum}
+      summary: {name: otel_metrics_summary}
+      histogram: {name: otel_metrics_histogram}
+      exponential_histogram: {name: otel_metrics_exponential_histogram}
+    timeout: 4s
+    sending_queue:
+      enabled: false
+    retry_on_failure:
+      enabled: true
+      initial_interval: 500ms
+      max_interval: 2s
+      max_elapsed_time: 8s
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, resource/org]
+      exporters: [clickhouse]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, resource/org]
+      exporters: [clickhouse]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, resource/org]
+      exporters: [clickhouse]

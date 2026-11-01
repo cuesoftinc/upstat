@@ -90,6 +90,179 @@ jobs:
           path: web/playwright-report
           retention-days: 7
 
+  common:
+    name: api/common · vet + test + build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api/common
+    services:
+      # The integration tests create a non-superuser role and database
+      # here, so row-level security is enforced as in production.
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+      clickhouse:
+        image: clickhouse/clickhouse-server:25.8
+        env:
+          CLICKHOUSE_PASSWORD: clickhouse
+          CLICKHOUSE_DB: upstat
+        ports:
+          - 8123:8123
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: api/common/go.mod
+          cache-dependency-path: api/common/go.sum
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Tests (unit + Postgres and ClickHouse integration)
+        run: go test ./...
+        env:
+          TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
+          CLICKHOUSE_TEST_URL: http://localhost:8123/?database=upstat
+          CLICKHOUSE_TEST_USER: default
+          CLICKHOUSE_TEST_PASSWORD: clickhouse
+
+      - name: Build
+        run: go build ./...
+
+  query:
+    name: api/query · vet + test + build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api/query
+    services:
+      clickhouse:
+        image: clickhouse/clickhouse-server:25.8
+        env:
+          CLICKHOUSE_PASSWORD: clickhouse
+        ports:
+          - 8123:8123
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: api/query/go.mod
+          cache-dependency-path: |
+            api/query/go.sum
+            api/common/go.sum
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Tests (grammar corpus + ClickHouse integration)
+        run: go test ./...
+        env:
+          CLICKHOUSE_TEST_URL: http://localhost:8123/
+          CLICKHOUSE_TEST_USER: default
+          CLICKHOUSE_TEST_PASSWORD: clickhouse
+
+      - name: Build
+        run: go build ./...
+
+  observability:
+    name: api/observability · typecheck + lint + test + build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api/observability
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: api/observability/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests (validate against api/common/contract)
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  analytics:
+    name: api/analytics · lint + test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api/analytics
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: api/analytics/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest pytest-asyncio ruff
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Tests (validate against api/common/contract)
+        run: pytest
+
+  probe:
+    name: functions/probe · lint + test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: functions/probe
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: functions/probe/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest ruff
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Tests (SSRF guard, causes, multi-step runs)
+        run: pytest
+
   terraform:
     name: deploy/terraform · fmt + validate
     runs-on: ubuntu-latest

@@ -241,3 +241,29 @@ blocks.
   the service back on through the managed-service API); the other products run no
   heartbeat or watchdog. Bulk data never rides the bus (upstat telemetry
   goes through the OpenTelemetry Collector instead). ☑
+
+## System design (S-1 … S-13)
+
+> **Decided 2026-10-29, built the same day, pending the boss's review.**
+> The product owner took the open S-1…S-12 calls on the boss's standing
+> delegation ("decide as you think best; the boss checks afterwards"); each
+> row records what was decided and what changed from the v2.1 draft of
+> [system-design.md](system-design.md). Rows marked ⚠ carry a cost or
+> provisioning step for the boss.
+
+| ID | Decision | Status |
+| --- | --- | --- |
+| **S-1** | Units: `web` · `api/common` (Go, CRUD) · `api/query` (Go, ClickHouse reads) · **`api/observability` (Node/NestJS, the ingest gateway)** · **`api/analytics` (Python: evaluator, notifier, rule and SLO evaluation, insights)** · `functions/probe` (Python) · the stock OTel Collector. Changed from the draft: the gateway keeps the manifest's `observability` name, and alerting and insights are one Python service, `analytics`, with insights run in the background so an ML or Vertex stall never delays an alert. | ☑ |
+| **S-2** | The shared Kafka bus (X-11) carries control events only: `config.changed`, `synthetics.result`, `alerting.verify_requested` on `cuelabs.requests`; `monitor.transition`, `alerting.delivery`, `rule.evaluated`, `slo.evaluated`, `insights.generated` on `cuelabs.results`. Synchronous calls: `common → probe`, `common → query` (status bars, history, replay), `analytics → query`. | ☑ |
+| **S-3** | Check results, events, rollups and usage live only in ClickHouse. | ☑ |
+| **S-4** | ClickHouse stays the telemetry store: the code, the schema (`api/common/migrations/clickhouse`) and compose use the open-source server. ⚠ **Cloud hosting is the boss's call**: ClickHouse Cloud is paid, as is Aiven's ClickHouse; the alternative is a self-run ClickHouse on a small GCE VM. Only `CLICKHOUSE_URL` and credentials change. | ☑ ⚠ |
+| **S-5** | Multi-region probing, quorum `min_failing_regions` 2 of 2, regions `us-central1` and `us-east4`. ⚠ Two Cloud Run functions to provision (release.yml deploys their source). | ☑ ⚠ |
+| **S-6** | Telemetry loading is stock: the gateway forwards OTLP unparsed to the OTel Collector (`deploy/docker/otel-collector.yaml`), which stamps the org from `X-Upstat-Org-Id` and writes ClickHouse (`create_schema: false`). Changed by X-11: no Kafka hop and no ClickHouse Kafka engine; product events, check results and usage reach ClickHouse as OTLP logs that materialized views split out. | ☑ |
+| **S-7** | All service traffic is HTTP; gRPC only for OTLP ingest. | ☑ |
+| **S-8** | Config propagation by transactional outbox → **snapshot objects** (`<prefix>/config/<kind>.json`, rewritten by the publisher) + `upstat.config.changed`. Changed by X-11: no compacted topics. | ☑ |
+| **S-9** | Tenancy in depth: Postgres row-level security (FORCE, non-superuser app role) and ClickHouse row policies on `SQL_upstat_org`, plus the predicate `api/query` always injects. | ☑ |
+| **S-10** | Consumers run as scale-to-zero Cloud Run services ~~with CPU always allocated~~ (request-based CPU since S-14), woken by `GET /health` (`WAKE_<TARGET>_URL`). `api/query` shares `api/common/pkg` via `replace ../common`. New env names: `CLICKHOUSE_URL`, `PROBE_URLS`, `QUERY_URL`, `OTLP_LOADER_ENDPOINT`, `INTERNAL_TOKEN`, `INTERNAL_AUDIENCE`, `INTERNAL_INVOKERS`. | ☑ |
+| **S-11** | Ingest quotas in bytes per second per key (default 2 MB/s, `INGEST_BYTES_PER_SECOND`); the usage report meters accepted bytes for metrics, logs and traces and events for RUM, because the gateway never parses OTLP. `api/query` uses no Valkey. | ☑ |
+| **S-12** | Probe source in `functions/probe/` (Python, functions-framework, pycurl), a container for self-host. | ☑ |
+| **S-13** | Added while building: SLIs are `check` (passing ÷ completed checks of the SLO's monitor), `latency` (share of the query's spans at or under 500 ms) and `metric_ratio` (`<good query> / <total query>`); `slo_burn` rules name an SLO in their query string. Uptime rules select monitors with `check:<name or id>` and events with `on:down|recovered|nodata|all` (default down and recovered). Browser synthetic checks are stored and listed but report one failed step until the probe ships a headless browser. Weekly RUM retention reports no cohorts: the daily salt makes cross-day visitors impossible by design (U-3). | ☑ |
+| **S-14** | Added 2026-11-02, following expendit #351 (every service at min 0 with **request-based CPU**, so idle costs nothing): no Upstat unit runs CPU always allocated, including the collector. Because an instance only has CPU inside a request, work that must finish is done inside one: a write publishes its outbox rows before it answers; each run-checks pass ends with `POST /internal/settle` on analytics (evaluate, the hourly insight pass when due, then answer once its lanes are caught up) and then waits until common has handled the transitions it got back. query and the gateway reread their snapshots when a lookup misses (floors 10 s and 30 s). The collector exports before it answers (no batch processor, no sending queue; ClickHouse async inserts batch), so the outage buffer is the sender's OTLP retry. Scheduler jobs drop to `upstat-run-checks` and `upstat-prune`. Amends S-10. | ☑ |

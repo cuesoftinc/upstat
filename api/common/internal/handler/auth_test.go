@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -10,14 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-
 	"github.com/cuesoftinc/upstat/api/common/internal/auth"
 	"github.com/cuesoftinc/upstat/api/common/internal/cache"
 	"github.com/cuesoftinc/upstat/api/common/internal/config"
-	"github.com/cuesoftinc/upstat/api/common/internal/model"
-	"github.com/cuesoftinc/upstat/api/common/internal/util"
+	"github.com/cuesoftinc/upstat/api/common/pkg/session"
 )
 
 const (
@@ -62,26 +59,26 @@ func (f *fakeHandoffs) Redeem(_ context.Context, channel, code, v string) (strin
 }
 
 type fakeUsers struct {
-	byEmail   map[string]*model.User
+	byEmail   map[string]*auth.User
 	createErr error
 	creates   int
 }
 
-func (f *fakeUsers) GetUser(email string) (*model.User, error) {
+func (f *fakeUsers) GetUser(_ context.Context, email string) (*auth.User, error) {
 	if u, ok := f.byEmail[email]; ok {
 		return u, nil
 	}
-	return nil, mongo.ErrNoDocuments
+	return nil, auth.ErrUserNotFound
 }
 
-func (f *fakeUsers) CreateUser(u model.User) (*mongo.InsertOneResult, error) {
+func (f *fakeUsers) CreateUser(_ context.Context, u auth.User) error {
 	if f.createErr != nil {
-		return nil, f.createErr
+		return f.createErr
 	}
 	f.creates++
-	u.Id = primitive.NewObjectID()
+	u.ID = fmt.Sprintf("user-%d", f.creates)
 	f.byEmail[u.Email] = &u
-	return &mongo.InsertOneResult{}, nil
+	return nil
 }
 
 type harness struct {
@@ -117,7 +114,7 @@ func newHarness(t *testing.T, mutate ...func(*config.AuthConfig)) *harness {
 		store:   cache.NewMemoryStore(),
 		google:  &fakeGoogle{identity: &auth.GoogleIdentity{Subject: "sub", Email: "ada@example.com", Name: "Ada"}},
 		handoff: &fakeHandoffs{token: "session-token"},
-		users:   &fakeUsers{byEmail: map[string]*model.User{}},
+		users:   &fakeUsers{byEmail: map[string]*auth.User{}},
 		mux:     http.NewServeMux(),
 	}
 	hs.h = NewAuthHandler(cfg, hs.store, hs.google, hs.handoff, hs.users)
@@ -273,11 +270,11 @@ func TestGoogleCallbackIssuesHandoff(t *testing.T) {
 
 func TestGoogleCallbackReusesExistingUser(t *testing.T) {
 	hs := newHarness(t)
-	id := primitive.NewObjectID()
-	hs.users.byEmail["ada@example.com"] = &model.User{Id: id, Email: "ada@example.com", Name: "Existing"}
+	id := "6f1c2a9d-0000-4000-8000-000000000001"
+	hs.users.byEmail["ada@example.com"] = &auth.User{ID: id, Email: "ada@example.com", Name: "Existing"}
 	state, _ := startLogin(t, hs, "")
 	hs.do(callbackRequest(state, "&code=abc"))
-	if hs.users.creates != 0 || !strings.HasPrefix(hs.handoff.created[0], id.Hex()+"|ada@example.com|Existing|") {
+	if hs.users.creates != 0 || !strings.HasPrefix(hs.handoff.created[0], id+"|ada@example.com|Existing|") {
 		t.Fatalf("created=%v creates=%d", hs.handoff.created, hs.users.creates)
 	}
 }
@@ -584,9 +581,9 @@ func TestCORSPreflight(t *testing.T) {
 
 func TestMe(t *testing.T) {
 	t.Setenv("JWT_SECRET", "0123456789abcdef0123456789abcdef")
-	util.SetAccessTTL(time.Hour)
-	util.ConfigureSession(util.SessionSettings{CookieName: "sess", AllowedOrigin: func(o string) bool { return o == webOrigin }})
-	token, err := util.GenerateSessionToken("u1", "ada@example.com", "Ada")
+	session.SetAccessTTL(time.Hour)
+	session.ConfigureSession(session.SessionSettings{CookieName: "sess", AllowedOrigin: func(o string) bool { return o == webOrigin }})
+	token, err := session.GenerateSessionToken("u1", "ada@example.com", "Ada")
 	if err != nil {
 		t.Fatal(err)
 	}

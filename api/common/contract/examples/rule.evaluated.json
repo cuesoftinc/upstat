@@ -1,0 +1,15 @@
+{
+  "type": "upstat.rule.evaluated",
+  "version": "1.0",
+  "id": "c0ffee00-0000-4000-8000-000000000005",
+  "produced_at": "2026-10-28T12:00:00Z",
+  "request_id": "example",
+  "data": {
+    "rule_id": "4b3a2918-0f7e-4d6c-9b5a-4f3e2d1c0b9a",
+    "org_id": "11111111-1111-4111-8111-111111111111",
+    "state": "alert",
+    "value": 812.5,
+    "triggered": true,
+    "at": "2026-10-28T12:05:00Z"
+  }
+}

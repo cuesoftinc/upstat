@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://upstat.cuesoft.io/contract/envelope.schema.json",
+  "title": "Kafka message envelope",
+  "description": "Every upstat.* message on the CueLABS shared bus (decisions.md X-11). Every product can read the lanes, so producers write the payload to the Upstat storage prefix and send `data_ref` (system-design.md §5.4). `data` stays valid for tests and fixtures; exactly one of the two is set.",
+  "type": "object",
+  "required": ["type", "version", "id", "produced_at"],
+  "additionalProperties": false,
+  "properties": {
+    "type": { "type": "string", "pattern": "^upstat\\.[a-z_]+\\.[a-z_]+$", "description": "The event name, which is also the name of the schema `data` must match." },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$", "description": "<major>.<minor>: a minor change only adds optional fields; consumers reject a major they don't support." },
+    "id": { "type": "string", "format": "uuid", "description": "Message id; consumers deduplicate on it." },
+    "produced_at": { "type": "string", "format": "date-time" },
+    "request_id": { "type": "string", "minLength": 1, "maxLength": 128, "description": "The piece of work: set on every request and kept on re-send; every result carries its request's. The owner keeps the first result per request_id." },
+    "data": { "type": "object" },
+    "data_ref": { "$ref": "defs.schema.json#/$defs/object_ref" }
+  },
+  "oneOf": [
+    { "required": ["data"], "not": { "required": ["data_ref"] } },
+    { "required": ["data_ref"], "not": { "required": ["data"] } }
+  ]
+}

@@ -23,6 +23,9 @@ COPY docs/api/openapi.yaml /app/docs/api/openapi.yaml
 # by default, so production images are byte-identical to before.
 ARG NEXT_PUBLIC_TEST_MODE
 ENV NEXT_PUBLIC_TEST_MODE=$NEXT_PUBLIC_TEST_MODE
+# "/api" sends the browser through the /api/v1 proxy (src/app/api/v1).
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN mkdir -p public
 RUN npm run build
 

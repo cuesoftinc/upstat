@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://upstat.cuesoft.io/contract/monitor.transition.schema.json",
+  "title": "upstat.monitor.transition",
+  "description": "The evaluator moved a monitor between states (flows/monitor.md §2). Keyed by monitor_id, so one consumer sees a monitor's transitions in order. common persists it idempotently on (monitor_id, seq); request_id is the transition id.",
+  "type": "object",
+  "required": ["id", "monitor_id", "org_id", "seq", "from", "to", "cause", "at", "regions", "consecutive_failures"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "defs.schema.json#/$defs/id" },
+    "monitor_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "org_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "seq": { "type": "integer", "minimum": 1 },
+    "from": { "$ref": "defs.schema.json#/$defs/monitor_status" },
+    "to": { "$ref": "defs.schema.json#/$defs/monitor_status" },
+    "cause": { "$ref": "defs.schema.json#/$defs/check_cause" },
+    "at": { "$ref": "defs.schema.json#/$defs/timestamp" },
+    "regions": { "type": "object", "additionalProperties": { "type": "boolean" }, "description": "Each reporting region: did it pass." },
+    "consecutive_failures": { "type": "integer", "minimum": 0 },
+    "flapping": { "type": "boolean" }
+  }
+}

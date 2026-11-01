@@ -16,13 +16,10 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
-
 	"github.com/cuesoftinc/upstat/api/common/internal/auth"
 	"github.com/cuesoftinc/upstat/api/common/internal/cache"
 	"github.com/cuesoftinc/upstat/api/common/internal/config"
-	"github.com/cuesoftinc/upstat/api/common/internal/model"
-	"github.com/cuesoftinc/upstat/api/common/internal/util"
+	"github.com/cuesoftinc/upstat/api/common/pkg/session"
 )
 
 const (
@@ -65,8 +62,8 @@ type handoffs interface {
 }
 
 type userStore interface {
-	GetUser(email string) (*model.User, error)
-	CreateUser(user model.User) (*mongo.InsertOneResult, error)
+	GetUser(ctx context.Context, email string) (*auth.User, error)
+	CreateUser(ctx context.Context, user auth.User) error
 }
 
 type ssoStateRecord struct {
@@ -95,7 +92,7 @@ func (h *AuthHandler) Register(mux *http.ServeMux) {
 	mux.HandleFunc("GET /v1/auth/sso/google/callback", h.GoogleCallback)
 	mux.Handle("POST /v1/auth/sso/exchange", h.cors(http.HandlerFunc(h.ExchangeSSOHandoff)))
 	mux.Handle("POST /v1/auth/logout", h.cors(http.HandlerFunc(h.Logout)))
-	mux.Handle("GET /v1/auth/me", h.cors(util.SessionMiddleware(http.HandlerFunc(h.Me))))
+	mux.Handle("GET /v1/auth/me", h.cors(session.SessionMiddleware(http.HandlerFunc(h.Me))))
 	mux.Handle("OPTIONS /v1/auth/", h.cors(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	})))
@@ -245,14 +242,14 @@ func (h *AuthHandler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.resolveUser(identity)
+	user, err := h.resolveUser(r.Context(), identity)
 	if err != nil {
 		slog.Error("google callback: resolve user", "error", err)
 		h.redirectWithErrorTo(w, r, record.ReturnTo, "sso_failed", ssoDescriptionExchangeFailed)
 		return
 	}
 
-	bodyCode, cookieCode, err := h.handoff.Create(r.Context(), user.Id.Hex(), user.Email, user.Name, record.Challenge)
+	bodyCode, cookieCode, err := h.handoff.Create(r.Context(), user.ID, user.Email, user.Name, record.Challenge)
 	if err != nil {
 		slog.Error("google callback: create handoff", "error", err)
 		h.redirectWithErrorTo(w, r, record.ReturnTo, "sso_failed", ssoDescriptionExchangeFailed)
@@ -372,9 +369,9 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 // Me returns the identity carried by the session token.
 func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
-	id, _ := util.UserIDFromContext(r.Context())
-	email, _ := util.EmailFromContext(r.Context())
-	name, _ := util.NameFromContext(r.Context())
+	id, _ := session.UserIDFromContext(r.Context())
+	email, _ := session.EmailFromContext(r.Context())
+	name, _ := session.NameFromContext(r.Context())
 	writeData(w, http.StatusOK, meResponse{ID: id, Email: email, Name: name})
 }
 
@@ -396,22 +393,22 @@ type meResponse struct {
 }
 
 // resolveUser finds the account for a verified Google email, creating it on first sign-in.
-func (h *AuthHandler) resolveUser(identity *auth.GoogleIdentity) (*model.User, error) {
-	user, err := h.users.GetUser(identity.Email)
+func (h *AuthHandler) resolveUser(ctx context.Context, identity *auth.GoogleIdentity) (*auth.User, error) {
+	user, err := h.users.GetUser(ctx, identity.Email)
 	if err == nil {
 		return user, nil
 	}
-	if !errors.Is(err, mongo.ErrNoDocuments) {
+	if !errors.Is(err, auth.ErrUserNotFound) {
 		return nil, fmt.Errorf("look up user: %w", err)
 	}
 	name := identity.Name
 	if name == "" {
 		name = identity.Email
 	}
-	if _, err := h.users.CreateUser(model.User{Name: name, Email: identity.Email}); err != nil {
+	if err := h.users.CreateUser(ctx, auth.User{Name: name, Email: identity.Email}); err != nil {
 		return nil, fmt.Errorf("create user: %w", err)
 	}
-	user, err = h.users.GetUser(identity.Email)
+	user, err = h.users.GetUser(ctx, identity.Email)
 	if err != nil {
 		return nil, fmt.Errorf("reload user: %w", err)
 	}

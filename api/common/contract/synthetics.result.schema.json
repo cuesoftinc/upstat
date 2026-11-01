@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://upstat.cuesoft.io/contract/synthetics.result.schema.json",
+  "title": "upstat.synthetics.result",
+  "description": "One region's answer for one scheduled check, relayed by common from the probe (system-design.md §6.1). Keyed by monitor_id. request_id is <tick_id>:<region>.",
+  "type": "object",
+  "required": ["tick_id", "monitor_id", "org_id", "region", "regions_expected", "scheduled_at", "checked_at", "ok", "cause", "status_code", "total_ms", "timeout_s"],
+  "additionalProperties": false,
+  "properties": {
+    "tick_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "monitor_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "org_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "region": { "type": "string", "minLength": 1 },
+    "regions_expected": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "scheduled_at": { "$ref": "defs.schema.json#/$defs/timestamp" },
+    "checked_at": { "$ref": "defs.schema.json#/$defs/timestamp" },
+    "ok": { "type": "boolean" },
+    "missing": { "type": "boolean", "description": "The region gave no answer (call failed or timed out); never counts as a failure." },
+    "cause": { "$ref": "defs.schema.json#/$defs/check_cause" },
+    "status_code": { "type": "integer", "minimum": 0 },
+    "dns_ms": { "type": "number", "minimum": 0 },
+    "connect_ms": { "type": "number", "minimum": 0 },
+    "tls_ms": { "type": "number", "minimum": 0 },
+    "ttfb_ms": { "type": "number", "minimum": 0 },
+    "total_ms": { "type": "number", "minimum": 0 },
+    "cert_not_after": { "type": ["string", "null"], "format": "date-time" },
+    "timeout_s": { "type": "integer", "minimum": 1 }
+  }
+}

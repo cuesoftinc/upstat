@@ -1,0 +1,12 @@
+# BuildKit per-Dockerfile ignore (repo-root context: docker build -f
+# api/observability/Dockerfile .). Only this service and the contract schemas
+# ship into the context.
+*
+!api/observability
+!api/common/contract/*.schema.json
+
+api/observability/node_modules
+api/observability/dist
+api/observability/coverage
+api/observability/.env
+api/observability/.env.*

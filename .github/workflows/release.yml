@@ -12,7 +12,7 @@ name: release
 on:
   push:
     branches: [main]
-    paths: ["api/**", ".github/workflows/release.yml", ".github/scripts/**"]
+    paths: ["api/**", "functions/**", ".github/workflows/release.yml", ".github/scripts/**"]
 
 permissions:
   contents: read
@@ -27,7 +27,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       common: ${{ steps.common.outputs.digest }}
+      query: ${{ steps.query.outputs.digest }}
       observability: ${{ steps.observability.outputs.digest }}
+      analytics: ${{ steps.analytics.outputs.digest }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -58,17 +60,46 @@ jobs:
           cache-from: type=gha,scope=common
           cache-to: type=gha,mode=max,scope=common
 
+      # query builds against api/common/pkg (replace ../common): context api/.
+      - name: Build + push api-query
+        id: query
+        uses: docker/build-push-action@v7
+        with:
+          context: api
+          file: api/query/Dockerfile
+          push: true
+          tags: |
+            cuesoft/upstat-api-query:${{ steps.meta.outputs.sha }}
+            cuesoft/upstat-api-query:latest
+          cache-from: type=gha,scope=query
+          cache-to: type=gha,mode=max,scope=query
+
+      # The Node and Python images copy api/common/contract: repo-root context.
       - name: Build + push api-observability
         id: observability
         uses: docker/build-push-action@v7
         with:
-          context: api/observability
+          context: .
+          file: api/observability/Dockerfile
           push: true
           tags: |
             cuesoft/upstat-api-observability:${{ steps.meta.outputs.sha }}
             cuesoft/upstat-api-observability:latest
           cache-from: type=gha,scope=observability
           cache-to: type=gha,mode=max,scope=observability
+
+      - name: Build + push api-analytics
+        id: analytics
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: api/analytics/Dockerfile
+          push: true
+          tags: |
+            cuesoft/upstat-api-analytics:${{ steps.meta.outputs.sha }}
+            cuesoft/upstat-api-analytics:latest
+          cache-from: type=gha,scope=analytics
+          cache-to: type=gha,mode=max,scope=analytics
 
   deploy:
     name: deploy · Cloud Run (Sandbox)
@@ -81,7 +112,9 @@ jobs:
     env:
       REGION: ${{ vars.GCP_REGION }}
       COMMON: docker.io/cuesoft/upstat-api-common@${{ needs.images.outputs.common }}
+      QUERY: docker.io/cuesoft/upstat-api-query@${{ needs.images.outputs.query }}
       OBSERVABILITY: docker.io/cuesoft/upstat-api-observability@${{ needs.images.outputs.observability }}
+      ANALYTICS: docker.io/cuesoft/upstat-api-analytics@${{ needs.images.outputs.analytics }}
     steps:
       - name: Checkout deploy scripts
         uses: actions/checkout@v7
@@ -105,14 +138,23 @@ jobs:
       - name: Deploy api-common
         run: .github/scripts/deploy-with-retry.sh gcloud run services update upstat-api-common --region "$REGION" --image "$COMMON" --quiet
 
+      - name: Deploy api-query
+        run: .github/scripts/deploy-with-retry.sh gcloud run services update upstat-api-query --region "$REGION" --image "$QUERY" --quiet
+
+      # One image, two services: OTLP/HTTP + events, and OTLP/gRPC (§6.3).
       - name: Deploy api-observability
-        run: .github/scripts/deploy-with-retry.sh gcloud run services update upstat-api-observability --region "$REGION" --image "$OBSERVABILITY" --quiet
+        run: |
+          .github/scripts/deploy-with-retry.sh gcloud run services update upstat-api-observability --region "$REGION" --image "$OBSERVABILITY" --quiet
+          .github/scripts/deploy-with-retry.sh gcloud run services update upstat-api-observability-grpc --region "$REGION" --image "$OBSERVABILITY" --quiet
+
+      - name: Deploy api-analytics
+        run: .github/scripts/deploy-with-retry.sh gcloud run services update upstat-api-analytics --region "$REGION" --image "$ANALYTICS" --quiet
 
       # Don't report success without checking the terminal state: every
       # service's latest revision must be the one serving and Ready.
       - name: Verify revisions are ready
         run: |
-          for svc in upstat-api-common upstat-api-observability; do
+          for svc in upstat-api-common upstat-api-query upstat-api-observability upstat-api-observability-grpc upstat-api-analytics; do
             ready=$(gcloud run services describe "$svc" --region "$REGION" --format 'value(status.latestReadyRevisionName)')
             created=$(gcloud run services describe "$svc" --region "$REGION" --format 'value(status.latestCreatedRevisionName)')
             echo "$svc: created=$created ready=$ready"
@@ -120,3 +162,37 @@ jobs:
           done
           url=$(gcloud run services describe upstat-api-common --region "$REGION" --format 'value(status.url)')
           curl -fsS "$url/ready" && echo
+
+  # The probe is a Cloud Run function per region (S-5, S-12), deployed from
+  # source; the infrastructure-as-code stack owns its service account (no
+  # roles), its private ingress and common's invoker grant.
+  probe:
+    name: deploy · probe functions
+    needs: deploy
+    runs-on: ubuntu-latest
+    environment: Sandbox
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      matrix:
+        region: [us-central1, us-east4]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: functions/probe
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Deploy upstat-probe-${{ matrix.region }}
+        run: |
+          gcloud functions deploy "upstat-probe-${{ matrix.region }}" --gen2 --region "${{ matrix.region }}"             --runtime python312 --source functions/probe --entry-point probe --trigger-http --no-allow-unauthenticated             --run-service-account "${{ vars.PROBE_SERVICE_ACCOUNT }}"             --set-env-vars "PROBE_REGION=${{ matrix.region }}" --quiet

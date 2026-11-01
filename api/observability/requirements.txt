@@ -1,7 +1,0 @@
-fastapi==0.143.0
-pydantic==2.14.1
-uvicorn==0.54.0
-scikit-learn==1.9.1
-pymongo==4.18.3
-numpy==2.5.4
-requests==2.34.2

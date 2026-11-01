@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://upstat.cuesoft.io/contract/alerting.verify_requested.schema.json",
+  "title": "upstat.alerting.verify_requested",
+  "description": "Send a channel its verification message (flows/alert.md §1). The outcome comes back as an upstat.alerting.delivery with kind verify. request_id is <channel_id>:<requested_at>.",
+  "type": "object",
+  "required": ["channel_id", "org_id", "requested_at"],
+  "additionalProperties": false,
+  "properties": {
+    "channel_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "org_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "requested_at": { "$ref": "defs.schema.json#/$defs/timestamp" }
+  }
+}

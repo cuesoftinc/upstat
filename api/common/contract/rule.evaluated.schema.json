@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://upstat.cuesoft.io/contract/rule.evaluated.schema.json",
+  "title": "upstat.rule.evaluated",
+  "description": "A metric, log, trace or SLO-burn rule changed state (the evaluator, system-design.md §4). common persists the state and last_triggered_at. request_id is <rule_id>:<at>.",
+  "type": "object",
+  "required": ["rule_id", "org_id", "state", "at"],
+  "additionalProperties": false,
+  "properties": {
+    "rule_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "org_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "state": { "enum": ["ok", "warn", "alert", "nodata"] },
+    "value": { "type": ["number", "null"] },
+    "triggered": { "type": "boolean", "description": "The rule entered alert on this evaluation." },
+    "at": { "$ref": "defs.schema.json#/$defs/timestamp" }
+  }
+}
