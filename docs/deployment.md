@@ -35,8 +35,8 @@ Each job sends a Google OIDC token, checked against `SCHEDULER_AUDIENCE` and
 
 ### Scale to zero (S-14)
 
-Every service runs at min 0 with **request-based CPU**, as expendit does
-(#351): nothing is billed while nobody uses Upstat. An instance has CPU
+Every service runs at min 0 with **request-based CPU**, as the sibling
+expenses product does: nothing is billed while nobody uses Upstat. An instance has CPU
 only while it serves a request, so work that must finish happens inside
 one:
 

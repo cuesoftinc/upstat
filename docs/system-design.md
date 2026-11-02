@@ -826,7 +826,7 @@ worth keeping, not a dual-write parity harness (§15 Q2).
   spoofed resource attribute; common's check results keep theirs).
 - **The web reaches the API through `/api/v1`** (`web/src/app/api/v1`),
   which routes telemetry reads to `api/query` and everything else to
-  `api/common`, as expendit's web does. Google sign-in returns through it.
+  `api/common`, as the sibling expenses product's web does. Google sign-in returns through it.
 - **Check history, status bars, onboarding's has-data, catalog presence
   and the MI-9 replays** are `common → query` internal calls, so common
   keeps its 404 semantics for monitors it owns.
