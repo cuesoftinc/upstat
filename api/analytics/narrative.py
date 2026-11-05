@@ -57,7 +57,7 @@ class Narrator:
             if self.provider == "vertex":
                 text = await self._vertex(insight)
             elif self.provider == "groq":
-                text = await asyncio.to_thread(render_insight_narrative, insight)
+                text = await asyncio.to_thread(render_insight_narrative, insight, self._s.groq_api_key)
             elif self.provider == "gemini":
                 text = await self._gemini_key(insight)
             else:

@@ -5,21 +5,22 @@ SLOs, and insights (anomaly detection, risk, the Vertex narrative). It owns
 no store: config arrives as snapshots, telemetry through api/query, and
 every decision goes to api/common over the shared bus.
 
-Alerts never wait on insights: insight generation runs in the background
-after a transition's notifications are delivered.
+Alerts never wait on insights: a settle works through the insight queue only
+after it has evaluated and delivered, and inside what is left of its budget.
 """
 
 import asyncio
 import logging
 import os
-import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
 import bus
+import settle
 import state as state_store
 from app.config import get_settings
+from app.logs import configure_logging
 from bus.kafka import Consumer, Producer
 from bus.wake import Waker
 from config_cache import ConfigCache
@@ -32,16 +33,10 @@ from notifier import Notifier
 from notifier.channels import Sender
 from queryclient import QueryClient
 from service.insight_generator import InsightGenerator
-from settle import router as settle_router
 from storage import from_settings
 
 log = logging.getLogger("analytics")
 TICK_SECONDS = 15
-INSIGHTS_EVERY_SECONDS = 3600
-
-
-def configure_logging(level: str) -> None:
-    logging.basicConfig(level=level, format='{"severity":"%(levelname)s","logger":"%(name)s","message":"%(message)s"}')
 
 
 @asynccontextmanager
@@ -67,28 +62,16 @@ async def lifespan(app: FastAPI):
     evaluation = Evaluation(config, working, query, publish, notifier)
     narrator = Narrator(settings)
     insights = InsightGenerator(config, working, query, narrator, publish)
-    background: set[asyncio.Task] = set()
 
     async def on_config(msg: dict, request_id: str | None) -> None:
         await config.reload(msg["kind"])
 
     async def on_transition(msg: dict, request_id: str | None) -> None:
         await notifier.on_transition(msg, request_id)
-        task = asyncio.create_task(_insight(msg))
-        background.add(task)
-        task.add_done_callback(background.discard)
-
-    async def _insight(msg: dict) -> None:
         try:
             await insights.on_transition(msg, None)
         except Exception:
-            log.exception("insight failed", extra={"monitor_id": msg["monitor_id"]})
-
-    async def evaluate() -> None:
-        await evaluator.sweep()
-        await notifier.sweep()
-        await notifier.renotify()
-        await evaluation.run()
+            log.exception("insight queueing failed", extra={"monitor_id": msg["monitor_id"]})
 
     handlers = {
         bus.CONFIG_CHANGED: on_config,
@@ -96,40 +79,30 @@ async def lifespan(app: FastAPI):
         bus.VERIFY_REQUESTED: notifier.on_verify,
         bus.TRANSITION: on_transition,
     }
-    consumer = Consumer("analytics", handlers, settings, contract, store)
+    consumer = Consumer("analytics", handlers, settings, contract, store, working)
+
+    async def evaluate(deadline: float | None = None) -> None:
+        """Every step runs alone: one failing never skips the rest. deadline
+        is a time.monotonic value."""
+        steps = (("redrive", lambda: consumer.redrive(deadline)), ("evaluator", evaluator.sweep), ("flapping", notifier.sweep),
+                 ("renotify", notifier.renotify), ("retries", lambda: notifier.retry_due(deadline)), ("rules", lambda: evaluation.run(deadline)))
+        for name, step in steps:
+            try:
+                await step()
+            except Exception:
+                log.exception("evaluate step failed", extra={"step": name})
+
     await producer.start()
     await consumer.start()
     app.state.consumer = consumer
     app.include_router(jobs_router({"evaluate": evaluate, "insights": insights.sweep}, settings.scheduler_audience,
                                    settings.scheduler_invoker_email))
 
-    def in_background(coro) -> None:
-        task = asyncio.create_task(coro)
-        background.add(task)
-        task.add_done_callback(background.discard)
+    async def run_settle(budget: float) -> dict:
+        """One settle (S-14): drain, evaluate, insights, drain."""
+        return await settle.settle_pass(budget, consumer.wait_caught_up, evaluate, insights.run)
 
-    async def _sweep() -> None:
-        try:
-            await insights.sweep()
-        except Exception:
-            log.exception("insight sweep failed")
-
-    async def settle(budget: float) -> dict:
-        """One settle (S-14): evaluate, start the hourly insight pass when it
-        is due, then wait for the lanes and the background work."""
-        deadline = time.monotonic() + budget
-        await evaluate()
-        last = await working.get("insights:last")
-        if not last or time.time() - last.get("at", 0) >= INSIGHTS_EVERY_SECONDS:
-            await working.put("insights:last", {"at": time.time()})
-            in_background(_sweep())
-        caught_up = await consumer.wait_caught_up(max(deadline - time.monotonic(), 0.0))
-        pending = list(background)
-        if pending:
-            await asyncio.wait(pending, timeout=max(deadline - time.monotonic(), 0.0))
-        return {"caught_up": caught_up, "background": len(background)}
-
-    app.include_router(settle_router(settle, settings.internal_token))
+    app.include_router(settle.router(run_settle, settings.internal_token, settings.internal_audience, settings.internal_invoker_list))
 
     loop_task = None
     if settings.worker_enabled:
@@ -137,6 +110,7 @@ async def lifespan(app: FastAPI):
             while True:
                 try:
                     await evaluate()
+                    await insights.sweep()
                 except Exception:
                     log.exception("evaluate tick failed")
                 await asyncio.sleep(TICK_SECONDS)
@@ -148,8 +122,6 @@ async def lifespan(app: FastAPI):
     finally:
         if loop_task:
             loop_task.cancel()
-        for task in list(background):
-            task.cancel()
         await consumer.stop()
         await producer.stop()
         await waker.aclose()

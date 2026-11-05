@@ -3,6 +3,11 @@ run by the every-minute evaluate job. Metric, log and trace rules run their
 query over the rule's window through api/query and compare the newest value
 with warn/crit; SLO-burn rules compare an SLO's burn rate. A state change
 goes to common as upstat.rule.evaluated; entering or leaving alert notifies.
+A change is stored (rulepend:<rule>) before it is published and removed once
+published and notified, so a failed publish is repeated by the next pass with
+the same time. No data never ends an alert: the rule stays in alert until a
+value says otherwise. Every rule and SLO is evaluated alone, inside the
+caller's deadline; a slow or failing query costs that rule only.
 
 SLIs (decisions.md S-13):
 - check: passing ÷ completed checks of the SLO's monitor;
@@ -11,18 +16,20 @@ SLIs (decisions.md S-13):
 Burn rate is the last hour's error rate over the budget's error rate.
 """
 
+import asyncio
 import logging
 import re
 import time
 from datetime import UTC, datetime, timedelta
 
 import bus
-from queryclient import QueryError, last_value, total
+from queryclient import last_value, total
 
 log = logging.getLogger(__name__)
 
 LATENCY_GOOD_MS = 500
 SLO_EVERY_SECONDS = 300
+PENDING_TRIES = 10
 _WINDOW = re.compile(r"^(\d+)([smhd])$")
 
 
@@ -70,24 +77,51 @@ class Evaluation:
         self._notifier = notifier
         self._clock = clock
 
-    async def run(self) -> None:
+    async def run(self, deadline: float | None = None) -> dict:
+        """Evaluates the SLOs when due, then every non-uptime rule, starting
+        where the last pass stopped. deadline is a time.monotonic value; what
+        it cuts off waits for the next pass."""
         now_ts = self._clock()
         now = datetime.fromtimestamp(now_ts, UTC)
+        done = skipped = failed = 0
+
+        def left() -> float | None:
+            return None if deadline is None else deadline - time.monotonic()
+
         stamp = await self._state.get("slo:last") or {"at": 0}
         if now_ts - stamp["at"] >= SLO_EVERY_SECONDS:
+            cut = False
             for slo in list(self._config.slos.values()):
-                try:
-                    await self._slo(slo, now)
-                except QueryError as exc:
-                    log.warning("slo evaluation failed", extra={"slo_id": slo["id"], "error": str(exc)})
-            await self._state.put("slo:last", {"at": now_ts})
-        for rule in list(self._config.rules.values()):
-            if rule["signal"] == "uptime":
-                continue
-            try:
-                await self._rule(rule, now)
-            except QueryError as exc:
-                log.warning("rule evaluation failed", extra={"rule_id": rule["id"], "error": str(exc)})
+                if left() is not None and left() <= 0:
+                    cut = True
+                    break
+                if not await self._guard("slo", slo["id"], self._slo(slo, now), left()):
+                    failed += 1
+            if not cut:
+                await self._state.put("slo:last", {"at": now_ts})
+        rules = [r for r in self._config.rules.values() if r["signal"] != "uptime"]
+        cursor = (await self._state.get("rules:cursor") or {"at": 0})["at"] % len(rules) if rules else 0
+        for rule in rules[cursor:] + rules[:cursor]:
+            if left() is not None and left() <= 0:
+                skipped = len(rules) - done - failed
+                break
+            if await self._guard("rule", rule["id"], self._rule(rule, now), left()):
+                done += 1
+            else:
+                failed += 1
+        if rules:
+            await self._state.put("rules:cursor", {"at": cursor + done + failed})
+        return {"rules": done, "failed": failed, "skipped": skipped}
+
+    async def _guard(self, kind: str, item_id: str, work, timeout: float | None) -> bool:
+        """Runs one rule or SLO alone: its failure or timeout is logged and
+        never reaches the others."""
+        try:
+            await asyncio.wait_for(work, timeout)
+        except Exception as exc:
+            log.warning(f"{kind} evaluation failed", extra={f"{kind}_id": item_id, "error": type(exc).__name__})
+            return False
+        return True
 
     async def _value(self, rule: dict, now: datetime) -> float | None:
         thresholds = rule.get("thresholds") or {}
@@ -106,19 +140,37 @@ class Evaluation:
         return last_value(result)
 
     async def _rule(self, rule: dict, now: datetime) -> None:
+        pending = await self._state.get(f"rulepend:{rule['id']}")
+        if pending:
+            return await self._deliver_pending(rule, pending)
         value = await self._value(rule, now)
         state = classify(value, rule.get("thresholds") or {})
         previous = (await self._state.get(f"rule:{rule['id']}") or {}).get("state", rule.get("state", "ok"))
-        if state == previous:
+        if state == previous or (state == "nodata" and previous == "alert"):
             return
+        change = {"state": state, "previous": previous, "value": value, "triggered": state == "alert", "at": iso(now), "ts": now.timestamp(),
+                  "tries": 0}
+        await self._state.put(f"rulepend:{rule['id']}", change)
         await self._state.put(f"rule:{rule['id']}", {"state": state})
-        entered = state == "alert" and previous != "alert"
-        data = {"rule_id": rule["id"], "org_id": rule["org_id"], "state": state, "value": value, "triggered": entered, "at": iso(now)}
-        await self._publish(bus.RULE_EVALUATED, rule["id"], data, f"{rule['id']}:{iso(now)}")
-        if entered:
-            await self._notifier.rule_alert(rule, True, value, now.timestamp())
-        elif previous == "alert":
-            await self._notifier.rule_alert(rule, False, value, now.timestamp())
+        await self._deliver_pending(rule, change)
+
+    async def _deliver_pending(self, rule: dict, change: dict) -> None:
+        """Publishes and notifies a stored state change, then clears it."""
+        key = f"rulepend:{rule['id']}"
+        change["tries"] += 1
+        if change["tries"] > PENDING_TRIES:
+            log.error("rule change dropped after repeated failures", extra={"rule_id": rule["id"], "state": change["state"]})
+            await self._state.delete(key)
+            return
+        await self._state.put(key, change)
+        data = {"rule_id": rule["id"], "org_id": rule["org_id"], "state": change["state"], "value": change["value"],
+                "triggered": change["triggered"], "at": change["at"]}
+        await self._publish(bus.RULE_EVALUATED, rule["id"], data, f"{rule['id']}:{change['at']}")
+        if change["triggered"]:
+            await self._notifier.rule_alert(rule, True, change["value"], change["ts"], change["at"])
+        elif change["previous"] == "alert":
+            await self._notifier.rule_alert(rule, False, change["value"], change["ts"], change["at"])
+        await self._state.delete(key)
 
     async def _counts(self, slo: dict, window: timedelta, now: datetime) -> tuple[float, float]:
         org, source = slo["org_id"], slo["sli_source"]

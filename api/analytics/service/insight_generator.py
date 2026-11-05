@@ -3,6 +3,12 @@ active monitor, read the monitor's history through api/query, run the
 feature builder, risk scorer and isolation-forest detector unchanged, render
 the narrative and send upstat.insights.generated for common to persist.
 The service never touches common's store.
+
+The work runs inside a request (S-14), never in the background: a
+transition queues its monitor (insq:<monitor>) and each settle works through
+the queue, then the hourly pass in monitor-id order from a stored cursor,
+inside the caller's deadline. A pass that is cut off resumes where it
+stopped; insights:last records when the last pass started.
 """
 
 import asyncio
@@ -28,6 +34,8 @@ from service.severity_classifier import risk_classifier
 log = logging.getLogger(__name__)
 
 TRAINING_WINDOW = timedelta(days=14)
+EVERY_SECONDS = 3600
+SWEEP_BUDGET_SECONDS = 20.0
 
 
 def _recommended_action(severity: str, anomaly_detected: bool) -> str:
@@ -55,24 +63,57 @@ class InsightGenerator:
         self._clock = clock
 
     async def on_transition(self, msg: dict, request_id: str | None) -> None:
+        """Records the incident and queues the monitor; run() does the work."""
         if msg["to"] == "down":
             hist = await self._state.get(f"incidents:{msg['monitor_id']}") or {"downs": []}
             hist["downs"] = (hist["downs"] + [self._clock()])[-50:]
             await self._state.put(f"incidents:{msg['monitor_id']}", hist, ttl=90 * 24 * 3600)
         if msg["to"] in ("down", "up", "nodata"):
-            await self.generate(msg["monitor_id"], msg["org_id"], active=msg["to"] == "down")
+            await self._state.put(f"insq:{msg['monitor_id']}", {"org_id": msg["org_id"], "active": msg["to"] == "down"}, ttl=24 * 3600)
 
-    async def sweep(self) -> int:
-        """The hourly proactive pass over active monitors."""
-        n = 0
-        for monitor in list(self._config.monitors.values()):
-            if monitor.get("active", True):
-                try:
-                    await self.generate(monitor["id"], monitor["org_id"], active=monitor.get("status") == "down")
-                    n += 1
-                except Exception:
-                    log.exception("insight failed", extra={"monitor_id": monitor["id"]})
-        return n
+    async def sweep(self, budget: float = SWEEP_BUDGET_SECONDS) -> int:
+        """The scheduled entry: one bounded slice of the insight work."""
+        return (await self.run(time.monotonic() + budget))["insights"]
+
+    async def run(self, deadline: float) -> dict:
+        """Queued insights, then the hourly pass; deadline is a time.monotonic value."""
+        done = 0
+        for key in sorted(await self._state.keys("insq:")):
+            if time.monotonic() >= deadline:
+                break
+            job = await self._state.get(key)
+            if job:
+                await self._bounded(key.removeprefix("insq:"), job["org_id"], job["active"], deadline)
+                done += 1
+            await self._state.delete(key)
+        return {"insights": done + await self._hourly(deadline)}
+
+    async def _hourly(self, deadline: float) -> int:
+        cursor = await self._state.get("insights:cursor")
+        if cursor is None:
+            last = await self._state.get("insights:last")
+            if last and self._clock() - last.get("at", 0) < EVERY_SECONDS:
+                return 0
+            cursor = {"after": "", "started": self._clock()}
+        done = 0
+        for monitor in sorted((m for m in self._config.monitors.values() if m.get("active", True)), key=lambda m: m["id"]):
+            if monitor["id"] <= cursor["after"]:
+                continue
+            if time.monotonic() >= deadline:
+                return done  # the cursor stays: the next pass resumes here
+            await self._bounded(monitor["id"], monitor["org_id"], monitor.get("status") == "down", deadline)
+            cursor["after"] = monitor["id"]
+            await self._state.put("insights:cursor", cursor)
+            done += 1
+        await self._state.delete("insights:cursor")
+        await self._state.put("insights:last", {"at": cursor["started"]})
+        return done
+
+    async def _bounded(self, monitor_id: str, org_id: str, active: bool, deadline: float) -> None:
+        try:
+            await asyncio.wait_for(self.generate(monitor_id, org_id, active=active), max(deadline - time.monotonic(), 0.1))
+        except Exception as exc:
+            log.warning("insight failed", extra={"monitor_id": monitor_id, "error": type(exc).__name__})
 
     async def _context(self, monitor_id: str, active: bool) -> IncidentContext:
         downs = (await self._state.get(f"incidents:{monitor_id}") or {}).get("downs", [])

@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     # api/query's internal surface: rule, SLO and insight history reads.
     query_url: str = ""
     internal_token: str = ""
+    # POST /internal/settle on Cloud Run: a Google ID token for this audience
+    # from one of these service accounts (comma separated), as api/query.
+    internal_audience: str = ""
+    internal_invokers: str = ""
 
     # api/common, woken after each result sent for it (scale to zero).
     wake_common_url: str = ""
@@ -70,6 +74,10 @@ class Settings(BaseSettings):
     worker_enabled: bool = True
 
     contract_dir: str = "contract"
+
+    @property
+    def internal_invoker_list(self) -> list[str]:
+        return [i.strip() for i in self.internal_invokers.split(",") if i.strip()]
 
     @property
     def kafka_broker_list(self) -> list[str]:

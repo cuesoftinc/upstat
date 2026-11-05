@@ -8,12 +8,9 @@ from model.insight import Insight
 
 logger = logging.getLogger(__name__)
 
-GROQ_API_BASE_URL = os.getenv("GROQ_API_BASE_URL", "https://api.groq.com/openai/v1/responses")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
-GROQ_TIMEOUT_SECONDS = int(os.getenv("GROQ_TIMEOUT_SECONDS", "12"))
-
-logger.info("LLM renderer initiated")
+GROQ_API_BASE_URL = "https://api.groq.com/openai/v1/responses"
+GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_TIMEOUT_SECONDS = 12
 
 def _build_prompt(insight: Insight):
     return [
@@ -121,27 +118,29 @@ def _extract_output_text_parts(content: list[Any]) -> list[str]:
     return parts
 
 
-def render_insight_narrative(insight: Insight) -> str:
-    if not GROQ_API_KEY:
+def render_insight_narrative(insight: Insight, api_key: str | None = None) -> str:
+    """The key is read when called (the caller's setting, else the environment), never at import."""
+    api_key = api_key or os.getenv("GROQ_API_KEY")
+    if not api_key:
         raise OSError("GROQ_API_KEY is not configured")
 
     prompt = _build_prompt(insight)
     payload = {
-        "model": GROQ_MODEL,
+        "model": os.getenv("GROQ_MODEL", GROQ_MODEL),
         "input": prompt,
         "max_output_tokens": 200,
     }
     headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
 
     try:
         response = requests.post(
-            GROQ_API_BASE_URL,
+            os.getenv("GROQ_API_BASE_URL", GROQ_API_BASE_URL),
             headers=headers,
             json=payload,
-            timeout=GROQ_TIMEOUT_SECONDS,
+            timeout=int(os.getenv("GROQ_TIMEOUT_SECONDS", str(GROQ_TIMEOUT_SECONDS))),
         )
         response.raise_for_status()
         result = response.json()

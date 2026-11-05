@@ -1,3 +1,4 @@
+import uuid
 from datetime import UTC, datetime
 
 import pytest
@@ -5,7 +6,8 @@ import pytest
 import bus
 from evaluator import Evaluator
 from evaluator.machine import MonitorState, Tick, apply_tick, check_nodata, tick_failed
-from tests.conftest import MON, ORG
+from state import MemoryState
+from tests.conftest import MON, ORG, Published
 
 # The evaluation-semantics transition table (flows/monitor.md §2; the
 # non-negotiable unit test of engineering.md §4): every edge.
@@ -62,9 +64,10 @@ def test_quorum(results, quorum, want):
     assert tick_failed(results, quorum) is want
 
 
-def result(region, ok, tick="0b6f3c2e-6a51-4b1e-9d0a-7e1f2a3b4c5d", missing=False, regions=("us-central1", "us-east4")):
+def result(region, ok, tick="0b6f3c2e-6a51-4b1e-9d0a-7e1f2a3b4c5d", missing=False, regions=("us-central1", "us-east4"),
+           scheduled="2026-10-28T12:00:00Z"):
     return {"tick_id": tick, "monitor_id": MON, "org_id": ORG, "region": region, "regions_expected": list(regions),
-            "scheduled_at": "2026-10-28T12:00:00Z", "checked_at": "2026-10-28T12:00:01Z", "ok": ok, "missing": missing,
+            "scheduled_at": scheduled, "checked_at": scheduled.replace(":00Z", ":01Z"), "ok": ok, "missing": missing,
             "cause": "" if ok else "timeout", "status_code": 200 if ok else 0, "total_ms": 120, "timeout_s": 10}
 
 
@@ -121,9 +124,81 @@ async def test_paused_monitors_drop_results_and_resume_fresh(config, state, publ
     assert st.status == "pending"
 
 
-async def test_transition_ids_are_stable_for_redelivery(config, state, published, clock):
+async def test_a_redelivered_batch_applies_once_and_keeps_its_transition_id(config, state, published, clock):
+    config.monitors[MON]["failure_threshold"] = 1
+    batch = [result("us-central1", False), result("us-east4", False)]
+    ev = Evaluator(config, state, published, clock)
+    for _ in range(2):  # Kafka redelivers the whole batch
+        for msg in batch:
+            await ev.on_result(msg, None)
+    [t] = published.of(bus.TRANSITION)
+    assert t["seq"] == 1 and t["id"] == str(uuid.uuid5(uuid.NAMESPACE_URL, f"upstat:{MON}:1")) and published.messages[0][3] == t["id"]
+    assert await state.keys("tick:") == [] and (await ev.monitor_state(config.monitors[MON])).consecutive_failures == 1
+    # With the working state lost, the same results give the same transition for common to dedupe on (monitor, seq).
+    again = Published(published.contract)
+    fresh = Evaluator(config, MemoryState(), again, clock)
+    for msg in batch:
+        await fresh.on_result(msg, None)
+    assert [m["id"] for m in again.of(bus.TRANSITION)] == [t["id"]]
+
+
+async def test_a_late_result_cannot_open_a_one_region_tick_that_bypasses_the_quorum(config, state, published, clock):
+    config.monitors[MON].update(failure_threshold=1, interval_s=3600)
+    ev = Evaluator(config, state, published, clock)
+    newer = "2026-10-28T12:01:00Z"
+    await ev.on_result(result("us-central1", True, tick="1b6f3c2e-6a51-4b1e-9d0a-7e1f2a3b4c5d", scheduled=newer), None)
+    await ev.on_result(result("us-east4", True, tick="1b6f3c2e-6a51-4b1e-9d0a-7e1f2a3b4c5d", scheduled=newer), None)
+    assert [t["to"] for t in published.of(bus.TRANSITION)] == ["up"]
+    await ev.on_result(result("us-central1", False), None)  # the previous tick's answer, arriving after the next one closed
+    assert await state.keys("tick:") == []
+    clock.t = datetime(2026, 10, 28, 12, 5, tzinfo=UTC).timestamp()
+    await ev.sweep()
+    assert [t["to"] for t in published.of(bus.TRANSITION)] == ["up"]  # a single failing region never made a down
+
+
+async def test_a_duplicate_of_a_closed_tick_is_ignored(config, state, published, clock):
     ev = Evaluator(config, state, published, clock)
     await ev.on_result(result("us-central1", True), None)
     await ev.on_result(result("us-east4", True), None)
+    await ev.on_result(result("us-central1", True), None)
+    assert await state.keys("tick:") == []
+
+
+class Flaky:
+    """Fails the first publish, then delegates."""
+
+    def __init__(self, published):
+        self.published, self.calls = published, 0
+
+    async def __call__(self, event, key, data, request_id):
+        self.calls += 1
+        if self.calls == 1:
+            raise RuntimeError("kafka is away")
+        await self.published(event, key, data, request_id)
+
+
+async def test_a_failed_publish_is_published_again_by_the_next_pass(config, state, published, clock):
+    config.monitors[MON]["failure_threshold"] = 1
+    ev = Evaluator(config, state, Flaky(published), clock)
+    await ev.on_result(result("us-central1", False), None)
+    await ev.on_result(result("us-east4", False), None)  # closes the tick; the publish fails but the answer does not
+    assert published.messages == [] and await state.keys("emit:") == ["emit:" + MON + ":1"]
+    assert (await ev.monitor_state(config.monitors[MON])).status == "down"
+    await ev.sweep()
     [t] = published.of(bus.TRANSITION)
-    assert published.messages[0][3] == t["id"] and t["seq"] == 1
+    assert (t["seq"], t["to"], t["id"]) == (1, "down", str(uuid.uuid5(uuid.NAMESPACE_URL, f"upstat:{MON}:1")))
+    assert await state.keys("emit:") == []
+    await ev.sweep()
+    assert len(published.of(bus.TRANSITION)) == 1
+
+
+async def test_a_failed_publish_does_not_delay_the_nodata_timer(config, state, published, clock):
+    clock.t = datetime(2026, 10, 28, 12, 0, 30, tzinfo=UTC).timestamp()
+    ev = Evaluator(config, state, Flaky(published), clock)
+    await ev.on_result(result("us-central1", True), None)
+    await ev.on_result(result("us-east4", True), None)  # up; this publish fails
+    await ev.sweep()
+    assert [t["to"] for t in published.of(bus.TRANSITION)] == ["up"]
+    clock.t += 3600
+    await ev.sweep()
+    assert [t["to"] for t in published.of(bus.TRANSITION)] == ["up", "nodata"]
