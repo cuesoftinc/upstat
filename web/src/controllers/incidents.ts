@@ -89,10 +89,12 @@ export function useIncidentController(id: string) {
         if (entry.sev && entry.sev !== incident.data?.sev) {
           await incidentsRepo.update(id, { sev: entry.sev as Incident["sev"] });
         }
+        // Composer updates go to the public status page, as they always have.
         await incidentsRepo.postUpdate(id, {
           phase: entry.phase,
           body: entry.body,
           author: entry.author,
+          public: true,
         });
         await Promise.all([incident.reload(), timeline.reload()]);
       } catch (e) {
