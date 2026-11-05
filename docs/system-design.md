@@ -92,7 +92,7 @@ the Python analysis and ML modules, and the delivery scaffolding.
 | D5  | **No custom code where a stock component exists.** | Loading ClickHouse is the stock OpenTelemetry Collector; rollups are ClickHouse materialized views. |
 | D6  | **Config flows outward as snapshots.** | `api/common` rewrites a snapshot object per config kind through its transactional outbox and announces it with `upstat.config.changed` (no compacted topics, X-11). The gateway, query and analytics keep an in-memory copy and never query Postgres. |
 | D7  | **Privacy by construction.**                                               | Raw IPs never leave the gateway's memory. The event schema is the privacy boundary. Row-level tenancy is enforced in both stores.                                                                                           |
-| D8  | **One set of images for cloud and self-host.**                             | Every managed dependency has a single-container self-host equivalent. The probe function also runs as a container for self-host.                                                                                            |
+| D8  | **One set of images for cloud and self-host.**                             | Every managed dependency has a single-container self-host equivalent. The probe is one container image for cloud and self-host.                                                                                            |
 
 ---
 
@@ -116,7 +116,7 @@ flowchart LR
     end
 
     GW[api/observability — Node<br/>thin gateway]
-    PRB[probe · Cloud Run functions<br/>Python · 2 regions, planned]
+    PRB[probe · Cloud Run services<br/>Python · 2 regions, planned]
 
     subgraph Python, processing
         ALR[api/analytics, Python<br/>quorum · state machine · notify<br/>rules · SLOs · insights]
@@ -166,13 +166,13 @@ serverless function and the stock collector. Ports follow the standard:
 | `api/observability` | **Node** (NestJS) | Thin gateway | OTLP over HTTP and gRPC, and `/v1/events`: key auth from the ingest-keys snapshot, scope, byte quotas, origin allowlist, event-registry validation, `visitor_hash`, then forward to the collector. **OTLP payloads pass through unparsed.** Reports usage bytes. | nothing | 8081 (+4317 gRPC) |
 | `api/query` | **Go** | **CRUD (read)** | Parses the shared grammar, compiles an org-scoped query to parameterized SQL, routes by time range (raw/1m/1h), enforces limits, caches settled results in memory. Serves explorers, dashboards, RUM, `/v1/stats`, usage, and the internal reads common and analytics make. | read-only ClickHouse user | 8083 |
 | `api/analytics` | **Python** | Processing | **Evaluator:** multi-region quorum, the monitor state machine (flows/monitor.md §2), nodata timers. **Notifier:** rules → channels, cooldown, flapping, renotify, retries, webhook signing, Brevo. **Rules and SLOs** through `api/query`. **Insights:** anomaly model, risk, Vertex AI narrative (Groq/Gemini BYO key for self-host), in the background. | working state in Valkey (rebuildable) | 8082 |
-| `probe` | **Python** | Serverless function | One HTTP check (or one multi-step run) per call: SSRF-safe pinned connect, DNS/connect/TLS/TTFB timings (pycurl), certificate expiry. **Cloud Run functions in 2 regions** (us-central1, us-east4); a container for self-host. | nothing; no secrets, no IAM roles | n/a (8090 in compose) |
+| `probe` | **Python** | Probe service | One HTTP check (or one multi-step run) per call: SSRF-safe pinned connect, DNS/connect/TLS/TTFB timings (pycurl), certificate expiry. **A Cloud Run service per region** (us-central1, us-east4), the same container as self-host. | nothing; no secrets, no IAM roles | n/a (8090 in compose) |
 | Loader | stock | Infrastructure | **OpenTelemetry Collector** (contrib image, configuration only): OTLP → ClickHouse, org from the gateway's header. | — | — |
 
 **Retired:** the in-process
 `MonitorWorker`, the Phase-1 rollup worker
 (replaced by ClickHouse MVs), and the Go-based checker (it moves to the
-Python probe function).
+Python probe service).
 
 **Why these boundaries.**
 
@@ -353,7 +353,7 @@ handful of decisions) this stays far inside the shared service's
 sequenceDiagram
     participant S as common · scheduler (Go)
     participant PG as Postgres
-    participant P as probe functions ×2 regions (Python)
+    participant P as probe services ×2 regions (Python)
     participant K as Kafka
     participant E as analytics · evaluator (Python)
     participant C as common · consumer (Go)
@@ -445,7 +445,7 @@ sequenceDiagram
         G-->>SDK: 429 quota_exceeded + Retry-After (SDKs retry)
     else
         G->>L: raw OTLP bytes, header X-Upstat-Org-Id
-        L->>L: org header → resource attr upstat.org_id · batch
+        L->>L: org header → resource attr upstat.org_id
         L->>CH: clickhouseexporter (create_schema: false)
         G-->>SDK: the collector's answer
     end
@@ -458,10 +458,16 @@ sequenceDiagram
   `resource/org` processor upserts `upstat.org_id` from the gateway's
   header, overwriting anything a customer sent.
 - **Quotas are bytes per second** per key (S-11), shared across instances
-  in Valkey; each instance falls back to its own counters if Valkey is away.
+  in Valkey; while Valkey is away the gateway answers 503 with `Retry-After`.
+- **Reserved names stay internal.** The collector routes on
+  `X-Upstat-Source`: only the gateway's own rows and common's checks send
+  `internal`; everything else takes a pipeline that drops the reserved
+  service names `upstat.checks`, `upstat.events` and `upstat.usage`. The
+  gateway never forwards a customer's copy of that header.
 - **The loader is configuration, not code**
-  (`deploy/docker/otel-collector.yaml`). Its persistent sending queue is
-  the ClickHouse-outage budget (§9.2).
+  (`deploy/docker/otel-collector.yaml`). It exports before it answers, with
+  no sending queue; during a ClickHouse outage the sender's retry is the
+  buffer (§9.2).
 - **Cloud Run shape.** One port per service, so the gateway deploys twice
   from one image: `upstat-api-observability` (OTLP/HTTP and events) and
   `upstat-api-observability-grpc` (end-to-end HTTP/2, `GRPC_PORT`).
@@ -547,8 +553,10 @@ the kind's current state from Postgres, rewrites
 the snapshot's pointer and version; a burst of writes yields one rewrite
 per batch. Consumers load every kind they need on start, reload one on the
 event, and ignore an older version. common writes every snapshot on start,
-so a fresh deployment's readers find one. A new ingest key works at the
-gateway within a second or two, and revocation propagates the same way.
+so a fresh deployment's readers find one. The event reaches one instance
+per consumer group, so every instance also rereads a snapshot older than
+30 s on its next lookup: a new or revoked key reaches every gateway and
+query instance within 30 s.
 
 ---
 
@@ -567,7 +575,7 @@ OTLP paths are the standard ones, so a customer sets only
 `OTEL_EXPORTER_OTLP_ENDPOINT=https://ingest.upstat.cuesoft.io` and
 `OTEL_EXPORTER_OTLP_HEADERS=Upstat-Ingest-Key=…`.
 
-The probe functions are **not public**. They accept only calls carrying a
+The probe services are **not public**. They accept only calls carrying a
 Cloud Run IAM identity token for `api/common`'s service account.
 
 ### 7.2 Protocol stance
@@ -628,12 +636,12 @@ engineering.md unchanged.
 
 | Failure                               | What keeps working                                                                                   | What degrades                                                                                               | Recovery                     |
 | ------------------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| ClickHouse down | Ingest accepts (the collector's sending queue buffers); uptime checks, evaluation, alerts | Explorers, dashboards, metric/log rules (they read `nodata`), fresh status bars | The collector drains its queue |
+| ClickHouse down | Uptime checks, evaluation, alerts | Ingest answers 503 and senders retry; explorers, dashboards, metric/log rules (they read `nodata`), fresh status bars | Senders' retries land once ClickHouse is back |
 | Kafka down (or powered off, X-11) | UI reads and writes (the outbox keeps its rows), ingest | Check results can't reach analytics, so monitors go `nodata`, not `down` | The outbox resumes; the keep-alive owner powers the bus on |
 | Postgres down                         | Ingest, query, alerting (config cached in memory)                                                    | UI writes; scheduling stops, so monitors go `nodata`                                                        | Resume                       |
 | One probe region down                 | The other region's result decides (fewer reported)                                                   | Region shown as missing on check detail                                                                     | n/a                          |
 | A slow target                         | Everything else: each check is its own function call with its own timeout                            | —                                                                                                           | —                            |
-| Valkey down                           | Ingest (local quota pre-debit), `common` (rate limits fail open), alerting (fail-open notifications) | Exact quotas and cooldowns, and uniques salts for the rest of the day                                       | Rebuild                      |
+| Valkey down                           | `common` (rate limits fail open), alerting (fail-open notifications) | Ingest answers 503 with `Retry-After`; exact cooldowns                                                      | Rebuild                      |
 | `api/analytics` down | Checks run and results queue on the bus | Alerts wait until it starts; nothing lost | The consumer resumes from its offset |
 | `api/common` deploy                   | Cloud Scheduler retries on the next minute                                                           | Brief UI write blip; at most one pass skipped                                                               | n/a                          |
 | Cloud Scheduler job paused or failing | UI, ingest, query                                                                                    | Scheduling stops, so monitors go `nodata`; the dead-man's switch (§9.3) alerts                              | Resume the job               |
@@ -677,7 +685,7 @@ Two independent watchers:
 | api/query (Go) | Service `upstat-api-query` | us-central1 | 0-5 | request-based |
 | api/observability (Node) | Services `upstat-api-observability` (HTTP) and `upstat-api-observability-grpc` | us-central1 | 0-10 | request-based |
 | api/analytics (Python) | Service `upstat-api-analytics`, authenticated only | us-central1 | 0-2 | request-based |
-| probe (Python) | Cloud Run functions `upstat-probe-<region>`, private | us-central1, us-east4 | 0-N, concurrency > 1 | per request |
+| probe (Python) | Cloud Run services `upstat-probe-<region>`, private | us-central1, us-east4 | 0-N, concurrency > 1 | per request |
 | OTel Collector (stock image) | Service, private | us-central1 | 0-2, exports before it answers | request-based |
 | Postgres, Valkey, Kafka | Managed services | — | — | — |
 | ClickHouse | the boss's call (S-4): ClickHouse Cloud or a self-run VM | — | — | — |
@@ -690,7 +698,7 @@ evaluate, the hourly insight pass when due, wait for its lanes), so
 analytics needs no jobs of its own (S-14). Publishers wake the consumers they publish for with
 `GET /health` (`WAKE_<TARGET>_URL`). Provisioning goes through the
 infrastructure-as-code stack; `release.yml` only points services at new
-digests and deploys the probe's source.
+digests, the probes included.
 
 ### 10.2 Self-host (compose + Helm)
 
@@ -706,15 +714,16 @@ external endpoints or opt-in subcharts.
 Shared: `KAFKA_BROKERS/USERNAME/PASSWORD/SSL_CA` · `STORAGE_DRIVER/BUCKET/PREFIX/ENDPOINT/ACCESS_KEY/SECRET_KEY/USE_SSL` ·
 `REDIS_HOST/PORT/USERNAME/PASSWORD/TLS/DB/KEY_PREFIX` · `INTERNAL_TOKEN` (off Cloud Run) · `WAKE_<TARGET>_URL`.
 
-- **common:** `DATABASE_URL` · `CLICKHOUSE_URL` + `CLICKHOUSE_MIGRATE_USER/PASSWORD` · `JWT_SECRET` · `SESSION_SECRET` ·
+- **common:** `DATABASE_URL` · `CLICKHOUSE_URL` + `CLICKHOUSE_MIGRATE_USER/PASSWORD` + `CLICKHOUSE_QUERY_USER` (named by the row policies) · `JWT_SECRET` · `SESSION_SECRET` ·
   `GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI` · `WEB_URL` · `CORS_ORIGINS` · `PROBE_URLS` (region=url,…) · `QUERY_URL` ·
   `OTLP_LOADER_ENDPOINT` · `SCHEDULER_AUDIENCE/INVOKER_EMAIL` · `WORKER_ENABLED` (false on Cloud Run) · `SELF_HOST`.
-- **query:** `CLICKHOUSE_URL/USER/PASSWORD` (read-only) · `JWT_SECRET` · `SESSION_COOKIE_NAME` · `WEB_URL` · `CORS_ORIGINS` ·
+- **query:** `CLICKHOUSE_URL` + `CLICKHOUSE_QUERY_USER/PASSWORD` (read-only; the row policies name this user) · `JWT_SECRET` · `SESSION_COOKIE_NAME` · `WEB_URL` · `CORS_ORIGINS` ·
   `INTERNAL_AUDIENCE` + `INTERNAL_INVOKERS` (Cloud Run) or `INTERNAL_TOKEN`.
-- **observability:** `OTLP_LOADER_ENDPOINT` · `GRPC_PORT` · `INGEST_BYTES_PER_SECOND` · `TRUST_PROXY_HEADERS`.
+- **observability:** `OTLP_LOADER_ENDPOINT` (signed with an ID token on Cloud Run) · `INGEST_TRANSPORT` · `GRPC_PORT` · `INGEST_BYTES_PER_SECOND` · `INGEST_MAX_BODY_BYTES` · `INGEST_MAX_CONCURRENT_BODIES` · `CONFIG_MAX_AGE_SECONDS` · `COLLECTOR_TIMEOUT_MS` · `TRUST_PROXY_HEADERS` · `TRUST_PROXY_HOPS` · `REDIS_*`.
 - **analytics:** `QUERY_URL` · `WAKE_COMMON_URL` · `BREVO_API_KEY/FROM_EMAIL/FROM_NAME` · `WEB_URL` ·
   `GOOGLE_CLOUD_PROJECT` + `VERTEX_LOCATION/MODEL` (cloud) or `GROQ_API_KEY`/`GEMINI_API_KEY` (self-host) ·
   `SCHEDULER_AUDIENCE/INVOKER_EMAIL` · `WORKER_ENABLED`.
+- **otel-collector:** `CLICKHOUSE_ENDPOINT` · `CLICKHOUSE_DATABASE` · `CLICKHOUSE_LOADER_USER/PASSWORD` (INSERT only).
 - **probe:** `PROBE_REGION` · `PROBE_ALLOW_PRIVATE` (self-host only).
 - **web:** `NEXT_PUBLIC_API_URL=/api` (the `/api/v1` proxy) · `API_URL` · `QUERY_URL`.
 
@@ -736,7 +745,7 @@ api/
   observability/   Node (NestJS): src/{otlp,events,quota,usage,collector,config-cache,health}
   analytics/       Python: evaluator/, notifier/, evaluation.py, insights (analysis/, ml/, service/)
 functions/
-  probe/           Python Cloud Run function + Dockerfile for self-host
+  probe/           Python probe service (functions-framework) + Dockerfile
 deploy/{docker,helm,terraform}
   docker/otel-collector.yaml   the loader's configuration
 web/               unchanged layout, plus src/app/api/v1 (the proxy)
@@ -771,7 +780,7 @@ docs/
 S-1…S-13 were decided on 2026-10-29 and are recorded, with what changed
 from the v2.1 draft, in [decisions.md](decisions.md#system-design-s-1--s-13).
 Two carry provisioning or cost for the boss: ClickHouse hosting (S-4) and
-the two probe functions (S-5).
+the two probe services (S-5).
 
 ---
 
@@ -835,5 +844,5 @@ worth keeping, not a dual-write parity harness (§15 Q2).
 - **Usage meters bytes** for the OTLP pillars and events for RUM (S-11).
 - **Open follow-ups:** per-key rejection counts are not yet shown on the
   keys page (rejections are logged and counted at the gateway); browser
-  synthetic checks need a headless-browser probe; ClickHouse hosting and the probe functions need provisioning (S-4,
+  synthetic checks need a headless-browser probe; the probe services need provisioning (S-4,
   S-5).

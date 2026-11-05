@@ -14,7 +14,7 @@
 | `api/query` (Go, ClickHouse reads) | Cloud Run `upstat-api-query`. Public `/v1/*` reads for signed-in users, `/internal/v1/*` for services | web proxy, common, analytics |
 | `api/observability` (NestJS ingest gateway) | Cloud Run `upstat-api-observability` (OTLP/HTTP and `/v1/events`) and `upstat-api-observability-grpc` (OTLP/gRPC), one image | public (ingest keys) |
 | `api/analytics` (Python: evaluator, notifier, rules, SLOs, insights) | Cloud Run `upstat-api-analytics`, authenticated only. Consumes `cuelabs.requests` and `cuelabs.results` | Cloud Scheduler, wake calls |
-| `functions/probe` (Python, pycurl) | Cloud Run functions `upstat-probe-us-central1` and `upstat-probe-us-east4`, private (S-5) | common |
+| `functions/probe` (Python, pycurl) | Cloud Run services `upstat-probe-us-central1` and `upstat-probe-us-east4`, private (S-5) | common |
 | OTel Collector (stock `otel/opentelemetry-collector-contrib:0.130.0`) | Cloud Run `upstat-otel-collector`, private, config from `deploy/docker/otel-collector.yaml` | observability, common |
 | `web` (Next.js) | **Firebase App Hosting** backend `upstat-website` (upstat.cuesoft.io). `/api/v1/*` proxies telemetry reads to query and everything else to common | browsers |
 
@@ -57,7 +57,7 @@ one:
   `INTERNAL_AUDIENCE` and `INTERNAL_INVOKERS` (the common and analytics
   service accounts). Off Cloud Run, a shared `INTERNAL_TOKEN` does the same
   job.
-- The probe functions and the collector have private ingress. Only common
+- The probe services and the collector have private ingress. Only common
   holds invoker on the probes; common and observability hold invoker on the
   collector.
 - The gateway authenticates every request with an ingest key (ingestion
@@ -76,7 +76,7 @@ one:
 | Bucket | GCS bucket with prefix `upstat/` for config snapshots, claim-check payloads and postmortems |
 | ClickHouse | **Open question for the boss (S-4)**, see §5 |
 | Secrets | your secrets manager (`stg` config) |
-| GitHub environment `Sandbox` variables | `GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WORKLOAD_IDENTITY_PROVIDER`, `GCP_DEPLOY_SERVICE_ACCOUNT`, `PROBE_SERVICE_ACCOUNT` |
+| GitHub environment `Sandbox` variables | `GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WORKLOAD_IDENTITY_PROVIDER`, `GCP_DEPLOY_SERVICE_ACCOUNT` |
 
 ## 2. Provisioning (infrastructure-as-code)
 
@@ -85,10 +85,10 @@ one:
 - Cloud Run services instantiate the shared Cloud Run service module; the
   GitHub→GCP deploy identity uses **Workload Identity Federation**, no
   service-account keys in GitHub.
-- The stack creates every service, both probe function shells, the four
+- The stack creates every service (both probe services included), the
   scheduler jobs, the runtime accounts, the invoker grants in §1 and the
-  bucket. `release.yml` only points existing resources at new digests and
-  deploys the probe's source.
+  bucket prefix. `release.yml` only points existing services at new
+  digests; it never creates one.
 - Secrets and env flow from **your secrets manager** (the product's `stg`
   config) into Cloud Run env. The `.env.example` files and
   system-design.md §10.3 list the variable names; the secrets manager owns
@@ -104,7 +104,7 @@ analytics answer `/ready`).
 | Workflow | Trigger | Does |
 | --- | --- | --- |
 | `build-and-test.yml` | PRs **and** push to `main` | build and tests per service; **no deploy, no image push** |
-| `release.yml` | push to `main` touching `api/**` or `functions/**` | buildx (GHA cache) → push `cuesoft/upstat-api-{common,query,observability,analytics}` (tags: sha, `latest`) → updates the five Cloud Run services **by image digest** via WIF in the `Sandbox` environment, common first → fails unless every newest revision is Ready and common answers `/ready` → deploys the probe function source to both regions. The website is not in it: App Hosting rolls out from `main` |
+| `release.yml` | push to `main` touching `api/**` or `functions/**` | buildx (GHA cache) → push `cuesoft/upstat-api-{common,query,observability,analytics}`, `cuesoft/upstat-probe` and `cuesoft/upstat-otel-collector` (tags: sha, `latest`) → updates the Cloud Run services **by image digest** via WIF in the `Sandbox` environment, the collector then common first → fails unless every newest revision is Ready and common answers `/ready` → updates the probe service in both regions. The website is not in it: App Hosting rolls out from `main` |
 
 **Gating (X-6, revised 2026-10-27):** `stg` (sandbox) is the only
 environment. A merge to `main` that touches `api/**` or `functions/**`
@@ -122,7 +122,7 @@ Two hard-won rules, non-negotiable:
    `workload_identity_provider` and `service_account`), no JSON keys.
 
 The single protected GitHub environment is **`Sandbox`** (X-6): required
-reviewers and the `GCP_*` and `PROBE_SERVICE_ACCOUNT` variables above.
+reviewers and the `GCP_*` variables above.
 
 ## 4. Runtime contract (Cloud Run)
 
@@ -133,7 +133,7 @@ reviewers and the `GCP_*` and `PROBE_SERVICE_ACCOUNT` variables above.
 | api/observability (HTTP and gRPC) | 1 vCPU / 512 MiB | 80 | 0 to 10 | 60 s | request-based |
 | api/analytics | 1 vCPU / 1 GiB | 10 | 0 to 2 | 300 s | request-based |
 | otel-collector | 1 vCPU / 1 GiB | 80 | 0 to 2 | 60 s | request-based |
-| probe functions | 0.5 vCPU / 512 MiB | 20 | 0 to N | 60 s | request-based |
+| probe services | 0.5 vCPU / 512 MiB | 20 | 0 to N | 60 s | request-based |
 
 common's sizing is the decided default. The rest are proposed starting
 points to tune from the sandbox's real load. The collector exports before
@@ -167,17 +167,23 @@ answers 503 and senders' OTLP exporters retry.
 
 ## 5. Open: ClickHouse hosting (S-4)
 
-The code, schema and compose use the open-source ClickHouse server, and
-every environment only needs `CLICKHOUSE_URL` plus credentials. Where it runs
-in the sandbox is the boss's call. ClickHouse Cloud and Aiven's ClickHouse
-are paid, so the known options are a paid managed service or a self-run server on
-a small GCE VM. Until it is decided, common, query and the collector have no
-telemetry store in the cloud, so ClickHouse must be in place before the first
-rollout.
+The sandbox runs ClickHouse Cloud (Basic tier, GCP us-central1), imported into
+the cuesoft-iac stack with its database, users, grants and the read-only
+settings profile. Passwords live in Doppler `upstat/stg` and the IaC reads
+them from there. The service idles after 15 minutes and the stack keeps it
+stopped (`running: false`) until telemetry is needed.
 
-Whatever hosts it needs two users: one for common's migrations
-(`CLICKHOUSE_MIGRATE_USER`) and one read-only for query, plus the row
-policies the migrations create (S-9).
+Three users, each with its own env names so one Doppler config can feed
+every service:
+
+| User | Env | Rights |
+| --- | --- | --- |
+| `default` | `CLICKHOUSE_MIGRATE_USER/PASSWORD` (common) | Migrations, row policies |
+| `loader` | `CLICKHOUSE_LOADER_USER/PASSWORD` (collector) | INSERT, SELECT on `upstat` |
+| `query_ro` | `CLICKHOUSE_QUERY_USER/PASSWORD` (query) | SELECT on `upstat`, `readonly=2` |
+
+The row policies (migration `0003`, S-9) are written against
+`CLICKHOUSE_QUERY_USER`, so common needs that name too.
 
 ## 6. Self-host
 

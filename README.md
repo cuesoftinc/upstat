@@ -29,7 +29,7 @@ flowchart LR
     SDK[OTel SDKs · upstat.js] --> GW[api/observability, Node<br/>ingest gateway]
     WEB --> AC[api/common, Go<br/>control plane · scheduler · outbox]
     WEB --> Q[api/query, Go<br/>ClickHouse reads]
-    AC <-->|HTTPS| PR[probe functions, Python<br/>2 regions]
+    AC <-->|HTTPS| PR[probe services, Python<br/>2 regions]
     AC --> PG[(Postgres)]
     AC <-->|shared Kafka lanes| AN[api/analytics, Python<br/>evaluator · notifier · rules · SLOs · insights]
     GW --> COL[OTel Collector] --> CH[(ClickHouse)]
@@ -46,7 +46,7 @@ flowchart LR
 - **The gateway is thin**: `api/observability` authenticates ingest keys,
   meters bytes and forwards OTLP unparsed; product events are validated
   against the registry and hashed cookielessly.
-- **Probes** are Cloud Run functions in two regions; a monitor is down only
+- **Probes** are Cloud Run services in two regions; a monitor is down only
   when the regions agree.
 
 ### Tech stack

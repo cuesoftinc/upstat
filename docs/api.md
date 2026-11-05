@@ -72,8 +72,9 @@ Rules: batch ≤ 100. **Mixed-batch semantics [Decided]:** the endpoint returns
 `202 {accepted: n, rejected: m, rejections: [{index, code}]}` — per-item
 rejection codes (`unknown_event`, `unknown_dim`, `ts_out_of_range`,
 `bad_shape`) so sibling consumers can debug; whole-request 4xx is reserved
-for auth (`401`), origin (`403 origin_not_allowed`), rate (`429`), and
-malformed JSON (`400`). Unknown dims reject the item (privacy by schema);
+for auth (`401`), origin (`403 origin_not_allowed`, including `Origin: null`),
+rate (`429`), body size (`413`), a busy instance or an unavailable store
+(`503` with `Retry-After`), and malformed JSON (`400`). Unknown dims reject the item (privacy by schema);
 per-key rate limits; `visitor_hash` computed server-side (cookieless,
 browser events only — see §3.4a).
 
