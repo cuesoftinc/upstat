@@ -1,4 +1,4 @@
-functions-framework==3.9.2
-pycurl==7.45.6
+functions-framework==3.10.2
+pycurl==7.49.0
 google-auth==2.62.0
 requests==2.34.2
