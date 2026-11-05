@@ -1,5 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { CONFIG, type Config } from "../config/config";
+import { IdTokenSigner } from "./id-token";
 
 export interface Forwarded {
   status: number;
@@ -15,12 +16,19 @@ const kv = (key: string, value: string) => ({
 
 /**
  * The hop to the OpenTelemetry Collector (§6.3 as amended by X-11): OTLP
- * passes through unparsed with the org in X-Upstat-Org-Id, which the
- * collector stamps on the resource; product events and usage go as OTLP
- * logs that ClickHouse views split into their own tables.
+ * passes through unparsed (bytes and Content-Encoding exactly as received)
+ * to the collector with the org in X-Upstat-Org-Id, which the collector
+ * stamps on the resource; product events and usage go as OTLP logs with
+ * X-Upstat-Source: internal, the only way into the reserved services
+ * upstat.events and upstat.usage. Only fixed headers are ever sent, so a
+ * customer cannot supply the source header. The timeout outlasts the
+ * collector's own retries, so a 503 here never follows a write the
+ * collector committed.
  */
 @Injectable()
 export class CollectorService {
+  private readonly signer = new IdTokenSigner();
+
   constructor(@Inject(CONFIG) private readonly config: Config) {}
 
   async forward(
@@ -29,17 +37,21 @@ export class CollectorService {
     orgId: string,
     contentType: string,
     contentEncoding?: string,
+    internal = false,
   ): Promise<Forwarded> {
+    // The collector is private on Cloud Run: Cloud Run IAM checks the gateway's ID token.
     const headers: Record<string, string> = {
+      ...(await this.signer.headers(this.config.collectorUrl)),
       "Content-Type": contentType,
       "X-Upstat-Org-Id": orgId,
     };
     if (contentEncoding) headers["Content-Encoding"] = contentEncoding;
+    if (internal) headers["X-Upstat-Source"] = "internal";
     const response = await fetch(`${this.config.collectorUrl}/v1/${signal}`, {
       method: "POST",
       headers,
       body: new Uint8Array(body),
-      signal: AbortSignal.timeout(10_000),
+      signal: AbortSignal.timeout(this.config.collectorTimeoutMs),
     });
     return {
       status: response.status,
@@ -80,6 +92,8 @@ export class CollectorService {
       Buffer.from(JSON.stringify(body)),
       orgId,
       "application/json",
+      undefined,
+      true,
     );
     if (response.status >= 300)
       throw new Error(`collector answered ${response.status}`);

@@ -26,5 +26,5 @@ USER node
 ENV PORT=8081
 EXPOSE 8081 4317
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD node -e "require('http').get('http://127.0.0.1:'+(process.env.PORT||8081)+'/health',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"
+  CMD node -e "const p=process.env.PORT||8081;if(process.env.INGEST_TRANSPORT==='grpc'){require('net').connect(+p,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))}else{require('http').get('http://127.0.0.1:'+p+'/health',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))}"
 CMD ["node", "dist/main.js"]

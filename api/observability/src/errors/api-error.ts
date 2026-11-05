@@ -11,3 +11,9 @@ export class ApiError extends HttpException {
     super({ error: { code, message, details } }, status);
   }
 }
+
+/** The retryable refusal: a dependency is down; the sender's retry is the buffer. */
+export const unavailable = (retryAfter = 5): ApiError =>
+  new ApiError(503, "unavailable", "Ingest is temporarily unavailable; retry", {
+    retry_after: retryAfter,
+  });

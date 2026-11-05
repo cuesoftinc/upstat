@@ -1,61 +1,43 @@
 import { createHash, randomBytes } from "node:crypto";
-import {
-  Inject,
-  Injectable,
-  Logger,
-  type OnModuleDestroy,
-} from "@nestjs/common";
-import { createClient, type RedisClientType } from "redis";
-import { CONFIG, type Config } from "../config/config";
+import { Injectable } from "@nestjs/common";
+import { unavailable } from "../errors/api-error";
+import { ValkeyService } from "../valkey/valkey.service";
 
 export interface Verdict {
   ok: boolean;
   retryAfter: number;
 }
 
+/** Debit a fixed window; a denied debit is rolled back. Returns 1 when allowed. */
+export const TAKE_SCRIPT = `
+local used = redis.call('INCRBY', KEYS[1], ARGV[1])
+if used == tonumber(ARGV[1]) then redis.call('EXPIRE', KEYS[1], ARGV[3]) end
+if used > tonumber(ARGV[2]) then
+  redis.call('DECRBY', KEYS[1], ARGV[1])
+  return 0
+end
+return 1`;
+
+/** Create the day's salt once and return the stored one. */
+export const SALT_SCRIPT = `
+redis.call('SET', KEYS[1], ARGV[1], 'NX', 'EX', ARGV[2])
+return redis.call('GET', KEYS[1])`;
+
 /**
  * Limits and daily salts on the shared Valkey (keys upstat:*; §5.1):
  * per-key byte quotas (S-11), per-property event rates, pre-auth per-IP
  * limits, and the visitor-hash salts. Fixed windows, counted in Valkey so
- * every instance shares them. If Valkey is down each instance falls back
- * to its own counters: limits get looser, ingest keeps working (§9.2).
+ * every instance shares them. Where Valkey is required and unreachable the
+ * call answers 503 with a retry hint: per-instance counters or salts would
+ * loosen limits and split visitors. Without REDIS_HOST (a single local
+ * process) the state is in memory.
  */
 @Injectable()
-export class QuotaService implements OnModuleDestroy {
-  private readonly logger = new Logger(QuotaService.name);
-  private readonly client: RedisClientType | null = null;
-  private readonly prefix: string;
+export class QuotaService {
   private readonly local = new Map<string, { window: number; used: number }>();
   private readonly salts = new Map<string, Buffer>();
 
-  constructor(@Inject(CONFIG) config: Config) {
-    this.prefix = config.redis.prefix;
-    if (config.redis.host) {
-      const base = {
-        host: config.redis.host,
-        port: config.redis.port,
-        connectTimeout: 2000,
-        reconnectStrategy: (retries: number) => Math.min(retries * 200, 5000),
-      };
-      this.client = createClient({
-        socket: config.redis.tls ? { ...base, tls: true as const } : base,
-        username: config.redis.username || undefined,
-        password: config.redis.password || undefined,
-        database: config.redis.db,
-      }) as RedisClientType;
-      this.client.on("error", () => undefined); // logged where it matters
-      this.client.connect().catch((error: Error) =>
-        this.logger.warn({
-          message: "valkey not reachable; local limits",
-          error: error.message,
-        }),
-      );
-    }
-  }
-
-  async onModuleDestroy(): Promise<void> {
-    if (this.client?.isOpen) await this.client.quit();
-  }
+  constructor(private readonly valkey: ValkeyService) {}
 
   /**
    * Debit `cost` against `limit` per `windowSeconds` for `key`. Denied
@@ -73,22 +55,15 @@ export class QuotaService implements OnModuleDestroy {
       1,
       Math.ceil((window + 1) * windowSeconds - now / 1000),
     );
-    if (this.client?.isReady) {
-      try {
-        const k = `${this.prefix}q:${key}:${window}`;
-        const used = await this.client.incrBy(k, cost);
-        if (used === cost) await this.client.expire(k, windowSeconds * 2);
-        if (used > limit) {
-          await this.client.decrBy(k, cost);
-          return { ok: false, retryAfter };
-        }
-        return { ok: true, retryAfter: 0 };
-      } catch (error) {
-        this.logger.warn({
-          message: "valkey quota failed; local limits",
-          error: (error as Error).message,
-        });
-      }
+    if (this.valkey.enabled) {
+      const allowed = await this.valkey.eval(
+        TAKE_SCRIPT,
+        [this.valkey.key(`q:${key}:${window}`)],
+        [cost, limit, windowSeconds * 2],
+      );
+      return allowed === 1
+        ? { ok: true, retryAfter: 0 }
+        : { ok: false, retryAfter };
     }
     const slot = this.local.get(key);
     const used = (slot && slot.window === window ? slot.used : 0) + cost;
@@ -106,27 +81,20 @@ export class QuotaService implements OnModuleDestroy {
   async salt(day: string, now = Date.now()): Promise<Buffer> {
     const cached = this.salts.get(day);
     if (cached) return cached;
-    const dayEnd = Date.parse(`${day}T00:00:00Z`) + 24 * 3600 * 1000;
-    const ttl = Math.max(
-      60,
-      Math.ceil((dayEnd + 48 * 3600 * 1000 - now) / 1000),
-    );
     let salt = randomBytes(32);
-    if (this.client?.isReady) {
-      try {
-        const k = `${this.prefix}salt:${day}`;
-        await this.client.set(k, salt.toString("base64"), {
-          NX: true,
-          EX: ttl,
-        });
-        const stored = await this.client.get(k);
-        if (stored) salt = Buffer.from(stored, "base64");
-      } catch (error) {
-        this.logger.warn({
-          message: "valkey salt failed; local salt",
-          error: (error as Error).message,
-        });
-      }
+    if (this.valkey.enabled) {
+      const dayEnd = Date.parse(`${day}T00:00:00Z`) + 24 * 3600 * 1000;
+      const ttl = Math.max(
+        60,
+        Math.ceil((dayEnd + 48 * 3600 * 1000 - now) / 1000),
+      );
+      const stored = await this.valkey.eval(
+        SALT_SCRIPT,
+        [this.valkey.key(`salt:${day}`)],
+        [salt.toString("base64"), ttl],
+      );
+      if (typeof stored !== "string") throw unavailable(2);
+      salt = Buffer.from(stored, "base64");
     }
     this.salts.set(day, salt);
     for (const known of this.salts.keys()) {

@@ -14,16 +14,25 @@ import { ConfigCacheService } from "./config-cache.service";
 const REQUESTS = "cuelabs.requests";
 const CONFIG_CHANGED = "upstat.config.changed";
 
+const RETRY_FIRST_MS = 2_000;
+const RETRY_MAX_MS = 60_000;
+
 /**
- * Consumer group upstat-observability on the shared requests lane: reloads
- * a snapshot when common says it changed. Every other message is another
- * product's or another service's, and is committed without a word.
+ * Consumer group upstat-observability (<product>-<service>) on the shared
+ * requests lane: reloads a snapshot when common says it changed. A group
+ * gives each message to one instance, so this only speeds one instance
+ * up; every instance rechecks the snapshot by age (ConfigCacheService),
+ * and readiness never waits for Kafka. Start retries with backoff until
+ * it connects. Every other message is another product's or another
+ * service's, and is committed without a word.
  */
 @Injectable()
 export class ConfigConsumerService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(ConfigConsumerService.name);
   private readonly consumer: Consumer;
   running = false;
+  private stopped = false;
+  private retry?: NodeJS.Timeout;
 
   constructor(
     @Inject(CONFIG) config: Config,
@@ -51,22 +60,33 @@ export class ConfigConsumerService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit(): Promise<void> {
     await this.cache.load();
-    // Don't block startup on Kafka: the snapshots are loaded; reloads follow.
-    this.start().catch((error: Error) =>
-      this.logger.warn({
-        message: "kafka not reachable yet",
-        error: error.message,
-      }),
-    );
+    // Don't block startup on Kafka: the snapshots are loaded.
+    void this.start();
   }
 
-  private async start(): Promise<void> {
-    await this.consumer.connect();
-    await this.consumer.subscribe({ topic: REQUESTS, fromBeginning: false });
-    await this.consumer.run({
-      eachMessage: async ({ message }) => this.handle(message.value),
-    });
-    this.running = true;
+  private async start(delay = RETRY_FIRST_MS): Promise<void> {
+    if (this.stopped) return;
+    try {
+      await this.consumer.connect();
+      await this.consumer.subscribe({ topic: REQUESTS, fromBeginning: false });
+      await this.consumer.run({
+        eachMessage: async ({ message }) => this.handle(message.value),
+      });
+      this.running = true;
+    } catch (error) {
+      this.logger.warn({
+        message: "kafka not reachable; retrying",
+        error: (error as Error).message,
+        retry_in_ms: delay,
+      });
+      await this.consumer.disconnect().catch(() => undefined);
+      if (this.stopped) return;
+      this.retry = setTimeout(
+        () => void this.start(Math.min(delay * 2, RETRY_MAX_MS)),
+        delay,
+      );
+      this.retry.unref();
+    }
   }
 
   async handle(value: Buffer | null): Promise<void> {
@@ -97,6 +117,8 @@ export class ConfigConsumerService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy(): Promise<void> {
+    this.stopped = true;
+    clearTimeout(this.retry);
     this.running = false;
     await this.consumer.disconnect();
   }

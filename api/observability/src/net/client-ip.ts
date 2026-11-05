@@ -1,38 +1,49 @@
 import { isIP } from "node:net";
 import type { Request } from "express";
 
-const PRIVATE = [
-  /^10\./,
-  /^127\./,
-  /^169\.254\./,
-  /^192\.168\./,
-  /^172\.(1[6-9]|2\d|3[01])\./,
-  /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./,
-  /^::1$/,
-  /^f[cd]/i,
-  /^fe80/i,
-];
+let trusted = false;
+let hops = 1;
 
-let trustProxy = false;
-
-/** Set once at startup from TRUST_PROXY_HEADERS. */
-export const setTrustProxy = (on: boolean): void => {
-  trustProxy = on;
+/** Set once at startup from TRUST_PROXY_HEADERS and TRUST_PROXY_HOPS. */
+export const setTrustProxy = (on: boolean, proxies = 1): void => {
+  trusted = on;
+  hops = Math.max(1, proxies);
 };
+
+/** The socket peer as a bare address (no port, no ::ffff: prefix). */
+export const peerAddress = (peer: string): string =>
+  peer
+    .replace(/^ipv[46]:/, "")
+    .replace(/^\[([^\]]+)\](:\d+)?$/, "$1")
+    .replace(/^(\d+\.\d+\.\d+\.\d+):\d+$/, "$1")
+    .replace(/^::ffff:/, "");
 
 /**
- * The client's address (analytics-math.md §1): behind the load balancer,
- * the left-most public address in X-Forwarded-For; otherwise the socket.
- * Used for limits and the visitor hash only, never stored or logged.
+ * The client's address (analytics-math.md §1). Each trusted proxy appends
+ * the address it saw to X-Forwarded-For, so the client is the entry
+ * `hops` from the right (Cloud Run: 1, the Google front end; behind an
+ * external load balancer: 2). Anything further left is client-supplied
+ * and never read. Without trust, or when that entry is absent or not an
+ * address, the socket peer. Used for limits and the visitor hash only,
+ * never stored or logged.
  */
-export const clientIp = (req: Request): string => {
-  if (trustProxy) {
-    const forwarded = String(req.headers["x-forwarded-for"] ?? "")
+export const resolveClientIp = (
+  forwardedFor: string | undefined,
+  peer: string,
+): string => {
+  if (trusted && forwardedFor) {
+    const chain = forwardedFor
       .split(",")
       .map((s) => s.trim())
-      .filter((s) => isIP(s));
-    const pub = forwarded.find((ip) => !PRIVATE.some((re) => re.test(ip)));
-    if (pub) return pub;
+      .filter(Boolean);
+    const candidate = chain[chain.length - hops];
+    if (candidate && isIP(candidate)) return candidate;
   }
-  return (req.socket.remoteAddress ?? "").replace(/^::ffff:/, "");
+  return peerAddress(peer);
 };
+
+export const clientIp = (req: Request): string =>
+  resolveClientIp(
+    req.headers["x-forwarded-for"] as string | undefined,
+    req.socket.remoteAddress ?? "",
+  );

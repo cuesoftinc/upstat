@@ -8,6 +8,7 @@ import {
 import * as grpc from "@grpc/grpc-js";
 import { CONFIG, type Config } from "../config/config";
 import { ApiError } from "../errors/api-error";
+import { resolveClientIp } from "../net/client-ip";
 import { OtlpService, type Signal } from "./otlp.service";
 
 const identity = (b: Buffer) => b;
@@ -21,17 +22,36 @@ const SERVICES: Record<Signal, string> = {
 const STATUS: Record<number, grpc.status> = {
   401: grpc.status.UNAUTHENTICATED,
   403: grpc.status.PERMISSION_DENIED,
+  413: grpc.status.RESOURCE_EXHAUSTED,
   429: grpc.status.RESOURCE_EXHAUSTED,
   503: grpc.status.UNAVAILABLE,
 };
 
+const failure = (error: unknown): grpc.StatusObject => {
+  if (error instanceof ApiError) {
+    const body = error.getResponse() as { error: { message: string } };
+    return {
+      code: STATUS[error.getStatus()] ?? grpc.status.INTERNAL,
+      details: body.error.message,
+      metadata: new grpc.Metadata(),
+    };
+  }
+  return {
+    code: grpc.status.INTERNAL,
+    details: "internal",
+    metadata: new grpc.Metadata(),
+  };
+};
+
 /**
- * OTLP/gRPC (port 4317). Messages stay raw bytes (a pass-through
- * serializer): the gateway never parses OTLP. An Export*ServiceRequest is
- * the same protobuf OTLP/HTTP carries, so each is forwarded to the
- * collector over HTTP; the empty response is the all-default message.
- * Cloud Run serves one port per service, so cloud deploys this listener as
- * its own service (ingest-grpc, §6.3); compose runs both in one container.
+ * OTLP/gRPC. Messages stay raw bytes (a pass-through serializer): the
+ * gateway never parses OTLP. An Export*ServiceRequest is the same protobuf
+ * OTLP/HTTP carries, so each is forwarded to the collector over HTTP; the
+ * empty response is the all-default message. Cloud Run routes only PORT,
+ * so the gRPC service runs with INGEST_TRANSPORT=grpc and serves h2c on
+ * PORT; INGEST_TRANSPORT=both (compose) serves it on GRPC_PORT beside HTTP.
+ * An interceptor checks the source and key from the call's metadata before
+ * the message is read.
  */
 @Injectable()
 export class GrpcServer implements OnModuleInit, OnModuleDestroy {
@@ -43,10 +63,48 @@ export class GrpcServer implements OnModuleInit, OnModuleDestroy {
     private readonly otlp: OtlpService,
   ) {}
 
+  /** The port this process serves gRPC on; 0 = not at all. */
+  private port(): number {
+    if (this.config.transport === "http") return 0;
+    return this.config.transport === "grpc"
+      ? this.config.port
+      : this.config.grpcPort;
+  }
+
+  private credentials(
+    md: grpc.Metadata,
+    peer: string,
+  ): { key: string; ip: string } {
+    const auth = String(md.get("authorization")[0] ?? "");
+    const key =
+      String(md.get("upstat-ingest-key")[0] ?? "") ||
+      (auth.toLowerCase().startsWith("bearer ") ? auth.slice(7).trim() : "");
+    const forwarded = String(md.get("x-forwarded-for")[0] ?? "") || undefined;
+    return { key, ip: resolveClientIp(forwarded, peer) };
+  }
+
+  private readonly gate: grpc.ServerInterceptor = (_method, call) => {
+    const listener = new grpc.ServerListenerBuilder()
+      .withOnReceiveMetadata((metadata, next) => {
+        const { key, ip } = this.credentials(metadata, call.getPeer());
+        this.otlp.authenticate(key, ip).then(
+          () => next(metadata),
+          (error: unknown) => call.sendStatus(failure(error)),
+        );
+      })
+      .build();
+    const responder = new grpc.ResponderBuilder()
+      .withStart((next) => next(listener))
+      .build();
+    return new grpc.ServerInterceptingCall(call, responder);
+  };
+
   async onModuleInit(): Promise<void> {
-    if (!this.config.grpcPort) return;
+    const port = this.port();
+    if (!port) return;
     const server = new grpc.Server({
-      "grpc.max_receive_message_length": 16 << 20,
+      "grpc.max_receive_message_length": this.config.maxBodyBytes,
+      interceptors: [this.gate],
     });
     for (const [signal, path] of Object.entries(SERVICES) as [
       Signal,
@@ -74,16 +132,13 @@ export class GrpcServer implements OnModuleInit, OnModuleDestroy {
     }
     await new Promise<void>((resolve, reject) =>
       server.bindAsync(
-        `0.0.0.0:${this.config.grpcPort}`,
+        `0.0.0.0:${port}`,
         grpc.ServerCredentials.createInsecure(),
         (error) => (error ? reject(error) : resolve()),
       ),
     );
     this.server = server;
-    this.logger.log({
-      message: "OTLP/gRPC listening",
-      port: this.config.grpcPort,
-    });
+    this.logger.log({ message: "OTLP/gRPC listening", port });
   }
 
   private async export(
@@ -91,46 +146,26 @@ export class GrpcServer implements OnModuleInit, OnModuleDestroy {
     call: grpc.ServerUnaryCall<Buffer, Buffer>,
     done: grpc.sendUnaryData<Buffer>,
   ): Promise<void> {
-    const md = call.metadata;
-    const auth = String(md.get("authorization")[0] ?? "");
-    const key =
-      String(md.get("upstat-ingest-key")[0] ?? "") ||
-      (auth.toLowerCase().startsWith("bearer ") ? auth.slice(7).trim() : "");
-    const ip = call
-      .getPeer()
-      .replace(/^ipv[46]:/, "")
-      .replace(/:\d+$/, "")
-      .replace(/^\[|\]$/g, "");
+    const { key, ip } = this.credentials(call.metadata, call.getPeer());
     try {
+      // The source limit was taken by the interceptor; this only resolves the key.
+      const ingestKey = await this.otlp.authenticate(key, ip, false);
       const out = await this.otlp.ingest(
         signal,
         call.request,
-        key,
+        ingestKey,
         "application/x-protobuf",
-        undefined,
-        ip,
       );
       if (out.status >= 300) {
         done({
-          code:
-            out.status >= 500
-              ? grpc.status.UNAVAILABLE
-              : grpc.status.INVALID_ARGUMENT,
+          code: grpc.status.INVALID_ARGUMENT,
           details: `collector ${out.status}`,
         });
         return;
       }
       done(null, Buffer.alloc(0));
     } catch (error) {
-      if (error instanceof ApiError) {
-        const body = error.getResponse() as { error: { message: string } };
-        done({
-          code: STATUS[error.getStatus()] ?? grpc.status.INTERNAL,
-          details: body.error.message,
-        });
-        return;
-      }
-      done({ code: grpc.status.INTERNAL, details: "internal" });
+      done(failure(error));
     }
   }
 

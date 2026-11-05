@@ -5,7 +5,7 @@ import {
   ConfigCacheService,
   type IngestKey,
 } from "../config-cache/config-cache.service";
-import { ApiError } from "../errors/api-error";
+import { ApiError, unavailable } from "../errors/api-error";
 import { QuotaService } from "../quota/quota.service";
 import { UsageService } from "../usage/usage.service";
 
@@ -43,7 +43,7 @@ export interface Accepted {
   rejections: Rejection[];
 }
 
-interface Context {
+export interface Context {
   plainKey: string;
   origin?: string;
   ip: string;
@@ -67,7 +67,29 @@ export class EventsService {
     private readonly usage: UsageService,
   ) {}
 
-  async authorize(
+  /**
+   * Everything decided before the body is read: the source limit, the
+   * property key and its origin allowlist.
+   */
+  async authenticate(
+    ctx: Pick<Context, "plainKey" | "origin" | "ip">,
+    now = Date.now(),
+  ): Promise<IngestKey> {
+    const pre = await this.quota.take(
+      QuotaService.ipKey(ctx.ip),
+      1,
+      1000,
+      60,
+      now,
+    );
+    if (!pre.ok)
+      throw new ApiError(429, "rate_limited", "Too many requests", {
+        retry_after: pre.retryAfter,
+      });
+    return this.authorize(ctx);
+  }
+
+  private async authorize(
     ctx: Pick<Context, "plainKey" | "origin">,
   ): Promise<IngestKey> {
     if (!ctx.plainKey)
@@ -91,7 +113,12 @@ export class EventsService {
         "unauthorized",
         "Unknown or revoked property key",
       );
-    if (ctx.origin && !(key.allowed_origins ?? []).includes(ctx.origin)) {
+    // An opaque origin ("null": sandboxed frames, file:, redirects) names no site.
+    if (
+      ctx.origin !== undefined &&
+      (ctx.origin === "null" ||
+        !(key.allowed_origins ?? []).includes(ctx.origin))
+    ) {
       throw new ApiError(
         403,
         "origin_not_allowed",
@@ -101,24 +128,15 @@ export class EventsService {
     return key;
   }
 
+  /** The batch of an authenticated request; `rawBytes` is the body as received. */
   async accept(
+    key: IngestKey,
     body: unknown,
     rawBytes: number,
     ctx: Context,
     now = Date.now(),
   ): Promise<Accepted> {
-    const pre = await this.quota.take(
-      QuotaService.ipKey(ctx.ip),
-      1,
-      1000,
-      60,
-      now,
-    );
-    if (!pre.ok)
-      throw new ApiError(429, "rate_limited", "Too many requests", {
-        retry_after: pre.retryAfter,
-      });
-    const key = await this.authorize(ctx);
+    await this.cache.ensureFresh("registry", now);
     const events = (body as { events?: unknown })?.events;
     if (
       !Array.isArray(events) ||
@@ -190,14 +208,24 @@ export class EventsService {
           message: "events not forwarded",
           error: (error as Error).message,
         });
-        throw new ApiError(
-          503,
-          "unavailable",
-          "Ingest is temporarily unavailable; retry",
-          { retry_after: 5 },
-        );
+        throw unavailable();
       }
-      this.usage.add(key.org_id, key.id, "rum", rawBytes, records.length);
+      try {
+        await this.usage.add(
+          key.org_id,
+          key.id,
+          "rum",
+          rawBytes,
+          records.length,
+          now,
+        );
+      } catch (error) {
+        this.logger.error({
+          message: "usage not recorded",
+          error: (error as Error).message,
+        });
+      }
+      await this.usage.flushDue(now);
     }
     if (rejections.length) {
       this.logger.log({
