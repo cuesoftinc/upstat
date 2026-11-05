@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"sort"
+	"sync/atomic"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -11,9 +13,31 @@ import (
 	"github.com/cuesoftinc/upstat/api/common/pkg/snapshot"
 )
 
+type queuedKey struct{}
+
+// Queued records, for the request that owns its context, whether the request
+// queued outbox rows; the server publishes them before it answers (S-14).
+type Queued struct{ n atomic.Int64 }
+
+func (q *Queued) Any() bool { return q.n.Load() > 0 }
+
+// WithQueued returns a context whose Enqueue calls count on the Queued.
+func WithQueued(ctx context.Context) (context.Context, *Queued) {
+	q := &Queued{}
+	return context.WithValue(ctx, queuedKey{}, q), q
+}
+
+// NoteQueued counts one queued row against ctx's Queued, if it has one.
+func NoteQueued(ctx context.Context) {
+	if q, ok := ctx.Value(queuedKey{}).(*Queued); ok {
+		q.n.Add(1)
+	}
+}
+
 // Enqueue writes an event in the caller's transaction (§6.8): it is sent if
 // and only if the business write commits. Empty requestID means a new one.
 func Enqueue(ctx context.Context, tx pgx.Tx, event, key, requestID string, data any) error {
+	NoteQueued(ctx)
 	_, err := tx.Exec(ctx, `INSERT INTO outbox (event, message_key, payload, request_id)
 		VALUES ($1, $2, $3, coalesce(nullif($4, ''), gen_random_uuid()::text))`, event, key, mustJSON(data), requestID)
 	return err
@@ -35,10 +59,10 @@ type OutboxRow struct {
 }
 
 // ClaimOutbox locks up to limit unsent rows; concurrent publishers skip
-// each other's rows (SKIP LOCKED).
+// each other's rows (SKIP LOCKED). Rows parked as failed are not claimed.
 func ClaimOutbox(ctx context.Context, tx pgx.Tx, limit int) ([]OutboxRow, error) {
-	rows, err := tx.Query(ctx, `SELECT id, event, message_key, request_id, payload FROM outbox WHERE published_at IS NULL
-		ORDER BY id LIMIT $1 FOR UPDATE SKIP LOCKED`, limit)
+	rows, err := tx.Query(ctx, `SELECT id, event, message_key, request_id, payload FROM outbox
+		WHERE published_at IS NULL AND failed_at IS NULL ORDER BY id LIMIT $1 FOR UPDATE SKIP LOCKED`, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -53,15 +77,53 @@ func MarkPublished(ctx context.Context, tx pgx.Tx, ids []int64) error {
 	return err
 }
 
-func PruneOutbox(ctx context.Context, tx pgx.Tx, olderThan time.Duration) (int64, error) {
-	tag, err := tx.Exec(ctx, `DELETE FROM outbox WHERE published_at < now() - make_interval(secs => $1)`, olderThan.Seconds())
+// MarkFailedOutbox parks a row that can never be sent, with the cause; it
+// stays in the table for diagnosis and for RequeueFailedOutbox.
+func MarkFailedOutbox(ctx context.Context, tx pgx.Tx, id int64, cause string) error {
+	_, err := tx.Exec(ctx, `UPDATE outbox SET failed_at = now(), failure = $2, attempts = attempts + 1 WHERE id = $1`, id, cause)
+	return err
+}
+
+// RequeueFailedOutbox puts rows that failed under maxAttempts times, longer
+// than wait ago, back in the queue (a fix may have shipped since); it
+// returns how many.
+func RequeueFailedOutbox(ctx context.Context, tx pgx.Tx, maxAttempts int, wait time.Duration) (int64, error) {
+	tag, err := tx.Exec(ctx, `UPDATE outbox SET failed_at = NULL WHERE published_at IS NULL AND failed_at IS NOT NULL
+		AND attempts < $1 AND failed_at < now() - make_interval(secs => $2)`, maxAttempts, wait.Seconds())
 	return tag.RowsAffected(), err
 }
 
-// PendingOutbox counts unsent rows.
+// PruneOutbox deletes published rows older than olderThan, and failed rows
+// older than failedFor.
+func PruneOutbox(ctx context.Context, tx pgx.Tx, olderThan, failedFor time.Duration) (int64, error) {
+	tag, err := tx.Exec(ctx, `DELETE FROM outbox WHERE published_at < now() - make_interval(secs => $1)
+		OR (published_at IS NULL AND failed_at < now() - make_interval(secs => $2))`, olderThan.Seconds(), failedFor.Seconds())
+	return tag.RowsAffected(), err
+}
+
+// PendingOutbox counts unsent rows that are still being tried.
 func PendingOutbox(ctx context.Context, tx pgx.Tx) (int, error) {
 	var n int
-	return n, tx.QueryRow(ctx, `SELECT count(*) FROM outbox WHERE published_at IS NULL`).Scan(&n)
+	return n, tx.QueryRow(ctx, `SELECT count(*) FROM outbox WHERE published_at IS NULL AND failed_at IS NULL`).Scan(&n)
+}
+
+// FailedOutbox counts rows parked as failed.
+func FailedOutbox(ctx context.Context, tx pgx.Tx) (int, error) {
+	var n int
+	return n, tx.QueryRow(ctx, `SELECT count(*) FROM outbox WHERE published_at IS NULL AND failed_at IS NOT NULL`).Scan(&n)
+}
+
+// LockSnapshots serialises snapshot rewrites per kind until the transaction
+// ends. Kinds are locked in sorted order so two publishers cannot deadlock.
+func LockSnapshots(ctx context.Context, tx pgx.Tx, kinds ...string) error {
+	sorted := append([]string(nil), kinds...)
+	sort.Strings(sorted)
+	for _, kind := range sorted {
+		if _, err := tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtext('snapshot:' || $1))`, kind); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ClaimResult reports whether this is the first result for requestID; it

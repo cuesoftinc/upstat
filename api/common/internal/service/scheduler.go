@@ -66,6 +66,18 @@ const (
 	maxInFlight = 200
 )
 
+// claimLease is how long a claimed monitor or check stays out of other
+// passes when its own pass dies before recording the tick.
+const claimLease = 3 * time.Minute
+
+// tickSpace names ticks: a tick id is a function of the monitor and slot,
+// so a retried slot reaches analytics under the id it already knows.
+var tickSpace = uuid.MustParse("7d0f3a52-9a45-4c1e-8f67-5b2d6e0a1c34")
+
+func tickID(monitorID string, slot time.Time) string {
+	return uuid.NewSHA1(tickSpace, []byte(monitorID+"|"+slot.UTC().Format(time.RFC3339Nano))).String()
+}
+
 // RunChecks runs one pass of due monitors and due synthetics; Cloud
 // Scheduler calls it every minute (POST /internal/jobs/run-checks).
 func (s *Services) RunChecks(ctx context.Context) error {
@@ -76,13 +88,13 @@ func (s *Services) RunChecks(ctx context.Context) error {
 	for {
 		var due []repository.DueMonitor
 		if err := s.DB.AsSystem(ctx, func(tx pgx.Tx) (err error) {
-			due, err = repository.ClaimDueMonitors(ctx, tx, claimBatch)
+			due, err = repository.ClaimDueMonitors(ctx, tx, claimBatch, claimLease)
 			return err
 		}); err != nil {
 			return err
 		}
 		if len(due) > 0 {
-			if err := s.relay(ctx, s.probe(ctx, due)); err != nil {
+			if err := s.dispatch(ctx, due); err != nil {
 				return err
 			}
 		}
@@ -91,6 +103,25 @@ func (s *Services) RunChecks(ctx context.Context) error {
 		}
 	}
 	return s.runDueSynthetics(ctx)
+}
+
+// dispatch probes the claimed monitors and records their ticks; when the
+// pass fails the leases end at once, so the next pass retries the same slots.
+func (s *Services) dispatch(ctx context.Context, due []repository.DueMonitor) error {
+	err := s.relay(ctx, s.probe(ctx, due), due)
+	if err == nil {
+		return nil
+	}
+	ids := make([]string, len(due))
+	for i, m := range due {
+		ids[i] = m.ID
+	}
+	rctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
+	defer cancel()
+	if rerr := s.DB.AsSystem(rctx, func(tx pgx.Tx) error { return repository.ReleaseMonitors(rctx, tx, ids) }); rerr != nil {
+		slog.WarnContext(ctx, "monitor leases not released; they lapse on their own", "monitors", len(ids), "error", rerr)
+	}
+	return err
 }
 
 // probe calls every region for every monitor concurrently; each call waits
@@ -106,7 +137,7 @@ func (s *Services) probe(ctx context.Context, due []repository.DueMonitor) []Che
 		if len(regions) == 0 {
 			regions = s.Config.Regions()
 		}
-		tick := uuid.NewString()
+		tick := tickID(m.ID, m.ScheduledAt)
 		for _, region := range regions {
 			wg.Add(1)
 			sem <- struct{}{}
@@ -137,9 +168,10 @@ func (s *Services) probe(ctx context.Context, due []repository.DueMonitor) []Che
 }
 
 // relay publishes each region's result to analytics through the outbox,
-// keeps the list view's last response, and copies the answered results to
+// keeps the list view's last response, records the claimed ticks as
+// dispatched in the same transaction, and copies the answered results to
 // the telemetry plane.
-func (s *Services) relay(ctx context.Context, results []CheckResult) error {
+func (s *Services) relay(ctx context.Context, results []CheckResult, due []repository.DueMonitor) error {
 	expected := map[string][]string{}
 	for _, r := range results {
 		expected[r.TickID] = append(expected[r.TickID], r.Region)
@@ -165,7 +197,7 @@ func (s *Services) relay(ctx context.Context, results []CheckResult) error {
 				}
 			}
 		}
-		return nil
+		return repository.CompleteMonitors(ctx, tx, due)
 	})
 	if err != nil {
 		return err
@@ -186,22 +218,29 @@ func (s *Services) relay(ctx context.Context, results []CheckResult) error {
 }
 
 func (s *Services) runDueSynthetics(ctx context.Context) error {
-	var due []model.SyntheticCheck
+	var due []repository.DueSynthetic
 	if err := s.DB.AsSystem(ctx, func(tx pgx.Tx) (err error) {
-		due, err = repository.ClaimDueSynthetics(ctx, tx, 100)
+		due, err = repository.ClaimDueSynthetics(ctx, tx, 100, claimLease)
 		return err
 	}); err != nil {
 		return err
 	}
-	for _, check := range due {
-		if _, err := s.runSynthetic(ctx, check); err != nil {
-			slog.WarnContext(ctx, "synthetic run failed", "check_id", check.ID, "error", err)
+	// A check whose run could not be stored keeps its lease and is retried
+	// when it lapses.
+	done := make([]repository.DueSynthetic, 0, len(due))
+	for _, d := range due {
+		if _, err := s.runSynthetic(ctx, d.Check); err != nil {
+			slog.WarnContext(ctx, "synthetic run failed", "check_id", d.Check.ID, "error", err)
+			continue
 		}
+		done = append(done, d)
 	}
-	return nil
+	cctx := context.WithoutCancel(ctx)
+	return s.DB.AsSystem(cctx, func(tx pgx.Tx) error { return repository.CompleteSynthetics(cctx, tx, done) })
 }
 
-// Prune is the retention job: published outbox rows, old result claims,
+// Prune is the retention job: published outbox rows (failed ones are retried
+// a few times, then kept for a month), old result claims,
 // expired sign-in handoffs, synthetic runs past 90 days, and claim-check
 // objects past a day (shared messaging contract, Operations).
 func (s *Services) Prune(ctx context.Context) error {
@@ -218,7 +257,13 @@ func (s *Services) Prune(ctx context.Context) error {
 		}
 	}
 	return s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
-		if _, err := repository.PruneOutbox(ctx, tx, 7*24*time.Hour); err != nil {
+		if _, err := repository.PruneOutbox(ctx, tx, 7*24*time.Hour, 30*24*time.Hour); err != nil {
+			return err
+		}
+		if _, err := repository.RequeueFailedOutbox(ctx, tx, 3, time.Hour); err != nil {
+			return err
+		}
+		if _, err := repository.PruneConsumerFailures(ctx, tx, 30*24*time.Hour); err != nil {
 			return err
 		}
 		if _, err := repository.PruneClaims(ctx, tx, 7*24*time.Hour); err != nil {

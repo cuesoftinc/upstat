@@ -93,28 +93,59 @@ type DueMonitor struct {
 	TimeoutS                int
 	Regions                 []string
 	ScheduledAt             time.Time
+	// Claimed is the monitor's next_run_at when it was claimed.
+	Claimed time.Time
 }
 
-// ClaimDueMonitors is the scheduler's lookup-then-write (§6.1): it advances
-// next_run_at for due monitors and returns them. SKIP LOCKED lets any number
-// of instances schedule without double dispatch; a stale slot is skipped,
-// so the next slot wins after downtime.
-func ClaimDueMonitors(ctx context.Context, tx pgx.Tx, limit int) ([]DueMonitor, error) {
+// ClaimDueMonitors is the scheduler's lookup-then-write (§6.1): it leases
+// due monitors for lease and returns them. SKIP LOCKED plus the lease let
+// any number of instances schedule without double dispatch, and a monitor
+// moves to its next slot only in CompleteMonitors, so a pass that dies is
+// retried with the same ScheduledAt once the lease lapses. A stale slot is
+// skipped: the slot is the latest one at or before now.
+func ClaimDueMonitors(ctx context.Context, tx pgx.Tx, limit int, lease time.Duration) ([]DueMonitor, error) {
 	rows, err := tx.Query(ctx, `WITH due AS (
-			SELECT id FROM monitors WHERE active AND next_run_at <= now()
+			SELECT id FROM monitors WHERE active AND next_run_at <= now() AND (leased_until IS NULL OR leased_until <= now())
 			ORDER BY next_run_at LIMIT $1 FOR UPDATE SKIP LOCKED)
-		UPDATE monitors m SET next_run_at = m.next_run_at + make_interval(secs =>
-			m.interval_s * (floor(extract(epoch FROM now() - m.next_run_at) / m.interval_s) + 1))
+		UPDATE monitors m SET leased_until = now() + make_interval(secs => $2)
 		FROM due WHERE m.id = due.id
 		RETURNING m.id, m.org_id, m.name, m.target, m.timeout_s, m.regions,
-			m.next_run_at - make_interval(secs => m.interval_s)`, limit)
+			m.next_run_at + make_interval(secs => m.interval_s * floor(extract(epoch FROM now() - m.next_run_at) / m.interval_s)),
+			m.next_run_at`, limit, lease.Seconds())
 	if err != nil {
 		return nil, err
 	}
 	return collect(rows, func(r pgx.Row) (*DueMonitor, error) {
 		var d DueMonitor
-		return &d, r.Scan(&d.ID, &d.OrgID, &d.Name, &d.Target, &d.TimeoutS, &d.Regions, &d.ScheduledAt)
+		return &d, r.Scan(&d.ID, &d.OrgID, &d.Name, &d.Target, &d.TimeoutS, &d.Regions, &d.ScheduledAt, &d.Claimed)
 	})
+}
+
+// CompleteMonitors records the ticks as dispatched: each monitor moves to
+// the slot after ScheduledAt and its lease ends. A monitor edited since the
+// claim keeps the next_run_at the edit set.
+func CompleteMonitors(ctx context.Context, tx pgx.Tx, done []DueMonitor) error {
+	if len(done) == 0 {
+		return nil
+	}
+	ids, claimed, slots := make([]string, len(done)), make([]time.Time, len(done)), make([]time.Time, len(done))
+	for i, d := range done {
+		ids[i], claimed[i], slots[i] = d.ID, d.Claimed, d.ScheduledAt
+	}
+	_, err := tx.Exec(ctx, `UPDATE monitors m SET leased_until = NULL,
+			next_run_at = CASE WHEN m.next_run_at = c.claimed THEN c.slot + make_interval(secs => m.interval_s) ELSE m.next_run_at END
+		FROM unnest($1::text[]::uuid[], $2::timestamptz[], $3::timestamptz[]) AS c(id, claimed, slot) WHERE m.id = c.id`, ids, claimed, slots)
+	return err
+}
+
+// ReleaseMonitors ends the leases of monitors whose tick was not dispatched,
+// so the next pass claims them again at once.
+func ReleaseMonitors(ctx context.Context, tx pgx.Tx, ids []string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	_, err := tx.Exec(ctx, `UPDATE monitors SET leased_until = NULL WHERE id = ANY($1::text[]::uuid[])`, ids)
+	return err
 }
 
 // RecordCheck stores the latest response a region reported, for the list
@@ -136,11 +167,14 @@ type Transition struct {
 }
 
 // InsertTransition stores a transition once; false when (monitor, seq) was
-// already recorded (redelivery).
+// already recorded (redelivery) or the monitor is gone. The monitor row is
+// read under a share lock, so a concurrent delete cannot fail the insert
+// with a foreign-key error that would abort the caller's transaction.
 func InsertTransition(ctx context.Context, tx pgx.Tx, t Transition) (bool, error) {
 	tag, err := tx.Exec(ctx, `INSERT INTO transitions (id, org_id, monitor_id, seq, from_status, to_status, cause, regions,
 			consecutive_failures, at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) ON CONFLICT DO NOTHING`,
+		SELECT $1, m.org_id, m.id, $4, $5, $6, $7, $8, $9, $10 FROM monitors m WHERE m.id = $3 AND m.org_id = $2 FOR SHARE OF m
+		ON CONFLICT DO NOTHING`,
 		t.ID, t.OrgID, t.MonitorID, t.Seq, t.From, t.To, t.Cause, mustJSON(t.Regions), t.ConsecutiveFailures, t.At)
 	if err != nil {
 		return false, translate(err)

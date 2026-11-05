@@ -127,7 +127,8 @@ type SLO struct {
 	State     string  `json:"state"`
 }
 
-// Write stores a kind's snapshot and returns its version.
+// Write stores a kind's snapshot and returns its version, which is always
+// above the stored one so readers never step back to an older document.
 func Write(ctx context.Context, s store.Store, kind string, items any, now time.Time) (int64, error) {
 	raw, err := json.Marshal(items)
 	if err != nil {
@@ -136,7 +137,16 @@ func Write(ctx context.Context, s store.Store, kind string, items any, now time.
 	if string(raw) == "null" {
 		raw = []byte("[]")
 	}
-	doc := Document{Kind: kind, Version: now.UnixMilli(), Items: raw}
+	version := now.UnixMilli()
+	if prev, err := s.Get(ctx, store.ConfigKey(s, kind)); err == nil {
+		var old Document
+		if json.Unmarshal(prev, &old) == nil && old.Version >= version {
+			version = old.Version + 1
+		}
+	} else if !errors.Is(err, store.ErrMissing) {
+		return 0, err
+	}
+	doc := Document{Kind: kind, Version: version, Items: raw}
 	body, err := json.Marshal(doc)
 	if err != nil {
 		return 0, err
@@ -176,16 +186,28 @@ type Access struct {
 	versions map[string]int64
 
 	refreshed time.Time
+	now       func() time.Time
 }
 
 func NewAccess(s store.Store) *Access {
 	return &Access{store: s, users: map[string]UserAccess{}, orgs: map[string]Org{}, monitors: map[string]map[string]string{},
-		versions: map[string]int64{}}
+		versions: map[string]int64{}, now: time.Now}
+}
+
+// SetClock replaces the clock Refresh measures its floor against.
+func (a *Access) SetClock(now func() time.Time) {
+	a.mu.Lock()
+	a.now = now
+	a.mu.Unlock()
 }
 
 // Load reads the members, orgs and monitors snapshots.
 func (a *Access) Load(ctx context.Context) error {
-	return errors.Join(a.Reload(ctx, KindMembers), a.Reload(ctx, KindOrgs), a.Reload(ctx, KindMonitors))
+	err := errors.Join(a.Reload(ctx, KindMembers), a.Reload(ctx, KindOrgs), a.Reload(ctx, KindMonitors))
+	a.mu.Lock()
+	a.refreshed = a.now()
+	a.mu.Unlock()
+	return err
 }
 
 // Reload rereads one kind; other kinds are ignored.
@@ -246,15 +268,16 @@ func (a *Access) Reload(ctx context.Context, kind string) error {
 
 // Refresh rereads every kind unless the last refresh was under floor ago,
 // and reports whether it did. A service on request-based CPU (S-14) may
-// not have consumed upstat.config.changed yet, so a lookup that misses
-// (a just-created org, say) calls this once before it answers no.
+// not have consumed upstat.config.changed yet: a lookup calls this with the
+// maximum age it tolerates, and again on a miss (a just-created org, say)
+// with a short floor.
 func (a *Access) Refresh(ctx context.Context, floor time.Duration) bool {
 	a.mu.Lock()
-	if time.Since(a.refreshed) < floor {
+	if a.now().Sub(a.refreshed) < floor {
 		a.mu.Unlock()
 		return false
 	}
-	a.refreshed = time.Now()
+	a.refreshed = a.now()
 	a.mu.Unlock()
 	if err := a.Load(ctx); err != nil {
 		slog.Warn("config refresh failed", "error", err)

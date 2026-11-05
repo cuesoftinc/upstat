@@ -152,6 +152,8 @@ type TimelineEntry struct {
 	Author     string    `json:"author"`
 	Phase      string    `json:"phase"`
 	Body       string    `json:"body"`
+	// Public entries, and only those, reach the public status page.
+	Public bool `json:"public"`
 }
 
 type PostmortemEvent struct {

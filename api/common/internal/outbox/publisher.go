@@ -1,9 +1,11 @@
 // Package outbox publishes rows written by business transactions (§6.8).
-// Every instance runs a publisher; SKIP LOCKED keeps them off each other's
-// rows, and a row is marked published only after Kafka acknowledged it.
-// A config.changed row is special: the publisher first rewrites that kind's
-// snapshot from Postgres, so the message always points at the latest state.
-// After a batch it wakes the services that consume what it sent.
+// Every instance publishes; SKIP LOCKED keeps them off each other's rows,
+// and a row is marked published only after Kafka acknowledged it. A row that
+// can never be sent is parked as failed, never marked published. A
+// config.changed row is special: the publisher first rewrites that kind's
+// snapshot from Postgres, under a per-kind lock so a slower publisher cannot
+// overwrite a newer snapshot, so the message always points at the latest
+// state. After a batch it wakes the services that consume what it sent.
 package outbox
 
 import (
@@ -36,8 +38,9 @@ type Publisher struct {
 	Store    store.Store
 	Interval time.Duration
 	Now      func() time.Time
-	// Wake is called with each event a batch published.
-	Wake    func(event string)
+	// Wake is called with each event a batch published, and returns once the
+	// services that consume it have answered.
+	Wake    func(ctx context.Context, event string)
 	healthy bool
 }
 
@@ -77,6 +80,15 @@ func (p *Publisher) PublishBatch(ctx context.Context) (int, error) {
 		}
 		msgs := make([]kgo.Message, 0, len(rows))
 		ids := make([]int64, 0, len(rows))
+		var kinds []string
+		for _, row := range rows {
+			if row.Event == bus.EventConfigChanged {
+				kinds = append(kinds, row.Key)
+			}
+		}
+		if err := repository.LockSnapshots(ctx, tx, kinds...); err != nil {
+			return err
+		}
 		rewritten := map[string]bool{}
 		sent = map[string]int{}
 		for _, row := range rows {
@@ -93,10 +105,12 @@ func (p *Publisher) PublishBatch(ctx context.Context) (int, error) {
 			}
 			msg, err := p.Producer.Message(ctx, row.Event, row.Key, row.RequestID, payload)
 			if errors.Is(err, bus.ErrContract) {
-				// A row that fails its schema can never be sent; park it
-				// as published so it doesn't block the queue, and say so.
-				slog.Error("outbox row violates the contract; skipped", "id", row.ID, "event", row.Event, "error", err)
-				ids = append(ids, row.ID)
+				// A row that fails its schema can never be sent: park it as
+				// failed so it doesn't block the queue, and keep the cause.
+				slog.Error("outbox row violates the contract; parked as failed", "id", row.ID, "event", row.Event, "error", err)
+				if err := repository.MarkFailedOutbox(ctx, tx, row.ID, err.Error()); err != nil {
+					return err
+				}
 				continue
 			} else if err != nil {
 				return err // storage for the claim-check is down: retry the batch
@@ -117,14 +131,15 @@ func (p *Publisher) PublishBatch(ctx context.Context) (int, error) {
 		for event, count := range sent {
 			slog.Info("published to Kafka", "step", "outbox", "event", event, "topic", bus.TopicFor[event], "messages", count)
 			if p.Wake != nil {
-				p.Wake(event)
+				p.Wake(ctx, event)
 			}
 		}
 	}
 	return n, err
 }
 
-// rewrite stores kind's snapshot and returns the config.changed payload.
+// rewrite stores kind's snapshot and returns the config.changed payload; the
+// caller holds kind's snapshot lock.
 func (p *Publisher) rewrite(ctx context.Context, tx pgx.Tx, kind string) (json.RawMessage, error) {
 	items, err := repository.SnapshotItems(ctx, tx, kind)
 	if err != nil {
@@ -144,6 +159,9 @@ func (p *Publisher) rewrite(ctx context.Context, tx pgx.Tx, kind string) (json.R
 // readers find one; it publishes nothing.
 func WriteAll(ctx context.Context, db *repository.DB, s store.Store, now time.Time) error {
 	return db.AsSystem(ctx, func(tx pgx.Tx) error {
+		if err := repository.LockSnapshots(ctx, tx, snapshot.AllKinds...); err != nil {
+			return err
+		}
 		for _, kind := range snapshot.AllKinds {
 			items, err := repository.SnapshotItems(ctx, tx, kind)
 			if err != nil {

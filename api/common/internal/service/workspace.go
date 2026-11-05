@@ -497,12 +497,19 @@ func (s *Services) PublicStatusPage(ctx context.Context, slug string) (*model.St
 			s.lazyNodata(&m)
 			monitors[m.ID] = m
 		}
-		incidents, err := repository.RecentIncidents(ctx, tx, s.Now().Add(-90*24*time.Hour))
+		var monitorIDs, names []string
+		for _, row := range cfg.Components {
+			names = append(names, strings.ToLower(row.Name))
+			if row.MonitorID != nil {
+				monitorIDs = append(monitorIDs, *row.MonitorID)
+			}
+		}
+		incidents, err := repository.RecentIncidents(ctx, tx, s.Now().Add(-90*24*time.Hour), monitorIDs, names)
 		if err != nil {
 			return err
 		}
 		for _, inc := range incidents {
-			entries, err := repository.Timeline(ctx, tx, inc.ID, true)
+			entries, err := repository.PublicTimeline(ctx, tx, inc.ID)
 			if err != nil {
 				return err
 			}

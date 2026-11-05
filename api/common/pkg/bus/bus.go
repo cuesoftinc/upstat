@@ -189,6 +189,21 @@ type Handler func(ctx context.Context, data json.RawMessage) error
 // handler kept failing; the message is then committed.
 type Failure func(ctx context.Context, data json.RawMessage, cause error) error
 
+// Failed is a message the consumer gave up on, kept whole (the envelope as
+// it arrived) so it can be handled again later. Permanent marks one that can
+// never succeed as it is: it violates the contract.
+type Failed struct {
+	Event, RequestID string
+	Raw              []byte
+	Cause            error
+	Permanent        bool
+}
+
+// Recorder stores a failed message before the consumer commits past it, so
+// no message is dropped without a trace and the lane never stalls (messaging
+// rule 10).
+type Recorder func(ctx context.Context, f Failed) error
+
 type requestIDKey struct{}
 
 // RequestID is the request_id of the message being handled, or "".
@@ -216,6 +231,7 @@ type Consumer struct {
 	topic    string
 	handlers map[string]Handler
 	failures map[string]Failure
+	record   Recorder
 	contract *Contract
 	blobs    Blobs
 	attempts int
@@ -246,6 +262,36 @@ func NewConsumer(cfg Config, group, topic string, handlers map[string]Handler, f
 }
 
 func (c *Consumer) Running() bool { return c.running }
+
+// OnFailure sets the recorder for every message the consumer gives up on.
+func (c *Consumer) OnFailure(r Recorder) { c.record = r }
+
+func (c *Consumer) recordFailed(ctx context.Context, f Failed) {
+	if c.record == nil {
+		return
+	}
+	if err := c.record(ctx, f); err != nil {
+		slog.Error("recording the failed message failed", "topic", c.topic, "event", f.Event, "request_id", f.RequestID, "error", err)
+	}
+}
+
+// Replay handles a recorded message once, without retries; the error says
+// why it still cannot be handled.
+func (c *Consumer) Replay(ctx context.Context, raw []byte) error {
+	env, err := c.unwrap(raw)
+	if errors.Is(err, errNotOurs) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	ctx = WithRequestID(ctx, env.RequestID)
+	data, err := c.load(ctx, env)
+	if err != nil {
+		return err
+	}
+	return c.handlers[env.Type](ctx, data)
+}
 
 // Run blocks until ctx ends; nothing else stops it.
 func (c *Consumer) Run(ctx context.Context) error {
@@ -281,7 +327,8 @@ func (c *Consumer) process(ctx context.Context, offset int64, raw []byte) bool {
 	}
 	if err != nil {
 		// Can never succeed; never log the payload (never-log list).
-		slog.Error("dropping invalid message", "topic", c.topic, "offset", offset, "error", err)
+		slog.Error("invalid message recorded and skipped", "topic", c.topic, "offset", offset, "error", err)
+		c.recordFailed(ctx, Failed{Raw: raw, Cause: err, Permanent: true})
 		return true
 	}
 	ctx = WithRequestID(ctx, env.RequestID)
@@ -289,7 +336,8 @@ func (c *Consumer) process(ctx context.Context, offset int64, raw []byte) bool {
 	for attempt := 1; ; attempt++ {
 		data, err = c.load(ctx, env)
 		if errors.Is(err, ErrContract) {
-			slog.Error("dropping invalid message", "topic", c.topic, "event", env.Type, "offset", offset, "request_id", env.RequestID, "error", err)
+			slog.Error("invalid message recorded and skipped", "topic", c.topic, "event", env.Type, "offset", offset, "request_id", env.RequestID, "error", err)
+			c.recordFailed(ctx, Failed{Event: env.Type, RequestID: env.RequestID, Raw: raw, Cause: err, Permanent: true})
 			return true
 		}
 		if err == nil {
@@ -316,6 +364,7 @@ func (c *Consumer) process(ctx context.Context, offset int64, raw []byte) bool {
 			slog.Error("recording the failure failed", "event", env.Type, "offset", offset, "request_id", env.RequestID, "error", ferr)
 		}
 	}
+	c.recordFailed(ctx, Failed{Event: env.Type, RequestID: env.RequestID, Raw: raw, Cause: err})
 	return ctx.Err() == nil
 }
 

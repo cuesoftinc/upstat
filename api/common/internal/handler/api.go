@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -34,10 +35,29 @@ func callerOf(r *http.Request) *service.Caller {
 	return c
 }
 
+var uuidRe = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
+
+// idParams are the path values that name a row by uuid.
+var idParams = []string{"id", "runId", "widgetId"}
+
+// malformedID reports a uuid path value that is not one: it names nothing.
+func malformedID(r *http.Request) bool {
+	for _, name := range idParams {
+		if v := r.PathValue(name); v != "" && !uuidRe.MatchString(v) {
+			return true
+		}
+	}
+	return false
+}
+
 // authed resolves the session into a caller and applies the rate limit:
 // limit requests per minute per user for this route group.
 func (a *API) authed(limit int, next func(http.ResponseWriter, *http.Request, *service.Caller)) http.Handler {
 	return session.SessionMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if malformedID(r) {
+			httpx.WriteError(w, http.StatusNotFound, "not_found", "Not found", nil)
+			return
+		}
 		userID, _ := session.UserIDFromContext(r.Context())
 		c, err := a.S.CallerFor(r.Context(), userID)
 		if errors.Is(err, repository.ErrNotFound) {
@@ -65,7 +85,7 @@ func (a *API) fail(w http.ResponseWriter, r *http.Request, err error) {
 	switch {
 	case errors.As(err, &se):
 		httpx.WriteError(w, se.Status, se.Code, se.Message, se.Details)
-	case errors.Is(err, repository.ErrNotFound):
+	case errors.Is(err, repository.ErrNotFound), repository.IsMalformed(err):
 		httpx.WriteError(w, http.StatusNotFound, "not_found", "Not found", nil)
 	case errors.Is(err, repository.ErrConflict):
 		httpx.WriteError(w, http.StatusConflict, "conflict", "That conflicts with an existing resource", nil)

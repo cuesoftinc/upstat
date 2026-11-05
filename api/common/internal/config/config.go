@@ -36,6 +36,9 @@ type Config struct {
 	ClickHouseURL      string
 	ClickHouseUser     string
 	ClickHousePassword string
+	// ClickHouseQueryUser is the read-only user api/query connects as; the
+	// row policies bind to it (S-9).
+	ClickHouseQueryUser string
 
 	// Wake: the consumers to start after publishing for them; empty
 	// where services always run (compose, Helm).
@@ -92,13 +95,14 @@ func Load() (*Config, error) {
 			DB:       envInt("REDIS_DB", 0),
 			Prefix:   envOr("REDIS_KEY_PREFIX", "upstat:"),
 		},
-		Probes:             parseProbes(os.Getenv("PROBE_URLS")),
-		QueryURL:           strings.TrimRight(os.Getenv("QUERY_URL"), "/"),
-		InternalToken:      os.Getenv("INTERNAL_TOKEN"),
-		OTLPEndpoint:       strings.TrimRight(os.Getenv("OTLP_LOADER_ENDPOINT"), "/"),
-		ClickHouseURL:      strings.TrimRight(os.Getenv("CLICKHOUSE_URL"), "/"),
-		ClickHouseUser:     envOr("CLICKHOUSE_MIGRATE_USER", "default"),
-		ClickHousePassword: os.Getenv("CLICKHOUSE_MIGRATE_PASSWORD"),
+		Probes:              parseProbes(os.Getenv("PROBE_URLS")),
+		QueryURL:            strings.TrimRight(os.Getenv("QUERY_URL"), "/"),
+		InternalToken:       os.Getenv("INTERNAL_TOKEN"),
+		OTLPEndpoint:        strings.TrimRight(os.Getenv("OTLP_LOADER_ENDPOINT"), "/"),
+		ClickHouseURL:       strings.TrimRight(os.Getenv("CLICKHOUSE_URL"), "/"),
+		ClickHouseUser:      envOr("CLICKHOUSE_MIGRATE_USER", "default"),
+		ClickHousePassword:  os.Getenv("CLICKHOUSE_MIGRATE_PASSWORD"),
+		ClickHouseQueryUser: envOr("CLICKHOUSE_QUERY_USER", "query_ro"),
 		Wake: Wake{
 			Analytics:     os.Getenv("WAKE_ANALYTICS_URL"),
 			Observability: os.Getenv("WAKE_OBSERVABILITY_URL"),

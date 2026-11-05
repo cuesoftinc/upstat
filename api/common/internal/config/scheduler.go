@@ -22,8 +22,15 @@ func (s Scheduler) Configured() bool {
 	return s.Audience != "" && s.InvokerEmail != ""
 }
 
-// WorkerEnabled reports whether the in-process monitor loop starts at boot; it defaults to on.
+// OnCloudRun reports whether the process runs as a Cloud Run service.
+func OnCloudRun() bool { return os.Getenv("K_SERVICE") != "" }
+
+// WorkerEnabled reports whether the in-process monitor loop starts at boot; it defaults to on
+// and is never on Cloud Run, where request-based CPU stalls a background loop.
 func WorkerEnabled() bool {
+	if OnCloudRun() {
+		return false
+	}
 	switch strings.ToLower(strings.TrimSpace(os.Getenv("WORKER_ENABLED"))) {
 	case "0", "false", "off", "no":
 		return false

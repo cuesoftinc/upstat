@@ -172,7 +172,8 @@ type Delivery struct {
 func InsertDelivery(ctx context.Context, tx pgx.Tx, d Delivery) (bool, error) {
 	tag, err := tx.Exec(ctx, `INSERT INTO deliveries (id, org_id, transition_id, rule_id, channel_id, kind, sev, monitor_name,
 			message, state, attempts, at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) ON CONFLICT (id) DO NOTHING`,
+		SELECT $1, o.id, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12 FROM orgs o WHERE o.id = $2 FOR SHARE OF o
+		ON CONFLICT (id) DO NOTHING`,
 		d.ID, d.OrgID, d.TransitionID, d.RuleID, d.ChannelID, d.Kind, d.Sev, d.MonitorName, d.Message, d.State, d.Attempts, d.At)
 	if err != nil {
 		return false, err

@@ -13,6 +13,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -86,12 +87,21 @@ func sorted(dir string) ([]string, error) {
 	return names, err
 }
 
+// queryUserToken stands for the read-only user's name in a migration.
+const queryUserToken = "{{query_user}}"
+
+var userName = regexp.MustCompile(`^[A-Za-z0-9_]+$`)
+
 // ClickHouse applies the telemetry-plane migrations over the HTTP
 // interface. Every statement is idempotent (IF NOT EXISTS), and a
 // schema_migration table records each applied file.
 type ClickHouse struct {
 	URL, User, Password string
-	Client              *http.Client
+	// QueryUser is the read-only user the row policies bind to. A migration
+	// that names it fails when the user does not exist, and is left for a
+	// later start when QueryUser is empty.
+	QueryUser string
+	Client    *http.Client
 }
 
 func (c ClickHouse) Apply(ctx context.Context) error {
@@ -118,7 +128,18 @@ func (c ClickHouse) Apply(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		for _, stmt := range Statements(string(raw)) {
+		text := string(raw)
+		if strings.Contains(text, queryUserToken) {
+			if c.QueryUser == "" {
+				slog.Warn("clickhouse migration left for a start with a query user", "version", name)
+				continue
+			}
+			if err := c.requireUser(ctx); err != nil {
+				return fmt.Errorf("clickhouse migration %s: %w", name, err)
+			}
+			text = strings.ReplaceAll(text, queryUserToken, c.QueryUser)
+		}
+		for _, stmt := range Statements(text) {
 			if err := c.exec(ctx, stmt); err != nil {
 				return fmt.Errorf("clickhouse migration %s: %w", name, err)
 			}
@@ -127,6 +148,22 @@ func (c ClickHouse) Apply(ctx context.Context) error {
 			return err
 		}
 		slog.Info("migration applied", "store", "clickhouse", "version", name)
+	}
+	return nil
+}
+
+// requireUser fails closed when the query user is missing: a row policy
+// for a user that does not exist protects nothing.
+func (c ClickHouse) requireUser(ctx context.Context) error {
+	if !userName.MatchString(c.QueryUser) {
+		return fmt.Errorf("query user %q is not a plain name", c.QueryUser)
+	}
+	n, err := c.query(ctx, fmt.Sprintf(`SELECT count() FROM system.users WHERE name = '%s'`, c.QueryUser))
+	if err != nil {
+		return err
+	}
+	if strings.TrimSpace(n) == "0" {
+		return fmt.Errorf("query user %q does not exist", c.QueryUser)
 	}
 	return nil
 }

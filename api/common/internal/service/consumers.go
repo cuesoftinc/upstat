@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -44,11 +43,8 @@ func (s *Services) OnTransition(ctx context.Context, data json.RawMessage) error
 		t := repository.Transition{ID: m.ID, OrgID: m.OrgID, MonitorID: m.MonitorID, Seq: m.Seq, From: m.From, To: m.To,
 			Cause: m.Cause, Regions: m.Regions, ConsecutiveFailures: m.ConsecutiveFailures, At: m.At}
 		fresh, err := repository.InsertTransition(ctx, tx, t)
-		if errors.Is(err, repository.ErrNotFound) || isForeignKey(err) {
-			return nil // the monitor was deleted meanwhile
-		}
 		if err != nil || !fresh {
-			return err
+			return err // not fresh: a redelivery, or the monitor was deleted meanwhile
 		}
 		if _, err := repository.ApplyTransition(ctx, tx, t); err != nil {
 			return err
@@ -73,17 +69,14 @@ func (s *Services) OnTransition(ctx context.Context, data json.RawMessage) error
 			}
 			_, err = repository.CreateIncident(ctx, tx, repository.NewIncident{OrgID: m.OrgID, Title: name + " is down", Sev: 2,
 				Commander: "Upstat", Source: "monitor", MonitorID: &monitorID, Cause: cause, StartedAt: m.At,
-				FirstEntry: fmt.Sprintf("%s went down (%s) after %d consecutive failed checks", name, cause, m.ConsecutiveFailures)})
+				FirstEntry:       fmt.Sprintf("%s went down (%s) after %d consecutive failed checks", name, cause, m.ConsecutiveFailures),
+				FirstEntryPublic: true})
 			return err
 		case m.From == "down" && m.To == "up":
 			return s.closeMonitorIncident(ctx, tx, m.MonitorID, name+" recovered")
 		}
 		return nil
 	})
-}
-
-func isForeignKey(err error) bool {
-	return err != nil && strings.Contains(err.Error(), "23503")
 }
 
 type deliveryMsg struct {

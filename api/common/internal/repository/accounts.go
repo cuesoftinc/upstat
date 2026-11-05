@@ -208,8 +208,12 @@ func DeleteMember(ctx context.Context, tx pgx.Tx, id string) error {
 	return affected(tx.Exec(ctx, `DELETE FROM members WHERE id = $1`, id))
 }
 
-func CountOwners(ctx context.Context, tx pgx.Tx) (int, error) {
+// LockOwners locks the org's active owner rows until the transaction ends
+// and counts them, so two changes that would each leave one owner cannot
+// both pass the last-owner check.
+func LockOwners(ctx context.Context, tx pgx.Tx) (int, error) {
 	var n int
-	err := tx.QueryRow(ctx, `SELECT count(*) FROM members WHERE role = 'owner' AND status = 'active'`).Scan(&n)
+	err := tx.QueryRow(ctx, `SELECT count(*) FROM (SELECT id FROM members WHERE role = 'owner' AND status = 'active'
+		ORDER BY id FOR UPDATE) owners`).Scan(&n)
 	return n, err
 }

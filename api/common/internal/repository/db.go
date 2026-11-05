@@ -70,6 +70,13 @@ func translate(err error) error {
 	return err
 }
 
+// IsMalformed reports a value Postgres could not read as its type (an id
+// that is not a uuid, say): it names nothing, so callers answer not found.
+func IsMalformed(err error) bool {
+	var pgErr *pgconn.PgError
+	return errors.As(err, &pgErr) && pgErr.Code == "22P02"
+}
+
 // collect scans every row with scan.
 func collect[T any](rows pgx.Rows, scan func(pgx.Row) (*T, error)) ([]T, error) {
 	defer rows.Close()

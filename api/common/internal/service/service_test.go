@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -27,6 +26,7 @@ import (
 	"github.com/cuesoftinc/upstat/api/common/pkg/bus"
 	"github.com/cuesoftinc/upstat/api/common/pkg/snapshot"
 	"github.com/cuesoftinc/upstat/api/common/pkg/store"
+	"github.com/cuesoftinc/upstat/api/common/pkg/testenv"
 )
 
 // These tests run against a real Postgres (TEST_DATABASE_URL, a superuser
@@ -37,9 +37,14 @@ type fakeProber struct {
 	mu    sync.Mutex
 	calls []string
 	fail  map[string]bool
+	// onCheck runs inside each probe call, before it answers.
+	onCheck func()
 }
 
 func (p *fakeProber) Check(_ context.Context, region string, req service.CheckRequest) (*service.CheckResponse, error) {
+	if p.onCheck != nil {
+		p.onCheck()
+	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.calls = append(p.calls, region+" "+req.Target)
@@ -62,7 +67,9 @@ func (r *fakeResults) Send(_ context.Context, rs []service.CheckResult) error {
 
 type fakeTelemetry struct{}
 
-func (fakeTelemetry) History(context.Context, string, string) (map[string]any, error) { return map[string]any{}, nil }
+func (fakeTelemetry) History(context.Context, string, string) (map[string]any, error) {
+	return map[string]any{}, nil
+}
 func (fakeTelemetry) Uptime(_ context.Context, _ string, ids []string, _ int) (map[string]service.UptimeSummary, error) {
 	out := map[string]service.UptimeSummary{}
 	for _, id := range ids {
@@ -89,10 +96,7 @@ type env struct {
 
 func newEnv(t *testing.T) *env {
 	t.Helper()
-	admin := os.Getenv("TEST_DATABASE_URL")
-	if admin == "" {
-		t.Skip("TEST_DATABASE_URL not set")
-	}
+	admin := testenv.Require(t, "TEST_DATABASE_URL")
 	ctx := context.Background()
 	root, err := pgxpool.New(ctx, admin)
 	if err != nil {
@@ -532,4 +536,6 @@ func TestPublicStatusPage(t *testing.T) {
 	}
 }
 
-func authUser(email string) auth.User { return auth.User{Email: email, Name: strings.Split(email, "@")[0]} }
+func authUser(email string) auth.User {
+	return auth.User{Email: email, Name: strings.Split(email, "@")[0]}
+}

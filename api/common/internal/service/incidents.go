@@ -94,6 +94,8 @@ type TimelineInput struct {
 	Phase  *string `json:"phase"`
 	Body   string  `json:"body"`
 	Author string  `json:"author"`
+	// Public posts the update to the public status page; entries are internal by default.
+	Public bool `json:"public"`
 }
 
 // AddTimeline posts an update; a new phase moves the incident with it.
@@ -112,7 +114,7 @@ func (s *Services) AddTimeline(ctx context.Context, c *Caller, id string, in Tim
 		}
 		phase := deref(in.Phase, inc.Status)
 		now := s.Now().UTC()
-		if out, err = repository.AddTimeline(ctx, tx, c.OrgID, id, in.Author, phase, in.Body, now); err != nil {
+		if out, err = repository.AddTimeline(ctx, tx, c.OrgID, id, in.Author, phase, in.Body, now, in.Public); err != nil {
 			return err
 		}
 		if phase != inc.Status {
@@ -215,7 +217,7 @@ func (s *Services) closeMonitorIncident(ctx context.Context, tx pgx.Tx, monitorI
 	}
 	now := s.Now().UTC()
 	resolved := "resolved"
-	if _, err := repository.AddTimeline(ctx, tx, inc.OrgID, inc.ID, "Upstat", resolved, body, now); err != nil {
+	if _, err := repository.AddTimeline(ctx, tx, inc.OrgID, inc.ID, "Upstat", resolved, body, now, true); err != nil {
 		return err
 	}
 	_, err = repository.UpdateIncident(ctx, tx, inc.ID, repository.IncidentPatch{Status: &resolved}, now)

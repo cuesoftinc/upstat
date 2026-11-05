@@ -5,7 +5,9 @@
 // has been idle long enough for Cloud Run to stop it.
 //
 // Waking is best-effort: a missed wake leaves the message in Kafka, and the
-// every-minute run-checks pass settles the services again.
+// every-minute run-checks pass settles the services again. Wake returns
+// only after every target answered, so a request that publishes can answer
+// after it without leaving work for CPU it no longer has.
 //
 // On request-based CPU (S-14) an instance gets CPU only while it serves a
 // request, so a GET /health wake starts the instance but its consumers
@@ -32,6 +34,9 @@ import (
 // instance that answered a request moments ago is still up.
 const debounce = 10 * time.Second
 
+// wakeTimeout bounds one wake call.
+const wakeTimeout = 30 * time.Second
+
 // settleTimeout covers a cold start, a consumer-group join and the
 // target's own settle budget (analytics: 25 s).
 const settleTimeout = 45 * time.Second
@@ -54,17 +59,27 @@ func New(signer *gcpauth.Signer) *Waker {
 		last: map[string]time.Time{}}
 }
 
-// Async wakes base in the background. An empty base (compose, Helm: the
-// services always run) does nothing.
-func (w *Waker) Async(base, reason string) {
-	if base == "" || !w.due(base) {
-		return
+// Wake wakes every base that is not debounced, concurrently, and returns
+// when all have answered or wakeTimeout passed: a caller that answers a
+// request afterwards still has CPU while the targets start. Empty bases
+// (compose, Helm: the services always run) are skipped.
+func (w *Waker) Wake(ctx context.Context, reason string, bases ...string) {
+	var wg sync.WaitGroup
+	seen := map[string]bool{}
+	for _, base := range bases {
+		if base == "" || seen[base] || !w.due(base) {
+			continue
+		}
+		seen[base] = true
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			cctx, cancel := context.WithTimeout(ctx, wakeTimeout)
+			defer cancel()
+			_ = w.Now(cctx, base, reason)
+		}()
 	}
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		_ = w.Now(ctx, base, reason)
-	}()
+	wg.Wait()
 }
 
 // Now wakes base and waits for the answer.

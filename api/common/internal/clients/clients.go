@@ -27,6 +27,10 @@ type caller struct {
 }
 
 func (c *caller) do(ctx context.Context, method, base, path string, body, out any) error {
+	return c.doWith(ctx, method, base, path, nil, body, out)
+}
+
+func (c *caller) doWith(ctx context.Context, method, base, path string, headers map[string]string, body, out any) error {
 	var reader io.Reader
 	if body != nil {
 		raw, err := json.Marshal(body)
@@ -40,6 +44,9 @@ func (c *caller) do(ctx context.Context, method, base, path string, body, out an
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
 	if c.token != "" {
 		req.Header.Set("X-Internal-Token", c.token)
 	}
@@ -213,7 +220,9 @@ func (r *Results) Send(ctx context.Context, results []service.CheckResult) error
 			"scopeLogs": []any{map[string]any{"scope": map[string]any{"name": "upstat.scheduler"}, "logRecords": records}},
 		})
 	}
-	return r.do(ctx, http.MethodPost, r.Endpoint, "/v1/logs", map[string]any{"resourceLogs": resourceLogs}, nil)
+	// The collector writes reserved service names only from the internal route.
+	return r.doWith(ctx, http.MethodPost, r.Endpoint, "/v1/logs", map[string]string{"X-Upstat-Source": "internal"},
+		map[string]any{"resourceLogs": resourceLogs}, nil)
 }
 
 func kv(key, value string) map[string]any {

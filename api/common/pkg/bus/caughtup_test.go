@@ -4,21 +4,18 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/cuesoftinc/upstat/api/common/pkg/testenv"
 	kgo "github.com/segmentio/kafka-go"
 )
 
 // TestCaughtUp runs against a real broker (KAFKA_TEST_BROKERS, e.g. the
 // compose broker's localhost:9094) on a topic of its own.
 func TestCaughtUp(t *testing.T) {
-	brokers := os.Getenv("KAFKA_TEST_BROKERS")
-	if brokers == "" {
-		t.Skip("KAFKA_TEST_BROKERS not set")
-	}
+	brokers := testenv.Require(t, "KAFKA_TEST_BROKERS")
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 	addrs := strings.Split(brokers, ",")
@@ -37,7 +34,7 @@ func TestCaughtUp(t *testing.T) {
 	}
 	waitFor(t, ctx, c, true) // empty topic: nothing to handle
 
-	w := &kgo.Writer{Addr: kgo.TCP(addrs...), Topic: topic, Balancer: &kgo.RoundRobin{}, AllowAutoTopicCreation: false}
+	w := &kgo.Writer{Addr: kgo.TCP(addrs...), Topic: topic, Balancer: &kgo.RoundRobin{}, RequiredAcks: kgo.RequireAll, AllowAutoTopicCreation: false}
 	defer w.Close()
 	if err := w.WriteMessages(ctx, kgo.Message{Value: []byte(`{}`)}, kgo.Message{Value: []byte(`{}`)}, kgo.Message{Value: []byte(`{}`)}); err != nil {
 		t.Fatal(err)

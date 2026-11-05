@@ -304,11 +304,15 @@ func SlugOwner(ctx context.Context, tx pgx.Tx, slug string) (orgID string, updat
 const syntheticColumns = `id, org_id, name, kind, steps, browser, interval_s, last_run_id, last_run_status, last_run_at,
 	created_at, updated_at`
 
-func scanSynthetic(r pgx.Row) (*model.SyntheticCheck, error) {
+func scanSynthetic(r pgx.Row) (*model.SyntheticCheck, error) { return scanSyntheticWith(r) }
+
+// scanSyntheticWith scans syntheticColumns and then extra.
+func scanSyntheticWith(r pgx.Row, extra ...any) (*model.SyntheticCheck, error) {
 	var c model.SyntheticCheck
 	var steps, browser []byte
-	if err := r.Scan(&c.ID, &c.OrgID, &c.Name, &c.Kind, &steps, &browser, &c.IntervalSeconds, &c.LastRunID, &c.LastRunStatus,
-		&c.LastRunAt, &c.CreatedAt, &c.UpdatedAt); err != nil {
+	dest := append([]any{&c.ID, &c.OrgID, &c.Name, &c.Kind, &steps, &browser, &c.IntervalSeconds, &c.LastRunID, &c.LastRunStatus,
+		&c.LastRunAt, &c.CreatedAt, &c.UpdatedAt}, extra...)
+	if err := r.Scan(dest...); err != nil {
 		return nil, err
 	}
 	if err := json.Unmarshal(steps, &c.Steps); err != nil {
@@ -358,17 +362,49 @@ func DeleteSynthetic(ctx context.Context, tx pgx.Tx, id string) error {
 	return affected(tx.Exec(ctx, `DELETE FROM synthetics WHERE id = $1`, id))
 }
 
-// ClaimDueSynthetics advances next_run_at for due checks (as monitors).
-func ClaimDueSynthetics(ctx context.Context, tx pgx.Tx, limit int) ([]model.SyntheticCheck, error) {
+// DueSynthetic is a claimed check and the next_run_at it was claimed at.
+type DueSynthetic struct {
+	Check   model.SyntheticCheck
+	Claimed time.Time
+}
+
+// ClaimDueSynthetics leases due checks for lease (as monitors): the check is
+// advanced only by CompleteSynthetics, so a failed pass is retried.
+func ClaimDueSynthetics(ctx context.Context, tx pgx.Tx, limit int, lease time.Duration) ([]DueSynthetic, error) {
 	rows, err := tx.Query(ctx, `WITH due AS (
-			SELECT id FROM synthetics WHERE next_run_at <= now() ORDER BY next_run_at LIMIT $1 FOR UPDATE SKIP LOCKED)
-		UPDATE synthetics s SET next_run_at = s.next_run_at + make_interval(secs =>
-			s.interval_s * (floor(extract(epoch FROM now() - s.next_run_at) / s.interval_s) + 1))
-		FROM due WHERE s.id = due.id RETURNING `+prefixed("s.", syntheticColumns), limit)
+			SELECT id FROM synthetics WHERE next_run_at <= now() AND (leased_until IS NULL OR leased_until <= now())
+			ORDER BY next_run_at LIMIT $1 FOR UPDATE SKIP LOCKED)
+		UPDATE synthetics s SET leased_until = now() + make_interval(secs => $2)
+		FROM due WHERE s.id = due.id RETURNING `+prefixed("s.", syntheticColumns)+`, s.next_run_at`, limit, lease.Seconds())
 	if err != nil {
 		return nil, err
 	}
-	return collect(rows, scanSynthetic)
+	return collect(rows, func(r pgx.Row) (*DueSynthetic, error) {
+		var d DueSynthetic
+		check, err := scanSyntheticWith(r, &d.Claimed)
+		if err != nil {
+			return nil, err
+		}
+		d.Check = *check
+		return &d, nil
+	})
+}
+
+// CompleteSynthetics moves each claimed check to its next slot and ends its
+// lease; a check edited since the claim keeps the next_run_at the edit set.
+func CompleteSynthetics(ctx context.Context, tx pgx.Tx, done []DueSynthetic) error {
+	if len(done) == 0 {
+		return nil
+	}
+	ids, claimed := make([]string, len(done)), make([]time.Time, len(done))
+	for i, d := range done {
+		ids[i], claimed[i] = d.Check.ID, d.Claimed
+	}
+	_, err := tx.Exec(ctx, `UPDATE synthetics s SET leased_until = NULL,
+			next_run_at = CASE WHEN s.next_run_at = c.claimed THEN s.next_run_at + make_interval(secs =>
+				s.interval_s * (floor(extract(epoch FROM now() - s.next_run_at) / s.interval_s) + 1)) ELSE s.next_run_at END
+		FROM unnest($1::text[]::uuid[], $2::timestamptz[]) AS c(id, claimed) WHERE s.id = c.id`, ids, claimed)
+	return err
 }
 
 func prefixed(p, columns string) string {

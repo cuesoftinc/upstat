@@ -40,6 +40,7 @@ func GetIncident(ctx context.Context, tx pgx.Tx, id string) (*model.Incident, er
 // first timeline entry.
 type NewIncident struct {
 	OrgID, Title, Commander, Source, Cause, FirstEntry string
+	FirstEntryPublic                                   bool
 	Sev                                                int
 	MonitorID                                          *string
 	StartedAt                                          time.Time
@@ -62,7 +63,7 @@ func CreateIncident(ctx context.Context, tx pgx.Tx, n NewIncident) (*model.Incid
 	if err != nil {
 		return nil, err
 	}
-	if _, err := AddTimeline(ctx, tx, inc.OrgID, inc.ID, n.Commander, "investigating", n.FirstEntry, n.StartedAt); err != nil {
+	if _, err := AddTimeline(ctx, tx, inc.OrgID, inc.ID, n.Commander, "investigating", n.FirstEntry, n.StartedAt, n.FirstEntryPublic); err != nil {
 		return nil, err
 	}
 	return inc, nil
@@ -100,13 +101,15 @@ func OpenMonitorIncident(ctx context.Context, tx pgx.Tx, monitorID string) (*mod
 
 func scanTimeline(r pgx.Row) (*model.TimelineEntry, error) {
 	var t model.TimelineEntry
-	return &t, r.Scan(&t.ID, &t.IncidentID, &t.TS, &t.Author, &t.Phase, &t.Body)
+	return &t, r.Scan(&t.ID, &t.IncidentID, &t.TS, &t.Author, &t.Phase, &t.Body, &t.Public)
 }
 
-func AddTimeline(ctx context.Context, tx pgx.Tx, orgID, incidentID, author, phase, body string, at time.Time) (*model.TimelineEntry, error) {
-	return one(tx.QueryRow(ctx, `INSERT INTO timeline_entries (org_id, incident_id, ts, author, phase, body)
-		VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, incident_id, ts, author, phase, body`,
-		orgID, incidentID, at, author, phase, body), scanTimeline)
+const timelineColumns = `id, incident_id, ts, author, phase, body, public`
+
+func AddTimeline(ctx context.Context, tx pgx.Tx, orgID, incidentID, author, phase, body string, at time.Time, public bool) (*model.TimelineEntry, error) {
+	return one(tx.QueryRow(ctx, `INSERT INTO timeline_entries (org_id, incident_id, ts, author, phase, body, public)
+		VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING `+timelineColumns,
+		orgID, incidentID, at, author, phase, body, public), scanTimeline)
 }
 
 // Timeline lists an incident's entries; newestFirst for the feed, oldest
@@ -116,7 +119,7 @@ func Timeline(ctx context.Context, tx pgx.Tx, incidentID string, newestFirst boo
 	if newestFirst {
 		order = "DESC"
 	}
-	rows, err := tx.Query(ctx, `SELECT id, incident_id, ts, author, phase, body FROM timeline_entries
+	rows, err := tx.Query(ctx, `SELECT `+timelineColumns+` FROM timeline_entries
 		WHERE incident_id = $1 ORDER BY ts `+order+`, id`, incidentID)
 	if err != nil {
 		return nil, err
@@ -124,11 +127,30 @@ func Timeline(ctx context.Context, tx pgx.Tx, incidentID string, newestFirst boo
 	return collect(rows, scanTimeline)
 }
 
+// PublicTimeline lists the entries of an incident marked public, newest first.
+func PublicTimeline(ctx context.Context, tx pgx.Tx, incidentID string) ([]model.TimelineEntry, error) {
+	rows, err := tx.Query(ctx, `SELECT `+timelineColumns+` FROM timeline_entries
+		WHERE incident_id = $1 AND public ORDER BY ts DESC, id`, incidentID)
+	if err != nil {
+		return nil, err
+	}
+	return collect(rows, scanTimeline)
+}
+
 // RecentIncidents feeds the public status page: open ones and those
-// resolved within the window.
-func RecentIncidents(ctx context.Context, tx pgx.Tx, since time.Time) ([]model.Incident, error) {
+// resolved within the window, limited to incidents of the page's own
+// monitors or services (names compared in lower case).
+func RecentIncidents(ctx context.Context, tx pgx.Tx, since time.Time, monitorIDs, serviceNames []string) ([]model.Incident, error) {
+	if monitorIDs == nil {
+		monitorIDs = []string{}
+	}
+	if serviceNames == nil {
+		serviceNames = []string{}
+	}
 	rows, err := tx.Query(ctx, `SELECT `+incidentColumns+` FROM incidents
-		WHERE status <> 'resolved' OR resolved_at >= $1 ORDER BY (status <> 'resolved') DESC, started_at DESC LIMIT 20`, since)
+		WHERE (status <> 'resolved' OR resolved_at >= $1)
+			AND (monitor_id = ANY($2::text[]::uuid[]) OR EXISTS (SELECT 1 FROM unnest(services) sv WHERE lower(sv) = ANY($3::text[])))
+		ORDER BY (status <> 'resolved') DESC, started_at DESC LIMIT 20`, since, monitorIDs, serviceNames)
 	if err != nil {
 		return nil, err
 	}

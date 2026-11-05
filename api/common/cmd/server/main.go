@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 	// Org timezones are IANA names (X-10); the image ships no zoneinfo.
@@ -63,6 +62,8 @@ func run() error {
 	session.SetAccessTTL(authCfg.JWTAccessTTL)
 	session.ConfigureSession(session.SessionSettings{CookieName: authCfg.SessionCookieName, AllowedOrigin: authCfg.IsAllowedOrigin})
 
+	onCloudRun := config.OnCloudRun()
+
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
@@ -75,7 +76,8 @@ func run() error {
 		return err
 	}
 	if cfg.ClickHouseURL != "" {
-		ch := migrations.ClickHouse{URL: cfg.ClickHouseURL, User: cfg.ClickHouseUser, Password: cfg.ClickHousePassword}
+		ch := migrations.ClickHouse{URL: cfg.ClickHouseURL, User: cfg.ClickHouseUser, Password: cfg.ClickHousePassword,
+			QueryUser: cfg.ClickHouseQueryUser}
 		if err := ch.Apply(ctx); err != nil {
 			return err
 		}
@@ -102,18 +104,25 @@ func run() error {
 		clients.NewQuery(cfg.QueryURL, signer, cfg.InternalToken), clients.NewResults(cfg.OTLPEndpoint, signer))
 	limiter := ratelimit.New(cfg.Redis)
 	defer limiter.Close()
+	var redisOpts *cache.RedisOptions
+	if cfg.Redis.Host != "" {
+		redisOpts = &cache.RedisOptions{Host: cfg.Redis.Host, Port: cfg.Redis.Port, Username: cfg.Redis.Username,
+			Password: cfg.Redis.Password, TLS: cfg.Redis.TLS, DB: cfg.Redis.DB}
+	} else if onCloudRun {
+		slog.Warn("REDIS_HOST is unset on Cloud Run: sign-in state and limits are per instance")
+	}
+	states, closeStates := cache.NewStateStore(redisOpts, cfg.Redis.Prefix)
+	defer closeStates() //nolint:errcheck // shutdown
 
 	waker := wake.New(signer)
 	waker.Token = cfg.InternalToken
 	publisher := &outbox.Publisher{DB: db, Producer: producer, Store: blobs, Interval: time.Second, Now: time.Now,
-		Wake: func(event string) {
+		Wake: func(ctx context.Context, event string) {
 			switch event {
 			case bus.EventConfigChanged:
-				waker.Async(cfg.Wake.Analytics, event)
-				waker.Async(cfg.Wake.Observability, event)
-				waker.Async(cfg.Wake.Query, event)
+				waker.Wake(ctx, event, cfg.Wake.Analytics, cfg.Wake.Observability, cfg.Wake.Query)
 			default: // synthetics.result, verify_requested
-				waker.Async(cfg.Wake.Analytics, event)
+				waker.Wake(ctx, event, cfg.Wake.Analytics)
 			}
 		}}
 
@@ -130,6 +139,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	consumer.OnFailure(s.RecordFailure)
 
 	// Cloud Run bills CPU per request (S-14): background work stalls once a
 	// request is answered. So a write publishes its outbox rows before it
@@ -137,34 +147,19 @@ func run() error {
 	// handles every result) and then waits until common has handled the
 	// transitions analytics sent back. Compose and Helm run every service
 	// all the time and leave WAKE_ANALYTICS_URL unset.
-	settle := cfg.Wake.Analytics != ""
-	flush := func(ctx context.Context) {
-		for {
-			n, err := publisher.PublishBatch(ctx)
-			if err != nil {
-				slog.WarnContext(ctx, "outbox flush failed; the next pass retries", "error", err)
-				return
+	settle := onCloudRun || cfg.Wake.Analytics != ""
+	runChecks := runnerFunc(pass{
+		checks: s.RunChecks,
+		retry: func(ctx context.Context) {
+			if _, err := s.RetryFailures(ctx, consumer.Replay); err != nil {
+				slog.WarnContext(ctx, "retrying failed messages stopped; the next pass continues", "error", err)
 			}
-			if n == 0 {
-				return
-			}
-		}
-	}
-	runChecks := runnerFunc(func(ctx context.Context) error {
-		err := s.RunChecks(ctx)
-		if !settle {
-			return err
-		}
-		flush(ctx)
-		// Each pass settles analytics even when no result was sent, so its
-		// nodata timers and rules tick (flows/monitor.md §2).
-		if serr := waker.Settle(ctx, cfg.Wake.Analytics, "run-checks"); serr == nil {
-			if werr := consumer.WaitCaughtUp(ctx, 20*time.Second); werr != nil {
-				slog.WarnContext(ctx, "results not all handled; the next pass continues", "error", werr)
-			}
-		}
-		return err
-	})
+		},
+		flush:    flushOutbox(publisher),
+		settle:   func(ctx context.Context) error { return waker.Settle(ctx, cfg.Wake.Analytics, "run-checks") },
+		caughtUp: func(ctx context.Context) error { return consumer.WaitCaughtUp(ctx, 20*time.Second) },
+		settles:  settle,
+	}.run)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
@@ -179,7 +174,7 @@ func run() error {
 	})
 	mux.Handle(jobs.Path, jobs.Handler{Verifier: jobs.GoogleVerifier{}, Checks: runChecks,
 		Jobs: map[string]func(context.Context) error{jobs.PruneJob: s.Prune}})
-	handler.NewAuthHandler(authCfg, cache.NewMemoryStore(),
+	handler.NewAuthHandler(authCfg, states,
 		auth.NewGoogleSSO(authCfg.GoogleClientID, authCfg.GoogleClientSecret, authCfg.GoogleRedirectURI),
 		auth.NewHandoffService(service.Handoffs{S: s}, authCfg.SessionSecret, session.GenerateSessionToken),
 		service.AuthUsers{S: s},
@@ -192,13 +187,17 @@ func run() error {
 
 	var app http.Handler = mux
 	if settle {
-		app = flushAfterWrites(mux, flush)
+		app = flushBeforeResponse(mux, flushOutbox(publisher))
 	}
 	root := httpx.CORS(authCfg.IsAllowedOrigin, true, h2c.NewHandler(app, &http2.Server{}))
 	srv := &http.Server{Addr: ":" + cfg.Port, Handler: root, ReadHeaderTimeout: 10 * time.Second}
 
 	g, gctx := errgroup.WithContext(ctx)
-	g.Go(func() error { publisher.Run(gctx); return nil })
+	if !onCloudRun {
+		// Request-based CPU stalls a background loop; Cloud Run publishes on
+		// the request path and inside each run-checks pass.
+		g.Go(func() error { publisher.Run(gctx); return nil })
+	}
 	g.Go(func() error { return consumer.Run(gctx) })
 	if config.WorkerEnabled() {
 		// Local runs only: Cloud Run drives checks from Cloud Scheduler.
@@ -236,23 +235,5 @@ func run() error {
 }
 
 type runnerFunc func(context.Context) error
-
-// flushAfterWrites publishes the outbox rows a write created before the
-// request ends, while the instance still has CPU (S-14).
-func flushAfterWrites(next http.Handler, flush func(context.Context)) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
-		switch r.Method {
-		case http.MethodGet, http.MethodHead, http.MethodOptions:
-			return
-		}
-		if strings.HasPrefix(r.URL.Path, "/internal/") {
-			return // run-checks flushes inside its own pass
-		}
-		ctx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), 10*time.Second)
-		defer cancel()
-		flush(ctx)
-	})
-}
 
 func (f runnerFunc) RunOnce(ctx context.Context) error { return f(ctx) }

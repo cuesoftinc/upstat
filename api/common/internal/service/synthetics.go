@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
 	"regexp"
 	"strings"
 
@@ -88,9 +87,8 @@ func (s *Services) checkSynthetic(c *model.SyntheticCheck) error {
 		return invalid("bad_shape", "a browser check needs its browser settings")
 	}
 	if c.Browser != nil {
-		u, err := url.Parse(c.Browser.URL)
-		if err != nil || (u.Scheme != "http" && u.Scheme != "https") {
-			return invalid("invalid_target", "browser URL must be http(s)")
+		if err := s.validateTarget(c.Browser.URL); err != nil {
+			return err
 		}
 		if !viewports[c.Browser.Viewport] {
 			return invalid("bad_shape", "viewport must be 1440x900, 768x1024 or 390x844")

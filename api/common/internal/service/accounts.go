@@ -276,17 +276,17 @@ func (s *Services) UpdateMember(ctx context.Context, c *Caller, id string, role,
 	}
 	var out *model.Member
 	err := s.inOrg(ctx, c, "owner", func(tx pgx.Tx) error {
+		owners, err := repository.LockOwners(ctx, tx)
+		if err != nil {
+			return err
+		}
 		m, err := repository.GetMember(ctx, tx, id)
 		if err != nil {
 			return orNotFound(err, "member")
 		}
 		losingOwner := m.Role == "owner" && ((role != nil && *role != "owner") || (status != nil && *status != "active"))
-		if losingOwner {
-			if n, err := repository.CountOwners(ctx, tx); err != nil {
-				return err
-			} else if n <= 1 {
-				return invalid("last_owner", "the org must keep an owner")
-			}
+		if losingOwner && owners <= 1 {
+			return invalid("last_owner", "the org must keep an owner")
 		}
 		if status != nil && m.Status == "invited" {
 			status = nil // an invite becomes active by signing in
@@ -301,16 +301,16 @@ func (s *Services) UpdateMember(ctx context.Context, c *Caller, id string, role,
 
 func (s *Services) RemoveMember(ctx context.Context, c *Caller, id string) error {
 	return s.inOrg(ctx, c, "owner", func(tx pgx.Tx) error {
+		owners, err := repository.LockOwners(ctx, tx)
+		if err != nil {
+			return err
+		}
 		m, err := repository.GetMember(ctx, tx, id)
 		if err != nil {
 			return orNotFound(err, "member")
 		}
-		if m.Role == "owner" {
-			if n, err := repository.CountOwners(ctx, tx); err != nil {
-				return err
-			} else if n <= 1 {
-				return invalid("last_owner", "the org owner cannot be removed")
-			}
+		if m.Role == "owner" && owners <= 1 {
+			return invalid("last_owner", "the org owner cannot be removed")
 		}
 		if err := repository.DeleteMember(ctx, tx, id); err != nil {
 			return err
