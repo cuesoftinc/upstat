@@ -4,6 +4,10 @@ and no IAM roles, and has no VPC connector, so even an SSRF bypass reaches
 nothing internal (§8). Self-host runs the same code as a container with
 functions-framework; there INTERNAL_TOKEN guards it instead.
 
+  Auth: INTERNAL_TOKEN in X-Internal-Token, or on Cloud Run a Google ID
+  token for PROBE_AUDIENCE from one of PROBE_INVOKERS (comma separated).
+  With neither configured on Cloud Run every call is refused.
+
   POST /check  {job_id, target, timeout_s}      -> one HTTP check
   POST /run    {kind, steps, browser}           -> one synthetic run
   GET  /health                                  -> {"status": "up"}
@@ -31,11 +35,29 @@ def _error(status, code, message):
     return _json({"error": {"code": code, "message": message, "details": {}}}, status)
 
 
-def _authorized(request) -> bool:
+def verify_google_token(token: str, audience: str) -> dict:
+    import google.auth.transport.requests
+    import google.oauth2.id_token
+
+    return google.oauth2.id_token.verify_oauth2_token(token, google.auth.transport.requests.Request(), audience)
+
+
+def _authorized(request, verify=None) -> bool:
     token = os.environ.get("INTERNAL_TOKEN", "")
-    if not token:
-        return True  # Cloud Run IAM already admitted the caller
-    return hmac.compare_digest(request.headers.get("X-Internal-Token", ""), token)
+    if token and hmac.compare_digest(request.headers.get("X-Internal-Token", "").encode(), token.encode()):
+        return True
+    if not os.environ.get("K_SERVICE"):
+        return not token  # self-host with no token configured stays open, as before
+    audience = os.environ.get("PROBE_AUDIENCE", "").rstrip("/")
+    invokers = {i.strip() for i in os.environ.get("PROBE_INVOKERS", "").split(",") if i.strip()}
+    scheme, _, bearer = request.headers.get("Authorization", "").partition(" ")
+    if not audience or not invokers or scheme.lower() != "bearer" or not bearer.strip():
+        return False
+    try:
+        claims = (verify or verify_google_token)(bearer.strip(), audience)
+    except Exception:
+        return False
+    return bool(claims.get("email_verified")) and claims.get("email") in invokers
 
 
 @functions_framework.http
@@ -51,7 +73,7 @@ def probe(request):
         return _error(400, "bad_shape", "malformed JSON body")
     if request.path == "/check":
         target, timeout = body.get("target"), body.get("timeout_s")
-        if not isinstance(target, str) or not isinstance(timeout, int) or not 1 <= timeout <= 60:
+        if not isinstance(target, str) or not isinstance(timeout, int) or isinstance(timeout, bool) or not 1 <= timeout <= 60:
             return _error(422, "bad_shape", "target and timeout_s (1-60) are required")
         result = check(target, timeout)
         # Never log the target: it may embed internal hostnames (data-model.md §4).
@@ -62,5 +84,10 @@ def probe(request):
         steps = body.get("steps") or []
         if not isinstance(steps, list) or len(steps) > 20:
             return _error(422, "bad_shape", "steps is a list of at most 20")
-        return _json(run(body.get("kind", "multi_step"), steps, body.get("browser")))
+        if not all(isinstance(step, dict) for step in steps):
+            return _error(400, "bad_shape", "each step must be an object")
+        kind, browser = body.get("kind", "multi_step"), body.get("browser")
+        if not isinstance(kind, str) or not (browser is None or isinstance(browser, dict)):
+            return _error(400, "bad_shape", "kind is a string and browser an object")
+        return _json(run(kind, steps, browser))
     return _error(404, "not_found", "unknown path")

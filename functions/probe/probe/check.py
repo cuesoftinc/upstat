@@ -74,14 +74,21 @@ def fetch(url: str, timeout_s: float, method: str = "GET") -> Response:
             break
         t0 = time.monotonic()
         try:
-            host, port, ip = ssrf.resolve(url)
+            host, port, ip = ssrf.resolve(url, remaining)
         except ssrf.Blocked:
             out.cause = "blocked"
+            break
+        except ssrf.ResolveTimeout:
+            out.cause = "timeout"
             break
         except ssrf.Unresolvable:
             out.cause = "dns"
             break
         dns_ms = (time.monotonic() - t0) * 1000
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            out.cause = "timeout"
+            break
         status, headers, body, err, c = _one(url, host, port, ip, method, remaining)
         if hop == 0:
             out.dns_ms = round(dns_ms, 2)
@@ -133,6 +140,9 @@ def _one(url, host, port, ip, method, timeout_s):
     # Pin the connection to the address that passed the guard.
     c.setopt(pycurl.RESOLVE, [f"{host}:{port}:{ip if ':' not in ip else '[' + ip + ']'}"])
     c.setopt(pycurl.FOLLOWLOCATION, False)
+    # Environment proxies would bypass the pin and the guard.
+    c.setopt(pycurl.PROXY, "")
+    c.setopt(pycurl.NOPROXY, "*")
     c.setopt(pycurl.TIMEOUT_MS, max(1, int(timeout_s * 1000)))
     c.setopt(pycurl.CONNECTTIMEOUT_MS, max(1, int(timeout_s * 1000)))
     c.setopt(pycurl.NOSIGNAL, 1)

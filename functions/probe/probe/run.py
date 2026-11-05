@@ -6,10 +6,13 @@ Browser checks need a headless browser, which this probe does not ship;
 they report one failed step saying so instead of pretending to pass.
 """
 
+import logging
 import re
 import time
 
 from probe.check import fetch
+
+log = logging.getLogger(__name__)
 
 STEP_TIMEOUT_S = 15
 _ASSERTION = re.compile(r"^(status|body|header\.[A-Za-z0-9-]+|duration_ms)\s*(==|!=|<=|>=|<|>|contains)\s*(.+)$")
@@ -52,16 +55,20 @@ def run(kind: str, steps: list[dict], browser: dict | None) -> dict:
     last = None
     for i, step in enumerate(steps, start=1):
         started = time.monotonic()
+        step = step if isinstance(step, dict) else {}
         kind_ = step.get("kind")
         passed = False
-        if kind_ == "http":
-            last = fetch(step.get("url", ""), STEP_TIMEOUT_S, step.get("method", "GET"))
-            passed = last.cause == "" and 0 < last.status_code < 400
-        elif kind_ == "assertion":
-            passed = assert_on(step.get("expression", ""), last)
-        elif kind_ == "wait":
-            time.sleep(min(max(int(step.get("wait_ms") or 0), 0), 30000) / 1000)
-            passed = True
+        try:
+            if kind_ == "http":
+                last = fetch(str(step.get("url") or ""), STEP_TIMEOUT_S, str(step.get("method") or "GET"))
+                passed = last.cause == "" and 0 < last.status_code < 400
+            elif kind_ == "assertion":
+                passed = assert_on(str(step.get("expression") or ""), last)
+            elif kind_ == "wait":
+                time.sleep(min(max(int(step.get("wait_ms") or 0), 0), 30000) / 1000)
+                passed = True
+        except (TypeError, ValueError):
+            log.warning("step is malformed", extra={"index": i})
         duration = int((time.monotonic() - started) * 1000)
         results.append({"index": i, "kind": kind_, "summary": step.get("summary", ""), "status": "pass" if passed else "fail",
                         "duration_ms": duration})

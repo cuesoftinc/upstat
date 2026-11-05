@@ -1,5 +1,5 @@
-# Self-host and compose image of the probe (S-12); in cloud the same source
-# deploys as a Cloud Run function per region.
+# The probe image (S-12): a Cloud Run service per region in cloud, and the
+# compose and self-host container.
 FROM python:3.12-slim
 RUN apt-get update && apt-get install -y --no-install-recommends libcurl4 ca-certificates \
     && rm -rf /var/lib/apt/lists/* && useradd -u 10001 -m app
