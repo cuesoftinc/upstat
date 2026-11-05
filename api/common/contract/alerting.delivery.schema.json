@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://upstat.cuesoft.io/contract/alerting.delivery.schema.json",
+  "title": "upstat.alerting.delivery",
+  "description": "The terminal outcome of one notification (flows/alert.md §3), persisted by common as the alert feed (MI-14) and the channel health badge. request_id is the delivery id.",
+  "type": "object",
+  "required": ["id", "org_id", "kind", "state", "attempts", "at"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "defs.schema.json#/$defs/id" },
+    "org_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "kind": { "enum": ["alert", "flapping", "renotify", "verify", "rule"] },
+    "transition_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "rule_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "channel_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "sev": { "enum": ["sev1", "sev2", "resolved"] },
+    "monitor_name": { "type": "string" },
+    "message": { "type": "string", "maxLength": 1000 },
+    "state": { "enum": ["delivered", "failed", "suppressed"] },
+    "attempts": { "type": "integer", "minimum": 0 },
+    "at": { "$ref": "defs.schema.json#/$defs/timestamp" }
+  }
+}

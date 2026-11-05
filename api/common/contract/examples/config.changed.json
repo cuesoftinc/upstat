@@ -1,0 +1,16 @@
+{
+  "type": "upstat.config.changed",
+  "version": "1.0",
+  "id": "c0ffee00-0000-4000-8000-000000000000",
+  "produced_at": "2026-10-28T12:00:00Z",
+  "request_id": "example",
+  "data": {
+    "kind": "monitors",
+    "version": 1793000000000,
+    "snapshot": {
+      "bucket": "upstat-stg",
+      "key": "upstat/stg/config/monitors.json",
+      "content_type": "application/json"
+    }
+  }
+}

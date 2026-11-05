@@ -1,0 +1,25 @@
+<!-- Compose and self-host ClickHouse users (S-9): api/common migrates as
+     the default user; the collector inserts as loader; api/query reads as
+     query_ro, under a row policy keyed on the per-query SQL_upstat_org
+     setting, in addition to the org predicate the compiler injects. -->
+<clickhouse>
+  <users>
+    <loader>
+      <password>loader</password>
+      <networks><ip>::/0</ip></networks>
+      <profile>default</profile>
+      <grants><query>GRANT INSERT, SELECT ON upstat.*</query></grants>
+    </loader>
+    <query_ro>
+      <password>query_ro</password>
+      <networks><ip>::/0</ip></networks>
+      <profile>readonly_queries</profile>
+      <grants><query>GRANT SELECT ON upstat.*</query></grants>
+    </query_ro>
+  </users>
+  <profiles>
+    <readonly_queries>
+      <readonly>2</readonly>
+    </readonly_queries>
+  </profiles>
+</clickhouse>

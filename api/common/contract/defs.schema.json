@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://upstat.cuesoft.io/contract/defs.schema.json",
+  "title": "Shared definitions",
+  "$defs": {
+    "id": { "type": "string", "format": "uuid" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "monitor_status": { "enum": ["up", "down", "pending", "nodata", "paused"] },
+    "check_cause": {
+      "description": "flows/monitor.md §4, plus blocked for a target the SSRF guard refused, error for anything else, and empty for a passing check.",
+      "enum": ["", "timeout", "dns", "tls", "refused", "http_4xx", "http_5xx", "too_many_redirects", "blocked", "error"]
+    },
+    "config_kind": { "enum": ["orgs", "members", "ingest_keys", "monitors", "rules", "channels", "registry", "slos"] },
+    "object_ref": {
+      "type": "object",
+      "description": "A Cloud Storage (or MinIO) object. `key` is relative to the bucket and starts with the env prefix, e.g. upstat/stg/compute/...",
+      "required": ["bucket", "key"],
+      "additionalProperties": false,
+      "properties": {
+        "bucket": { "type": "string", "minLength": 1 },
+        "key": { "type": "string", "minLength": 1 },
+        "size": { "type": "integer", "minimum": 0 },
+        "content_type": { "type": "string" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    }
+  }
+}

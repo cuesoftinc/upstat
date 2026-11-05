@@ -5,19 +5,25 @@ profile: cuelabs
 surfaces:
   web: active
   backend:
-    common: planned
-    observability: planned
+    common: active
+    observability: active
+    analytics: active
+    query: active
   mobile:
     flutter: planned
 
 capabilities:
-  grpc: planned
-  firebaseAuth: planned
+  grpc: active # OTLP ingest only (S-7)
+  googleSso: active
+  kafka: active
 
 deployment:
   web: firebase-app-hosting
-  api: none
+  api: cloud-run
   selfHost: helm
   infrastructure: terraform
 
-deviations: []
+deviations:
+  - id: EX-1
+    reason: common signs its own HS256 session JWT (JWT_SECRET) and seals the session cookie (SESSION_SECRET) after a Google OAuth code flow instead of verifying Firebase ID tokens (docs/flows/auth.md)
+    expires:

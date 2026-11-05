@@ -16,3 +16,17 @@ export const env = {
    */
   testMode: process.env.NEXT_PUBLIC_TEST_MODE === "true",
 } as const;
+
+// A production server listens on its own port, so a localhost default
+// there would loop back into the proxy.
+const localDefault = (url: string) =>
+  process.env.NODE_ENV === "production" ? undefined : url;
+
+/**
+ * Server-only: where the /api/v1 proxy forwards (src/app/api/v1). Read per
+ * request so the same build serves compose and cloud.
+ */
+export const serverEnv = () => ({
+  apiOrigin: process.env.API_URL ?? localDefault("http://localhost:8080"),
+  queryOrigin: process.env.QUERY_URL ?? localDefault("http://localhost:8083"),
+});

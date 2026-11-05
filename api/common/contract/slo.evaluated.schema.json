@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://upstat.cuesoft.io/contract/slo.evaluated.schema.json",
+  "title": "upstat.slo.evaluated",
+  "description": "The evaluator recomputed an SLO's attainment and error budget (pages.md B10). request_id is <slo_id>:<at>.",
+  "type": "object",
+  "required": ["slo_id", "org_id", "current", "budget_remaining_pct", "burn_rate", "state", "at"],
+  "additionalProperties": false,
+  "properties": {
+    "slo_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "org_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "current": { "type": "number", "minimum": 0, "maximum": 100 },
+    "budget_remaining_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+    "burn_rate": { "type": "number", "minimum": 0 },
+    "state": { "enum": ["healthy", "burning", "exhausted"] },
+    "exhausted_at": { "type": ["string", "null"], "format": "date-time" },
+    "at": { "$ref": "defs.schema.json#/$defs/timestamp" }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "name": "upstat-api-observability",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Thin ingest gateway: authenticates ingest and property keys, meters bytes, forwards OTLP unparsed and validated product events to the OpenTelemetry Collector.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/main.js",
+    "dev": "tsc -p tsconfig.build.json && node --env-file=.env dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "npm run prettier:check && eslint .",
+    "prettier:cli": "prettier \"**/*.{ts,tsx,js,jsx,mjs,cjs}\"",
+    "prettier:check": "npm run prettier:cli -- -l",
+    "prettier:fix": "npm run prettier:cli -- --write",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^8.4.0",
+    "@nestjs/common": "^11.2.8",
+    "@nestjs/core": "^11.2.8",
+    "@nestjs/platform-express": "^11.2.8",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "kafkajs": "^2.2.4",
+    "minio": "^8.0.7",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "@grpc/grpc-js": "^1.14.0",
+    "redis": "^5.8.2",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10",
+    "@nestjs/testing": "^11.2.8",
+    "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24",
+    "@types/supertest": "^7.2.1",
+    "eslint": "^10",
+    "jest": "^30.5.2",
+    "prettier": "^3.9.10",
+    "supertest": "^7.3.1",
+    "ts-jest": "^29.4.15",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/src"
+    ],
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json"
+    ]
+  }
+}

@@ -1,10 +1,17 @@
-# One chart deploys all services. Images are built from this repo — push to a
-# registry and override per environment. Secrets (JWT_SECRET, SESSION_SECRET, GOOGLE_CLIENT_SECRET, tokens) should
-# come from Kubernetes Secrets in real deployments, not plain values.
+# One chart deploys all services (docs/system-design.md §10.2). Images are
+# built from this repo; push to a registry and override per environment.
+# Secrets (JWT_SECRET, SESSION_SECRET, GOOGLE_CLIENT_SECRET, INTERNAL_TOKEN,
+# store passwords) belong in Kubernetes Secrets (envFrom), not plain values.
 #
-# The chart does NOT deploy MongoDB. Point MONGO_URI at a reachable instance
-# (managed MongoDB, or e.g. the bitnami/mongodb chart installed as `mongo` in
-# the same namespace — the default URI below assumes that service name).
+# The chart does not deploy the stores. Point the endpoints below at
+# reachable services: Postgres, ClickHouse, Kafka (the three cuelabs.* lanes
+# must exist, two partitions each), Redis/Valkey and an S3-compatible bucket.
+# The defaults assume in-namespace services named postgres, clickhouse,
+# kafka, redis and s3 (for example their bitnami charts).
+#
+# The collector reads its config from an env var; pass the repo's file:
+#   helm upgrade --install upstat deploy/helm \
+#     --set-file services.otel-collector.env.OTEL_COLLECTOR_CONFIG=deploy/docker/otel-collector.yaml
 replicaCount: 1
 
 services:
@@ -16,22 +23,95 @@ services:
     readyPath: /ready
     env:
       PORT: "8080"
-      MONGO_URI: mongodb://mongo:27017
-      MONGO_DB: Upstat
-    # Inject secrets (e.g. JWT_SECRET, SESSION_SECRET, GOOGLE_CLIENT_SECRET) from a Kubernetes Secret instead of env:
+      DATABASE_URL: postgres://upstat_app:upstat_app@postgres:5432/upstat?sslmode=disable
+      CLICKHOUSE_URL: http://clickhouse:8123/?database=upstat
+      KAFKA_BROKERS: kafka:9092
+      REDIS_HOST: redis
+      STORAGE_DRIVER: s3
+      STORAGE_BUCKET: upstat
+      STORAGE_PREFIX: upstat/self
+      STORAGE_ENDPOINT: s3:8333
+      STORAGE_USE_SSL: "false"
+      PROBE_URLS: local=http://probe:8090
+      QUERY_URL: http://api-query:8083
+      OTLP_LOADER_ENDPOINT: http://otel-collector:4318
+      SELF_HOST: "true"
+      WORKER_ENABLED: "true"
     # envFrom:
-    #   - secretRef: api-common-secrets
+    #   - secretRef: upstat-secrets
+
+  api-query:
+    image: cuesoft/upstat-api-query:latest
+    port: 8083
+    healthPath: /health
+    readyPath: /ready
+    env:
+      PORT: "8083"
+      CLICKHOUSE_URL: http://clickhouse:8123/?database=upstat
+      CLICKHOUSE_QUERY_USER: query_ro
+      KAFKA_BROKERS: kafka:9092
+      STORAGE_DRIVER: s3
+      STORAGE_BUCKET: upstat
+      STORAGE_PREFIX: upstat/self
+      STORAGE_ENDPOINT: s3:8333
+      STORAGE_USE_SSL: "false"
 
   api-observability:
     image: cuesoft/upstat-api-observability:latest
     port: 8081
+    runAsUser: 1000 # node user
+    extraPorts:
+      - name: otlp-grpc
+        port: 4317
     healthPath: /health
     readyPath: /ready
     env:
       PORT: "8081"
-      MONGO_URI: mongodb://mongo:27017
-      MONGO_DB: Upstat
-      API_URL: http://api-common:8080
+      GRPC_PORT: "4317"
+      OTLP_LOADER_ENDPOINT: http://otel-collector:4318
+      KAFKA_BROKERS: kafka:9092
+      REDIS_HOST: redis
+      STORAGE_DRIVER: s3
+      STORAGE_BUCKET: upstat
+      STORAGE_PREFIX: upstat/self
+      STORAGE_ENDPOINT: s3:8333
+      STORAGE_USE_SSL: "false"
+
+  api-analytics:
+    image: cuesoft/upstat-api-analytics:latest
+    port: 8082
+    healthPath: /health
+    readyPath: /ready
+    env:
+      PORT: "8082"
+      QUERY_URL: http://api-query:8083
+      KAFKA_BROKERS: kafka:9092
+      REDIS_HOST: redis
+      STORAGE_DRIVER: s3
+      STORAGE_BUCKET: upstat
+      STORAGE_PREFIX: upstat/self
+      STORAGE_ENDPOINT: s3:8333
+      STORAGE_USE_SSL: "false"
+      ALLOW_PRIVATE_WEBHOOKS: "true"
+      WORKER_ENABLED: "true"
+
+  probe:
+    image: cuesoft/upstat-probe:latest
+    port: 8090
+    healthPath: /health
+    env:
+      PORT: "8090"
+      PROBE_REGION: local
+      PROBE_ALLOW_PRIVATE: "true"
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.130.0
+    port: 4318
+    args: ["--config=env:OTEL_COLLECTOR_CONFIG"]
+    env:
+      CLICKHOUSE_ENDPOINT: tcp://clickhouse:9000?dial_timeout=10s
+      CLICKHOUSE_DATABASE: upstat
+      CLICKHOUSE_LOADER_USER: loader
 
   web:
     image: cuesoft/upstat-web:latest
@@ -40,6 +120,8 @@ services:
     healthPath: /
     env:
       PORT: "3000"
+      API_URL: http://api-common:8080
+      QUERY_URL: http://api-query:8083
 
 # Optional Ingress (see templates/ingress.yaml). Disabled by default: the chart's
 # existing consumers publish through Cloud Run / App Hosting, not an ingress

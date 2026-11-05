@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://upstat.cuesoft.io/contract/insights.generated.schema.json",
+  "title": "upstat.insights.generated",
+  "description": "observability analysed a monitor (system-design.md §6.6); common persists the insight. request_id is the insight id.",
+  "type": "object",
+  "required": ["id", "org_id", "monitor_id", "risk_score", "severity", "anomaly_detected", "summary", "narrative", "recommended_action", "generated_at"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "defs.schema.json#/$defs/id" },
+    "org_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "monitor_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "risk_score": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "severity": { "enum": ["low", "medium", "high", "critical"] },
+    "anomaly_detected": { "type": "boolean" },
+    "summary": { "type": "string", "maxLength": 2000 },
+    "narrative": { "type": "string", "maxLength": 4000 },
+    "recommended_action": { "type": "string", "maxLength": 2000 },
+    "generated_at": { "$ref": "defs.schema.json#/$defs/timestamp" }
+  }
+}

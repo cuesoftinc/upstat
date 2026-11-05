@@ -17,60 +17,73 @@ the browser and the services is HTTP/JSON. For a deeper
 description of the components and how they fit together, see
 [docs/overview.md](docs/overview.md).
 
-> **Scope note:** the diagram below is current state (uptime/status core).
-> Upstat's ratified direction is a full observability platform — see
-> [docs/prd.md §9](docs/prd.md) and [docs/decisions.md](docs/decisions.md).
+The system design is [docs/system-design.md](docs/system-design.md)
+(v3, decided and built 2026-10-29); the decisions behind it are in
+[docs/decisions.md](docs/decisions.md).
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    WEB[web dashboard<br/>Next.js] -->|HTTP| AC[api/common, Go<br/>monitor worker · checks · incidents<br/>monitors · users]
-    OBS[api/observability, Python<br/>ML anomaly detection · insights] -->|HTTP /v1/monitors/id/checks| AC
-    AC --> MG[(MongoDB)]
-    OBS --> MG
+    BR[Browser] --> WEB[web, Next.js<br/>/api/v1 proxy]
+    SDK[OTel SDKs · upstat.js] --> GW[api/observability, Node<br/>ingest gateway]
+    WEB --> AC[api/common, Go<br/>control plane · scheduler · outbox]
+    WEB --> Q[api/query, Go<br/>ClickHouse reads]
+    AC <-->|HTTPS| PR[probe services, Python<br/>2 regions]
+    AC --> PG[(Postgres)]
+    AC <-->|shared Kafka lanes| AN[api/analytics, Python<br/>evaluator · notifier · rules · SLOs · insights]
+    GW --> COL[OTel Collector] --> CH[(ClickHouse)]
+    AC --> COL
+    Q --> CH
+    AN -. reads .-> Q
 ```
 
-- The **web** app talks to the Go backend over HTTP/JSON through its
-  repository client; the dashboard still reads its data from the in-app mock
-  CRUD server (`/api/mock/v1`).
-- The **observability** service is an HTTP client of the Go backend: it pulls
-  recent checks, runs anomaly detection / insight generation, and persists the
-  results.
+- **Go does CRUD**: `api/common` owns Postgres and persists every decision;
+  `api/query` reads ClickHouse.
+- **Python decides**: `api/analytics` turns check results into up/down,
+  alerts, rule and SLO states and insights, and sends them back over the
+  shared CueLABS message bus.
+- **The gateway is thin**: `api/observability` authenticates ingest keys,
+  meters bytes and forwards OTLP unparsed; product events are validated
+  against the registry and hashed cookielessly.
+- **Probes** are Cloud Run services in two regions; a monitor is down only
+  when the regions agree.
 
 ### Tech stack
 
-| Layer          | Technology                                             |
-| -------------- | ------------------------------------------------------ |
-| Backend API    | Go 1.26, HTTP/JSON, MongoDB (`api/common`)             |
-| Observability  | Python, FastAPI, scikit-learn (`api/observability`)       |
-| Web            | Next.js, React, TypeScript; mock CRUD server (current data path), HTTP repository client |
-| Mobile         | Flutter (placeholder)                                  |
-| Infrastructure | Docker, Helm, Terraform                                |
+| Layer | Technology |
+| --- | --- |
+| Control plane | Go 1.26, Postgres with row-level security (`api/common`) |
+| Telemetry reads | Go 1.26, ClickHouse (`api/query`) |
+| Ingest gateway | Node 24, NestJS, OTLP/HTTP + OTLP/gRPC (`api/observability`) |
+| Processing | Python 3.12, FastAPI, aiokafka, scikit-learn, Vertex AI (`api/analytics`) |
+| Probe | Python 3.12, functions-framework, pycurl (`functions/probe`) |
+| Loader | the stock OpenTelemetry Collector |
+| Web | Next.js, React, TypeScript; TEST_MODE mock server, HTTP repository client |
+| Infrastructure | Docker Compose, Helm, Terraform; Cloud Run in cloud |
 
 ## Repository structure
 
 ```
 api/
-  common/          Go service, HTTP backend: monitors, checks, incidents, users
-  observability/   Python service, reliability analytics, ML anomaly detection, insights
-web/               Next.js dashboard + status pages (mock CRUD server; HTTP repository client)
-mobile/
-  flutter/         Flutter app (placeholder)
-  android/         Native Android (placeholder)
-  ios/             Native iOS (placeholder)
+  common/          Go: control plane API, scheduler, outbox, consumers, both stores' migrations
+  query/           Go: shared query grammar, explorers, RUM, stats, usage
+  observability/   Node (NestJS): OTLP and /v1/events ingest gateway
+  analytics/       Python: evaluator, notifier, rules, SLOs, ML insights
+functions/
+  probe/           Python: the HTTP check function (a container for self-host)
+web/               Next.js dashboard + status pages
+mobile/flutter/    Flutter app (planned)
 deploy/
-  docker/          Placeholder, the compose stack lives at the repo root (docker-compose.yml)
+  docker/          compose support files: collector config, store init
   helm/            Helm chart (deploys all services to Kubernetes)
-  terraform/       Infrastructure as code
-docker-compose.yml Local orchestration: mongo, api-common, api-observability, web
+  terraform/       Installs the chart
+docker-compose.yml Local and self-host stack
 docs/              Project documentation
-scripts/           Developer and CI helper scripts
 ```
 
-Additional services follow the same convention: `api/common` is the shared Go
-backend, and every other service lives under `api/<service-name>` named by its
-function (never by its language).
+Every service other than `api/common` is named by its function, never by its
+language.
 
 ## Getting started
 
@@ -84,14 +97,14 @@ function (never by its language).
 
 ```bash
 cp .env.example .env
-make up      # build + start mongo, api-common (:8080), api-observability (:8081), web (:3000)
+make up      # Postgres, ClickHouse, Kafka, Redis, S3, the collector, probe, every service and web (:3000)
 make logs    # follow logs
 make down    # stop
 ```
 
-Configuration is provided at runtime via environment variables (for example
-`MONGO_URI`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `API_TOKEN` for the
-observability service). See [docs/setup.md](docs/setup.md) for details; `make help` lists all
+Configuration is provided at runtime via environment variables; compose
+has a working default for everything except Google sign-in
+(`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`). See [docs/setup.md](docs/setup.md) for details; `make help` lists all
 targets. Never commit credentials or bake them into an image.
 
 ## Documentation

@@ -207,7 +207,7 @@ export const incidentsRepo = {
     http.get<TimelineEntry[]>(`/v1/incidents/${id}/timeline`),
   postUpdate: (
     id: string,
-    entry: { phase?: string; body: string; author: string },
+    entry: { phase?: string; body: string; author: string; public: boolean },
   ) => http.post<TimelineEntry>(`/v1/incidents/${id}/timeline`, entry),
   /** B9 postmortem template — resolved incidents only; 404 until composed. */
   postmortem: (id: string) =>

@@ -1,0 +1,20 @@
+# api/query. Build context = api/, because the module builds against
+# api/common/pkg through `replace ../common`:
+#   docker build -f api/query/Dockerfile api
+# ---- build stage ----
+FROM golang:1.26-alpine AS builder
+WORKDIR /src
+COPY common ./common
+COPY query ./query
+RUN cd query && go mod download && cd /src/query && CGO_ENABLED=0 go build -o /app ./cmd/server
+
+# ---- runtime stage ----
+FROM alpine:3.20
+RUN apk add --no-cache ca-certificates && adduser -D -u 10001 appuser
+COPY --from=builder /app /app/app
+USER appuser
+ENV PORT=8083
+EXPOSE 8083
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD wget -qO- "http://127.0.0.1:${PORT:-8083}/health" || exit 1
+CMD ["/app/app"]

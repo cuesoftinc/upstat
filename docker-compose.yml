@@ -1,32 +1,175 @@
-# Local development stack for upstat.
+# Local and self-host stack (docs/system-design.md §10.2): the same images as
+# cloud, with Postgres, ClickHouse, Kafka (KRaft), Valkey-compatible Redis and
+# SeaweedFS (S3) standing in for the managed services, the stock
+# OpenTelemetry Collector as the telemetry loader, and the probe as a
+# container (one region, so the quorum is 1).
 # Usage: cp .env.example .env  &&  make up
 #
-# Service wiring:
-#   api-common (Go)          HTTP API and /health on :8080, MongoDB, monitor worker
-#   api-observability (Py)   FastAPI /health on :8081, ML insights; reads api-common over HTTP
-#   Neither hard-depends on the other; both only wait for mongo.
+#   common         Go, control plane API + scheduler + outbox     :8080
+#   observability  Node, ingest gateway (OTLP HTTP + gRPC, events) :8081, :4317
+#   analytics      Python, evaluator, notifier, rules, insights    :8082
+#   query          Go, ClickHouse reads                            :8083
+#   probe          Python, the check function                      :8090
+#   web            Next.js                                         :3000
+x-bus: &bus
+  KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092}
+  KAFKA_USERNAME: ${KAFKA_USERNAME:-}
+  KAFKA_PASSWORD: ${KAFKA_PASSWORD:-}
+  KAFKA_SSL_CA: ${KAFKA_SSL_CA:-}
+  STORAGE_DRIVER: s3
+  STORAGE_BUCKET: ${STORAGE_BUCKET:-upstat}
+  STORAGE_PREFIX: ${STORAGE_PREFIX:-upstat/local}
+  STORAGE_ENDPOINT: seaweedfs:8333
+  STORAGE_ACCESS_KEY: upstat
+  STORAGE_SECRET_KEY: upstat-secret
+  STORAGE_USE_SSL: "false"
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+  REDIS_KEY_PREFIX: "upstat:"
+  INTERNAL_TOKEN: ${INTERNAL_TOKEN:-dev-internal-token-change-me}
+
 services:
-  mongo:
-    image: mongo:7
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
-      - upstat-mongo:/data/db
+      - upstat-postgres:/var/lib/postgresql
+      # Creates the non-superuser app role; superusers bypass RLS (S-9).
+      - ./deploy/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
     healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ping:1}).ok"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+      test: ["CMD-SHELL", "pg_isready -U postgres -d upstat"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     restart: unless-stopped
 
-  api-common:
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.8
+    environment:
+      CLICKHOUSE_DB: upstat
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    volumes:
+      - upstat-clickhouse:/var/lib/clickhouse
+      - ./deploy/docker/clickhouse/users.xml:/etc/clickhouse-server/users.d/upstat.xml:ro
+    ports:
+      - "8123:8123"
+    ulimits:
+      nofile: { soft: 262144, hard: 262144 }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8123/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  kafka:
+    image: apache/kafka:4.0.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: INTERNAL://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      # The shared lanes are created explicitly by kafka-init, as on the
+      # managed Kafka service (X-11).
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    ports:
+      - "9094:9094"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 15s
+    restart: unless-stopped
+
+  kafka-init:
+    image: apache/kafka:4.0.0
+    depends_on:
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./deploy/docker/kafka/create-topics.sh:/create-topics.sh:ro
+    entrypoint: ["sh", "/create-topics.sh", "kafka:9092"]
+    restart: "no"
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # S3-compatible object storage (§5.1): config snapshots, claim-check
+  # payloads, postmortems. Local-only credentials.
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.48
+    command: server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json -master.volumeSizeLimitMB=1024
+    volumes:
+      - upstat-objects:/data
+      - ./deploy/docker/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+    ports:
+      - "8333:8333"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 8333"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  # The telemetry loader: the stock contrib collector, configuration only.
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.130.0
+    environment:
+      CLICKHOUSE_ENDPOINT: tcp://clickhouse:9000?dial_timeout=10s
+      CLICKHOUSE_DATABASE: upstat
+      CLICKHOUSE_LOADER_USER: loader
+      CLICKHOUSE_LOADER_PASSWORD: loader
+    volumes:
+      - ./deploy/docker/otel-collector.yaml:/etc/otelcol-contrib/config.yaml:ro
+    depends_on:
+      common:
+        condition: service_healthy
+    restart: unless-stopped
+
+  probe:
+    build: ./functions/probe
+    image: cuesoft/upstat-probe:latest
+    environment:
+      PROBE_REGION: local
+      # Self-host may monitor private hosts (flows/monitor.md §1).
+      PROBE_ALLOW_PRIVATE: ${PROBE_ALLOW_PRIVATE:-true}
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:-dev-internal-token-change-me}
+    ports:
+      - "8090:8090"
+    restart: unless-stopped
+
+  common:
     build: ./api/common
     image: cuesoft/upstat-api-common:latest
     ports:
       - "8080:8080"
     environment:
+      <<: *bus
       PORT: "8080"
-      MONGO_URI: mongodb://mongo:27017
-      MONGO_DB: ${MONGO_DB:-Upstat}
+      DATABASE_URL: postgres://upstat_app:${APP_DB_PASSWORD:-upstat_app}@postgres:5432/upstat?sslmode=disable
+      CLICKHOUSE_URL: http://clickhouse:8123/?database=upstat
+      CLICKHOUSE_MIGRATE_USER: default
+      CLICKHOUSE_MIGRATE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse}
+      CLICKHOUSE_QUERY_USER: query_ro
       JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-me-0123456789ab}
       JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-24h}
       SESSION_SECRET: ${SESSION_SECRET:-dev-session-secret-change-me-0123456789}
@@ -34,46 +177,114 @@ services:
       OAUTH_STATE_COOKIE: ${OAUTH_STATE_COOKIE:-upstat_oauth_state}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:8080/v1/auth/sso/google/callback}
+      # Google returns through the web's /api/v1 proxy.
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:3000/api/v1/auth/sso/google/callback}
       WEB_URL: ${WEB_URL:-http://localhost:3000}
-      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080/}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      PROBE_URLS: local=http://probe:8090
+      QUERY_URL: http://query:8083
+      OTLP_LOADER_ENDPOINT: http://otel-collector:4318
+      SELF_HOST: "true"
+      # Local runs tick checks in process; cloud uses Cloud Scheduler.
+      WORKER_ENABLED: "true"
     depends_on:
-      mongo:
+      postgres:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      seaweedfs:
         condition: service_healthy
     restart: unless-stopped
 
-  api-observability:
-    build: ./api/observability
+  query:
+    build:
+      # api/query builds against api/common/pkg (replace ../common).
+      context: ./api
+      dockerfile: query/Dockerfile
+    image: cuesoft/upstat-api-query:latest
+    ports:
+      - "8083:8083"
+    environment:
+      <<: *bus
+      PORT: "8083"
+      CLICKHOUSE_URL: http://clickhouse:8123/?database=upstat
+      CLICKHOUSE_QUERY_USER: query_ro
+      CLICKHOUSE_QUERY_PASSWORD: query_ro
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-me-0123456789ab}
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-upstat_session}
+      WEB_URL: ${WEB_URL:-http://localhost:3000}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+    depends_on:
+      common:
+        condition: service_healthy
+    restart: unless-stopped
+
+  observability:
+    build:
+      context: .
+      dockerfile: api/observability/Dockerfile
     image: cuesoft/upstat-api-observability:latest
     ports:
       - "8081:8081"
+      - "4317:4317"
     environment:
+      <<: *bus
       PORT: "8081"
-      MONGO_URI: mongodb://mongo:27017
-      MONGO_DB: ${MONGO_DB:-Upstat}
-      API_URL: http://api-common:8080
-      API_TOKEN: ${API_TOKEN:-}
-      API_CHECK_LIMIT: ${API_CHECK_LIMIT:-100}
-      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GRPC_PORT: "4317"
+      OTLP_LOADER_ENDPOINT: http://otel-collector:4318
     depends_on:
-      mongo:
+      common:
+        condition: service_healthy
+    restart: unless-stopped
+
+  analytics:
+    build:
+      context: .
+      dockerfile: api/analytics/Dockerfile
+    image: cuesoft/upstat-api-analytics:latest
+    ports:
+      - "8082:8082"
+    environment:
+      <<: *bus
+      PORT: "8082"
+      QUERY_URL: http://query:8083
+      WEB_URL: ${WEB_URL:-http://localhost:3000}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      BREVO_FROM_EMAIL: ${BREVO_FROM_EMAIL:-}
+      ALLOW_PRIVATE_WEBHOOKS: "true"
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      WORKER_ENABLED: "true"
+    depends_on:
+      common:
         condition: service_healthy
     restart: unless-stopped
 
   web:
     image: cuesoft/upstat-web:latest
     build:
-      # Repo-root context: web/ plus docs/api/openapi.yaml (the OpenAPI
-      # document prebuild embeds for /docs/api); pruned by
-      # web/Dockerfile.dockerignore.
+      # Repo-root context: web/ plus docs/api/openapi.yaml (embedded for
+      # /docs/api); pruned by web/Dockerfile.dockerignore.
       context: .
       dockerfile: web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: /api
     ports:
       - "3000:3000"
+    environment:
+      # The /api/v1 proxy forwards here (system-design.md §6.5).
+      API_URL: http://common:8080
+      QUERY_URL: http://query:8083
     depends_on:
-      api-common:
+      common:
         condition: service_healthy
     restart: unless-stopped
 
 volumes:
-  upstat-mongo:
+  upstat-postgres:
+  upstat-clickhouse:
+  upstat-objects:

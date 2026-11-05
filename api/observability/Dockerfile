@@ -1,16 +1,30 @@
-FROM python:3.12-slim
-ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
+# api/observability. Build context = the repository root, so the image can copy
+# the Kafka JSON Schemas from api/common/contract:
+#   docker build -f api/observability/Dockerfile .
+# ---- deps ----
+FROM node:24-slim AS deps
 WORKDIR /app
+COPY api/observability/package*.json ./
+RUN npm ci
 
-COPY requirements.txt /app/
-RUN pip install --no-cache-dir --timeout 300 -r requirements.txt
+# ---- builder ----
+FROM node:24-slim AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY api/observability/ ./
+RUN npm run build
 
-COPY . /app
-RUN useradd -m -u 10001 appuser && chown -R appuser /app
-USER appuser
-
+# ---- runtime ----
+FROM node:24-slim AS runner
+WORKDIR /app
+ENV NODE_ENV=production CONTRACT_DIR=/app/contract
+COPY api/observability/package*.json ./
+RUN npm ci --omit=dev
+COPY --from=builder /app/dist ./dist
+COPY api/common/contract/*.schema.json ./contract/
+USER node
 ENV PORT=8081
-EXPOSE 8081
-HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-  CMD python -c "import os,urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:'+os.environ.get('PORT','8081')+'/health').status==200 else 1)"
-CMD ["sh","-c","uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8081}"]
+EXPOSE 8081 4317
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD node -e "const p=process.env.PORT||8081;if(process.env.INGEST_TRANSPORT==='grpc'){require('net').connect(+p,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))}else{require('http').get('http://127.0.0.1:'+p+'/health',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))}"
+CMD ["node", "dist/main.js"]

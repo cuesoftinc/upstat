@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://upstat.cuesoft.io/contract/config.changed.schema.json",
+  "title": "upstat.config.changed",
+  "description": "common rewrote the config snapshot of one kind (system-design.md §6.8). Consumers reload `snapshot` and replace their in-memory copy; a version older than the one they hold is ignored.",
+  "type": "object",
+  "required": ["kind", "version", "snapshot"],
+  "additionalProperties": false,
+  "properties": {
+    "kind": { "$ref": "defs.schema.json#/$defs/config_kind" },
+    "version": { "type": "integer", "minimum": 1, "description": "Unix milliseconds when the snapshot was written; monotonic per kind." },
+    "snapshot": { "$ref": "defs.schema.json#/$defs/object_ref" }
+  }
+}

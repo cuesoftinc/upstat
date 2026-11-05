@@ -106,7 +106,7 @@ is the standing proof.
   manual spans on domain operations; W3C traceparent propagated on every
   outbound call (incl. service-to-service).
 - Metrics: OTel Meter API, each service registers its KPI instruments
-  (request histograms come free; domain counters per the flow specs'
+  (request histograms come built in; domain counters per the flow specs'
   instrumentation sections are PRODUCT events via upstat /v1/events, NOT
   OTel metrics, keep the pipelines separate).
 - Logs: slog/logging → OTel bridge dual-emit (JSON stdout for Cloud Run +

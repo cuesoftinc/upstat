@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Backend rebuilt on the system design: common, query, gateway, analytics.
+- Telemetry query service reading ClickHouse with org row policies.
+- OTLP ingest gateway over HTTP and gRPC with per-key quotas.
+- Analytics service evaluating checks, rules and SLOs, then sending alerts.
+- Regional probe services in us-central1 and us-east4.
+- Daily prune job for expired telemetry and check history.
+
 - Monitor CRUD, recent checks and status page endpoints on api-common.
 - `POST /internal/jobs/run-checks` on api/common, guarded by scheduler OIDC token.
 - `WORKER_ENABLED` flag to turn off the in-process monitor loop.
@@ -60,6 +67,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Every service scales to zero; alerts settle inside the check run.
+- Manifest declares Google sign-in, Kafka and the session JWT deviation.
 - The web reads its API base from `NEXT_PUBLIC_API_URL` instead of `NEXT_PUBLIC_API_BASE`.
 - `NEXT_PUBLIC_TEST_MODE` is switched on with `true` instead of `1`.
 - Observability reads monitors and checks from api-common over HTTP.
