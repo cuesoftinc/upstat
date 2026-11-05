@@ -92,3 +92,405 @@ spec:
   tier: "1"
   components:
     - service:upstat-website
+    - service:upstat-api-common
+    - service:upstat-api-observability
+    - service:upstat-api-observability-grpc
+    - service:upstat-api-query
+    - service:upstat-api-analytics
+    - service:upstat-otel-collector
+    - service:upstat-probe-us-central1
+    - service:upstat-probe-us-east4
+    - datastore:upstat-postgres
+    - datastore:upstat-clickhouse
+    - datastore:upstat-redis
+    - datastore:upstat-storage
+    - datastore:cuelabs-kafka
+---
+apiVersion: v3
+kind: service
+metadata:
+  name: upstat-api-common
+  displayName: upstat-api-common
+  description: Control-plane API, check scheduler and outbox publisher
+  owner: cuesoft
+  tags:
+    - app:upstat
+    - component:api
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/upstat
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  languages:
+    - go
+  dependsOn:
+    - datastore:upstat-postgres
+    - datastore:upstat-clickhouse
+    - datastore:upstat-redis
+    - datastore:upstat-storage
+    - datastore:cuelabs-kafka
+    - service:upstat-api-query
+    - service:upstat-otel-collector
+    - service:upstat-probe-us-central1
+    - service:upstat-probe-us-east4
+---
+apiVersion: v3
+kind: service
+metadata:
+  name: upstat-api-observability
+  displayName: upstat-api-observability
+  description: OTLP/HTTP and events ingest gateway
+  owner: cuesoft
+  tags:
+    - app:upstat
+    - component:api
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/upstat
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  languages:
+    - typescript
+  dependsOn:
+    - datastore:upstat-redis
+    - datastore:upstat-storage
+    - datastore:cuelabs-kafka
+    - service:upstat-otel-collector
+---
+apiVersion: v3
+kind: service
+metadata:
+  name: upstat-api-observability-grpc
+  displayName: upstat-api-observability-grpc
+  description: OTLP/gRPC ingest gateway, same image as the HTTP gateway
+  owner: cuesoft
+  tags:
+    - app:upstat
+    - component:api
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/upstat
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  languages:
+    - typescript
+  dependsOn:
+    - datastore:upstat-redis
+    - datastore:upstat-storage
+    - datastore:cuelabs-kafka
+    - service:upstat-otel-collector
+---
+apiVersion: v3
+kind: service
+metadata:
+  name: upstat-api-query
+  displayName: upstat-api-query
+  description: Org-scoped telemetry read API over ClickHouse
+  owner: cuesoft
+  tags:
+    - app:upstat
+    - component:api
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/upstat
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  languages:
+    - go
+  dependsOn:
+    - datastore:upstat-clickhouse
+    - datastore:upstat-storage
+    - datastore:cuelabs-kafka
+---
+apiVersion: v3
+kind: service
+metadata:
+  name: upstat-api-analytics
+  displayName: upstat-api-analytics
+  description: Monitor evaluator, notifier, rules, SLOs and insights
+  owner: cuesoft
+  tags:
+    - app:upstat
+    - component:api
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/upstat
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  languages:
+    - python
+  dependsOn:
+    - datastore:upstat-redis
+    - datastore:upstat-storage
+    - datastore:cuelabs-kafka
+    - service:upstat-api-query
+    - service:upstat-api-common
+---
+apiVersion: v3
+kind: service
+metadata:
+  name: upstat-otel-collector
+  displayName: upstat-otel-collector
+  description: OpenTelemetry Collector loading telemetry into ClickHouse
+  owner: cuesoft
+  tags:
+    - app:upstat
+    - component:collector
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/upstat
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  dependsOn:
+    - datastore:upstat-clickhouse
+---
+apiVersion: v3
+kind: service
+metadata:
+  name: upstat-probe-us-central1
+  displayName: upstat-probe-us-central1
+  description: Regional HTTP check probe in us-central1
+  owner: cuesoft
+  tags:
+    - app:upstat
+    - component:probe
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/upstat
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  languages:
+    - python
+---
+apiVersion: v3
+kind: service
+metadata:
+  name: upstat-probe-us-east4
+  displayName: upstat-probe-us-east4
+  description: Regional HTTP check probe in us-east4
+  owner: cuesoft
+  tags:
+    - app:upstat
+    - component:probe
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/upstat
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  languages:
+    - python
+---
+apiVersion: v3
+kind: datastore
+metadata:
+  name: upstat-postgres
+  displayName: upstat-postgres
+  description: Managed Postgres database upstat (control plane)
+  owner: cuesoft
+  tags:
+    - app:upstat
+    - component:database
+    - provider:aiven
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/upstat
+spec:
+  lifecycle: production
+  tier: "1"
+  type: postgres
+---
+apiVersion: v3
+kind: datastore
+metadata:
+  name: upstat-clickhouse
+  displayName: upstat-clickhouse
+  description: ClickHouse Cloud service upstat-telemetry-db (database upstat)
+  owner: cuesoft
+  tags:
+    - app:upstat
+    - component:database
+    - provider:clickhouse
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/upstat
+spec:
+  lifecycle: production
+  tier: "1"
+  type: clickhouse
+---
+apiVersion: v3
+kind: datastore
+metadata:
+  name: upstat-redis
+  displayName: upstat-redis
+  description: Shared managed Redis with the upstat key prefix
+  owner: cuesoft
+  tags:
+    - app:upstat
+    - component:cache
+    - provider:aiven
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/upstat
+spec:
+  lifecycle: production
+  tier: "1"
+  type: redis
+---
+apiVersion: v3
+kind: datastore
+metadata:
+  name: upstat-storage
+  displayName: upstat-storage
+  description: Cloud Storage bucket, upstat/ prefix
+  owner: cuesoft
+  tags:
+    - app:upstat
+    - component:storage
+    - provider:google
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/upstat
+spec:
+  lifecycle: production
+  tier: "1"
+  type: gcs
+---
+apiVersion: v3
+kind: datastore
+metadata:
+  name: cuelabs-kafka
+  displayName: cuelabs-kafka
+  description: Shared managed Kafka bus (cuelabs.requests and cuelabs.results lanes)
+  owner: cuesoft
+  tags:
+    - app:upstat
+    - component:bus
+    - provider:aiven
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/upstat
+spec:
+  lifecycle: production
+  tier: "1"
+  type: kafka
