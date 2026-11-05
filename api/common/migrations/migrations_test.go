@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/cuesoftinc/upstat/api/common/pkg/testenv"
 )
@@ -163,5 +164,52 @@ func TestQueryUserMustBeAPlainName(t *testing.T) {
 	defer srv.Close()
 	if err := (ClickHouse{URL: srv.URL, QueryUser: "ro; DROP TABLE x"}).Apply(context.Background()); err == nil {
 		t.Fatal("an unsafe user name must be refused")
+	}
+}
+
+type wakingClickHouse struct {
+	fake  *fakeClickHouse
+	mu    sync.Mutex
+	fails int
+}
+
+func (w *wakingClickHouse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	w.mu.Lock()
+	asleep := w.fails > 0
+	if asleep {
+		w.fails--
+	}
+	w.mu.Unlock()
+	if asleep {
+		rw.WriteHeader(http.StatusServiceUnavailable)
+		return
+	}
+	w.fake.ServeHTTP(rw, r)
+}
+
+func TestApplyWaitsForAnIdleServiceToWake(t *testing.T) {
+	waking := &wakingClickHouse{fake: &fakeClickHouse{userCount: "1"}, fails: 3}
+	srv := httptest.NewServer(waking)
+	defer srv.Close()
+	ch := ClickHouse{URL: srv.URL, QueryUser: "query_ro", WakeWait: 2 * time.Second, RetryEvery: 10 * time.Millisecond}
+	if err := ch.Apply(context.Background()); err != nil {
+		t.Fatalf("apply after wake: %v", err)
+	}
+	if !waking.fake.saw("CREATE TABLE IF NOT EXISTS schema_migration") {
+		t.Fatal("migrations did not run after the service woke")
+	}
+}
+
+func TestApplyGivesUpWhenTheServiceNeverWakes(t *testing.T) {
+	waking := &wakingClickHouse{fake: &fakeClickHouse{userCount: "1"}, fails: 1 << 30}
+	srv := httptest.NewServer(waking)
+	defer srv.Close()
+	ch := ClickHouse{URL: srv.URL, QueryUser: "query_ro", WakeWait: 100 * time.Millisecond, RetryEvery: 10 * time.Millisecond}
+	start := time.Now()
+	if err := ch.Apply(context.Background()); err == nil || !strings.Contains(err.Error(), "not awake") {
+		t.Fatalf("want a not-awake error, got %v", err)
+	}
+	if time.Since(start) > 2*time.Second {
+		t.Fatal("the wake wait overran its bound")
 	}
 }

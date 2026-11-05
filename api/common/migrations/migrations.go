@@ -102,11 +102,25 @@ type ClickHouse struct {
 	// later start when QueryUser is empty.
 	QueryUser string
 	Client    *http.Client
+	// WakeWait bounds the wait for an idle service to wake; it ends inside
+	// Cloud Run's 240 s startup window.
+	WakeWait time.Duration
+	// RetryEvery spaces the wake attempts.
+	RetryEvery time.Duration
 }
 
 func (c ClickHouse) Apply(ctx context.Context) error {
 	if c.Client == nil {
 		c.Client = &http.Client{Timeout: 60 * time.Second}
+	}
+	if c.WakeWait == 0 {
+		c.WakeWait = 150 * time.Second
+	}
+	if c.RetryEvery == 0 {
+		c.RetryEvery = 5 * time.Second
+	}
+	if err := c.awake(ctx); err != nil {
+		return err
 	}
 	if err := c.exec(ctx, `CREATE TABLE IF NOT EXISTS schema_migration (version String, applied_at DateTime DEFAULT now())
 		ENGINE = MergeTree ORDER BY version`); err != nil {
@@ -193,6 +207,27 @@ func Statements(sql string) []string {
 		out = append(out, rest)
 	}
 	return out
+}
+
+// awake retries SELECT 1 until ClickHouse answers: an idle ClickHouse Cloud
+// service wakes on the first request and can take minutes.
+func (c ClickHouse) awake(ctx context.Context) error {
+	deadline := time.Now().Add(c.WakeWait)
+	for attempt := 1; ; attempt++ {
+		_, err := c.query(ctx, "SELECT 1")
+		if err == nil {
+			return nil
+		}
+		if !time.Now().Add(c.RetryEvery).Before(deadline) {
+			return fmt.Errorf("clickhouse not awake after %s: %w", c.WakeWait, err)
+		}
+		slog.Warn("clickhouse not answering; retrying", "store", "clickhouse", "attempt", attempt, "error", err)
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(c.RetryEvery):
+		}
+	}
 }
 
 func (c ClickHouse) exec(ctx context.Context, stmt string) error {
