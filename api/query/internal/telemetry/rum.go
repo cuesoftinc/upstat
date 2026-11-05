@@ -261,10 +261,10 @@ func (s *Service) Errors(ctx context.Context, orgID string) ([]ErrorGroup, error
 }
 
 type FunnelStage struct {
-	Key            string  `json:"key"`
-	Label          string  `json:"label"`
-	Count          int64   `json:"count"`
-	PctOfPrevious  float64 `json:"pct_of_previous"`
+	Key           string  `json:"key"`
+	Label         string  `json:"label"`
+	Count         int64   `json:"count"`
+	PctOfPrevious float64 `json:"pct_of_previous"`
 }
 
 type Drilldown struct {

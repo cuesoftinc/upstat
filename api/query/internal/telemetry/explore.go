@@ -298,12 +298,12 @@ func (s *Service) Traces(ctx context.Context, orgID, q, fromRaw, toRaw string, l
 	}
 	ids := make([]string, len(roots))
 	for i, r := range roots {
-		ids[i] = "'" + strings.ReplaceAll(chdb.Str(r["TraceId"]), "'", "") + "'"
+		ids[i] = chdb.Str(r["TraceId"])
 	}
-	stats, err := s.CH.Rows(ctx, orgID, fmt.Sprintf(`SELECT TraceId, count() AS spans, countIf(StatusCode = 'Error') AS errors
+	stats, err := s.CH.Rows(ctx, orgID, `SELECT TraceId, count() AS spans, countIf(StatusCode = 'Error') AS errors
 		FROM otel_traces WHERE org_id = {o:String} AND Timestamp >= {f:DateTime64(9)} - INTERVAL 1 HOUR
-			AND Timestamp < {t:DateTime64(9)} + INTERVAL 1 HOUR AND TraceId IN (%s) GROUP BY TraceId`, strings.Join(ids, ",")),
-		map[string]string{"o": orgID, "f": ts(from), "t": ts(to)})
+			AND Timestamp < {t:DateTime64(9)} + INTERVAL 1 HOUR AND TraceId IN {ids:Array(String)} GROUP BY TraceId`,
+		map[string]string{"o": orgID, "f": ts(from), "t": ts(to), "ids": chdb.ArrayParam(ids)})
 	if err != nil {
 		return nil, err
 	}
@@ -336,8 +336,8 @@ func (s *Service) Trace(ctx context.Context, orgID, traceID string) (*Trace, err
 	}
 	now := s.Now().UTC()
 	from, to := now.Add(-7*24*time.Hour), now.Add(time.Hour)
-	window, err := s.CH.Rows(ctx, orgID, `SELECT min(Start) AS s, max(End) AS e FROM otel_traces_trace_id_ts WHERE TraceId = {id:String}`,
-		map[string]string{"id": traceID})
+	window, err := s.CH.Rows(ctx, orgID, `SELECT min(Start) AS s, max(End) AS e FROM otel_traces_trace_id_ts WHERE org_id = {o:String} AND TraceId = {id:String}`,
+		map[string]string{"o": orgID, "id": traceID})
 	if err == nil && len(window) == 1 && !chdb.Time(window[0]["s"]).IsZero() && chdb.Time(window[0]["s"]).Year() > 1971 {
 		from, to = chdb.Time(window[0]["s"]).Add(-time.Minute), chdb.Time(window[0]["e"]).Add(time.Minute)
 	}
@@ -434,13 +434,13 @@ func round(f float64, places int) float64 {
 // ── Metrics catalog (pages.md B3) ───────────────────────────────────────
 
 type MetricSummary struct {
-	Name         string    `json:"name"`
-	Type         string    `json:"type"`
-	Unit         string    `json:"unit,omitempty"`
-	Cardinality  int64     `json:"cardinality"`
-	IngestRateS  float64   `json:"ingestion_rate_per_s"`
-	LastSeen     time.Time `json:"last_seen"`
-	Tags         []string  `json:"tags"`
+	Name        string    `json:"name"`
+	Type        string    `json:"type"`
+	Unit        string    `json:"unit,omitempty"`
+	Cardinality int64     `json:"cardinality"`
+	IngestRateS float64   `json:"ingestion_rate_per_s"`
+	LastSeen    time.Time `json:"last_seen"`
+	Tags        []string  `json:"tags"`
 }
 
 func (s *Service) MetricsSummary(ctx context.Context, orgID string) ([]MetricSummary, error) {
@@ -472,4 +472,3 @@ func (s *Service) MetricsSummary(ctx context.Context, orgID string) ([]MetricSum
 	}
 	return out, nil
 }
-

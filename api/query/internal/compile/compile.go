@@ -319,6 +319,14 @@ func numeric(expr string) string {
 
 var cmpOps = map[string]string{"eq": "=", "gt": ">", "gte": ">=", "lt": "<", "lte": "<="}
 
+// cmp maps a comparator to its operator; anything else is invalid_query.
+func cmp(op string) (string, error) {
+	if sql, ok := cmpOps[op]; ok {
+		return sql, nil
+	}
+	return "", invalid("unknown comparator %q", op)
+}
+
 func (b *builder) term(t grammar.Term) (string, error) {
 	switch {
 	case t.Not != nil:
@@ -380,14 +388,22 @@ func (b *builder) facetTerm(t grammar.Term) (string, error) {
 		if t.Cmp == "eq" && fmt.Sprint(t.Value) == "" {
 			return cond, nil
 		}
-		return cond + " AND value " + cmpOps[t.Cmp] + " " + b.param("Float64", t.Value), nil
+		op, err := cmp(t.Cmp)
+		if err != nil {
+			return "", err
+		}
+		return cond + " AND value " + op + " " + b.param("Float64", t.Value), nil
 	}
 	expr, err := b.facet(t.Facet)
 	if err != nil {
 		return "", err
 	}
 	if _, isNum := t.Value.(float64); isNum || t.Cmp != "eq" {
-		return numeric(expr) + " " + cmpOps[t.Cmp] + " " + b.param("Float64", t.Value), nil
+		op, err := cmp(t.Cmp)
+		if err != nil {
+			return "", err
+		}
+		return numeric(expr) + " " + op + " " + b.param("Float64", t.Value), nil
 	}
 	if t.Facet == "status" && b.req.Signal == Logs && fmt.Sprint(t.Value) == "error" {
 		return "lower(SeverityText) IN ('error', 'fatal')", nil

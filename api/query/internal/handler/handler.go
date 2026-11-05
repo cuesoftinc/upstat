@@ -71,6 +71,9 @@ type API struct {
 	T        *telemetry.Service
 	Access   *snapshot.Access
 	Internal Internal
+	// AccessMaxAge bounds how old the access snapshot is when a request is
+	// served; zero means DefaultAccessMaxAge.
+	AccessMaxAge time.Duration
 
 	gate  *gate
 	cache *cache
@@ -78,6 +81,10 @@ type API struct {
 
 // refreshFloor bounds the snapshot rereads a miss can cause per instance.
 const refreshFloor = 10 * time.Second
+
+// DefaultAccessMaxAge is how stale the in-memory members snapshot may be
+// when a request is served, whether or not the config event arrived.
+const DefaultAccessMaxAge = 30 * time.Second
 
 func New(t *telemetry.Service, access *snapshot.Access, internal Internal) *API {
 	return &API{T: t, Access: access, Internal: internal, gate: &gate{n: map[string]int{}}, cache: &cache{entries: map[string]cached{}}}
@@ -146,6 +153,11 @@ type orgKey struct{}
 func (a *API) user(fn func(w http.ResponseWriter, r *http.Request, orgID string)) http.Handler {
 	return session.SessionMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID, _ := session.UserIDFromContext(r.Context())
+		maxAge := a.AccessMaxAge
+		if maxAge <= 0 {
+			maxAge = DefaultAccessMaxAge
+		}
+		a.Access.Refresh(r.Context(), maxAge)
 		orgID, _, ok := a.Access.ActiveOrg(userID)
 		if !ok && a.Access.Refresh(r.Context(), refreshFloor) {
 			orgID, _, ok = a.Access.ActiveOrg(userID)

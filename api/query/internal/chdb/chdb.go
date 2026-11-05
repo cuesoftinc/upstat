@@ -99,6 +99,22 @@ func (c *Client) Rows(ctx context.Context, orgID, sql string, params map[string]
 	return out, sc.Err()
 }
 
+// ArrayParam renders ids as a ClickHouse Array(String) query parameter value.
+func ArrayParam(ids []string) string {
+	var b strings.Builder
+	b.WriteByte('[')
+	for i, id := range ids {
+		if i > 0 {
+			b.WriteByte(',')
+		}
+		b.WriteByte('\'')
+		b.WriteString(strings.NewReplacer(`\`, `\\`, `'`, `\'`).Replace(id))
+		b.WriteByte('\'')
+	}
+	b.WriteByte(']')
+	return b.String()
+}
+
 // Ping checks the server answers.
 func (c *Client) Ping(ctx context.Context) error {
 	_, err := c.Rows(ctx, "", "SELECT 1", nil)

@@ -162,8 +162,8 @@ func (p *parser) separator() error {
 	return nil
 }
 
-func (p *parser) eof() bool   { return p.pos >= len(p.src) }
-func (p *parser) peek() byte  { return p.src[p.pos] }
+func (p *parser) eof() bool    { return p.pos >= len(p.src) }
+func (p *parser) peek() byte   { return p.src[p.pos] }
 func (p *parser) rest() string { return p.src[p.pos:] }
 
 func (p *parser) space() {
@@ -172,7 +172,9 @@ func (p *parser) space() {
 	}
 }
 
-func (p *parser) fail(msg, hint string) *Error { return &Error{Position: p.pos, Message: msg, Hint: hint} }
+func (p *parser) fail(msg, hint string) *Error {
+	return &Error{Position: p.pos, Message: msg, Hint: hint}
+}
 
 // word consumes keyword kw when it stands alone.
 func (p *parser) word(kw string) bool {

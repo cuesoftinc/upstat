@@ -117,10 +117,17 @@ func run() error {
 		return err
 	}
 
-	ch := chdb.New(os.Getenv("CLICKHOUSE_URL"), os.Getenv("CLICKHOUSE_USER"), os.Getenv("CLICKHOUSE_PASSWORD"))
+	ch := chdb.New(os.Getenv("CLICKHOUSE_URL"), os.Getenv("CLICKHOUSE_QUERY_USER"), os.Getenv("CLICKHOUSE_QUERY_PASSWORD"))
 	svc := &telemetry.Service{CH: ch, Monitors: access.Monitors, Now: time.Now}
 	api := handler.New(svc, access, handler.Internal{Audience: os.Getenv("INTERNAL_AUDIENCE"),
 		Invokers: csv(os.Getenv("INTERNAL_INVOKERS")), Token: os.Getenv("INTERNAL_TOKEN")})
+	if raw := os.Getenv("ACCESS_MAX_AGE"); raw != "" {
+		d, err := time.ParseDuration(raw)
+		if err != nil || d <= 0 {
+			return errors.New("ACCESS_MAX_AGE must be a positive duration like 30s")
+		}
+		api.AccessMaxAge = d
+	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {

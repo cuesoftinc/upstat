@@ -136,6 +136,9 @@ func (s *Service) Query(ctx context.Context, orgID string, req QueryRequest) (an
 	if err != nil {
 		return nil, err
 	}
+	if req.Step != "" {
+		ast.Step = req.Step
+	}
 	signal := compile.Detect(ast)
 	if req.Signal != "" {
 		signal = compile.Signal(req.Signal)

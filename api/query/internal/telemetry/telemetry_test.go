@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/cuesoftinc/upstat/api/common/migrations"
+	"github.com/cuesoftinc/upstat/api/common/pkg/testenv"
 	"github.com/cuesoftinc/upstat/api/query/internal/chdb"
 )
 
@@ -22,10 +23,7 @@ const org, other = "11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8
 
 func setup(t *testing.T) (*Service, *chdb.Client, time.Time) {
 	t.Helper()
-	base := os.Getenv("CLICKHOUSE_TEST_URL")
-	if base == "" {
-		t.Skip("CLICKHOUSE_TEST_URL not set")
-	}
+	base := testenv.Require(t, "CLICKHOUSE_TEST_URL")
 	user, pass := os.Getenv("CLICKHOUSE_TEST_USER"), os.Getenv("CLICKHOUSE_TEST_PASSWORD")
 	db := fmt.Sprintf("upstat_test_%d", rand.Int63())
 	admin := chdb.New(base, user, pass)

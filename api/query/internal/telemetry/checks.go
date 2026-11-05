@@ -2,9 +2,7 @@ package telemetry
 
 import (
 	"context"
-	"fmt"
 	"math"
-	"strings"
 	"time"
 
 	"github.com/cuesoftinc/upstat/api/query/internal/chdb"
@@ -32,10 +30,10 @@ type CheckResult struct {
 }
 
 type History struct {
-	MonitorID     string        `json:"monitor_id"`
-	Days          []UptimeDay   `json:"days"`
-	RecentChecks  []CheckResult `json:"recent_checks"`
-	Uptime90dPct  *float64      `json:"uptime_90d_pct"`
+	MonitorID    string        `json:"monitor_id"`
+	Days         []UptimeDay   `json:"days"`
+	RecentChecks []CheckResult `json:"recent_checks"`
+	Uptime90dPct *float64      `json:"uptime_90d_pct"`
 }
 
 type UptimeSummary struct {
@@ -56,13 +54,9 @@ func pct(passing, checks float64) *float64 {
 func (s *Service) days(ctx context.Context, orgID string, ids []string, n int) (map[string][]UptimeDay, map[string]*float64, error) {
 	now := s.Now().UTC()
 	first := now.AddDate(0, 0, -(n - 1)).Truncate(24 * time.Hour)
-	quoted := make([]string, 0, len(ids))
-	for _, id := range ids {
-		quoted = append(quoted, "'"+strings.ReplaceAll(id, "'", "")+"'")
-	}
-	rows, err := s.CH.Rows(ctx, orgID, fmt.Sprintf(`SELECT monitor_id, day, sum(checks) AS checks, sum(passing) AS passing FROM check_uptime_daily
-		WHERE org_id = {o:String} AND monitor_id IN (%s) AND day >= toDate({f:DateTime64(3)}) GROUP BY monitor_id, day`, strings.Join(quoted, ",")),
-		map[string]string{"o": orgID, "f": ts(first)})
+	rows, err := s.CH.Rows(ctx, orgID, `SELECT monitor_id, day, sum(checks) AS checks, sum(passing) AS passing FROM check_uptime_daily
+		WHERE org_id = {o:String} AND monitor_id IN {ids:Array(String)} AND day >= toDate({f:DateTime64(3)}) GROUP BY monitor_id, day`,
+		map[string]string{"o": orgID, "f": ts(first), "ids": chdb.ArrayParam(ids)})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -133,13 +127,9 @@ func (s *Service) Uptime(ctx context.Context, orgID string, ids []string, n int)
 	if err != nil {
 		return nil, err
 	}
-	quoted := make([]string, 0, len(ids))
-	for _, id := range ids {
-		quoted = append(quoted, "'"+strings.ReplaceAll(id, "'", "")+"'")
-	}
-	rows, err := s.CH.Rows(ctx, orgID, fmt.Sprintf(`SELECT monitor_id, quantile(0.95)(total_ms) AS p95 FROM check_results
-		WHERE org_id = {o:String} AND monitor_id IN (%s) AND scheduled_at >= {f:DateTime64(3)} AND ok GROUP BY monitor_id`, strings.Join(quoted, ",")),
-		map[string]string{"o": orgID, "f": ts(s.Now().Add(-24 * time.Hour))})
+	rows, err := s.CH.Rows(ctx, orgID, `SELECT monitor_id, quantile(0.95)(total_ms) AS p95 FROM check_results
+		WHERE org_id = {o:String} AND monitor_id IN {ids:Array(String)} AND scheduled_at >= {f:DateTime64(3)} AND ok GROUP BY monitor_id`,
+		map[string]string{"o": orgID, "f": ts(s.Now().Add(-24 * time.Hour)), "ids": chdb.ArrayParam(ids)})
 	if err != nil {
 		return nil, err
 	}
