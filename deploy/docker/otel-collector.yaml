@@ -2,10 +2,16 @@
 # collector, configuration only. api/observability (the gateway) forwards
 # raw OTLP here with the org in the X-Upstat-Org-Id header; the collector
 # stamps it on the resource as upstat.org_id and writes ClickHouse, whose
-# tables api/common's migrations own (create_schema: false). api/common
-# sends check results here too, already carrying upstat.org_id.
+# tables api/common's migrations own (create_schema: false).
 #
-# The collector is private: only the gateway and api/common reach it.
+# One receiver, one port (4318): Cloud Run gives the collector a single
+# port. The materialized views read service names upstat.checks,
+# upstat.events and upstat.usage, so a routing connector splits logs on the
+# X-Upstat-Source request header. Only a sender that sets it to `internal`
+# (api/common's check results, the gateway's events and usage rows) reaches
+# the unfiltered pipeline; anything else, or no header, takes the client
+# pipeline, whose filter/reserved drops those names. The gateway forwards
+# only fixed headers, so a customer's own X-Upstat-Source never arrives.
 #
 # Synchronous by design (S-14): Cloud Run bills it per request, so nothing
 # may wait in a background batch or queue after a request is answered.
@@ -13,12 +19,24 @@
 # ClickHouse's async inserts do the batching server-side. A ClickHouse
 # outage turns into errors the gateway passes on (503 with a retry hint),
 # and the senders' OTLP exporters retry: the outage buffer is the client's.
+# The retry budget below is 8 s plus one 4 s attempt; the gateway's
+# COLLECTOR_TIMEOUT_MS (15 s) must stay above it.
+
 receivers:
   otlp:
     protocols:
       http:
         endpoint: 0.0.0.0:4318
         include_metadata: true
+
+connectors:
+  routing/logs:
+    error_mode: ignore
+    default_pipelines: [logs/client]
+    table:
+      - context: request
+        condition: 'request["x-upstat-source"] == "internal"'
+        pipelines: [logs/internal]
 
 processors:
   # A header always wins over anything a customer put in the payload; with
@@ -28,6 +46,18 @@ processors:
       - key: upstat.org_id
         from_context: metadata.x-upstat-org-id
         action: upsert
+  # Drops anything a customer sends under a service name Upstat reserves.
+  filter/reserved:
+    error_mode: ignore
+    traces:
+      span:
+        - 'resource.attributes["service.name"] == "upstat.checks" or resource.attributes["service.name"] == "upstat.events" or resource.attributes["service.name"] == "upstat.usage"'
+    metrics:
+      metric:
+        - 'resource.attributes["service.name"] == "upstat.checks" or resource.attributes["service.name"] == "upstat.events" or resource.attributes["service.name"] == "upstat.usage"'
+    logs:
+      log_record:
+        - 'resource.attributes["service.name"] == "upstat.checks" or resource.attributes["service.name"] == "upstat.events" or resource.attributes["service.name"] == "upstat.usage"'
   memory_limiter:
     check_interval: 1s
     limit_percentage: 80
@@ -37,8 +67,8 @@ exporters:
   clickhouse:
     endpoint: ${env:CLICKHOUSE_ENDPOINT}
     database: ${env:CLICKHOUSE_DATABASE}
-    username: ${env:CLICKHOUSE_USER}
-    password: ${env:CLICKHOUSE_PASSWORD}
+    username: ${env:CLICKHOUSE_LOADER_USER}
+    password: ${env:CLICKHOUSE_LOADER_PASSWORD}
     create_schema: false
     async_insert: true
     logs_table_name: otel_logs
@@ -67,13 +97,21 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, resource/org]
+      processors: [memory_limiter, filter/reserved, resource/org]
       exporters: [clickhouse]
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, resource/org]
+      processors: [memory_limiter, filter/reserved, resource/org]
       exporters: [clickhouse]
-    logs:
+    logs/in:
       receivers: [otlp]
-      processors: [memory_limiter, resource/org]
+      processors: [memory_limiter]
+      exporters: [routing/logs]
+    logs/client:
+      receivers: [routing/logs]
+      processors: [filter/reserved, resource/org]
+      exporters: [clickhouse]
+    logs/internal:
+      receivers: [routing/logs]
+      processors: [resource/org]
       exporters: [clickhouse]

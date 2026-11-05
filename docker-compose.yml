@@ -136,8 +136,8 @@ services:
     environment:
       CLICKHOUSE_ENDPOINT: tcp://clickhouse:9000?dial_timeout=10s
       CLICKHOUSE_DATABASE: upstat
-      CLICKHOUSE_USER: loader
-      CLICKHOUSE_PASSWORD: loader
+      CLICKHOUSE_LOADER_USER: loader
+      CLICKHOUSE_LOADER_PASSWORD: loader
     volumes:
       - ./deploy/docker/otel-collector.yaml:/etc/otelcol-contrib/config.yaml:ro
     depends_on:
@@ -169,6 +169,7 @@ services:
       CLICKHOUSE_URL: http://clickhouse:8123/?database=upstat
       CLICKHOUSE_MIGRATE_USER: default
       CLICKHOUSE_MIGRATE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse}
+      CLICKHOUSE_QUERY_USER: query_ro
       JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-me-0123456789ab}
       JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-24h}
       SESSION_SECRET: ${SESSION_SECRET:-dev-session-secret-change-me-0123456789}
@@ -199,19 +200,6 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # Row policies need the tables common's migrations create.
-  clickhouse-init:
-    image: clickhouse/clickhouse-server:25.8
-    depends_on:
-      common:
-        condition: service_healthy
-    volumes:
-      - ./deploy/docker/clickhouse/row-policies.sql:/row-policies.sql:ro
-    entrypoint: ["sh", "-c", "clickhouse-client --host clickhouse --password \"$$PASSWORD\" --multiquery < /row-policies.sql"]
-    environment:
-      PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse}
-    restart: "no"
-
   query:
     build:
       # api/query builds against api/common/pkg (replace ../common).
@@ -224,8 +212,8 @@ services:
       <<: *bus
       PORT: "8083"
       CLICKHOUSE_URL: http://clickhouse:8123/?database=upstat
-      CLICKHOUSE_USER: query_ro
-      CLICKHOUSE_PASSWORD: query_ro
+      CLICKHOUSE_QUERY_USER: query_ro
+      CLICKHOUSE_QUERY_PASSWORD: query_ro
       JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-me-0123456789ab}
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-upstat_session}
       WEB_URL: ${WEB_URL:-http://localhost:3000}

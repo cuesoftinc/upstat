@@ -12,7 +12,7 @@ name: release
 on:
   push:
     branches: [main]
-    paths: ["api/**", "functions/**", ".github/workflows/release.yml", ".github/scripts/**"]
+    paths: ["api/**", "functions/**", "deploy/docker/otel-collector*", ".github/workflows/release.yml", ".github/scripts/**"]
 
 permissions:
   contents: read
@@ -30,6 +30,8 @@ jobs:
       query: ${{ steps.query.outputs.digest }}
       observability: ${{ steps.observability.outputs.digest }}
       analytics: ${{ steps.analytics.outputs.digest }}
+      probe: ${{ steps.probe.outputs.digest }}
+      collector: ${{ steps.collector.outputs.digest }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -101,6 +103,32 @@ jobs:
           cache-from: type=gha,scope=analytics
           cache-to: type=gha,mode=max,scope=analytics
 
+      - name: Build + push probe
+        id: probe
+        uses: docker/build-push-action@v7
+        with:
+          context: functions/probe
+          push: true
+          tags: |
+            cuesoft/upstat-probe:${{ steps.meta.outputs.sha }}
+            cuesoft/upstat-probe:latest
+          cache-from: type=gha,scope=probe
+          cache-to: type=gha,mode=max,scope=probe
+
+      # The stock collector with the repo's config baked in.
+      - name: Build + push otel-collector
+        id: collector
+        uses: docker/build-push-action@v7
+        with:
+          context: deploy/docker
+          file: deploy/docker/otel-collector.Dockerfile
+          push: true
+          tags: |
+            cuesoft/upstat-otel-collector:${{ steps.meta.outputs.sha }}
+            cuesoft/upstat-otel-collector:latest
+          cache-from: type=gha,scope=collector
+          cache-to: type=gha,mode=max,scope=collector
+
   deploy:
     name: deploy · Cloud Run (Sandbox)
     needs: images
@@ -115,6 +143,7 @@ jobs:
       QUERY: docker.io/cuesoft/upstat-api-query@${{ needs.images.outputs.query }}
       OBSERVABILITY: docker.io/cuesoft/upstat-api-observability@${{ needs.images.outputs.observability }}
       ANALYTICS: docker.io/cuesoft/upstat-api-analytics@${{ needs.images.outputs.analytics }}
+      COLLECTOR: docker.io/cuesoft/upstat-otel-collector@${{ needs.images.outputs.collector }}
     steps:
       - name: Checkout deploy scripts
         uses: actions/checkout@v7
@@ -134,7 +163,11 @@ jobs:
       # Deploy by digest, never by tag: Cloud Run pulls Docker Hub images
       # through mirror.gcr.io, which has served stale manifests for tags and
       # can lag a fresh digest, so each deploy retries image pull failures.
-      # common first: it runs the database migrations on start.
+      # The collector first: common and the gateway export through it.
+      - name: Deploy otel-collector
+        run: .github/scripts/deploy-with-retry.sh gcloud run services update upstat-otel-collector --region "$REGION" --image "$COLLECTOR" --quiet
+
+      # common next: it runs the database migrations on start.
       - name: Deploy api-common
         run: .github/scripts/deploy-with-retry.sh gcloud run services update upstat-api-common --region "$REGION" --image "$COMMON" --quiet
 
@@ -154,7 +187,7 @@ jobs:
       # service's latest revision must be the one serving and Ready.
       - name: Verify revisions are ready
         run: |
-          for svc in upstat-api-common upstat-api-query upstat-api-observability upstat-api-observability-grpc upstat-api-analytics; do
+          for svc in upstat-otel-collector upstat-api-common upstat-api-query upstat-api-observability upstat-api-observability-grpc upstat-api-analytics; do
             ready=$(gcloud run services describe "$svc" --region "$REGION" --format 'value(status.latestReadyRevisionName)')
             created=$(gcloud run services describe "$svc" --region "$REGION" --format 'value(status.latestCreatedRevisionName)')
             echo "$svc: created=$created ready=$ready"
@@ -163,12 +196,12 @@ jobs:
           url=$(gcloud run services describe upstat-api-common --region "$REGION" --format 'value(status.url)')
           curl -fsS "$url/ready" && echo
 
-  # The probe is a Cloud Run function per region (S-5, S-12), deployed from
-  # source; the infrastructure-as-code stack owns its service account (no
-  # roles), its private ingress and common's invoker grant.
+  # The probe is a Cloud Run service per region (S-5, S-12); the IaC stack
+  # creates both services, their account (no roles), private ingress and
+  # common's invoker grant. A missing service fails the update, never created.
   probe:
-    name: deploy · probe functions
-    needs: deploy
+    name: deploy · probe (${{ matrix.region }})
+    needs: [images, deploy]
     runs-on: ubuntu-latest
     environment: Sandbox
     permissions:
@@ -177,11 +210,13 @@ jobs:
     strategy:
       matrix:
         region: [us-central1, us-east4]
+    env:
+      PROBE: docker.io/cuesoft/upstat-probe@${{ needs.images.outputs.probe }}
     steps:
-      - name: Checkout
+      - name: Checkout deploy scripts
         uses: actions/checkout@v7
         with:
-          sparse-checkout: functions/probe
+          sparse-checkout: .github/scripts
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
@@ -194,5 +229,12 @@ jobs:
         uses: google-github-actions/setup-gcloud@v3
 
       - name: Deploy upstat-probe-${{ matrix.region }}
+        run: .github/scripts/deploy-with-retry.sh gcloud run services update "upstat-probe-${{ matrix.region }}" --region "${{ matrix.region }}" --image "$PROBE" --quiet
+
+      - name: Verify the revision is ready
         run: |
-          gcloud functions deploy "upstat-probe-${{ matrix.region }}" --gen2 --region "${{ matrix.region }}"             --runtime python312 --source functions/probe --entry-point probe --trigger-http --no-allow-unauthenticated             --run-service-account "${{ vars.PROBE_SERVICE_ACCOUNT }}"             --set-env-vars "PROBE_REGION=${{ matrix.region }}" --quiet
+          svc="upstat-probe-${{ matrix.region }}"
+          ready=$(gcloud run services describe "$svc" --region "${{ matrix.region }}" --format 'value(status.latestReadyRevisionName)')
+          created=$(gcloud run services describe "$svc" --region "${{ matrix.region }}" --format 'value(status.latestCreatedRevisionName)')
+          echo "$svc: created=$created ready=$ready"
+          [ -n "$ready" ] && [ "$ready" = "$created" ] || { echo "::error::$svc did not become ready"; exit 1; }

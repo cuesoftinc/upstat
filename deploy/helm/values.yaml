@@ -48,7 +48,7 @@ services:
     env:
       PORT: "8083"
       CLICKHOUSE_URL: http://clickhouse:8123/?database=upstat
-      CLICKHOUSE_USER: query_ro
+      CLICKHOUSE_QUERY_USER: query_ro
       KAFKA_BROKERS: kafka:9092
       STORAGE_DRIVER: s3
       STORAGE_BUCKET: upstat
@@ -111,7 +111,7 @@ services:
     env:
       CLICKHOUSE_ENDPOINT: tcp://clickhouse:9000?dial_timeout=10s
       CLICKHOUSE_DATABASE: upstat
-      CLICKHOUSE_USER: loader
+      CLICKHOUSE_LOADER_USER: loader
 
   web:
     image: cuesoft/upstat-web:latest
