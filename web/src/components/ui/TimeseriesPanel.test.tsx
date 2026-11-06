@@ -50,6 +50,26 @@ describe("TimeseriesPanel", () => {
     expect(labels.filter((l) => l?.endsWith(" ms"))).toHaveLength(3);
   });
 
+  it("shows a missing value when a shorter series has no point under the crosshair", () => {
+    const shortSeries: Series = {
+      name: "p50(http.request.duration_ms) service:worker",
+      tags: { service: "worker" },
+      points: SERIES[0].points.slice(0, 1),
+    };
+
+    render(
+      <TimeseriesPanel
+        title="Latency"
+        series={[...SERIES, shortSeries]}
+        cursor={1}
+      />,
+    );
+
+    expect(screen.getByTestId("crosshair-tooltip")).toHaveTextContent(
+      "worker—",
+    );
+  });
+
   it("y ticks step on the niceScale ladder, zero-based (master 50:407)", () => {
     const { container } = render(<TimeseriesPanel title="t" series={SERIES} />);
     // values 100..119 → nice ladder 0 / 50 / 100 / 150; unit sniffed from
