@@ -12,7 +12,7 @@
 | Name | 1–80 chars, unique per owner | `409 name_taken` |
 | Target | absolute `http(s)://` URL; DNS-resolvable not required at save; URL userinfo (`user:pass@`) rejected (`422 invalid_target`) | **Cloud: RFC-1918/link-local/loopback/metadata (169.254.169.254) targets are DENIED (`422 target_not_allowed`), enforced at check time on every resolved IP (DNS-rebinding-safe: resolve, validate, pin)** — SSRF hard rule, REVISES the earlier warn-only default. Self-host: allowed by default, deny-list configurable |
 | Type | `website \| server \| api \| blog` | display taxonomy only — checks behave identically **[Current]** |
-| Interval | 30s–24h, default 60s **[Current default]** | sub-30s is a paid-tier conversation, out of scope |
+| Interval | 60s–24h, default 60s **[Current default]** | Cloud Scheduler calls `POST /internal/jobs/run-checks` every minute (§3), so 60 s is the shortest interval; sub-60s is a paid-tier conversation, out of scope |
 | Timeout | 1s–60s, default 10s; must be < interval | `422 timeout_gte_interval` |
 | Failure threshold | 1–10, default 3 | consecutive failures before `down` |
 
