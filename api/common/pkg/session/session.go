@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/cuesoftinc/upstat/api/common/pkg/httpx"
 )
 
 // SessionSettings tells request authentication where the session cookie lives and which origins may use it.
@@ -82,7 +84,7 @@ func SessionMiddleware(next http.Handler) http.Handler {
 			r.Header.Get("Sec-Fetch-Site"),
 		)
 		if !ok {
-			http.Error(w, `{"error":{"code":"unauthorized","message":"Authentication required","details":[]}}`, http.StatusUnauthorized)
+			httpx.WriteError(w, http.StatusUnauthorized, "unauthorized", "Authentication required", nil)
 			return
 		}
 		ctx := context.WithValue(r.Context(), userIDContextKey, claims.UserID)

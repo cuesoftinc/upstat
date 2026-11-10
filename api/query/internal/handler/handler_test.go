@@ -19,6 +19,42 @@ func (noRows) Rows(context.Context, string, string, map[string]string) ([]map[st
 	return nil, nil
 }
 
+// TestUnknownRouteAndUnauthorizedUseErrorEnvelope covers the two responses
+// that bypass the handlers: the mux's unmatched-route fallback and the
+// session middleware's rejection.
+func TestUnknownRouteAndUnauthorizedUseErrorEnvelope(t *testing.T) {
+	t.Setenv("JWT_SECRET", "0123456789abcdef0123456789abcdef")
+	session.ConfigureSession(session.SessionSettings{CookieName: "sess"})
+	mux := http.NewServeMux()
+	New(nil, nil, Internal{}).Register(mux)
+
+	cases := []struct {
+		name, path string
+		status     int
+		body       string
+	}{
+		{"unknown route", "/v1/no-such-route", http.StatusNotFound,
+			`{"error":{"code":"not_found","message":"Not found","details":{}}}` + "\n"},
+		{"anonymous", "/v1/services", http.StatusUnauthorized,
+			`{"error":{"code":"unauthorized","message":"Authentication required","details":{}}}` + "\n"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			rec := httptest.NewRecorder()
+			mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, tc.path, nil))
+			if rec.Code != tc.status {
+				t.Fatalf("status = %d, want %d", rec.Code, tc.status)
+			}
+			if got := rec.Header().Get("Content-Type"); got != "application/json" {
+				t.Errorf("Content-Type = %q, want application/json", got)
+			}
+			if got := rec.Body.String(); got != tc.body {
+				t.Errorf("body = %q, want %q", got, tc.body)
+			}
+		})
+	}
+}
+
 // TestRevokedAccessEndsWithinTheMaxAge proves a request re-reads the members
 // snapshot once it is older than the max age, with no config event at all.
 func TestRevokedAccessEndsWithinTheMaxAge(t *testing.T) {

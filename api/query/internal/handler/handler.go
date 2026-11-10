@@ -341,4 +341,6 @@ func (a *API) Register(mux *http.ServeMux) {
 		out, err := t.Replay(r.Context(), orgID, req)
 		a.respond(w, r, out, err)
 	}))
+
+	httpx.RegisterNotFound(mux)
 }

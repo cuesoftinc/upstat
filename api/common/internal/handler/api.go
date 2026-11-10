@@ -542,4 +542,6 @@ func (a *API) Register(mux *http.ServeMux) {
 		}
 		a.respond(w, r, 200, out, err)
 	})
+
+	httpx.RegisterNotFound(mux)
 }
