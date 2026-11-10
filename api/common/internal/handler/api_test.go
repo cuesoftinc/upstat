@@ -9,6 +9,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgconn"
 
+	"github.com/cuesoftinc/upstat/api/common/pkg/httpx"
 	"github.com/cuesoftinc/upstat/api/common/pkg/session"
 )
 
@@ -34,6 +35,43 @@ func TestMalformedIDsAreNotFound(t *testing.T) {
 		if rec.Code != http.StatusNotFound {
 			t.Errorf("%s: status %d, want 404", path, rec.Code)
 		}
+	}
+}
+
+// TestUnknownRouteAndUnauthorizedUseErrorEnvelope covers the two responses
+// that bypass the handlers: the mux fallback and the session middleware's
+// rejection.
+func TestUnknownRouteAndUnauthorizedUseErrorEnvelope(t *testing.T) {
+	t.Setenv("JWT_SECRET", "0123456789abcdef0123456789abcdef")
+	session.ConfigureSession(session.SessionSettings{CookieName: "sess"})
+	mux := http.NewServeMux()
+	(&API{}).Register(mux)
+	fallback := httpx.JSONFallback(mux)
+
+	cases := []struct {
+		name, path string
+		status     int
+		body       string
+	}{
+		{"unknown route", "/v1/no-such-route", http.StatusNotFound,
+			`{"error":{"code":"not_found","message":"Not found","details":{}}}` + "\n"},
+		{"anonymous", "/v1/orgs", http.StatusUnauthorized,
+			`{"error":{"code":"unauthorized","message":"Authentication required","details":{}}}` + "\n"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			rec := httptest.NewRecorder()
+			fallback.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, tc.path, nil))
+			if rec.Code != tc.status {
+				t.Fatalf("status = %d, want %d", rec.Code, tc.status)
+			}
+			if got := rec.Header().Get("Content-Type"); got != "application/json" {
+				t.Errorf("Content-Type = %q, want application/json", got)
+			}
+			if got := rec.Body.String(); got != tc.body {
+				t.Errorf("body = %q, want %q", got, tc.body)
+			}
+		})
 	}
 }
 
