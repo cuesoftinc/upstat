@@ -92,8 +92,14 @@ test("B7: builder CRUD round-trip — create, run once, edit, delete", async ({
     page.getByRole("list", { name: "Check steps" }).locator("[data-kind]"),
   ).toHaveCount(2);
 
-  // browser-check panel: URL + viewport + screenshot-on-failure
-  await page.getByTestId("browser-url").fill("https://upstat.cuesoft.io/");
+  // Browser checks remain unavailable until the probe supports them.
+  await expect(page.getByTestId("check-kind-browser")).toBeDisabled();
+  await expect(
+    page.getByRole("switch", { name: "Run in a browser" }),
+  ).toBeDisabled();
+  await expect(
+    page.getByText("Browser checks are not yet available."),
+  ).toBeVisible();
 
   // Run once — saves, executes, lands on the run view with per-step PASSes
   await page.getByTestId("run-once").click();
