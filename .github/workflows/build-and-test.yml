@@ -315,3 +315,23 @@ jobs:
 
       - name: Validate
         run: terraform validate
+
+  helm:
+    name: deploy/helm · lint + template
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v5
+
+      - name: Lint
+        run: |
+          helm lint --strict deploy/helm
+          helm lint --strict deploy/helm -f deploy/helm/values-local.yaml
+
+      - name: Template
+        run: |
+          helm template upstat deploy/helm > /dev/null
+          helm template upstat deploy/helm -f deploy/helm/values-local.yaml > /dev/null
