@@ -1,15 +1,9 @@
 version: 2
 updates:
+  # api/query imports api/common through `replace ../common`, so the two
+  # modules move together: one entry, one grouped PR across both.
   - package-ecosystem: gomod
-    directory: /api/common
-    schedule:
-      interval: weekly
-    groups:
-      go-dependencies:
-        patterns: ["*"]
-
-  - package-ecosystem: gomod
-    directory: /api/query
+    directories: ["/api/common", "/api/query"]
     schedule:
       interval: weekly
     groups:
