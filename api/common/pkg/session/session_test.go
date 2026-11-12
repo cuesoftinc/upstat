@@ -98,10 +98,17 @@ func TestSessionMiddleware(t *testing.T) {
 		_, _ = w.Write([]byte(id + ":" + name))
 	}))
 
+	const wantBody = `{"error":{"code":"unauthorized","message":"Authentication required","details":{}}}` + "\n"
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 	if rec.Code != http.StatusUnauthorized {
 		t.Fatalf("anonymous = %d", rec.Code)
+	}
+	if got := rec.Header().Get("Content-Type"); got != "application/json" {
+		t.Errorf("anonymous Content-Type = %q, want application/json", got)
+	}
+	if got := rec.Body.String(); got != wantBody {
+		t.Errorf("anonymous body = %q, want %q", got, wantBody)
 	}
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)

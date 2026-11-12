@@ -37,6 +37,42 @@ func TestMalformedIDsAreNotFound(t *testing.T) {
 	}
 }
 
+// TestUnknownRouteAndUnauthorizedUseErrorEnvelope covers the two responses
+// that bypass the handlers: the mux's unmatched-route fallback and the
+// session middleware's rejection.
+func TestUnknownRouteAndUnauthorizedUseErrorEnvelope(t *testing.T) {
+	t.Setenv("JWT_SECRET", "0123456789abcdef0123456789abcdef")
+	session.ConfigureSession(session.SessionSettings{CookieName: "sess"})
+	mux := http.NewServeMux()
+	(&API{}).Register(mux)
+
+	cases := []struct {
+		name, path string
+		status     int
+		body       string
+	}{
+		{"unknown route", "/v1/no-such-route", http.StatusNotFound,
+			`{"error":{"code":"not_found","message":"Not found","details":{}}}` + "\n"},
+		{"anonymous", "/v1/orgs", http.StatusUnauthorized,
+			`{"error":{"code":"unauthorized","message":"Authentication required","details":{}}}` + "\n"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			rec := httptest.NewRecorder()
+			mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, tc.path, nil))
+			if rec.Code != tc.status {
+				t.Fatalf("status = %d, want %d", rec.Code, tc.status)
+			}
+			if got := rec.Header().Get("Content-Type"); got != "application/json" {
+				t.Errorf("Content-Type = %q, want application/json", got)
+			}
+			if got := rec.Body.String(); got != tc.body {
+				t.Errorf("body = %q, want %q", got, tc.body)
+			}
+		})
+	}
+}
+
 func TestPostgresMalformedValueIsNotFound(t *testing.T) {
 	rec := httptest.NewRecorder()
 	(&API{}).fail(rec, httptest.NewRequest(http.MethodGet, "/", nil), errors.Join(errors.New("lookup"), &pgconn.PgError{Code: "22P02"}))

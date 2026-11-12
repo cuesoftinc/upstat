@@ -33,6 +33,15 @@ func WriteError(w http.ResponseWriter, status int, code, message string, details
 
 func NoContent(w http.ResponseWriter) { w.WriteHeader(http.StatusNoContent) }
 
+// RegisterNotFound answers every unmatched route with the error envelope.
+// Pattern "/" is the mux's catch-all, so it also claims a known path called
+// with an unregistered method (a plain net/http mux would answer 405).
+func RegisterNotFound(mux *http.ServeMux) {
+	mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
+		WriteError(w, http.StatusNotFound, "not_found", "Not found", nil)
+	})
+}
+
 // maxBody bounds every JSON request body.
 const maxBody = 1 << 20
 
