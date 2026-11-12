@@ -1,10 +1,12 @@
 package service_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"math/rand"
 	"strings"
 	"sync"
@@ -65,12 +67,16 @@ func (r *fakeResults) Send(_ context.Context, rs []service.CheckResult) error {
 	return nil
 }
 
-type fakeTelemetry struct{}
+type fakeTelemetry struct {
+	mu      sync.Mutex
+	calls   int
+	hasData bool
+}
 
-func (fakeTelemetry) History(context.Context, string, string) (map[string]any, error) {
+func (t *fakeTelemetry) History(context.Context, string, string) (map[string]any, error) {
 	return map[string]any{}, nil
 }
-func (fakeTelemetry) Uptime(_ context.Context, _ string, ids []string, _ int) (map[string]service.UptimeSummary, error) {
+func (t *fakeTelemetry) Uptime(_ context.Context, _ string, ids []string, _ int) (map[string]service.UptimeSummary, error) {
 	out := map[string]service.UptimeSummary{}
 	for _, id := range ids {
 		p := 99.5
@@ -78,20 +84,44 @@ func (fakeTelemetry) Uptime(_ context.Context, _ string, ids []string, _ int) (m
 	}
 	return out, nil
 }
-func (fakeTelemetry) HasData(context.Context, string) (bool, error) { return true, nil }
-func (fakeTelemetry) Presence(context.Context, string, []string) (map[string]service.Presence, error) {
+func (t *fakeTelemetry) HasData(context.Context, string) (bool, error) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.calls++
+	return t.hasData, nil
+}
+func (t *fakeTelemetry) Presence(context.Context, string, []string) (map[string]service.Presence, error) {
 	return map[string]service.Presence{}, nil
 }
-func (fakeTelemetry) Replay(context.Context, string, service.ReplayRequest) (map[string]any, error) {
+func (t *fakeTelemetry) Replay(context.Context, string, service.ReplayRequest) (map[string]any, error) {
 	return map[string]any{}, nil
 }
 
+func (t *fakeTelemetry) callCount() int {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.calls
+}
+
+func (t *fakeTelemetry) resetCalls() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.calls = 0
+}
+
+func (t *fakeTelemetry) setHasData(has bool) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.hasData = has
+}
+
 type env struct {
-	s       *service.Services
-	db      *repository.DB
-	blobs   *store.Memory
-	prober  *fakeProber
-	results *fakeResults
+	s         *service.Services
+	db        *repository.DB
+	blobs     *store.Memory
+	prober    *fakeProber
+	results   *fakeResults
+	telemetry *fakeTelemetry
 }
 
 func newEnv(t *testing.T) *env {
@@ -132,7 +162,8 @@ func newEnv(t *testing.T) *env {
 	prober := &fakeProber{fail: map[string]bool{}}
 	results := &fakeResults{}
 	cfg := &config.Config{Probes: map[string]string{"us-central1": "http://p1", "us-east4": "http://p2"}, MonitorCapPerOrg: 5}
-	return &env{s: service.New(db, blobs, cfg, prober, fakeTelemetry{}, results), db: db, blobs: blobs, prober: prober, results: results}
+	telemetry := &fakeTelemetry{hasData: true}
+	return &env{s: service.New(db, blobs, cfg, prober, telemetry, results), db: db, blobs: blobs, prober: prober, results: results, telemetry: telemetry}
 }
 
 // signIn creates a user and returns them as a caller with their active org.
@@ -239,6 +270,125 @@ func TestTenancyAndMonitorRules(t *testing.T) {
 	resumed, err := e.s.UpdateMonitor(ctx, ada, m.ID, service.MonitorInput{Active: ptr(true)})
 	if err != nil || resumed.Status != "pending" {
 		t.Fatalf("resume: %v %+v", err, resumed)
+	}
+}
+
+func TestOnboardingPersistsHasData(t *testing.T) {
+	e := newEnv(t)
+	ctx := context.Background()
+	c := e.withOrg(t, "ada@example.com", "Acme")
+
+	out, err := e.s.Onboarding(ctx, c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !out.HasData {
+		t.Fatal("first onboarding did not report data")
+	}
+	if got := e.telemetry.callCount(); got != 1 {
+		t.Fatalf("telemetry calls = %d, want 1", got)
+	}
+	var stored bool
+	if err := e.db.AsOrg(ctx, c.OrgID, func(tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `SELECT has_data FROM orgs WHERE id = $1`, c.OrgID).Scan(&stored)
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if !stored {
+		t.Fatal("has_data was not stored on the org")
+	}
+
+	e.telemetry.resetCalls()
+	out, err = e.s.Onboarding(ctx, c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !out.HasData {
+		t.Fatal("cached has_data was not returned")
+	}
+	if got := e.telemetry.callCount(); got != 0 {
+		t.Fatalf("telemetry calls after persistence = %d, want 0", got)
+	}
+}
+
+func TestOnboardingDoesNotCacheAbsentData(t *testing.T) {
+	e := newEnv(t)
+	e.telemetry.setHasData(false)
+	ctx := context.Background()
+	c := e.withOrg(t, "ada@example.com", "Acme")
+
+	for i := 0; i < 2; i++ {
+		out, err := e.s.Onboarding(ctx, c)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if out.HasData {
+			t.Fatalf("call %d reported data that was never sent", i+1)
+		}
+	}
+	if got := e.telemetry.callCount(); got != 2 {
+		t.Fatalf("telemetry calls = %d, want 2", got)
+	}
+	var stored bool
+	if err := e.db.AsOrg(ctx, c.OrgID, func(tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `SELECT has_data FROM orgs WHERE id = $1`, c.OrgID).Scan(&stored)
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if stored {
+		t.Fatal("a false has_data answer was cached")
+	}
+}
+
+func TestOnboardingReturnsHasDataWhenItCannotBePersisted(t *testing.T) {
+	e := newEnv(t)
+	ctx := context.Background()
+	c := e.withOrg(t, "ada@example.com", "Acme")
+	if _, err := e.db.Pool.Exec(ctx, `CREATE FUNCTION reject_org_update() RETURNS trigger LANGUAGE plpgsql AS $$
+		BEGIN RAISE EXCEPTION 'org updates are blocked'; END $$`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.db.Pool.Exec(ctx, `CREATE TRIGGER reject_org_update BEFORE UPDATE ON orgs
+		FOR EACH ROW EXECUTE FUNCTION reject_org_update()`); err != nil {
+		t.Fatal(err)
+	}
+	var logs bytes.Buffer
+	previous := slog.Default()
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logs, nil)))
+	t.Cleanup(func() { slog.SetDefault(previous) })
+
+	out, err := e.s.Onboarding(ctx, c)
+	if err != nil {
+		t.Fatalf("onboarding failed when the cache write failed: %v", err)
+	}
+	if !out.HasData {
+		t.Fatal("has_data should still be returned when the write fails")
+	}
+	if got := e.telemetry.callCount(); got != 1 {
+		t.Fatalf("telemetry calls = %d, want 1", got)
+	}
+	var stored bool
+	if err := e.db.AsOrg(ctx, c.OrgID, func(tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `SELECT has_data FROM orgs WHERE id = $1`, c.OrgID).Scan(&stored)
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if stored {
+		t.Fatal("has_data was persisted despite the rejected update")
+	}
+	if !strings.Contains(logs.String(), "has_data not persisted") {
+		t.Fatalf("write failure was not logged: %s", logs.String())
+	}
+
+	out, err = e.s.Onboarding(ctx, c)
+	if err != nil {
+		t.Fatalf("onboarding failed on retry after the cache write failed: %v", err)
+	}
+	if !out.HasData {
+		t.Fatal("has_data should still be returned on retry")
+	}
+	if got := e.telemetry.callCount(); got != 2 {
+		t.Fatalf("telemetry calls after failed cache write = %d, want 2", got)
 	}
 }
 

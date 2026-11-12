@@ -838,7 +838,9 @@ worth keeping, not a dual-write parity harness (§15 Q2).
   `api/common`, as the sibling expenses product's web does. Google sign-in returns through it.
 - **Check history, status bars, onboarding's has-data, catalog presence
   and the MI-9 replays** are `common → query` internal calls, so common
-  keeps its 404 semantics for monitors it owns.
+  keeps its 404 semantics for monitors it owns. Onboarding caches the
+  first `true` has-data answer in `orgs.has_data`, so later polls skip
+  the query service.
 - **Synthetic runs** (multi-step checks) are stored in Postgres with
   90-day retention; they are few and carry step detail.
 - **Usage meters bytes** for the OTLP pillars and events for RUM (S-11).

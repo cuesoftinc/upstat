@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/mail"
 	"strings"
 	"time"
@@ -204,17 +205,28 @@ func (s *Services) Onboarding(ctx context.Context, c *Caller) (*model.Onboarding
 	}
 	out.OrgCreated = true
 	err := s.DB.AsOrg(ctx, c.OrgID, func(tx pgx.Tx) (err error) {
+		if out.HasData, err = repository.OrgHasData(ctx, tx, c.OrgID); err != nil {
+			return err
+		}
 		out.IngestKey, err = repository.FirstIngestKeyMasked(ctx, tx)
 		return err
 	})
 	if err != nil {
 		return nil, err
 	}
-	if s.Telemetry != nil {
+	if !out.HasData && s.Telemetry != nil {
 		// has_data is a nicety: a slow or absent query service reads false.
 		qctx, cancel := context.WithTimeout(ctx, 3*time.Second)
-		defer cancel()
-		out.HasData, _ = s.Telemetry.HasData(qctx, c.OrgID)
+		has, _ := s.Telemetry.HasData(qctx, c.OrgID)
+		cancel()
+		out.HasData = has
+		if has {
+			if err := s.DB.AsOrg(ctx, c.OrgID, func(tx pgx.Tx) error {
+				return repository.SetOrgHasData(ctx, tx, c.OrgID)
+			}); err != nil {
+				slog.WarnContext(ctx, "onboarding: has_data not persisted", "org_id", c.OrgID, "error", err)
+			}
+		}
 	}
 	return out, nil
 }

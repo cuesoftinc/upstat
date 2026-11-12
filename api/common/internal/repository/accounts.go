@@ -154,6 +154,19 @@ func OrgByID(ctx context.Context, tx pgx.Tx, id string) (*model.Org, error) {
 	return one(tx.QueryRow(ctx, `SELECT id, name, timezone, created_at FROM orgs WHERE id = $1`, id), scanOrg)
 }
 
+// OrgHasData reports whether onboarding's has_data answer is already cached
+// on the org.
+func OrgHasData(ctx context.Context, tx pgx.Tx, id string) (bool, error) {
+	var has bool
+	err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM orgs WHERE id = $1 AND has_data)`, id).Scan(&has)
+	return has, err
+}
+
+// SetOrgHasData caches that the org has sent telemetry.
+func SetOrgHasData(ctx context.Context, tx pgx.Tx, id string) error {
+	return affected(tx.Exec(ctx, `UPDATE orgs SET has_data = true WHERE id = $1`, id))
+}
+
 func UpdateOrg(ctx context.Context, tx pgx.Tx, id string, name, timezone *string) (*model.Org, error) {
 	return one(tx.QueryRow(ctx, `UPDATE orgs SET name = coalesce($2, name), timezone = coalesce($3, timezone)
 		WHERE id = $1 RETURNING id, name, timezone, created_at`, id, name, timezone), scanOrg)
