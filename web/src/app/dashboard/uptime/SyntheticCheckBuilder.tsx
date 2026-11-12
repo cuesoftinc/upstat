@@ -60,9 +60,7 @@ export function SyntheticCheckBuilder({
   const [steps, setSteps] = useState<SyntheticStepInput[]>(
     editing ? toInputs(editing) : [],
   );
-  const [browserOn, setBrowserOn] = useState(
-    editing ? editing.browser !== null : true,
-  );
+  const browserOn = editing?.browser != null;
   const [browser, setBrowser] = useState<BrowserCheckConfig>(
     editing?.browser ?? {
       url: "",
@@ -189,6 +187,7 @@ export function SyntheticCheckBuilder({
 
   const saveDisabled =
     busy !== null ||
+    tab === "browser" ||
     !name.trim() ||
     (tab === "http"
       ? !httpTarget.trim()
@@ -206,13 +205,12 @@ export function SyntheticCheckBuilder({
           Browser check
         </h2>
         {tab === "multi_step" && (
-          <Switch
-            checked={browserOn}
-            onCheckedChange={setBrowserOn}
-            aria-label="Run in a browser"
-          />
+          <Switch checked={browserOn} disabled aria-label="Run in a browser" />
         )}
       </div>
+      <p className="text-[12px] leading-[1.45] text-text-2">
+        Browser checks are not yet available.
+      </p>
       {(tab === "browser" || browserOn) && (
         <>
           <label className="flex flex-col gap-1 text-[13px]">
@@ -222,6 +220,7 @@ export function SyntheticCheckBuilder({
               value={browser.url}
               onChange={(e) => setBrowser({ ...browser, url: e.target.value })}
               placeholder="https://upstat.cuesoft.io/checkout"
+              disabled
               data-testid="browser-url"
             />
           </label>
@@ -231,6 +230,7 @@ export function SyntheticCheckBuilder({
               options={VIEWPORT_OPTIONS}
               value={browser.viewport}
               onValueChange={(v) => setBrowser({ ...browser, viewport: v })}
+              disabled
               aria-label="Viewport"
               className="min-w-48"
             />
@@ -242,12 +242,10 @@ export function SyntheticCheckBuilder({
               onCheckedChange={(v) =>
                 setBrowser({ ...browser, screenshot_on_failure: v })
               }
+              disabled
               aria-label="Screenshot on failure"
             />
           </div>
-          <p className="text-[12px] leading-[1.45] text-text-2">
-            Runs in a headless browser on the check schedule.
-          </p>
         </>
       )}
     </aside>
@@ -268,13 +266,14 @@ export function SyntheticCheckBuilder({
             [
               ["http", "HTTP"],
               ["multi_step", "Multi-step"],
-              ["browser", "Browser"],
+              ["browser", "Browser (not yet available)"],
             ] as const
           ).map(([value, label]) => (
             <button
               key={value}
               role="tab"
               aria-selected={tab === value}
+              disabled={value === "browser"}
               onClick={() => {
                 setTab(value);
                 setError(null); // stale API errors don't outlive the tab
@@ -283,7 +282,7 @@ export function SyntheticCheckBuilder({
               className={
                 tab === value
                   ? "rounded-(--radius) border border-brand px-3 py-1.5 text-[13px] font-medium text-brand-text"
-                  : "rounded-(--radius) border border-border px-3 py-1.5 text-[13px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text"
+                  : "rounded-(--radius) border border-border px-3 py-1.5 text-[13px] text-text-2 transition-colors duration-[var(--duration-fast)] hover:text-text disabled:cursor-not-allowed disabled:opacity-60"
               }
             >
               {label}
