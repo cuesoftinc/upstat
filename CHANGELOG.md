@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `gitbook-docs.yaml` for GitBook's site-wide Git Sync, `.gitattributes` keeping shell scripts LF, and `web/.gitignore` ignores the `AGENTS.md` that `next dev` writes (#441).
 - Backend rebuilt on the system design: common, query, gateway, analytics.
 - Telemetry query service reading ClickHouse with org row policies.
 - OTLP ingest gateway over HTTP and gRPC with per-key quotas.
