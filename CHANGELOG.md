@@ -162,10 +162,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - The superseded `web/.deprecated` tree, dead `LayoutShell`, and a stray
   `k8s/deployment.yaml`.
 - Misplaced GitHub Actions workflow files, a committed 24 MB build binary, and a
-  build-error log.
+  build-error log.staus
 
 ### Fixed
 
+
+- The monitors, uptime and synthetic check pages now show an error with a retry (and a no-access message on a 403) when a request fails, instead of an empty list or a loading skeleton that never ends (#414).
 - Deploys retry image pull errors for 45 minutes instead of 20.
 - Common waits for an idle ClickHouse to wake before migrating.
 - Release deploys retry while Cloud Run cannot pull a fresh image.

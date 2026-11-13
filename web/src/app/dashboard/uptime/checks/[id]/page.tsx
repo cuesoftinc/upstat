@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { RequestError } from "@/components/ui/RequestError";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { StepResultRow } from "@/components/ui/StepResultRow";
 import { UptimeCard } from "@/components/ui/UptimeCard";
@@ -49,6 +50,19 @@ export default function SyntheticRunPage() {
       </div>
     );
   }
+
+  if (check.error && (check.error as { status?: number }).status !== 404) {
+    return (
+      <div className="px-6 py-5">
+        <RequestError
+          error={check.error}
+          onRetry={check.reload}
+          what="this synthetic check"
+        />
+      </div>
+    );
+  }
+
   if (!check.data) {
     return (
       <div className="px-6 py-5">
@@ -176,6 +190,12 @@ export default function SyntheticRunPage() {
             )}
           </div>
         </>
+      ) : runs.error ? (
+        <RequestError
+          error={runs.error}
+          onRetry={runs.reload}
+          what="the run history"
+        />
       ) : notFound ? (
         // never "No runs yet" while runs exist — a bad ?run= says so
         <p className="text-[13px] text-text-2" data-testid="run-not-found">

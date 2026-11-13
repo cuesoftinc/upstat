@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { RequestError } from "@/components/ui/RequestError";
 import { QueryPill } from "@/components/ui/QueryPill";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Toast } from "@/components/ui/Toast";
@@ -45,6 +46,17 @@ export default function RuleReplayPage() {
     );
   }
 
+  if (rules.error) {
+    return (
+      <div className="px-6 py-5">
+        <RequestError
+          error={rules.error}
+          onRetry={rules.reload}
+          what="this monitor rule"
+        />
+      </div>
+    );
+  }
   if (!rule) {
     return (
       <div className="px-6 py-5">

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { MonitorRow } from "@/components/ui/MonitorRow";
+import { RequestError } from "@/components/ui/RequestError";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { UptimeCard } from "@/components/ui/UptimeCard";
@@ -49,6 +50,13 @@ export default function UptimePage() {
           Array.from({ length: 3 }, (_, i) => (
             <Skeleton key={i} kind="panel-axis" style={{ height: 96 }} />
           ))
+        ) : ctrl.error || cards.error ? (
+          <RequestError
+            error={(ctrl.error ?? cards.error) as Error}
+            onRetry={ctrl.error ? ctrl.reload : cards.reload}
+            what="the uptime overview"
+            className="lg:col-span-3"
+          />
         ) : (cards.data ?? []).length === 0 ? (
           <p className="text-[13px] text-text-2">
             No checks yet — create your first below.
@@ -78,6 +86,12 @@ export default function UptimePage() {
         </h2>
         {synthetics.loading ? (
           <Skeleton kind="line" />
+        ) : synthetics.error ? (
+          <RequestError
+            error={synthetics.error}
+            onRetry={synthetics.reload}
+            what="synthetic checks"
+          />
         ) : (synthetics.data ?? []).length === 0 ? (
           <p className="rounded-(--radius) border border-border bg-bg-elev p-6 text-[13px] text-text-2">
             No multi-step or browser checks yet — New check → Multi-step.
@@ -135,6 +149,12 @@ export default function UptimePage() {
               <Skeleton key={i} kind="line" />
             ))}
           </div>
+        ) : ctrl.error ? (
+          <RequestError
+            error={ctrl.error}
+            onRetry={ctrl.reload}
+            what="uptime checks"
+          />
         ) : (ctrl.data ?? []).length === 0 ? (
           <p className="rounded-(--radius) border border-border bg-bg-elev p-6 text-[13px] text-text-2">
             Create your first check — Monitors → New monitor.
