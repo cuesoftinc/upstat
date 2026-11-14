@@ -130,13 +130,6 @@ type SLO struct {
 // Write stores a kind's snapshot and returns its version, which is always
 // above the stored one so readers never step back to an older document.
 func Write(ctx context.Context, s store.Store, kind string, items any, now time.Time) (int64, error) {
-	raw, err := json.Marshal(items)
-	if err != nil {
-		return 0, err
-	}
-	if string(raw) == "null" {
-		raw = []byte("[]")
-	}
 	version := now.UnixMilli()
 	if prev, err := s.Get(ctx, store.ConfigKey(s, kind)); err == nil {
 		var old Document
@@ -146,12 +139,41 @@ func Write(ctx context.Context, s store.Store, kind string, items any, now time.
 	} else if !errors.Is(err, store.ErrMissing) {
 		return 0, err
 	}
-	doc := Document{Kind: kind, Version: version, Items: raw}
-	body, err := json.Marshal(doc)
+	return version, Put(ctx, s, kind, version, items)
+}
+
+// StoredVersion is the version of the kind's stored snapshot, 0 when there is none.
+func StoredVersion(ctx context.Context, s store.Store, kind string) (int64, error) {
+	prev, err := s.Get(ctx, store.ConfigKey(s, kind))
+	if errors.Is(err, store.ErrMissing) {
+		return 0, nil
+	}
 	if err != nil {
 		return 0, err
 	}
-	return doc.Version, s.Put(ctx, store.ConfigKey(s, kind), body, "application/json")
+	var doc Document
+	if json.Unmarshal(prev, &doc) != nil {
+		return 0, nil
+	}
+	return doc.Version, nil
+}
+
+// Put stores a kind's snapshot at a version the caller owns: the one caller
+// at a time that holds the kind's lease in Postgres, which hands out versions
+// that only rise, so Put needs no read of the stored object.
+func Put(ctx context.Context, s store.Store, kind string, version int64, items any) error {
+	raw, err := json.Marshal(items)
+	if err != nil {
+		return err
+	}
+	if string(raw) == "null" {
+		raw = []byte("[]")
+	}
+	body, err := json.Marshal(Document{Kind: kind, Version: version, Items: raw})
+	if err != nil {
+		return err
+	}
+	return s.Put(ctx, store.ConfigKey(s, kind), body, "application/json")
 }
 
 // Read loads a kind's snapshot; a missing one reads as empty, version 0.

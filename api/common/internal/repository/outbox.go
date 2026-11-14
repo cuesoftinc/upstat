@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"sort"
 	"sync/atomic"
 	"time"
@@ -58,29 +59,42 @@ type OutboxRow struct {
 	Payload   json.RawMessage
 }
 
-// ClaimOutbox locks up to limit unsent rows; concurrent publishers skip
-// each other's rows (SKIP LOCKED). Rows parked as failed are not claimed.
-func ClaimOutbox(ctx context.Context, tx pgx.Tx, limit int) ([]OutboxRow, error) {
-	rows, err := tx.Query(ctx, `SELECT id, event, message_key, request_id, payload FROM outbox
-		WHERE published_at IS NULL AND failed_at IS NULL ORDER BY id LIMIT $1 FOR UPDATE SKIP LOCKED`, limit)
+// LeaseOutbox takes up to limit unsent rows whose lease is free or lapsed and
+// leases them for `lease`; concurrent publishers skip each other's rows
+// (SKIP LOCKED) and the statement holds no lock after it returns. Rows parked
+// as failed are not taken.
+func LeaseOutbox(ctx context.Context, tx pgx.Tx, limit int, lease time.Duration) ([]OutboxRow, error) {
+	rows, err := tx.Query(ctx, `UPDATE outbox SET lease_until = now() + make_interval(secs => $2)
+		WHERE id IN (SELECT id FROM outbox WHERE published_at IS NULL AND failed_at IS NULL
+			AND (lease_until IS NULL OR lease_until < now()) ORDER BY id LIMIT $1 FOR UPDATE SKIP LOCKED)
+		RETURNING id, event, message_key, request_id, payload`, limit, lease.Seconds())
 	if err != nil {
 		return nil, err
 	}
-	return collect(rows, func(r pgx.Row) (*OutboxRow, error) {
+	out, err := collect(rows, func(r pgx.Row) (*OutboxRow, error) {
 		var o OutboxRow
 		return &o, r.Scan(&o.ID, &o.Event, &o.Key, &o.RequestID, &o.Payload)
 	})
+	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
+	return out, err
+}
+
+// ReleaseOutbox frees the lease on rows that were not sent, so the next pass
+// retries them in order.
+func ReleaseOutbox(ctx context.Context, tx pgx.Tx, ids []int64) error {
+	_, err := tx.Exec(ctx, `UPDATE outbox SET lease_until = NULL WHERE id = ANY($1) AND published_at IS NULL`, ids)
+	return err
 }
 
 func MarkPublished(ctx context.Context, tx pgx.Tx, ids []int64) error {
-	_, err := tx.Exec(ctx, `UPDATE outbox SET published_at = now() WHERE id = ANY($1)`, ids)
+	_, err := tx.Exec(ctx, `UPDATE outbox SET published_at = now(), lease_until = NULL WHERE id = ANY($1)`, ids)
 	return err
 }
 
 // MarkFailedOutbox parks a row that can never be sent, with the cause; it
 // stays in the table for diagnosis and for RequeueFailedOutbox.
 func MarkFailedOutbox(ctx context.Context, tx pgx.Tx, id int64, cause string) error {
-	_, err := tx.Exec(ctx, `UPDATE outbox SET failed_at = now(), failure = $2, attempts = attempts + 1 WHERE id = $1`, id, cause)
+	_, err := tx.Exec(ctx, `UPDATE outbox SET failed_at = now(), failure = $2, attempts = attempts + 1, lease_until = NULL WHERE id = $1`, id, cause)
 	return err
 }
 
@@ -113,17 +127,25 @@ func FailedOutbox(ctx context.Context, tx pgx.Tx) (int, error) {
 	return n, tx.QueryRow(ctx, `SELECT count(*) FROM outbox WHERE published_at IS NULL AND failed_at IS NOT NULL`).Scan(&n)
 }
 
-// LockSnapshots serialises snapshot rewrites per kind until the transaction
-// ends. Kinds are locked in sorted order so two publishers cannot deadlock.
-func LockSnapshots(ctx context.Context, tx pgx.Tx, kinds ...string) error {
-	sorted := append([]string(nil), kinds...)
-	sort.Strings(sorted)
-	for _, kind := range sorted {
-		if _, err := tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtext('snapshot:' || $1))`, kind); err != nil {
-			return err
-		}
+// LeaseSnapshot claims kind for one rewrite. It returns the version to write,
+// above every version handed out before and at least floor, and ok = false
+// while another pass holds the kind. The lease lapses on its own if the pass
+// dies; ReleaseSnapshots frees it earlier.
+func LeaseSnapshot(ctx context.Context, tx pgx.Tx, kind string, floor int64, lease time.Duration) (version int64, ok bool, err error) {
+	err = tx.QueryRow(ctx, `INSERT INTO config_snapshot (kind, version, lease_until) VALUES ($1, $2, now() + make_interval(secs => $3))
+		ON CONFLICT (kind) DO UPDATE SET version = greatest(config_snapshot.version + 1, EXCLUDED.version), lease_until = EXCLUDED.lease_until
+			WHERE config_snapshot.lease_until IS NULL OR config_snapshot.lease_until < now()
+		RETURNING version`, kind, floor, lease.Seconds()).Scan(&version)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, false, nil
 	}
-	return nil
+	return version, err == nil, err
+}
+
+// ReleaseSnapshots frees the kinds' leases.
+func ReleaseSnapshots(ctx context.Context, tx pgx.Tx, kinds []string) error {
+	_, err := tx.Exec(ctx, `UPDATE config_snapshot SET lease_until = NULL WHERE kind = ANY($1)`, kinds)
+	return err
 }
 
 // ClaimResult reports whether this is the first result for requestID; it

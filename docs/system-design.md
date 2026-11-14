@@ -547,11 +547,15 @@ good bars, and the CDN absorbs traffic spikes during incidents.
 ### 6.8 Config propagation (outbox)
 
 A `common` write and its `config.changed` outbox row commit in one
-transaction. The publisher (every instance, `SKIP LOCKED` batches) reads
-the kind's current state from Postgres, rewrites
-`<prefix>/config/<kind>.json`, and publishes `upstat.config.changed` with
-the snapshot's pointer and version; a burst of writes yields one rewrite
-per batch. Consumers load every kind they need on start, reload one on the
+transaction. The publisher (every instance) leases a batch of rows
+(`lease_until`, `SKIP LOCKED`), leases each kind it rewrites
+(`config_snapshot`, which also hands out the versions, so they only rise),
+reads the kind's current state from Postgres, and releases the connection
+before it rewrites `<prefix>/config/<kind>.json` and publishes
+`upstat.config.changed` with the snapshot's pointer and version; a kind
+another publisher is rewriting keeps its rows for the next pass, a lease
+that lapses retries the batch, and a burst of writes yields one rewrite per
+batch. Consumers load every kind they need on start, reload one on the
 event, and ignore an older version. common writes every snapshot on start,
 so a fresh deployment's readers find one. The event reaches one instance
 per consumer group, so every instance also rereads a snapshot older than
