@@ -19,6 +19,7 @@ import (
 	"github.com/cuesoftinc/upstat/api/common/internal/auth"
 	"github.com/cuesoftinc/upstat/api/common/internal/cache"
 	"github.com/cuesoftinc/upstat/api/common/internal/config"
+	"github.com/cuesoftinc/upstat/api/common/pkg/httpx"
 	"github.com/cuesoftinc/upstat/api/common/pkg/session"
 )
 
@@ -601,18 +602,8 @@ func randomState() (string, error) {
 	return hex.EncodeToString(b), nil
 }
 
-type errorBody struct {
-	Error errorDetail `json:"error"`
-}
-
-type errorDetail struct {
-	Code    string   `json:"code"`
-	Message string   `json:"message"`
-	Details []string `json:"details"`
-}
-
 func writeError(w http.ResponseWriter, status int, code, message string) {
-	writeJSON(w, status, errorBody{Error: errorDetail{Code: code, Message: message, Details: []string{}}})
+	httpx.WriteError(w, status, code, message, nil)
 }
 
 func writeData(w http.ResponseWriter, status int, data any) {

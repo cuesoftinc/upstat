@@ -4,6 +4,7 @@
 package httpx
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"io"
@@ -34,32 +35,44 @@ func WriteError(w http.ResponseWriter, status int, code, message string, details
 func NoContent(w http.ResponseWriter) { w.WriteHeader(http.StatusNoContent) }
 
 // JSONFallback answers requests the mux does not match with the shared error
-// envelope. A matched route passes through unchanged, so a wrong method keeps
-// 405 and its Allow header.
+// envelope. A matched route, including the mux's canonical redirects, passes
+// through unchanged, so a wrong method keeps 405 and its Allow header.
 func JSONFallback(mux *http.ServeMux) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.RequestURI == "*" {
+			mux.ServeHTTP(w, r)
+			return
+		}
 		h, pattern := mux.Handler(r)
 		if pattern != "" {
+			r.Pattern = pattern
 			h.ServeHTTP(w, r)
 			return
 		}
 		s := &statusOnly{ResponseWriter: w}
 		h.ServeHTTP(s, r)
-		if s.code == http.StatusMethodNotAllowed {
+		switch s.code {
+		case http.StatusNotFound:
+			WriteError(w, http.StatusNotFound, "not_found", "Not found", nil)
+		case http.StatusMethodNotAllowed:
 			WriteError(w, http.StatusMethodNotAllowed, "method_not_allowed", "Method not allowed", nil)
-			return
+		case 0:
+			// No handler wrote anything; net/http sends an empty 200.
+		default:
+			w.WriteHeader(s.code)
+			_, _ = w.Write(s.body.Bytes())
 		}
-		WriteError(w, http.StatusNotFound, "not_found", "Not found", nil)
 	})
 }
 
-// statusOnly records the first status without forwarding it, so an unmatched
-// response can be replaced with the envelope while its headers, such as Allow,
-// stay on the real writer. WriteJSON can then set Content-Type before the
-// status is committed.
+// statusOnly records the first status and the body, so the fallback can
+// replace a 404 or 405 with the envelope or replay another response such as a
+// canonical redirect. Headers pass through, preserving Allow and Location;
+// WriteHeader is not forwarded, so the envelope can set its Content-Type.
 type statusOnly struct {
 	http.ResponseWriter
 	code int
+	body bytes.Buffer
 }
 
 func (s *statusOnly) WriteHeader(code int) {
@@ -72,6 +85,7 @@ func (s *statusOnly) Write(p []byte) (int, error) {
 	if s.code == 0 {
 		s.code = http.StatusOK
 	}
+	s.body.Write(p)
 	return len(p), nil
 }
 
