@@ -547,14 +547,18 @@ good bars, and the CDN absorbs traffic spikes during incidents.
 ### 6.8 Config propagation (outbox)
 
 A `common` write and its `config.changed` outbox row commit in one
-transaction. The publisher (every instance) leases a batch of rows
-(`lease_until`, `SKIP LOCKED`), leases each kind it rewrites
-(`config_snapshot`, which also hands out the versions, so they only rise),
-reads the kind's current state from Postgres, and releases the connection
-before it rewrites `<prefix>/config/<kind>.json` and publishes
+transaction. The publisher (every instance) leases a batch of rows for one minute
+(`lease_until`, `lease_owner`, `SKIP LOCKED`; release and mark check the owner),
+takes each kind's advisory lock while it claims (so a rewrite by an older
+revision finishes first), leases each kind it rewrites
+(`config_snapshot`, which also hands out the versions, so they only rise, above
+the version already in storage), reads the kind's current state from Postgres,
+and releases the connection before it re-reads the stored version (a version
+not above it is skipped for the next pass) and rewrites `<prefix>/config/<kind>.json` and publishes
 `upstat.config.changed` with the snapshot's pointer and version; a kind
-another publisher is rewriting keeps its rows for the next pass, a lease
-that lapses retries the batch, and a burst of writes yields one rewrite per
+another publisher is rewriting keeps its rows for the next pass (and is not
+leased while it is held), the mark is retried at once, a lease that lapses
+retries the batch, the services are woken after the batch lock is let go, and a burst of writes yields one rewrite per
 batch. Consumers load every kind they need on start, reload one on the
 event, and ignore an older version. common writes every snapshot on start,
 so a fresh deployment's readers find one. The event reaches one instance
