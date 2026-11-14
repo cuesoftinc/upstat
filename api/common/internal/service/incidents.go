@@ -159,47 +159,54 @@ func (s *Services) SavePostmortem(ctx context.Context, c *Caller, id string, in 
 		return nil, false, invalid("bad_shape", "author, impact, root_cause and action_items[] are required")
 	}
 	key := s.postmortemKey(c.OrgID, id)
+	var inc *model.Incident
+	var entries []model.TimelineEntry
 	err = s.inOrg(ctx, c, "member", func(tx pgx.Tx) error {
-		inc, err := repository.GetIncident(ctx, tx, id)
-		if err != nil {
+		var err error
+		if inc, err = repository.GetIncident(ctx, tx, id); err != nil {
 			return orNotFound(err, "incident")
 		}
 		if inc.Status != "resolved" {
 			return invalid("incident_not_resolved", "postmortems attach to resolved incidents")
 		}
-		entries, err := repository.Timeline(ctx, tx, id, false)
-		if err != nil {
-			return err
+		entries, err = repository.Timeline(ctx, tx, id, false)
+		return err
+	})
+	if err != nil {
+		return nil, false, err
+	}
+	// The storage read and write hold no connection; the object is written
+	// before the pointer, so a failed update leaves an object the next save overwrites.
+	now := s.Now().UTC()
+	pm = &model.Postmortem{IncidentID: id, Title: inc.Key + " — " + inc.Title, Author: in.Author, CreatedAt: now, UpdatedAt: now,
+		Impact: *in.Impact, RootCause: *in.RootCause, ActionItems: []string{}, Timeline: []model.PostmortemEvent{}}
+	if prev, err := s.Store.Get(ctx, key); err == nil {
+		var old model.Postmortem
+		if json.Unmarshal(prev, &old) == nil {
+			pm.CreatedAt = old.CreatedAt
 		}
-		now := s.Now().UTC()
-		pm = &model.Postmortem{IncidentID: id, Title: inc.Key + " — " + inc.Title, Author: in.Author, CreatedAt: now, UpdatedAt: now,
-			Impact: *in.Impact, RootCause: *in.RootCause, ActionItems: []string{}, Timeline: []model.PostmortemEvent{}}
-		if prev, err := s.Store.Get(ctx, key); err == nil {
-			var old model.Postmortem
-			if json.Unmarshal(prev, &old) == nil {
-				pm.CreatedAt = old.CreatedAt
-			}
-		} else if errors.Is(err, store.ErrMissing) {
-			created = true
-		} else {
-			return err
+	} else if errors.Is(err, store.ErrMissing) {
+		created = true
+	} else {
+		return nil, false, err
+	}
+	for _, item := range in.ActionItems {
+		if strings.TrimSpace(item) != "" {
+			pm.ActionItems = append(pm.ActionItems, item)
 		}
-		for _, item := range in.ActionItems {
-			if strings.TrimSpace(item) != "" {
-				pm.ActionItems = append(pm.ActionItems, item)
-			}
-		}
-		for _, e := range entries {
-			pm.Timeline = append(pm.Timeline, model.PostmortemEvent{TS: e.TS, Phase: e.Phase, Author: e.Author, Body: e.Body})
-		}
-		raw, err := json.Marshal(pm)
-		if err != nil {
-			return err
-		}
-		if err := s.Store.Put(ctx, key, raw, "application/json"); err != nil {
-			return err
-		}
-		_, err = repository.UpdateIncident(ctx, tx, id, repository.IncidentPatch{PostmortemKey: &key}, now)
+	}
+	for _, e := range entries {
+		pm.Timeline = append(pm.Timeline, model.PostmortemEvent{TS: e.TS, Phase: e.Phase, Author: e.Author, Body: e.Body})
+	}
+	raw, err := json.Marshal(pm)
+	if err != nil {
+		return nil, false, err
+	}
+	if err := s.Store.Put(ctx, key, raw, "application/json"); err != nil {
+		return nil, false, err
+	}
+	err = s.inOrg(ctx, c, "member", func(tx pgx.Tx) error {
+		_, err := repository.UpdateIncident(ctx, tx, id, repository.IncidentPatch{PostmortemKey: &key}, now)
 		return err
 	})
 	return pm, created, err
