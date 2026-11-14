@@ -10,6 +10,7 @@ import (
 	"errors"
 	"io"
 	"strings"
+	"sync"
 	"time"
 
 	gcs "cloud.google.com/go/storage"
@@ -188,6 +189,9 @@ func (s *s3Store) List(ctx context.Context, prefix string) ([]Object, error) {
 type Memory struct {
 	Name, Pfx string
 	Objects   map[string][]byte
+	// Before, when set, runs at the start of every call with its name.
+	Before func(op string)
+	mu     sync.Mutex
 }
 
 func NewMemory(prefix string) *Memory {
@@ -197,12 +201,23 @@ func NewMemory(prefix string) *Memory {
 func (m *Memory) Bucket() string { return m.Name }
 func (m *Memory) Prefix() string { return m.Pfx }
 
+func (m *Memory) before(op string) {
+	if m.Before != nil {
+		m.Before(op)
+	}
+	m.mu.Lock()
+}
+
 func (m *Memory) Put(_ context.Context, key string, data []byte, _ string) error {
+	m.before("put")
+	defer m.mu.Unlock()
 	m.Objects[key] = append([]byte(nil), data...)
 	return nil
 }
 
 func (m *Memory) Get(_ context.Context, key string) ([]byte, error) {
+	m.before("get")
+	defer m.mu.Unlock()
 	data, ok := m.Objects[key]
 	if !ok {
 		return nil, ErrMissing
@@ -211,11 +226,15 @@ func (m *Memory) Get(_ context.Context, key string) ([]byte, error) {
 }
 
 func (m *Memory) Delete(_ context.Context, key string) error {
+	m.before("delete")
+	defer m.mu.Unlock()
 	delete(m.Objects, key)
 	return nil
 }
 
 func (m *Memory) List(_ context.Context, prefix string) ([]Object, error) {
+	m.before("list")
+	defer m.mu.Unlock()
 	var out []Object
 	for k := range m.Objects {
 		if strings.HasPrefix(k, prefix) {

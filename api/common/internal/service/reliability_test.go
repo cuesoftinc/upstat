@@ -162,6 +162,7 @@ func TestConcurrentPublishersNeverLowerTheSnapshot(t *testing.T) {
 	for i := 0; i < 4; i++ {
 		e.dueMonitor(t, c, "M"+string(rune('A'+i)))
 	}
+	e.blobs.Before = nil // the publishers overlap, so another one's transaction is no breach
 	contract, _ := bus.LoadContract()
 	producer, _ := bus.NewProducer(bus.Config{Brokers: []string{"localhost:1"}}, contract, e.blobs)
 	errs := make(chan error, 4)
