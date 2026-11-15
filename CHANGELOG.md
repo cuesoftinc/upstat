@@ -166,6 +166,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- A render error in a page now shows a branded error page (...) (#435).
 - Deploys retry image pull errors for 45 minutes instead of 20.
 - Common waits for an idle ClickHouse to wake before migrating.
 - Release deploys retry while Cloud Run cannot pull a fresh image.
