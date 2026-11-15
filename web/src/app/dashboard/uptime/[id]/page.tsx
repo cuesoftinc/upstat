@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/Button";
+import { RequestError } from "@/components/ui/RequestError";
 import { IncidentHistoryEntry } from "@/components/ui/IncidentHistoryEntry";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StatusPill } from "@/components/ui/StatusPill";
@@ -55,6 +56,18 @@ export default function MonitorDetailPage() {
         i.services.length > 0),
   );
 
+  if (monitor.error) {
+    return (
+      <div className="flex flex-col gap-4 px-6 py-5">
+        <RequestError
+          error={monitor.error}
+          onRetry={monitor.reload}
+          what="this check"
+        />
+      </div>
+    );
+  }
+
   if (monitor.loading || !m) {
     return (
       <div className="flex flex-col gap-4 px-6 py-5">
@@ -85,7 +98,13 @@ export default function MonitorDetailPage() {
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <div className="flex flex-col gap-5">
-          {history.loading || !h ? (
+          {history.error ? (
+            <RequestError
+              error={history.error}
+              onRetry={history.reload}
+              what="the check history"
+            />
+          ) : history.loading || !h ? (
             <Skeleton kind="panel-axis" style={{ height: 96 }} />
           ) : (
             <UptimeCard
@@ -140,6 +159,12 @@ export default function MonitorDetailPage() {
             </h2>
             {incidents.loading ? (
               <Skeleton kind="line" />
+            ) : incidents.error ? (
+              <RequestError
+                error={incidents.error}
+                onRetry={incidents.reload}
+                what="incidents"
+              />
             ) : related.length === 0 ? (
               <p className="text-[13px] text-text-2">
                 No incidents involving this check.

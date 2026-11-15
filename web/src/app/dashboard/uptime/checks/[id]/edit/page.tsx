@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { RequestError } from "@/components/ui/RequestError";
 import {
   useSyntheticCheckController,
   useSyntheticsController,
@@ -24,6 +25,19 @@ export default function EditSyntheticCheckPage() {
       </div>
     );
   }
+
+  if (check.error && (check.error as { status?: number }).status !== 404) {
+    return (
+      <div className="px-6 py-5">
+        <RequestError
+          error={check.error}
+          onRetry={check.reload}
+          what="this synthetic check"
+        />
+      </div>
+    );
+  }
+
   if (!check.data) {
     return (
       <div className="px-6 py-5">

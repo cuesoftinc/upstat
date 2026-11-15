@@ -6,6 +6,7 @@ import { AlertChannelCard } from "@/components/ui/AlertChannelCard";
 import { AlertFeedRow } from "@/components/ui/AlertFeedRow";
 import { AlertRuleCard } from "@/components/ui/AlertRuleCard";
 import { Button } from "@/components/ui/Button";
+import { RequestError } from "@/components/ui/RequestError";
 import { Skeleton } from "@/components/ui/Skeleton";
 import type { AlertEvent, AlertRule } from "@/models";
 import {
@@ -148,6 +149,16 @@ export default function MonitorsPage() {
                   />
                 ))}
               </div>
+            ) : ctrl.rules.error ? (
+              <RequestError
+                error={ctrl.rules.error}
+                onRetry={ctrl.rules.reload}
+                what="monitor rules"
+              />
+            ) : rules.length === 0 ? (
+              <p className="rounded-(--radius) border border-border bg-bg-elev p-6 text-[13px] text-text-2">
+                No monitor rules yet — create one on any signal.
+              </p>
             ) : rules.length === 0 ? (
               <p className="rounded-(--radius) border border-border bg-bg-elev p-6 text-[13px] text-text-2">
                 No monitor rules yet — create one on any signal.
@@ -215,6 +226,12 @@ export default function MonitorsPage() {
                   />
                 ))}
               </div>
+            ) : ctrl.channels.error ? (
+              <RequestError
+                error={ctrl.channels.error}
+                onRetry={ctrl.channels.reload}
+                what="notification channels"
+              />
             ) : (
               <ul className="flex flex-col gap-3" aria-label="Channels">
                 {(ctrl.channels.data ?? []).map((channel) => (
@@ -251,6 +268,12 @@ export default function MonitorsPage() {
                   />
                 ))}
               </div>
+            ) : ctrl.feed.error ? (
+              <RequestError
+                error={ctrl.feed.error}
+                onRetry={ctrl.feed.reload}
+                what="triggered alerts"
+              />
             ) : (ctrl.feed.data ?? []).length === 0 ? (
               <p className="text-[13px] text-text-2">
                 Quiet — nothing has triggered.

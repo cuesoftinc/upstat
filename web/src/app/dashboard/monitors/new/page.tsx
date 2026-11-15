@@ -1,5 +1,6 @@
 "use client";
 
+import { RequestError } from "@/components/ui/RequestError";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { clsx } from "clsx";
@@ -181,14 +182,24 @@ export default function NewMonitorPage() {
             </div>
           </form>
         ) : (
-          <RuleEditor
-            key={signal}
-            signal={signal}
-            channels={alerts.channels.data ?? []}
-            saving={saving}
-            onSave={createRule}
-            error={error}
-          />
+          <>
+            {alerts.channels.error && (
+              <RequestError
+                error={alerts.channels.error}
+                onRetry={alerts.channels.reload}
+                what="notification channels"
+                className="mb-4"
+              />
+            )}
+            <RuleEditor
+              key={signal}
+              signal={signal}
+              channels={alerts.channels.data ?? []}
+              saving={saving}
+              onSave={createRule}
+              error={error}
+            />
+          </>
         )}
       </section>
     </div>
