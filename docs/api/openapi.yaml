@@ -172,7 +172,7 @@ components:
         active: { type: boolean }
         status: { type: string }
         muted: { type: boolean }
-        interval_seconds: { type: integer }
+        interval_seconds: { type: integer, minimum: 60, maximum: 86400 }
         timeout_seconds: { type: integer }
         failure_threshold: { type: integer }
         consecutive_failures: { type: integer }
