@@ -229,6 +229,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `api-common` service name (the old `upstat_backend` alias only existed on the
   compose network, breaking gRPC-Web on Kubernetes); doc run commands corrected
   (`go run ./cmd/server`, `uvicorn app.main:app`).
+- API errors use the shared envelope for anonymous requests, unknown routes
+  and unsupported methods; wrong-method requests keep `405` and the `Allow`
+  header (#426).
 
 ### Security
 
