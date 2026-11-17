@@ -154,6 +154,29 @@ func OrgByID(ctx context.Context, tx pgx.Tx, id string) (*model.Org, error) {
 	return one(tx.QueryRow(ctx, `SELECT id, name, timezone, created_at FROM orgs WHERE id = $1`, id), scanOrg)
 }
 
+// OrgHasData reports whether onboarding's has_data answer is already cached
+// on the org. The flag means the org has ever sent telemetry and is not
+// cleared by retention pruning or data deletion.
+func OrgHasData(ctx context.Context, tx pgx.Tx, id string) (bool, error) {
+	var has bool
+	err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM orgs WHERE id = $1 AND has_data)`, id).Scan(&has)
+	return has, err
+}
+
+// SetOrgHasData caches that the org has sent telemetry. The flag means the
+// org has ever sent telemetry and is not cleared by retention pruning or data
+// deletion. A concurrent poll may set it first; that no-op is not an error.
+func SetOrgHasData(ctx context.Context, tx pgx.Tx, id string) error {
+	tag, err := tx.Exec(ctx, `UPDATE orgs SET has_data = true WHERE id = $1 AND NOT has_data`, id)
+	if err != nil {
+		return err
+	}
+	if n := tag.RowsAffected(); n > 1 {
+		return pgx.ErrTooManyRows
+	}
+	return nil
+}
+
 func UpdateOrg(ctx context.Context, tx pgx.Tx, id string, name, timezone *string) (*model.Org, error) {
 	return one(tx.QueryRow(ctx, `UPDATE orgs SET name = coalesce($2, name), timezone = coalesce($3, timezone)
 		WHERE id = $1 RETURNING id, name, timezone, created_at`, id, name, timezone), scanOrg)
