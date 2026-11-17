@@ -221,6 +221,8 @@ func (s *Services) Onboarding(ctx context.Context, c *Caller) (*model.Onboarding
 		cancel()
 		out.HasData = has
 		if has {
+			// Cache "ever sent telemetry" so later polls can skip the query
+			// service. Retention pruning or data deletion does not clear it.
 			if err := s.DB.AsOrg(ctx, c.OrgID, func(tx pgx.Tx) error {
 				return repository.SetOrgHasData(ctx, tx, c.OrgID)
 			}); err != nil {

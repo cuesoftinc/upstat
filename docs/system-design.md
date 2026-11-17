@@ -233,7 +233,8 @@ erDiagram
         string email UK }
     ORG { uuid id PK
         string name
-        string timezone "IANA, X-10 tier 1" }
+        string timezone "IANA, X-10 tier 1"
+        bool has_data "onboarding: ever sent telemetry" }
     MEMBER { uuid org_id FK
         uuid user_id FK
         string role "owner|admin|member|viewer" }

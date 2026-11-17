@@ -340,6 +340,32 @@ func TestOnboardingDoesNotCacheAbsentData(t *testing.T) {
 	}
 }
 
+func TestSetOrgHasDataIsIdempotent(t *testing.T) {
+	e := newEnv(t)
+	ctx := context.Background()
+	c := e.withOrg(t, "ada@example.com", "Acme")
+
+	if err := e.db.AsOrg(ctx, c.OrgID, func(tx pgx.Tx) error {
+		return repository.SetOrgHasData(ctx, tx, c.OrgID)
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.db.AsOrg(ctx, c.OrgID, func(tx pgx.Tx) error {
+		return repository.SetOrgHasData(ctx, tx, c.OrgID)
+	}); err != nil {
+		t.Fatalf("second SetOrgHasData: %v", err)
+	}
+	var stored bool
+	if err := e.db.AsOrg(ctx, c.OrgID, func(tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `SELECT has_data FROM orgs WHERE id = $1`, c.OrgID).Scan(&stored)
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if !stored {
+		t.Fatal("has_data was not stored")
+	}
+}
+
 func TestOnboardingReturnsHasDataWhenItCannotBePersisted(t *testing.T) {
 	e := newEnv(t)
 	ctx := context.Background()
