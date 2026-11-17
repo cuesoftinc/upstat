@@ -36,7 +36,7 @@
     "@scalar/api-reference-react": "^0.9.82",
     "clsx": "^2.1.1",
     "lucide-react": "^1.60.0",
-    "next": "16.4.3",
+    "next": "16.4.5",
     "react": "19.3.1",
     "react-dom": "19.3.1"
   },
