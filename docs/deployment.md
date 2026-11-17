@@ -121,6 +121,14 @@ Two hard-won rules, non-negotiable:
 2. **WIF only** (`google-github-actions/auth@v3` with
    `workload_identity_provider` and `service_account`), no JSON keys.
 
+While the first revision with the outbox lease rolls out, the previous
+revision's publisher ignores `lease_until` and can send a batch the new one is
+sending: a consumer may see one repeated message and never a lost one, and
+every consumer tolerates a repeat (`request_id` claims, idempotent reloads).
+Snapshot versions stay monotonic: the new publisher takes the same advisory
+lock and reads the stored version first. Staging runs `maxScale` 1, so the old
+instance ends within minutes of the traffic move.
+
 The single protected GitHub environment is **`Sandbox`** (X-6): required
 reviewers and the `GCP_*` variables above.
 

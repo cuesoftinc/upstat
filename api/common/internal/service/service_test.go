@@ -129,6 +129,11 @@ func newEnv(t *testing.T) *env {
 		t.Fatal(err)
 	}
 	blobs := store.NewMemory("upstat/test")
+	blobs.Before = func(op string) {
+		if n := db.Pool.Stat().AcquiredConns(); n != 0 {
+			t.Errorf("storage %s while %d pooled connection(s) are held (the staging pool has one)", op, n)
+		}
+	}
 	prober := &fakeProber{fail: map[string]bool{}}
 	results := &fakeResults{}
 	cfg := &config.Config{Probes: map[string]string{"us-central1": "http://p1", "us-east4": "http://p2"}, MonitorCapPerOrg: 5}
@@ -431,6 +436,12 @@ func TestDeliveriesDriveTheFeedAndChannelHealth(t *testing.T) {
 type sender struct {
 	p    *bus.Producer
 	sent []kgo.Message
+	fail error         // Write answers with it when set
+	pool *pgxpool.Pool // when set, a Write while a connection is held fails the test
+	t    *testing.T
+	// stall, when set, makes Write signal on entered and wait for stall to close.
+	stall   chan struct{}
+	entered chan struct{}
 }
 
 func (s *sender) Message(ctx context.Context, event, key, requestID string, data json.RawMessage) (kgo.Message, error) {
@@ -438,6 +449,16 @@ func (s *sender) Message(ctx context.Context, event, key, requestID string, data
 }
 
 func (s *sender) Write(_ context.Context, msgs ...kgo.Message) error {
+	if s.pool != nil && s.pool.Stat().AcquiredConns() != 0 {
+		s.t.Errorf("kafka write while %d pooled connection(s) are held", s.pool.Stat().AcquiredConns())
+	}
+	if s.stall != nil {
+		s.entered <- struct{}{}
+		<-s.stall
+	}
+	if s.fail != nil {
+		return s.fail
+	}
 	s.sent = append(s.sent, msgs...)
 	return nil
 }
