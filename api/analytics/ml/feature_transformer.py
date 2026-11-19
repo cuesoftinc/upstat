@@ -6,10 +6,10 @@ logger = logging.getLogger(__name__)
 
 class FeatureTransformer:
     """
-    Convert raw MongoDB CheckResult records into feature vectors for ML models.
+    Convert check-result records read through api/query (ClickHouse) into feature vectors for ML models.
     Handles normalization and aggregation.
     
-    Input: list of dicts with keys from Go CheckResults model:
+    Input: list of dicts in the legacy CheckResult shape, converted from check rows supplied through api/query:
       - responseTimeMs: int64
       - status: str ("up" or "down")
       - statusCode: int
