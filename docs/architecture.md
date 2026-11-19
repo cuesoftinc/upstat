@@ -16,25 +16,32 @@ flowchart LR
     end
 
     subgraph Backend
-        GoBackend[Go HTTP Backend]
-        PythonService[Python Observability Service]
+        GoBackend[api/common · Go HTTP backend]
+        Query[api/query · Go read service]
+        Gateway[api/observability · Node ingest gateway]
+        PythonService[api/analytics · Python decisions]
     end
 
     subgraph Data
-        Mongo[MongoDB]
+        PG[(Postgres)]
+        CH[(ClickHouse)]
     end
 
     UI -->|proxies /api/v1/*| GoBackend
     Scheduler[Cloud Scheduler] -->|POST /internal/jobs/run-checks, OIDC| GoBackend
-    PythonService -->|HTTP| GoBackend
-    GoBackend -->|MongoDB reads/writes| Mongo
-    PythonService -->|Insight persistence| Mongo
-    GoBackend -->|Monitor worker writes check results| Mongo
+    Gateway -->|OTLP| Collector[OTel Collector] --> CH
+    PythonService -->|telemetry reads| Query
+    Query --> CH
+    GoBackend -->|control plane| PG
+    GoBackend <-->|shared Kafka lanes| PythonService
     UI -->|Reads dashboards/status pages| GoBackend
 
     click GoBackend "api/common/cmd/server/main.go" "Go backend entrypoint"
-    click PythonService "api/observability/app/main.py" "Python FastAPI analytics service entrypoint"
-    click Mongo "docker-compose.yml" "Database configuration (compose)"
+    click Query "api/query/cmd/server/main.go" "Go query service entrypoint"
+    click Gateway "api/observability/src/main.ts" "Node ingest gateway entrypoint"
+    click PythonService "api/analytics/app/main.py" "Python analytics entrypoint"
+    click PG "api/common/migrations/postgres/0001_core.sql" "Postgres schema"
+    click CH "api/common/migrations/clickhouse/0001_telemetry.sql" "ClickHouse schema"
 ```
 
 
@@ -42,16 +49,20 @@ flowchart LR
 
 - **Frontend**: Next.js / React application in `web`.
 - **Cloud Scheduler**: job `upstat-run-checks` calls the Go backend every minute on Cloud Run.
-- **Go Backend**: HTTP server in `api/common` (port 8080, h2c), serving auth, monitor and status page routes.
-- **Python Observability Service**: FastAPI service in `api/observability`, reading recent monitor checks from the Go backend over HTTP (`API_URL`) to analyze them. It serves HTTP only on port 8081.
-- **MongoDB**: Primary database for monitors, check results, incidents, and insights.
+- **Go Backend**: HTTP server in `api/common` (port 8080, h2c), serving auth and control-plane routes, the scheduler and outbox.
+- **Query Service**: Go read service in `api/query` (port 8083) over ClickHouse.
+- **Ingest Gateway**: Node service in `api/observability` (port 8081, OTLP/gRPC 4317) that authenticates ingest keys and forwards telemetry to the OpenTelemetry Collector.
+- **Analytics Service**: Python service in `api/analytics` (port 8082) that evaluates checks, dispatches notifications and generates insights; it owns no store.
+- **Postgres**: control-plane store for users, orgs, monitors, incidents, rules and dashboards.
+- **ClickHouse**: check results and telemetry store, loaded by the collector and read through `api/query`.
 
 ### 1.2 Communication patterns
 
 - `UI -> GoBackend`: the web proxies `/api/v1/*` to the common service.
-- `PythonService -> GoBackend`: HTTP calls to `GET /v1/monitors/{id}/checks` with an optional Bearer session token (`API_TOKEN`).
-- `GoBackend -> Mongo`: persistence for monitors, checks, incidents.
-- `PythonService -> Mongo`: insight persistence.
+- `Gateway -> Collector -> ClickHouse`: OTel-native OTLP and product events are authenticated at the gateway and loaded into ClickHouse.
+- `PythonService -> Query -> ClickHouse`: analytics reads telemetry through the internal query service, not the control-plane store.
+- `GoBackend -> Postgres`: control-plane persistence.
+- `GoBackend <-> PythonService`: shared Kafka lanes carry config changes, results and transitions; decisions are published back to `api/common`.
 
 ### 1.3 Notes
 
@@ -80,20 +91,23 @@ flowchart LR
 
     subgraph Backend
         ING[Event ingestion<br/>HTTP, property-key authed]
-        GO[api/common Go<br/>monitors, users, alerts]
-        OBS[api/observability Python<br/>insights, rollup worker]
-        MG[(MongoDB<br/>+ TTL retention)]
-        CH[Alert channels<br/>email, webhook]
+        GO[api/common Go<br/>control plane, alerts]
+        OBS[api/observability Node<br/>ingest gateway]
+        Q[api/query Go<br/>telemetry reads]
+        PG[(Postgres<br/>control plane)]
+        TELEM[(ClickHouse<br/>telemetry + TTL)]
+        CHAN[Alert channels<br/>email, webhook]
     end
 
     SITE -->|page_view beacons| ING
     SIB -->|server-side events| ING
     GO -->|scheduled checks| TGT
-    ING --> MG
-    OBS -->|hourly/daily rollups| MG
-    GO -->|state change| CH
+    ING --> TELEM
+    OBS -->|OTLP / events| TELEM
+    GO -->|state change| CHAN
+    Q --> TELEM
     DASH --> GO
-    DASH -->|stats queries| ING
+    DASH -->|stats queries| Q
     STATUS --> GO
 ```
 
@@ -102,30 +116,42 @@ flowchart LR
 ```mermaid
 flowchart LR
     subgraph Backend
-        GoServer[Go HTTP Backend]
-        MonitorWorker[Monitor Worker]
-        Mongo[MongoDB]
+        GoServer[api/common · Go<br/>control plane, scheduler, outbox]
+        Query[api/query · Go<br/>ClickHouse reads]
+        PG[(Postgres)]
+        Store[(Object store<br/>config/&lt;kind&gt;.json)]
     end
 
-    subgraph PythonService
-        PythonAPI[Python FastAPI Service]
-        InsightGenerator[Insight Generator / ML Pipeline]
-        PythonRepo[HTTP Monitor Repository]
-        InsightsDB[Insight Storage]
+    subgraph Gateway
+        NodeGateway[api/observability · Node<br/>ingest gateway]
+        Collector[OTel Collector]
+        CH[(ClickHouse)]
     end
 
-    MonitorWorker -->|writes check results| Mongo
-    GoServer -->|reads/writes monitors, incidents, checks| Mongo
-    PythonRepo -->|HTTP GET checks| GoServer
-    InsightGenerator -->|reads recent checks| PythonRepo
-    InsightGenerator -->|writes insights| InsightsDB
-    PythonAPI -->|endpoint triggers| InsightGenerator
-    PythonAPI -->|serves insight results| Client[Client / Frontend]
+    subgraph Analytics
+        PythonAPI[api/analytics · Python<br/>evaluator, notifier, insights]
+        Kafka{{Shared Kafka lanes}}
+    end
+
+    GoServer -->|control plane| PG
+    GoServer -->|writes snapshots| Store
+    GoServer -->|upstat.config.changed| Kafka
+    Kafka -->|config.changed| NodeGateway
+    Kafka -->|config.changed| PythonAPI
+    Kafka <-->|results, transitions, decisions| PythonAPI
+    Store -->|snapshot reads| NodeGateway
+    Store -->|snapshot reads| PythonAPI
+    PythonAPI -->|telemetry reads| Query
+    Query --> CH
+    NodeGateway -->|OTLP| Collector
+    Collector --> CH
 
     click GoServer "api/common/cmd/server/main.go" "Go backend entrypoint"
-    click MonitorWorker "api/common/internal/service/monitor_worker_service.go" "Periodic monitor scheduler"
-    click PythonRepo "api/observability/repository/monitor_repository.py" "Python HTTP client for checks"
-    click InsightGenerator "api/observability/service/insight_generator.py" "Insight generation pipeline"
+    click Query "api/query/cmd/server/main.go" "Go query service entrypoint"
+    click NodeGateway "api/observability/src/main.ts" "Node ingest gateway entrypoint"
+    click PythonAPI "api/analytics/app/main.py" "Python analytics entrypoint"
+    click PG "api/common/migrations/postgres/0001_core.sql" "Postgres schema"
+    click CH "api/common/migrations/clickhouse/0001_telemetry.sql" "ClickHouse schema"
 ```
 
 ## 4. The events layer (M2 + M3) **[Decided]**
@@ -140,9 +166,10 @@ as the ecosystem's standardized event tracker **[PRD §4.2]**.
   (data-model.md §2).
 - **Tracking script**: `upstat.js` — a few KB, cookieless; auto page-views on
   history changes + `upstat("event", "demo_start")` for custom events.
-- **Aggregation**: the observability service gains a rollup worker (hour/day
-  buckets, approximate uniques via the daily-rotating `visitor_hash`).
-  Dashboards and the stats API read rollups, never raw events.
+- **Aggregation**: ClickHouse materialized views maintain hour/day rollups
+  with exact-within-bucket uniques (`uniqExact`) via the daily-rotating
+  `visitor_hash`, never added across buckets. Dashboards and the stats API
+  read rollups through `api/query`, never raw events.
 - **Dashboards**: the B6 RUM pillar reads `GET /v1/stats` rollups
   (ANA-002); bounce/SEO/page-load views ship only where honest data
   exists (prd.md §4).
@@ -150,39 +177,52 @@ as the ecosystem's standardized event tracker **[PRD §4.2]**.
 ```mermaid
 sequenceDiagram
     participant B as Browser (customer site)
-    participant I as POST /v1/events
-    participant M as MongoDB
-    participant R as Rollup worker (observability)
+    participant GW as POST /v1/events (ingest gateway)
+    participant COL as OTel Collector
+    participant CH as ClickHouse
+    participant Q as api/query
     participant D as Dashboard
 
-    B->>I: sendBeacon {property_key, name: page_view, dims}
-    I->>I: key + origin + schema + rate checks
-    I->>M: insert EVENT (TTL 90d)
-    R->>M: hourly: aggregate events → ROLLUP upserts
-    D->>I: GET /v1/stats?property&period&name
-    I->>M: read ROLLUP
-    I-->>D: series + uniques
+    B->>GW: sendBeacon {property_key, name: page_view, dims}
+    GW->>GW: key + origin + schema + rate checks
+    GW->>COL: OTel log record (upstat.events)
+    COL->>CH: insert EVENT (TTL 90d)
+    CH->>CH: materialized views upsert hourly/daily ROLLUPs
+    D->>Q: GET /v1/stats?property&period&name
+    Q->>CH: read ROLLUP
+    Q-->>D: series + uniques
 ```
 
 ## 5. Alerting (MON-001) **[Decided]**
 
-The monitor worker already tracks `consecutiveFailures` vs `failureThreshold`
-and flips `status` — alerting hooks that transition:
+The `api/analytics` evaluator tracks `consecutiveFailures` vs
+`failureThreshold` and emits status transitions — alerting hooks that
+transition:
 
 ```mermaid
 sequenceDiagram
-    participant W as Monitor worker (Go)
-    participant M as MongoDB
-    participant CH as Channel (email/webhook)
+    participant E as Evaluator (api/analytics)
+    participant Q as api/query
+    participant CH as ClickHouse
+    participant K as Shared Kafka lanes
+    participant PG as Postgres (api/common)
+    participant N as Notifier (api/analytics)
+    participant C as Channel (email/webhook)
 
-    W->>W: check fails, threshold crossed → status: down
-    W->>M: load ALERT_RULEs for monitor (+cooldown state)
+    E->>Q: read recent check results
+    Q->>CH: select results
+    E->>E: threshold crossed → down transition
+    E->>K: publish upstat.monitor.transition
+    K->>PG: api/common persists the transition
+    E->>N: dispatch on "down" using config snapshots (+cooldown state)
     alt rule matches "down" and not cooling down
-        W->>CH: dispatch (template: monitor, target, since, last error)
-        W->>M: record dispatch time (cooldown)
+        N->>C: send (template: monitor, target, since, last error)
+        N->>N: record cooldown stamp in working state
+        N->>K: publish upstat.alerting.delivery
+        K->>PG: api/common records the dispatch
     end
-    W->>W: later: recovery → status: up
-    W->>CH: "recovered" per rule
+    E->>E: later: recovery → up transition
+    N->>C: "recovered" per rule
 ```
 
 Email provider is an open decision (prd.md §8.2); webhooks are
@@ -192,10 +232,10 @@ provider-independent and may ship first if the email decision stalls.
 
 ### 6.1 Ingestion architecture
 
-> **X-5 note:** once X-5 ships, every "MongoDB" control-plane box in this
-> file's diagrams becomes **managed Postgres** — Phase-1 events land in
-> Postgres partitioned tables with a scheduled retention job (data-model
-> §3), not Mongo TTL. Diagrams update as touched.
+> **X-5 (shipped):** the control-plane store is **Postgres**; events, check
+> results, rollups and OTel telemetry land in **ClickHouse**, with retention
+> expressed as table TTLs. The diagrams above show that split. Decision
+> provenance stays in [decisions.md](decisions.md).
 
 **OpenTelemetry-native**: OTLP (gRPC 4317 + HTTP 4318) is the single
 first-party intake, and per **X-9** the ecosystem's: the sibling products
@@ -216,21 +256,21 @@ flowchart LR
     COL -->|OTLP| GW[Ingestion gateway<br/>authn: org ingest keys,<br/>rate/quota, schema guard]
     JS -->|/v1/events + vitals| GW
     AGENTLESS -->|statsd shim| GW
+    STORE[(Object store<br/>config/ingest_keys.json<br/>config/registry.json)] -->|snapshot reads| GW
+    Kafka{{upstat.config.changed}} -->|reload| GW
     GW --> BUF[[Buffer/queue]]
     BUF --> CH[(ClickHouse — one store<br/>metrics + logs + traces, U-1)]
-    BUF --> MG[(MongoDB<br/>control plane: orgs, monitors,<br/>dashboards, incidents, SLOs)]
     CH --> Q[Query layer]
-    MG --> Q
     Q --> APP[Dashboards / explorers / monitors]
 ```
 
 ### 6.2 Ingestion operations
 
-- **Buffering**: Phase 1 (/v1/events) has **no external buffer** — direct
-  Postgres inserts; overload answers `429` (never silent drop; rejected
-  counters tell the truth). OBS-001 (OTLP) uses **ClickHouse async_insert**
-  as the buffer with gateway backpressure → `429 quota_exceeded`; ingest SLO
-  target p99 < 250ms accept latency.
+- **Buffering**: product events are authenticated at the gateway and forwarded
+  to the OTel Collector, which loads ClickHouse; overload answers `429` (never
+  silent drop; rejected counters tell the truth). OTLP uses **ClickHouse
+  async_insert** as the buffer with gateway backpressure → `429 quota_exceeded`;
+  ingest SLO target p99 < 250ms accept latency.
 - **ClickHouse ops**: single node to start (sandbox), daily backups to the
   Cloud Storage bucket, disk sized to retention (13mo metrics / 15d logs /
   7d traces), replication deferred until load demands (documented upgrade
@@ -241,14 +281,13 @@ flowchart LR
 
 ### 6.3 The storage decision (U-1, ratified)
 
-MongoDB cannot serve high-cardinality timeseries or log search at platform
-scale. **Proposal: ClickHouse as the unified telemetry store** (metrics,
-logs, traces in columnar tables — the Signoz/HyperDX-proven pattern), with
-MongoDB retained solely as the control plane. Alternative split
-(VictoriaMetrics + OpenSearch) rejected for operational surface. Self-host
-compose gains one ClickHouse container; helm adds a StatefulSet or external
-endpoint — mirrors the existing "chart deploys no DB" stance. **[Ratify
-before OBS-001 implementation.]**
+The pre-migration store could not serve high-cardinality timeseries or log
+search at platform scale. The ratified choice is **ClickHouse as the unified
+telemetry store** (metrics, logs, traces in columnar tables — the
+Signoz/HyperDX-proven pattern); the control plane is **Postgres** per X-5. The
+VictoriaMetrics + OpenSearch split was rejected for operational surface.
+Self-host compose ships a ClickHouse container; helm adds a StatefulSet or
+external endpoint. **[Ratified; see decisions.md.]**
 
 ### 6.4 Query layer
 
@@ -276,7 +315,7 @@ rather than growing scope silently.
 
 Cloud: [deployment.md](deployment.md) (Cloud Run via your infrastructure-as-code stack, X-3/X-6 —
 every service min instances 0, Cloud Scheduler drives checks). Self-host: compose
-(mongo + services) and the standard-form Helm chart + terraform
+(Postgres, ClickHouse + services) and the standard-form Helm chart + terraform
 in `deploy/` — validated end-to-end on a live cluster.
 
 ## 8. Cross-repo dependencies
