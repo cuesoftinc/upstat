@@ -141,7 +141,7 @@ func run() error {
 		httpx.WriteJSON(w, http.StatusOK, map[string]string{"status": "ready"})
 	})
 	api.Register(mux)
-	srv := &http.Server{Addr: ":" + env("PORT", "8083"), Handler: httpx.CORS(isAllowed, true, mux), ReadHeaderTimeout: 10 * time.Second}
+	srv := &http.Server{Addr: ":" + env("PORT", "8083"), Handler: httpx.CORS(isAllowed, true, httpx.JSONFallback(mux)), ReadHeaderTimeout: 10 * time.Second}
 
 	g, gctx := errgroup.WithContext(ctx)
 	g.Go(func() error { return consumer.Run(gctx) })

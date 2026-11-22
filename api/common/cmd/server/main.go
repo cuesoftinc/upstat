@@ -185,9 +185,9 @@ func run() error {
 	}
 	api.Register(mux)
 
-	var app http.Handler = mux
+	var app http.Handler = httpx.JSONFallback(mux)
 	if settle {
-		app = flushBeforeResponse(mux, flushOutbox(publisher))
+		app = flushBeforeResponse(app, flushOutbox(publisher))
 	}
 	root := httpx.CORS(authCfg.IsAllowedOrigin, true, h2c.NewHandler(app, &http2.Server{}))
 	srv := &http.Server{Addr: ":" + cfg.Port, Handler: root, ReadHeaderTimeout: 10 * time.Second}

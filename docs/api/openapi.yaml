@@ -147,7 +147,7 @@ components:
           properties:
             code: { type: string, description: snake_case stable (engineering.md §1) }
             message: { type: string }
-            details: { type: array, items: { type: string } }
+            details: { type: object, additionalProperties: true }
     MonitorCreate:
       type: object
       required: [name, type, target]
