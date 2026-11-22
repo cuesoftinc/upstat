@@ -233,8 +233,8 @@ intrinsic-sizing traps are codified from this pass: percentage
 explicit `grid-cols-1` / `minmax(0,…)` tracks and flex items `min-w-0`
 for truncation to actually bound a track), and the UA default
 `min-inline-size: min-content` on `<fieldset>` requires `min-w-0`.
-`e2e/mobile-responsive.spec.ts` sweeps every §4 route at 390 in both
-themes (with screenshots) plus a 768 pass, asserting the document never
+`e2e/mobile-responsive.spec.ts` sweeps every §4 route at 390 plus a
+768 pass, asserting the document never
 side-scrolls, `<main>` never pans, and any element wider than the
 viewport sits inside a horizontal-scroll container, and covers the
 span-drawer sheet, stacked widget grid + widget editor, and log-line
@@ -304,8 +304,8 @@ with the design-side updates: FAQItem → product radius + 4px-grid padding;
 StatusPill → 4px-grid padding. **Expanded-rail reflow ([Specified
 2026-07-19] + mobile clarification)**: with the 240px rail, every
 dashboard route reflows cleanly at 1280/1440 (e2e sweep asserts no
-document side-scroll and no element outside a scroll container, both
-widths, rail expanded); below `md` rail expansion renders as a 240px
+document side-scroll and no element outside a scroll container at 1280,
+rail expanded); below `md` rail expansion renders as a 240px
 **overlay drawer** over a scrim — content keeps full width, the persisted
 desktop state does not apply (mobile boots collapsed), scrim/Escape/item
 selection dismiss (`e2e/navrail.spec.ts`).

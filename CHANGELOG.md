@@ -166,7 +166,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
-- A render error in a page now shows a branded error page (...) (#435).
+- A render error in a page now shows a branded error page with Try again and Dashboard links (#435).
+- Onboarding caches the first `true` `has_data` answer on the org, so
+  polling no longer wakes ClickHouse after an org has sent telemetry (#405).
 - Deploys retry image pull errors for 45 minutes instead of 20.
 - Common waits for an idle ClickHouse to wake before migrating.
 - Release deploys retry while Cloud Run cannot pull a fresh image.
@@ -230,6 +232,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `api-common` service name (the old `upstat_backend` alias only existed on the
   compose network, breaking gRPC-Web on Kubernetes); doc run commands corrected
   (`go run ./cmd/server`, `uvicorn app.main:app`).
+- API errors use the shared envelope for anonymous requests, unknown routes
+  and unsupported methods; wrong-method requests keep `405` and the `Allow`
+  header (#426).
 
 ### Security
 

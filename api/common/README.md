@@ -2,16 +2,16 @@
 
 Go core service: HTTP/JSON (auth, monitors, status pages, `/health` +
 `/ready`) on one port (8080), with h2c so Cloud Run HTTP/2 works. Runs the
-monitor-check worker and talks to MongoDB. `api/observability` reads monitor
-checks from it over HTTP.
+monitor-check worker and talks to Postgres. `api/analytics` reads telemetry
+through `api/query`; config and decisions travel over shared Kafka lanes.
 
 ## Layout
 
 ```
 cmd/server            entrypoint — slog JSON, graceful shutdown
 cmd/make_service_token  mints service-to-service JWTs
-internal/config       env + Mongo client      internal/service   check worker
-internal/repository   Mongo repositories      internal/model     models
+internal/config       env + Postgres DSN      internal/service   check worker
+internal/repository   Postgres repositories   internal/model     models
 internal/util         JWT, session middleware  internal/handler   HTTP handlers
 ```
 

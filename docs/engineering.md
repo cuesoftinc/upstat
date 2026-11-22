@@ -15,6 +15,11 @@ schema/origin rejections with per-reason counters), auth (flows/auth.md —
 (`invalid_query{position, hint}`, query-grammar.md §3's error-not-empty
 rule), ingest (`quota_exceeded`, `key_scope_mismatch`, OBS-001).
 
+Transport-level codes: `not_found` for an unknown route and for
+cross-tenant access; `method_not_allowed` for a known route called with an
+unsupported method — the response keeps the `Allow` header so clients can
+retry with a valid verb.
+
 ## 2. Authorization matrix
 
 Current model: single-owner resources; org roles arrive with the OBS

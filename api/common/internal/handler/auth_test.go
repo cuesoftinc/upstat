@@ -436,6 +436,21 @@ func TestExchangeBodyValidation(t *testing.T) {
 	}
 }
 
+func TestExchangeErrorUsesSharedEnvelope(t *testing.T) {
+	hs := newHarness(t)
+	rec := hs.do(exchangeRequest_(validExchangeBody(), "text/plain", ""))
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400", rec.Code)
+	}
+	if got := rec.Header().Get("Content-Type"); got != "application/json" {
+		t.Errorf("Content-Type = %q, want application/json", got)
+	}
+	want := `{"error":{"code":"invalid_body","message":"The sign-in request is invalid.","details":{}}}` + "\n"
+	if got := rec.Body.String(); got != want {
+		t.Errorf("body = %q, want %q", got, want)
+	}
+}
+
 func TestExchangeOriginRules(t *testing.T) {
 	t.Run("body channel rejects unknown origin", func(t *testing.T) {
 		hs := newHarness(t)

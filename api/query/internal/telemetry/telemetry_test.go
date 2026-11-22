@@ -40,7 +40,8 @@ func setup(t *testing.T) (*Service, *chdb.Client, time.Time) {
 		t.Fatal(err)
 	}
 	ch := chdb.New(u.String(), user, pass)
-	now := time.Now().UTC().Truncate(time.Second)
+	// Half past an hour that has passed: the 20 seeded checks share one hourly bucket whatever the wall clock.
+	now := time.Now().UTC().Truncate(time.Hour).Add(-30 * time.Minute)
 	seed(t, ch, now)
 	return &Service{CH: ch, Now: func() time.Time { return now },
 		Monitors: func(o string) map[string]string {
