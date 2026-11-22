@@ -166,6 +166,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- A render error in a page now shows a branded error page with Try again and Dashboard links (#435).
 - Onboarding caches the first `true` `has_data` answer on the org, so
   polling no longer wakes ClickHouse after an org has sent telemetry (#405).
 - Deploys retry image pull errors for 45 minutes instead of 20.
