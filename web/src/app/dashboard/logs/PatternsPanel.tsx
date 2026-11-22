@@ -4,6 +4,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { LogPatternRow } from "@/components/ui/LogPatternRow";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useLogPatternsController } from "@/controllers/logs";
+import { RequestError } from "@/components/ui/RequestError";
 
 function fmtLines(n: number): string {
   return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
@@ -24,6 +25,18 @@ export function PatternsPanel({
 }) {
   const patterns = useLogPatternsController(activeQuery, true);
   const result = patterns.data;
+
+  if (patterns.error) {
+    return (
+      <div data-testid="patterns-panel">
+        <RequestError
+          error={patterns.error}
+          onRetry={patterns.reload}
+          what="log patterns"
+        />
+      </div>
+    );
+  }
 
   if (patterns.loading || !result) {
     return (

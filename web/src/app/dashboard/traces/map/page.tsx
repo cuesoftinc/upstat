@@ -9,6 +9,7 @@ import {
   useServiceMapController,
   type MapEdge,
 } from "@/controllers/service-map";
+import { RequestError } from "@/components/ui/RequestError";
 import { PageTabs } from "../../page-tabs";
 import { apmTabs } from "../apm-tabs";
 
@@ -65,6 +66,12 @@ export default function ServiceMapPage() {
 
       {services.loading ? (
         <Skeleton kind="panel-axis" style={{ height: H }} />
+      ) : services.error ? (
+        <RequestError
+          error={services.error}
+          onRetry={services.reload}
+          what="the service map"
+        />
       ) : nodes.length === 0 ? (
         <section
           aria-label="Empty service map"

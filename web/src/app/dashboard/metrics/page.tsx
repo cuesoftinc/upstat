@@ -1,5 +1,5 @@
 "use client";
-
+import { RequestError } from "@/components/ui/RequestError";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { FacetGroup } from "@/components/ui/FacetGroup";
@@ -150,6 +150,14 @@ export default function MetricsExplorerPage() {
           {/* min-h holds the seeded 8-row group while services load — the
               facet list growing in pushed the env group + stacked-mobile
               chart down after paint (CLS) */}
+          {services.error && (
+            <RequestError
+              error={services.error}
+              onRetry={services.reload}
+              what="services"
+              className="mb-3"
+            />
+          )}
           <FacetGroup
             name="service"
             values={serviceFacets}
@@ -175,26 +183,36 @@ export default function MetricsExplorerPage() {
         </aside>
 
         <section aria-label="Query result" className="min-w-0 flex-1">
-          <TimeseriesPanel
-            title={
-              ctrl.queryState.text.includes("p95")
-                ? `p95 latency — ${metricName}`
-                : metricName
-            }
-            // unit-suffixed y labels where the metric name declares one
-            unit={metricName.endsWith("_ms") ? "ms" : undefined}
-            query={ctrl.activeQuery}
-            series={ts?.series ?? []}
-            loading={ctrl.running}
-            height={320}
-            cursor={cursor}
-            onCursorChange={setCursor}
-            onZoomRange={ctrl.time.zoomBy}
-            onZoomReset={ctrl.time.resetZoom}
-          />
-          <p className="mt-2 text-[12px] text-text-2">
-            metric: {metricName} · rollup {ts?.step ?? "auto"}
-          </p>
+          {ctrl.requestError ? (
+            <RequestError
+              error={ctrl.requestError}
+              onRetry={ctrl.rerun}
+              what="the metric query"
+            />
+          ) : (
+            <>
+              <TimeseriesPanel
+                title={
+                  ctrl.queryState.text.includes("p95")
+                    ? `p95 latency — ${metricName}`
+                    : metricName
+                }
+                // unit-suffixed y labels where the metric name declares one
+                unit={metricName.endsWith("_ms") ? "ms" : undefined}
+                query={ctrl.activeQuery}
+                series={ts?.series ?? []}
+                loading={ctrl.running}
+                height={320}
+                cursor={cursor}
+                onCursorChange={setCursor}
+                onZoomRange={ctrl.time.zoomBy}
+                onZoomReset={ctrl.time.resetZoom}
+              />
+              <p className="mt-2 text-[12px] text-text-2">
+                metric: {metricName} · rollup {ts?.step ?? "auto"}
+              </p>
+            </>
+          )}
         </section>
       </div>
 

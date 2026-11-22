@@ -176,6 +176,7 @@ export function useMetricsExplorerController() {
   const [result, setResult] = useState<QueryResult | null>(null);
   const [running, setRunning] = useState(false);
   const [syntaxError, setSyntaxError] = useState<string | null>(null);
+  const [requestError, setRequestError] = useState<Error | null>(null);
   // the last SUBMITTED query — time changes re-run it, edits don't
   const [activeQuery, setActiveQuery] = useState(defaultQuery);
   const seq = useRef(0);
@@ -189,13 +190,18 @@ export function useMetricsExplorerController() {
         if (seq.current === id) {
           setResult(res);
           setSyntaxError(null);
+          setRequestError(null);
         }
       } catch (e) {
         if (seq.current !== id) return;
         if (e instanceof ApiError && e.code === "invalid_query") {
+          // the user's query is malformed: stays in the QueryBar
           setSyntaxError(e.message);
+          setRequestError(null);
         } else {
-          setSyntaxError(e instanceof Error ? e.message : "query failed");
+          // the request itself failed (network, server, 403): RequestError
+          setSyntaxError(null);
+          setRequestError(e instanceof Error ? e : new Error("query failed"));
         }
       } finally {
         if (seq.current === id) setRunning(false);
@@ -215,6 +221,11 @@ export function useMetricsExplorerController() {
     return () => window.clearTimeout(t);
   }, [activeQuery, time.fromIso, time.toIso, runQuery]);
 
+  /** Re-runs the active query (the RequestError retry). */
+  const rerun = useCallback(
+    () => runQuery(activeQuery, time.fromIso, time.toIso),
+    [runQuery, activeQuery, time.fromIso, time.toIso],
+  );
   const submit = useCallback(() => {
     const q = queryState.query;
     writeQueryParam(q, DEFAULT_METRICS_QUERY);
@@ -267,6 +278,8 @@ export function useMetricsExplorerController() {
     result,
     running,
     syntaxError,
+    requestError,
+    rerun,
     activeQuery,
     submit,
     pivot,

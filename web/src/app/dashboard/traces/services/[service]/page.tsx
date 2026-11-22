@@ -1,5 +1,5 @@
 "use client";
-
+import { RequestError } from "@/components/ui/RequestError";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { clsx } from "clsx";
@@ -102,6 +102,12 @@ export default function ServiceDetailPage() {
                 <Skeleton key={i} kind="line" />
               ))}
             </div>
+          ) : traces.error ? (
+            <RequestError
+              error={traces.error}
+              onRetry={traces.reload}
+              what="endpoints"
+            />
           ) : endpoints.length === 0 ? (
             <p className="text-[13px] text-text-2">
               No traced endpoints in this range.
@@ -175,6 +181,12 @@ export default function ServiceDetailPage() {
             <div className="rounded-(--radius) border border-border bg-bg-elev p-4">
               {latency.loading ? (
                 <Skeleton kind="panel-axis" style={{ height: 140 }} />
+              ) : latency.error ? (
+                <RequestError
+                  error={latency.error}
+                  onRetry={latency.reload}
+                  what="latency data"
+                />
               ) : (
                 <Heatmap {...seriesToHeatmap(ts?.series[1] ?? ts?.series[0])} />
               )}

@@ -1,5 +1,5 @@
 "use client";
-
+import { RequestError } from "@/components/ui/RequestError";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BufferedCountChip } from "@/components/ui/CountBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -268,6 +268,12 @@ export default function LogsPage() {
                     <Skeleton key={i} kind="line" />
                   ))}
                 </div>
+              ) : ctrl.base.error && ascending.length === 0 ? (
+                <RequestError
+                  error={ctrl.base.error}
+                  onRetry={ctrl.base.reload}
+                  what="logs"
+                />
               ) : empty ? (
                 <EmptyState pillar="logs" waiting={ctrl.live} />
               ) : (

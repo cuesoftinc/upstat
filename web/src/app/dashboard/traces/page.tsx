@@ -1,5 +1,5 @@
 "use client";
-
+import { RequestError } from "@/components/ui/RequestError";
 import { useRouter } from "next/navigation";
 import { clsx } from "clsx";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -48,6 +48,12 @@ export default function ApmServicesPage() {
               <Skeleton key={i} kind="line" />
             ))}
           </div>
+        ) : services.error ? (
+          <RequestError
+            error={services.error}
+            onRetry={services.reload}
+            what="services"
+          />
         ) : (services.data ?? []).length === 0 ? (
           <p className="p-4 text-[13px] text-text-2">
             No services yet — traces populate this list the moment spans arrive.

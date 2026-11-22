@@ -5,7 +5,7 @@ import { QueryValue } from "@/components/ui/QueryValue";
 import { ServiceCatalogRow } from "@/components/ui/ServiceCatalogRow";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useCatalogPageController } from "@/controllers/catalog";
-
+import { RequestError } from "@/components/ui/RequestError";
 /**
  * B11 Service catalog (Figma 146:4635) — searchable registry with
  * telemetry-presence dots + owner/repo/runbook, and a selected-service
@@ -48,6 +48,12 @@ export default function ServiceCatalogPage() {
                 <Skeleton key={i} kind="line" />
               ))}
             </div>
+          ) : catalog.error ? (
+            <RequestError
+              error={catalog.error}
+              onRetry={catalog.reload}
+              what="the service catalog"
+            />
           ) : entries.length === 0 ? (
             <p className="rounded-(--radius) border border-border bg-bg-elev p-6 text-[13px] leading-[1.45] text-text-2">
               {search
@@ -123,7 +129,13 @@ export default function ServiceCatalogPage() {
               </p>
             </header>
 
-            {detail.loading || !detail.data ? (
+            {detail.error ? (
+              <RequestError
+                error={detail.error}
+                onRetry={detail.reload}
+                what="this service's stats"
+              />
+            ) : detail.loading || !detail.data ? (
               <Skeleton kind="panel-axis" style={{ height: 220 }} />
             ) : (
               <div className="flex flex-col gap-3">
