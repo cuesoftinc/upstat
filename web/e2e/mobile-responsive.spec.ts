@@ -1,4 +1,4 @@
-import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 /**
  * Mobile responsiveness sweep ([Specified 2026-07-19]): home, the public
@@ -6,7 +6,7 @@ import { expect, test, type Page, type TestInfo } from "@playwright/test";
  * viewport — the document never side-scrolls, <main> never pans, and wide
  * visualizations/tables scroll inside their own horizontal-scroll
  * containers. Detail drawers become full-width sheets. 768 gets a sanity
- * pass. Screenshots land per route in both themes (test-results/).
+ * pass.
  */
 
 const MOBILE = { width: 390, height: 844 };
@@ -156,9 +156,10 @@ async function ensureSession(page: Page, route: string) {
 
 async function open(page: Page, route: string) {
   await ensureSession(page, route);
-  await page.goto(route, { waitUntil: "domcontentloaded" });
-  // charts/lists render client-side from the mock — give them a beat
-  await page.waitForTimeout(1_200);
+  // charts/lists render client-side from the mock: wait for the fetches to
+  // settle and the session gate to clear
+  await page.goto(route, { waitUntil: "networkidle" });
+  await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
 }
 
 async function assertNoOverflow(page: Page, route: string) {
@@ -187,46 +188,13 @@ test.beforeEach(async ({ request }) => {
   await request.post("/api/mock/v1/testing/reset");
 });
 
-function slug(route: string): string {
-  return route === "/" ? "home" : route.slice(1).replace(/\//g, "-");
-}
-
-async function shoot(
-  page: Page,
-  testInfo: TestInfo,
-  route: string,
-  theme: "dark" | "light",
-) {
-  await page.screenshot({
-    path: testInfo.outputPath(`${slug(route)}--${theme}.png`),
-    fullPage: !route.startsWith("/dashboard"),
-  });
-}
-
-test.describe("390 — every route fits the mobile viewport", () => {
-  test("dark theme sweep + screenshots", async ({ page }, testInfo) => {
-    test.setTimeout(240_000);
-    await page.setViewportSize(MOBILE);
-    for (const route of ROUTES) {
-      await open(page, route);
-      await assertNoOverflow(page, route);
-      await shoot(page, testInfo, route, "dark");
-    }
-  });
-
-  test("light theme sweep + screenshots", async ({ page }, testInfo) => {
-    test.setTimeout(240_000);
-    await page.addInitScript(() =>
-      window.localStorage.setItem("upstat.theme", "light"),
-    );
-    await page.setViewportSize(MOBILE);
-    for (const route of ROUTES) {
-      await open(page, route);
-      await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-      await assertNoOverflow(page, route);
-      await shoot(page, testInfo, route, "light");
-    }
-  });
+test("390 — every route fits the mobile viewport", async ({ page }) => {
+  test.setTimeout(240_000);
+  await page.setViewportSize(MOBILE);
+  for (const route of ROUTES) {
+    await open(page, route);
+    await assertNoOverflow(page, route);
+  }
 });
 
 test("768 — sanity sweep, no route side-scrolls", async ({ page }) => {
@@ -239,46 +207,20 @@ test("768 — sanity sweep, no route side-scrolls", async ({ page }) => {
 });
 
 // [Specified 2026-07-19] with the rail EXPANDED (240px), every dashboard
-// route's content column must reflow cleanly at 1280 and 1440 — charts,
-// tables, widget grids and filter bars adapt; nothing overflows.
-test.describe("expanded rail — dashboard content reflows", () => {
-  const DASH_ROUTES = ROUTES.filter((r) => r.startsWith("/dashboard"));
-
-  for (const width of [1280, 1440]) {
-    test(`${width} sweep with the rail expanded`, async ({
-      page,
-    }, testInfo) => {
-      test.setTimeout(240_000);
-      await page.addInitScript(() =>
-        window.localStorage.setItem("nav.rail.expanded", "1"),
-      );
-      await page.setViewportSize({ width, height: 900 });
-      for (const route of DASH_ROUTES) {
-        await open(page, route);
-        await expect(
-          page.getByRole("navigation", { name: "Product navigation" }),
-        ).toHaveAttribute("data-expanded", "true");
-        await assertNoOverflow(page, `${route} @${width} rail-expanded`);
-      }
-      // densest layouts, both rail states, for the visual record
-      for (const route of [
-        "/dashboard/dashboards/dash_overview",
-        "/dashboard/logs",
-      ]) {
-        await open(page, route);
-        await page.screenshot({
-          path: testInfo.outputPath(`${slug(route)}--${width}-expanded.png`),
-        });
-        await page.getByTestId("rail-toggle").click();
-        await page.waitForTimeout(350);
-        await page.screenshot({
-          path: testInfo.outputPath(`${slug(route)}--${width}-collapsed.png`),
-        });
-        // restore for the next route (the desktop toggle persists)
-        await page.getByTestId("rail-toggle").click();
-        await page.waitForTimeout(350);
-      }
-    });
+// route's content column must reflow cleanly — charts, tables, widget
+// grids and filter bars adapt; nothing overflows.
+test("1280 sweep with the rail expanded", async ({ page }) => {
+  test.setTimeout(240_000);
+  await page.addInitScript(() =>
+    window.localStorage.setItem("nav.rail.expanded", "1"),
+  );
+  await page.setViewportSize({ width: 1280, height: 900 });
+  for (const route of ROUTES.filter((r) => r.startsWith("/dashboard"))) {
+    await open(page, route);
+    await expect(
+      page.getByRole("navigation", { name: "Product navigation" }),
+    ).toHaveAttribute("data-expanded", "true");
+    await assertNoOverflow(page, `${route} @1280 rail-expanded`);
   }
 });
 

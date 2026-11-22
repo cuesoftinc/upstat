@@ -65,6 +65,19 @@ func origin(raw string) string {
 	return u.Scheme + "://" + u.Host
 }
 
+func registerProbes(mux *http.ServeMux, ping func(context.Context) error, running func() bool) {
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
+		httpx.WriteJSON(w, http.StatusOK, map[string]string{"status": "up"})
+	})
+	mux.HandleFunc("GET /ready", func(w http.ResponseWriter, r *http.Request) {
+		if err := ping(r.Context()); err != nil || !running() {
+			httpx.WriteJSON(w, http.StatusServiceUnavailable, map[string]string{"status": "not ready"})
+			return
+		}
+		httpx.WriteJSON(w, http.StatusOK, map[string]string{"status": "ready"})
+	})
+}
+
 func run() error {
 	if len(os.Getenv("JWT_SECRET")) < 32 {
 		return errors.New("JWT_SECRET must be at least 32 characters")
@@ -130,18 +143,9 @@ func run() error {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
-		httpx.WriteJSON(w, http.StatusOK, map[string]string{"status": "up"})
-	})
-	mux.HandleFunc("GET /ready", func(w http.ResponseWriter, r *http.Request) {
-		if err := ch.Ping(r.Context()); err != nil || !consumer.Running() {
-			httpx.WriteJSON(w, http.StatusServiceUnavailable, map[string]string{"status": "not ready"})
-			return
-		}
-		httpx.WriteJSON(w, http.StatusOK, map[string]string{"status": "ready"})
-	})
+	registerProbes(mux, ch.Ping, consumer.Running)
 	api.Register(mux)
-	srv := &http.Server{Addr: ":" + env("PORT", "8083"), Handler: httpx.CORS(isAllowed, true, mux), ReadHeaderTimeout: 10 * time.Second}
+	srv := &http.Server{Addr: ":" + env("PORT", "8083"), Handler: httpx.CORS(isAllowed, true, httpx.JSONFallback(mux)), ReadHeaderTimeout: 10 * time.Second}
 
 	g, gctx := errgroup.WithContext(ctx)
 	g.Go(func() error { return consumer.Run(gctx) })
