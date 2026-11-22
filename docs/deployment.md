@@ -51,6 +51,17 @@ one:
 - Other publishes still wake consumers with `GET /health` (S-10); anything
   a wake leaves unhandled is handled by the next pass, within a minute.
 
+### Probes
+
+- `GET /health` is the liveness probe: Cloud Monitoring uptime checks,
+  Docker healthchecks and wake calls use it. It answers
+  `{"status":"up"}` without touching Postgres or ClickHouse.
+- `GET /ready` is the readiness probe for deploy gating and the scheduler
+  resume step. On common it pings Postgres; on query it pings ClickHouse;
+  both also check that the consumer is running. Do not point an uptime
+  check at `/ready`: a periodic check would keep a scaled-to-zero store
+  awake.
+
 ### Service-to-service auth
 
 - On Cloud Run, internal calls carry Google ID tokens. query checks

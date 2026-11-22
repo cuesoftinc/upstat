@@ -158,7 +158,7 @@ paths:
       tags: [auth]
       summary: "Google redirect target; verifies state, issues a one-time handoff, redirects to the web app /auth/callback?handoff="
       responses:
-        "302": { description: Redirect to the web app (errors go to /signin?error=) }
+        "302": { description: "Redirect to the web app (errors go to /signin?error=)" }
   /v1/auth/sso/exchange:
     post:
       tags: [auth]
@@ -192,7 +192,7 @@ components:
           properties:
             code: { type: string, description: snake_case stable (engineering.md §1) }
             message: { type: string }
-            details: { type: array, items: { type: string } }
+            details: { type: object, additionalProperties: true }
     Organization: {"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"timezone":{"type":"string"},"created_at":{"type":"string","format":"date-time"}}}
     OrganizationCreate: {"type":"object","required":["name","timezone"],"properties":{"name":{"type":"string"},"timezone":{"type":"string"}}}
     Onboarding: {"type":"object","properties":{"org_created":{"type":"boolean"},"has_data":{"type":"boolean"},"ingest_key":{"type":"string","description":"Omitted when the organization has no ingest key"}}}
