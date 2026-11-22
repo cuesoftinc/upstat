@@ -6,6 +6,7 @@ import { clsx } from "clsx";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { QueryBar } from "@/components/ui/QueryBar";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { RequestError } from "@/components/ui/RequestError";
 import { TraceWaterfall } from "@/components/ui/TraceWaterfall";
 import {
   initialQueryFromUrl,
@@ -91,6 +92,14 @@ export default function TraceExplorerPage() {
               <Skeleton key={i} kind="line" />
             ))}
           </div>
+        ) : traces.error ? (
+          <div className="p-3">
+            <RequestError
+              error={traces.error}
+              onRetry={traces.reload}
+              what="traces"
+            />
+          </div>
         ) : (traces.data ?? []).length === 0 ? (
           <EmptyState pillar="traces" className="border-0" />
         ) : (
@@ -149,7 +158,13 @@ export default function TraceExplorerPage() {
           className="rounded-(--radius) border border-border bg-bg-elev p-4"
           data-testid="trace-waterfall"
         >
-          {trace.loading || !selected ? (
+          {trace.error ? (
+            <RequestError
+              error={trace.error}
+              onRetry={trace.reload}
+              what="this trace"
+            />
+          ) : trace.loading || !selected ? (
             <Skeleton kind="panel-axis" style={{ height: 200 }} />
           ) : (
             <>

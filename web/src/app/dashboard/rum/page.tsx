@@ -13,6 +13,7 @@ import { TopList } from "@/components/ui/TopList";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useRumController } from "@/controllers/rum";
 import { useTimeRange } from "@/controllers/time-range";
+import { RequestError } from "@/components/ui/RequestError";
 
 function fmtK(n: number): string {
   return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
@@ -102,7 +103,13 @@ export default function RumPage() {
         </Button>
       </header>
 
-      {noData ? (
+      {summary.error ? (
+        <RequestError
+          error={summary.error}
+          onRetry={summary.reload}
+          what="RUM data"
+        />
+      ) : noData ? (
         <EmptyState pillar="rum" />
       ) : (
         <>
@@ -274,7 +281,13 @@ export default function RumPage() {
               <h2 id="vitals-heading" className="mb-3 text-[13px] text-text-2">
                 Web vitals — LCP distribution
               </h2>
-              {vitals.loading ? (
+              {vitals.error ? (
+                <RequestError
+                  error={vitals.error}
+                  onRetry={vitals.reload}
+                  what="web vitals"
+                />
+              ) : vitals.loading ? (
                 <Skeleton kind="panel-axis" style={{ height: 140 }} />
               ) : (
                 <Heatmap
@@ -294,6 +307,12 @@ export default function RumPage() {
               </h2>
               {errors.loading ? (
                 <Skeleton kind="line" />
+              ) : errors.error ? (
+                <RequestError
+                  error={errors.error}
+                  onRetry={errors.reload}
+                  what="error groups"
+                />
               ) : (errors.data ?? []).length === 0 ? (
                 <p className="text-[13px] text-text-2">
                   No JS errors captured. Nice.

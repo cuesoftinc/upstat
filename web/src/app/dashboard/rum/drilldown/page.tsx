@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { TimeseriesPanel } from "@/components/ui/TimeseriesPanel";
 import { TopList } from "@/components/ui/TopList";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { RequestError } from "@/components/ui/RequestError";
 import { useRumDrilldownController } from "@/controllers/rum";
 import { useTimeRange } from "@/controllers/time-range";
 
@@ -97,8 +98,13 @@ export default function RumDrilldownPage() {
           Add property
         </Button>
       </header>
-
-      {noData ? (
+      {summary.error ? (
+        <RequestError
+          error={summary.error}
+          onRetry={summary.reload}
+          what="RUM data"
+        />
+      ) : noData ? (
         <EmptyState pillar="rum" />
       ) : (
         <>
@@ -108,25 +114,33 @@ export default function RumDrilldownPage() {
             className="flex flex-col gap-2"
           >
             <div className="flex flex-wrap items-center gap-3">
-              {drilldown.loading || !d
-                ? Array.from({ length: 3 }, (_, i) => (
-                    <Skeleton key={i} kind="value" className="min-w-56" />
-                  ))
-                : d.funnel.stages.map((stage, i) => (
-                    <Fragment key={stage.key}>
-                      {i > 0 && (
-                        <ArrowRight
-                          aria-hidden="true"
-                          className="size-4 shrink-0 text-text-2"
-                        />
-                      )}
-                      <FunnelStageCard
-                        label={stage.label}
-                        count={stage.count}
-                        pctOfPrevious={stage.pct_of_previous}
+              {drilldown.error ? (
+                <RequestError
+                  error={drilldown.error}
+                  onRetry={drilldown.reload}
+                  what="the conversion funnel"
+                />
+              ) : drilldown.loading || !d ? (
+                Array.from({ length: 3 }, (_, i) => (
+                  <Skeleton key={i} kind="value" className="min-w-56" />
+                ))
+              ) : (
+                d.funnel.stages.map((stage, i) => (
+                  <Fragment key={stage.key}>
+                    {i > 0 && (
+                      <ArrowRight
+                        aria-hidden="true"
+                        className="size-4 shrink-0 text-text-2"
                       />
-                    </Fragment>
-                  ))}
+                    )}
+                    <FunnelStageCard
+                      label={stage.label}
+                      count={stage.count}
+                      pctOfPrevious={stage.pct_of_previous}
+                    />
+                  </Fragment>
+                ))
+              )}
             </div>
             {/* the honest conversion definition (accuracy canon) */}
             {d && (

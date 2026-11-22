@@ -6,7 +6,7 @@ import { Table } from "@/components/ui/Table";
 import { useMetricsController } from "@/controllers/telemetry";
 import { ageLabel } from "@/controllers/shell";
 import { PageTabs } from "../../page-tabs";
-
+import { RequestError } from "@/components/ui/RequestError";
 /**
  * B3 metrics summary (Figma 226:12083) — catalog with cardinality,
  * ingestion rate, last seen; tag explorer for the selected metric.
@@ -63,6 +63,17 @@ export default function MetricsSummaryPage() {
                 <Skeleton key={i} kind="line" />
               ))}
             </div>
+          ) : summary.error ? (
+            <RequestError
+              error={summary.error}
+              onRetry={summary.reload}
+              what="the metric catalog"
+            />
+          ) : rows.length === 0 ? (
+            <p className="p-4 text-[13px] text-text-2">
+              No metrics yet — point an OTLP exporter at Upstat and the catalog
+              fills in.
+            </p>
           ) : rows.length === 0 ? (
             <p className="p-4 text-[13px] text-text-2">
               No metrics yet — point an OTLP exporter at Upstat and the catalog
