@@ -166,6 +166,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- The monitors, uptime and synthetic check pages now show an error with a retry (and a no-access message on a 403) when a request fails, instead of an empty list or a loading skeleton that never ends (#414).
 - A render error in a page now shows a branded error page with Try again and Dashboard links (#435).
 - Onboarding caches the first `true` `has_data` answer on the org, so
   polling no longer wakes ClickHouse after an org has sent telemetry (#405).
