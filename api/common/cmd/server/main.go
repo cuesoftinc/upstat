@@ -49,6 +49,19 @@ func main() {
 	}
 }
 
+func registerProbes(mux *http.ServeMux, ping func(context.Context) error, running func() bool) {
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
+		httpx.WriteJSON(w, http.StatusOK, map[string]string{"status": "up"})
+	})
+	mux.HandleFunc("GET /ready", func(w http.ResponseWriter, r *http.Request) {
+		if err := ping(r.Context()); err != nil || !running() {
+			httpx.WriteJSON(w, http.StatusServiceUnavailable, map[string]string{"status": "not ready"})
+			return
+		}
+		httpx.WriteJSON(w, http.StatusOK, map[string]string{"status": "ready"})
+	})
+}
+
 func run() error {
 	config.LoadEnv()
 	authCfg, err := config.LoadAuth()
@@ -162,16 +175,7 @@ func run() error {
 	}.run)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
-		httpx.WriteJSON(w, http.StatusOK, map[string]string{"status": "up"})
-	})
-	mux.HandleFunc("GET /ready", func(w http.ResponseWriter, r *http.Request) {
-		if err := db.Ping(r.Context()); err != nil || !consumer.Running() {
-			httpx.WriteJSON(w, http.StatusServiceUnavailable, map[string]string{"status": "not ready"})
-			return
-		}
-		httpx.WriteJSON(w, http.StatusOK, map[string]string{"status": "ready"})
-	})
+	registerProbes(mux, db.Ping, consumer.Running)
 	mux.Handle(jobs.Path, jobs.Handler{Verifier: jobs.GoogleVerifier{}, Checks: runChecks,
 		Jobs: map[string]func(context.Context) error{jobs.PruneJob: s.Prune}})
 	handler.NewAuthHandler(authCfg, states,
