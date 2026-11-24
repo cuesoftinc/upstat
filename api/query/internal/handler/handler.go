@@ -67,6 +67,23 @@ func (in Internal) guard(next http.Handler) http.Handler {
 	})
 }
 
+func uptimeDays(raw string, present bool) (int, bool) {
+	if !present {
+		return telemetry.DefaultUptimeDays, true
+	}
+	n, err := strconv.ParseUint(raw, 10, 64)
+	if errors.Is(err, strconv.ErrRange) {
+		return telemetry.MaxUptimeDays, true
+	}
+	if err != nil || n == 0 {
+		return 0, false
+	}
+	if n > uint64(telemetry.MaxUptimeDays) {
+		return telemetry.MaxUptimeDays, true
+	}
+	return int(n), true
+}
+
 type API struct {
 	T        *telemetry.Service
 	Access   *snapshot.Access
@@ -308,7 +325,12 @@ func (a *API) Register(mux *http.ServeMux) {
 		a.respond(w, r, out, err)
 	}))
 	mux.Handle("GET /internal/v1/uptime", a.internal(func(w http.ResponseWriter, r *http.Request, orgID string) {
-		days, _ := strconv.Atoi(q(r, "days"))
+		values := r.URL.Query()
+		days, ok := uptimeDays(values.Get("days"), values.Has("days"))
+		if !ok {
+			httpx.WriteError(w, http.StatusBadRequest, "bad_shape", "days must be a positive integer", nil)
+			return
+		}
 		var ids []string
 		for _, id := range strings.Split(q(r, "monitor_ids"), ",") {
 			if id = strings.TrimSpace(id); id != "" {

@@ -63,6 +63,75 @@ func TestErrorEnvelopeForFallbackAndUnauthorized(t *testing.T) {
 	}
 }
 
+func TestUptimeDaysParsing(t *testing.T) {
+	if got, ok := uptimeDays("", false); !ok || got != telemetry.DefaultUptimeDays {
+		t.Fatalf("omitted days = (%d, %v), want (%d, true)", got, ok, telemetry.DefaultUptimeDays)
+	}
+	valid := []struct {
+		raw  string
+		want int
+	}{
+		{"1", 1},
+		{"400", telemetry.MaxUptimeDays},
+		{"401", telemetry.MaxUptimeDays},
+		{"999999999999", telemetry.MaxUptimeDays},
+		{"999999999999999999999999999999", telemetry.MaxUptimeDays},
+	}
+	for _, tc := range valid {
+		got, ok := uptimeDays(tc.raw, true)
+		if !ok || got != tc.want {
+			t.Errorf("uptimeDays(%q) = (%d, %v), want (%d, true)", tc.raw, got, ok, tc.want)
+		}
+	}
+	for _, raw := range []string{"", "abc", "0", "-1", "-999999999999999999999999"} {
+		if got, ok := uptimeDays(raw, true); ok {
+			t.Errorf("uptimeDays(%q) = (%d, true), want invalid", raw, got)
+		}
+	}
+}
+
+// TestInternalUptimeDaysValidation pins the boundary contract for #409:
+// malformed input is rejected, oversized input is clamped, and omitted input
+// keeps the historical 90-day default.
+func TestInternalUptimeDaysValidation(t *testing.T) {
+	mux := http.NewServeMux()
+	api := New(&telemetry.Service{CH: noRows{}, Now: func() time.Time { return time.Date(2026, 11, 5, 12, 0, 0, 0, time.UTC) }}, nil, Internal{Token: "internal-secret"})
+	api.Register(mux)
+
+	cases := []struct {
+		name, query string
+		status      int
+		body        string
+	}{
+		{"omitted", "", http.StatusOK, "{}"},
+		{"one day", "&days=1", http.StatusOK, "{}"},
+		{"retention ceiling", "&days=400", http.StatusOK, "{}"},
+		{"over ceiling", "&days=401", http.StatusOK, "{}"},
+		{"huge", "&days=999999999999", http.StatusOK, "{}"},
+		{"beyond uint64", "&days=999999999999999999999999999999", http.StatusOK, "{}"},
+		{"explicit empty", "&days=", http.StatusBadRequest, "bad_shape"},
+		{"malformed", "&days=abc", http.StatusBadRequest, "bad_shape"},
+		{"zero", "&days=0", http.StatusBadRequest, "bad_shape"},
+		{"negative", "&days=-1", http.StatusBadRequest, "bad_shape"},
+		{"negative overflow", "&days=-999999999999999999999999", http.StatusBadRequest, "bad_shape"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/internal/v1/uptime?org_id=o1"+tc.query, nil)
+			req.Header.Set("X-Internal-Token", "internal-secret")
+			rec := httptest.NewRecorder()
+			mux.ServeHTTP(rec, req)
+
+			if rec.Code != tc.status {
+				t.Fatalf("status = %d, want %d; body = %q", rec.Code, tc.status, rec.Body.String())
+			}
+			if !strings.Contains(rec.Body.String(), tc.body) {
+				t.Errorf("body = %q, want it to contain %q", rec.Body.String(), tc.body)
+			}
+		})
+	}
+}
+
 // TestRevokedAccessEndsWithinTheMaxAge proves a request re-reads the members
 // snapshot once it is older than the max age, with no config event at all.
 func TestRevokedAccessEndsWithinTheMaxAge(t *testing.T) {
