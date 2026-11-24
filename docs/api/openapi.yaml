@@ -3,13 +3,16 @@ info:
   title: Upstat HTTP API
   version: 0.1.0-draft
   description: >-
-    Contract for the HTTP surfaces (events, stats, query, alerts-v2, monitors,
-    OTLP omitted — standard protocol). Auth: Google SSO session tokens for user
-    routes; property public keys for ingestion (U-2).
+    Contract for every HTTP route registered by api/common, api/query and
+    api/observability. All routes are documented, including /internal/*,
+    /health, /ready, /v1/auth/ CORS preflight, OTLP ingests and internal jobs.
+    The CORS wrapper also answers OPTIONS on other paths. Auth: Google SSO
+    session tokens for user routes; property public keys for ingestion (U-2);
+    internal token or ID-token auth for service-to-service routes.
 servers:
   - url: https://api-upstat.cuesoft.io
   - url: http://localhost:8080
-tags: [{ name: events }, { name: accounts }, { name: monitors }, { name: stats }, { name: alerts }, { name: query }, { name: auth }, { name: incidents }, { name: workspaces }, { name: status }]
+tags: [{ name: events }, { name: accounts }, { name: monitors }, { name: stats }, { name: alerts }, { name: query }, { name: auth }, { name: incidents }, { name: workspaces }, { name: status }, { name: internal }, { name: ops }]
 paths:
   /v1/events:
     post:
@@ -18,44 +21,50 @@ paths:
       security: [{ propertyKey: [] }]
       responses:
         "202": { description: Per-item results, content: { application/json: { schema: { $ref: "#/components/schemas/EventBatchResult" } } } }
-        "422": { description: ts_out_of_range / schema rejection }
-        "429": { description: rate_limited (600/min sustained) }
+        "400": { description: bad_shape (invalid JSON or batch shape) / bad_request (body read failed), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: unauthorized, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "403": { description: key_scope_mismatch / origin_not_allowed, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "413": { description: payload_too_large, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "415": { description: unsupported_media_type, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "422": { description: ts_out_of_range / schema rejection, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (600/min sustained), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "503": { description: unavailable (ingest busy), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
   /v1/orgs:
     get: {"tags":["accounts"],"summary":"List organizations","security":[{"session":[]}],"responses":{"200":{"description":"Organizations","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/Organization"}}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    post: {"tags":["accounts"],"summary":"Create an organization","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/OrganizationCreate"}}}},"responses":{"201":{"description":"Created organization","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Organization"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    post: {"tags":["accounts"],"summary":"Create an organization","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/OrganizationCreate"}}}},"responses":{"201":{"description":"Created organization","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Organization"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/orgs/current:
     get: {"tags":["accounts"],"summary":"Get the caller’s active organization","security":[{"session":[]}],"responses":{"200":{"description":"Organization","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Organization"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/orgs/{id}:
-    patch: {"tags":["accounts"],"summary":"Update an organization","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/OrganizationUpdate"}}}},"responses":{"200":{"description":"Updated organization","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Organization"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    patch: {"tags":["accounts"],"summary":"Update an organization","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/OrganizationUpdate"}}}},"responses":{"200":{"description":"Updated organization","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Organization"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/orgs/{id}/activate:
     post: {"tags":["accounts"],"summary":"Set the caller’s active organization","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"200":{"description":"Organization","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Organization"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/onboarding:
     get: {"tags":["accounts"],"summary":"Get onboarding state and ingest key","security":[{"session":[]}],"responses":{"200":{"description":"Onboarding state","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Onboarding"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/members:
     get: {"tags":["accounts"],"summary":"List organization members","security":[{"session":[]}],"responses":{"200":{"description":"Members","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/Member"}}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    post: {"tags":["accounts"],"summary":"Invite a member","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/MemberCreate"}}}},"responses":{"201":{"description":"Created member","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Member"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    post: {"tags":["accounts"],"summary":"Invite a member","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/MemberCreate"}}}},"responses":{"201":{"description":"Created member","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Member"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/members/{id}:
-    patch: {"tags":["accounts"],"summary":"Update a member role or status","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/MemberUpdate"}}}},"responses":{"200":{"description":"Updated member","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Member"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    patch: {"tags":["accounts"],"summary":"Update a member role or status","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/MemberUpdate"}}}},"responses":{"200":{"description":"Updated member","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Member"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
     delete: {"tags":["accounts"],"summary":"Remove a member","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"204":{"description":"Removed"},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/keys:
     get: {"tags":["accounts"],"summary":"List ingest keys","security":[{"session":[]}],"responses":{"200":{"description":"Keys","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/APIKey"}}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    post: {"tags":["accounts"],"summary":"Create an ingest key (plaintext key returned once)","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/APIKeyCreate"}}}},"responses":{"201":{"description":"Created key with plaintext key","content":{"application/json":{"schema":{"$ref":"#/components/schemas/APIKey"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    post: {"tags":["accounts"],"summary":"Create an ingest key (plaintext key returned once)","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/APIKeyCreate"}}}},"responses":{"201":{"description":"Created key with plaintext key","content":{"application/json":{"schema":{"$ref":"#/components/schemas/APIKey"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/keys/{id}:
-    patch: {"tags":["accounts"],"summary":"Update an ingest key","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/APIKeyUpdate"}}}},"responses":{"200":{"description":"Updated key","content":{"application/json":{"schema":{"$ref":"#/components/schemas/APIKey"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    patch: {"tags":["accounts"],"summary":"Update an ingest key","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/APIKeyUpdate"}}}},"responses":{"200":{"description":"Updated key","content":{"application/json":{"schema":{"$ref":"#/components/schemas/APIKey"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
     delete: {"tags":["accounts"],"summary":"Revoke an ingest key","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"204":{"description":"Revoked"},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/keys/{id}/rotate:
     post: {"tags":["accounts"],"summary":"Rotate an ingest key (plaintext key returned once)","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"200":{"description":"Rotated key with plaintext key","content":{"application/json":{"schema":{"$ref":"#/components/schemas/APIKey"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/registry:
     get: {"tags":["accounts"],"summary":"List registered event names and dimensions","security":[{"session":[]}],"responses":{"200":{"description":"Registry entries","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/RegistryEvent"}}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    post: {"tags":["accounts"],"summary":"Register an event name and its dimensions","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/RegistryEventCreate"}}}},"responses":{"201":{"description":"Created registry entry","content":{"application/json":{"schema":{"$ref":"#/components/schemas/RegistryEvent"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    post: {"tags":["accounts"],"summary":"Register an event name and its dimensions","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/RegistryEventCreate"}}}},"responses":{"201":{"description":"Created registry entry","content":{"application/json":{"schema":{"$ref":"#/components/schemas/RegistryEvent"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/registry/{id}:
     delete: {"tags":["accounts"],"summary":"Delete a registry entry","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"204":{"description":"Deleted"},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/monitors:
     get: {"tags":["monitors"],"summary":"List monitors","security":[{"session":[]}],"responses":{"200":{"description":"Monitors","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/Monitor"}}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    post: {"tags":["monitors"],"summary":"Create a monitor","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/MonitorCreate"}}}},"responses":{"201":{"description":"Created monitor","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Monitor"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    post: {"tags":["monitors"],"summary":"Create a monitor","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/MonitorCreate"}}}},"responses":{"201":{"description":"Created monitor","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Monitor"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/monitors/{id}:
     get: {"tags":["monitors"],"summary":"Get one monitor","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"200":{"description":"Monitor","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Monitor"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    patch: {"tags":["monitors"],"summary":"Update a monitor","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/MonitorUpdate"}}}},"responses":{"200":{"description":"Updated monitor","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Monitor"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    patch: {"tags":["monitors"],"summary":"Update a monitor","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/MonitorUpdate"}}}},"responses":{"200":{"description":"Updated monitor","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Monitor"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
     delete: {"tags":["monitors"],"summary":"Delete a monitor","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"204":{"description":"Deleted"},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/monitors/{id}/checks:
     get: {"tags":["monitors"],"summary":"Get check history and 90-day uptime for a monitor","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"200":{"description":"Check history","content":{"application/json":{"schema":{"$ref":"#/components/schemas/MonitorHistory"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"504":{"description":"timeout","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
@@ -65,10 +74,10 @@ paths:
     post: {"tags":["monitors"],"summary":"Replay the stored monitor query (6/min; no request body)","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"200":{"description":"Replay result","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Replay"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"429":{"description":"rate_limited","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"504":{"description":"timeout","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/synthetics:
     get: {"tags":["monitors"],"summary":"List synthetic checks","security":[{"session":[]}],"responses":{"200":{"description":"Synthetic checks","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/SyntheticCheck"}}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    post: {"tags":["monitors"],"summary":"Create a synthetic check","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/SyntheticCheckCreate"}}}},"responses":{"201":{"description":"Created check","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SyntheticCheck"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    post: {"tags":["monitors"],"summary":"Create a synthetic check","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/SyntheticCheckCreate"}}}},"responses":{"201":{"description":"Created check","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SyntheticCheck"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/synthetics/{id}:
     get: {"tags":["monitors"],"summary":"Get one synthetic check","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"200":{"description":"Synthetic check","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SyntheticCheck"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    patch: {"tags":["monitors"],"summary":"Update a synthetic check","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/SyntheticCheckUpdate"}}}},"responses":{"200":{"description":"Updated check","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SyntheticCheck"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    patch: {"tags":["monitors"],"summary":"Update a synthetic check","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/SyntheticCheckUpdate"}}}},"responses":{"200":{"description":"Updated check","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SyntheticCheck"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
     delete: {"tags":["monitors"],"summary":"Delete a synthetic check","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"204":{"description":"Deleted"},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/synthetics/{id}/runs:
     get: {"tags":["monitors"],"summary":"List runs for a synthetic check","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"200":{"description":"Runs","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/SyntheticRun"}}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
@@ -77,7 +86,7 @@ paths:
     get: {"tags":["monitors"],"summary":"Get one synthetic run","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"},{"$ref":"#/components/parameters/RunId"}],"responses":{"200":{"description":"Run","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SyntheticRun"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/channels:
     get: {"tags":["alerts"],"summary":"List alert channels","security":[{"session":[]}],"responses":{"200":{"description":"Channels","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/Channel"}}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    post: {"tags":["alerts"],"summary":"Create an alert channel (unverified)","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ChannelCreate"}}}},"responses":{"201":{"description":"Created channel","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Channel"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    post: {"tags":["alerts"],"summary":"Create an alert channel (unverified)","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ChannelCreate"}}}},"responses":{"201":{"description":"Created channel","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Channel"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/channels/{id}:
     get: {"tags":["alerts"],"summary":"Get one alert channel","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"200":{"description":"Channel","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Channel"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
     delete: {"tags":["alerts"],"summary":"Delete an alert channel (detaches from rules)","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"204":{"description":"Deleted"},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
@@ -85,9 +94,9 @@ paths:
     post: {"tags":["alerts"],"summary":"Verify an alert channel","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"200":{"description":"Verified channel","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Channel"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"429":{"description":"rate_limited","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/rules:
     get: {"tags":["alerts"],"summary":"List alert rules","security":[{"session":[]}],"responses":{"200":{"description":"Rules","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/Rule"}}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    post: {"tags":["alerts"],"summary":"Create an alert rule","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/RuleCreate"}}}},"responses":{"201":{"description":"Created rule","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Rule"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    post: {"tags":["alerts"],"summary":"Create an alert rule","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/RuleCreate"}}}},"responses":{"201":{"description":"Created rule","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Rule"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/rules/{id}:
-    patch: {"tags":["alerts"],"summary":"Update an alert rule","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/RuleUpdate"}}}},"responses":{"200":{"description":"Updated rule","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Rule"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    patch: {"tags":["alerts"],"summary":"Update an alert rule","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/RuleUpdate"}}}},"responses":{"200":{"description":"Updated rule","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Rule"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
     delete: {"tags":["alerts"],"summary":"Delete an alert rule","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"204":{"description":"Deleted"},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/rules/{id}/test:
     post: {"tags":["alerts"],"summary":"Replay the stored rule query (6/min; no request body)","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"200":{"description":"Replay result","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Replay"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"429":{"description":"rate_limited","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"504":{"description":"timeout","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
@@ -97,53 +106,300 @@ paths:
     post: {"tags":["alerts"],"summary":"Mark alert feed entries as read","security":[{"session":[]}],"responses":{"204":{"description":"Marked read"},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/incidents:
     get: {"tags":["incidents"],"summary":"List incidents","security":[{"session":[]}],"responses":{"200":{"description":"Incidents","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/Incident"}}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    post: {"tags":["incidents"],"summary":"Create an incident","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/IncidentCreate"}}}},"responses":{"201":{"description":"Created incident","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Incident"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    post: {"tags":["incidents"],"summary":"Create an incident","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/IncidentCreate"}}}},"responses":{"201":{"description":"Created incident","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Incident"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/incidents/{id}:
     get: {"tags":["incidents"],"summary":"Get one incident","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"200":{"description":"Incident","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Incident"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    patch: {"tags":["incidents"],"summary":"Update an incident","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/IncidentUpdate"}}}},"responses":{"200":{"description":"Updated incident","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Incident"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    patch: {"tags":["incidents"],"summary":"Update an incident","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/IncidentUpdate"}}}},"responses":{"200":{"description":"Updated incident","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Incident"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/incidents/{id}/timeline:
     get: {"tags":["incidents"],"summary":"List incident timeline entries","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"200":{"description":"Timeline entries","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/TimelineEntry"}}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    post: {"tags":["incidents"],"summary":"Add an incident timeline entry","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/TimelineEntryCreate"}}}},"responses":{"201":{"description":"Created entry","content":{"application/json":{"schema":{"$ref":"#/components/schemas/TimelineEntry"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    post: {"tags":["incidents"],"summary":"Add an incident timeline entry","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/TimelineEntryCreate"}}}},"responses":{"201":{"description":"Created entry","content":{"application/json":{"schema":{"$ref":"#/components/schemas/TimelineEntry"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/incidents/{id}/postmortem:
     get: {"tags":["incidents"],"summary":"Get an incident postmortem","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"200":{"description":"Postmortem","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Postmortem"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    put: {"tags":["incidents"],"summary":"Create or update an incident postmortem","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/PostmortemCreate"}}}},"responses":{"200":{"description":"Updated postmortem","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Postmortem"}}}},"201":{"description":"Created postmortem","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Postmortem"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    put: {"tags":["incidents"],"summary":"Create or update an incident postmortem","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/PostmortemCreate"}}}},"responses":{"200":{"description":"Updated postmortem","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Postmortem"}}}},"201":{"description":"Created postmortem","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Postmortem"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/slos:
     get: {"tags":["workspaces"],"summary":"List SLOs","security":[{"session":[]}],"responses":{"200":{"description":"SLOs","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/SLO"}}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    post: {"tags":["workspaces"],"summary":"Create an SLO","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/SLOCreate"}}}},"responses":{"201":{"description":"Created SLO","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SLO"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    post: {"tags":["workspaces"],"summary":"Create an SLO","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/SLOCreate"}}}},"responses":{"201":{"description":"Created SLO","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SLO"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/slos/{id}:
     delete: {"tags":["workspaces"],"summary":"Delete an SLO","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"204":{"description":"Deleted"},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/dashboards:
     get: {"tags":["workspaces"],"summary":"List dashboards","security":[{"session":[]}],"responses":{"200":{"description":"Dashboards","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/Dashboard"}}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    post: {"tags":["workspaces"],"summary":"Create a dashboard","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/DashboardCreate"}}}},"responses":{"201":{"description":"Created dashboard","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Dashboard"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    post: {"tags":["workspaces"],"summary":"Create a dashboard","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/DashboardCreate"}}}},"responses":{"201":{"description":"Created dashboard","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Dashboard"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/dashboards/{id}:
     get: {"tags":["workspaces"],"summary":"Get one dashboard","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"200":{"description":"Dashboard","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Dashboard"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    patch: {"tags":["workspaces"],"summary":"Update a dashboard","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/DashboardUpdate"}}}},"responses":{"200":{"description":"Updated dashboard","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Dashboard"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    patch: {"tags":["workspaces"],"summary":"Update a dashboard","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/DashboardUpdate"}}}},"responses":{"200":{"description":"Updated dashboard","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Dashboard"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
     delete: {"tags":["workspaces"],"summary":"Delete a dashboard","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"204":{"description":"Deleted"},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/dashboards/{id}/widgets:
-    post: {"tags":["workspaces"],"summary":"Add a widget to a dashboard","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/WidgetCreate"}}}},"responses":{"201":{"description":"Created widget","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Widget"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    post: {"tags":["workspaces"],"summary":"Add a widget to a dashboard","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/WidgetCreate"}}}},"responses":{"201":{"description":"Created widget","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Widget"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/dashboards/{id}/widgets/{widgetId}:
-    patch: {"tags":["workspaces"],"summary":"Update a dashboard widget","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"},{"$ref":"#/components/parameters/WidgetId"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/WidgetUpdate"}}}},"responses":{"200":{"description":"Updated widget","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Widget"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    patch: {"tags":["workspaces"],"summary":"Update a dashboard widget","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"},{"$ref":"#/components/parameters/WidgetId"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/WidgetUpdate"}}}},"responses":{"200":{"description":"Updated widget","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Widget"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
     delete: {"tags":["workspaces"],"summary":"Delete a dashboard widget","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"},{"$ref":"#/components/parameters/WidgetId"}],"responses":{"204":{"description":"Deleted"},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/views:
     get: {"tags":["workspaces"],"summary":"List saved views (filter by surface query parameter)","security":[{"session":[]}],"parameters":[{"name":"surface","in":"query","required":false,"schema":{"type":"string"}}],"responses":{"200":{"description":"Saved views","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/SavedView"}}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    post: {"tags":["workspaces"],"summary":"Create a saved view","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/SavedViewCreate"}}}},"responses":{"201":{"description":"Created view","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SavedView"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    post: {"tags":["workspaces"],"summary":"Create a saved view","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/SavedViewCreate"}}}},"responses":{"201":{"description":"Created view","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SavedView"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/views/{id}:
     delete: {"tags":["workspaces"],"summary":"Delete a saved view","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"204":{"description":"Deleted"},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/catalog:
     get: {"tags":["workspaces"],"summary":"List service catalog entries","security":[{"session":[]}],"responses":{"200":{"description":"Catalog entries","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/CatalogEntry"}}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    post: {"tags":["workspaces"],"summary":"Create a service catalog entry","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CatalogEntryCreate"}}}},"responses":{"201":{"description":"Created entry","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CatalogEntry"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    post: {"tags":["workspaces"],"summary":"Create a service catalog entry","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CatalogEntryCreate"}}}},"responses":{"201":{"description":"Created entry","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CatalogEntry"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/catalog/{id}:
-    patch: {"tags":["workspaces"],"summary":"Update a service catalog entry","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CatalogEntryUpdate"}}}},"responses":{"200":{"description":"Updated entry","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CatalogEntry"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    patch: {"tags":["workspaces"],"summary":"Update a service catalog entry","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CatalogEntryUpdate"}}}},"responses":{"200":{"description":"Updated entry","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CatalogEntry"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"conflict","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
     delete: {"tags":["workspaces"],"summary":"Delete a service catalog entry","security":[{"session":[]}],"parameters":[{"$ref":"#/components/parameters/Id"}],"responses":{"204":{"description":"Deleted"},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/status-page:
     get: {"tags":["workspaces"],"summary":"Get the organization status-page configuration","security":[{"session":[]}],"responses":{"200":{"description":"Status page config","content":{"application/json":{"schema":{"$ref":"#/components/schemas/StatusPageConfig"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
-    put: {"tags":["workspaces"],"summary":"Create or update the status-page configuration","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/StatusPageConfig"}}}},"responses":{"200":{"description":"Status page config","content":{"application/json":{"schema":{"$ref":"#/components/schemas/StatusPageConfig"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 64 KiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
+    put: {"tags":["workspaces"],"summary":"Create or update the status-page configuration","security":[{"session":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/StatusPageConfig"}}}},"responses":{"200":{"description":"Status page config","content":{"application/json":{"schema":{"$ref":"#/components/schemas/StatusPageConfig"}}}},"400":{"description":"bad_shape (malformed JSON body or body over 1 MiB)","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"unauthorized","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"403":{"description":"forbidden","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"validation error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/status/{slug}:
     get: {"tags":["status"],"summary":"Get public status-page data (no authentication)","description":"Successful responses set Cache-Control: public, max-age=30, stale-while-revalidate=300.","parameters":[{"$ref":"#/components/parameters/Slug"}],"responses":{"200":{"description":"Public status page","content":{"application/json":{"schema":{"$ref":"#/components/schemas/StatusPage"}}}},"404":{"description":"not_found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}
   /v1/stats:
-    get: { tags: [stats], summary: "Rollup series (uniques_additive: false in metadata)", security: [{ session: [] }], responses: { "200": { description: Series } } }
+    get:
+      tags: [stats]
+      summary: "Rollup series (uniques_additive: false in metadata)"
+      security: [{ session: [] }]
+      parameters:
+        - { name: property, in: query, required: true, schema: { type: string } }
+        - { name: name, in: query, required: true, schema: { type: string } }
+        - { name: period, in: query, required: true, schema: { type: string, enum: [hour, day] } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+        - { name: dim, in: query, schema: { type: string } }
+      responses:
+        "200": { description: Series, content: { application/json: { schema: { $ref: "#/components/schemas/StatsResponse" } } } }
+        "422": { description: bad_shape / invalid_period / ts_out_of_range / range_too_large / query_too_expensive, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: unauthorized, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: not_found (no active organization), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
   /v1/query:
-    post: { tags: [query], summary: Shared-grammar query (query-grammar.md), security: [{ session: [] }], responses: { "200": { description: Results }, "400": { description: "invalid_query {position, hint}" } } }
+    post:
+      tags: [query]
+      summary: Shared-grammar query (query-grammar.md)
+      security: [{ session: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/QueryRequest" } } } }
+      responses:
+        "200": { description: Results, content: { application/json: { schema: { $ref: "#/components/schemas/QueryResult" } } } }
+        "400": { description: bad_shape (malformed JSON body or body over 1 MiB), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: unauthorized, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "422": { description: "bad_shape / invalid_query {position, hint} / ts_out_of_range / range_too_large / query_too_expensive", content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: not_found (no active organization), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /v1/logs:
+    get:
+      tags: [query]
+      summary: "Page logs with the shared query grammar"
+      security: [{ session: [] }]
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+        - { name: cursor, in: query, schema: { type: string } }
+        - { name: limit, in: query, description: "Default 100. Values <= 0 default to 100; values > 10000 are clamped to 10000.", schema: { type: integer, default: 100 } }
+        - { name: live, in: query, schema: { type: string, enum: ["1"] } }
+      responses:
+        "200": { description: Log page, content: { application/json: { schema: { $ref: "#/components/schemas/LogPage" } } } }
+        "422": { description: bad_shape / invalid_query / ts_out_of_range / range_too_large / query_too_expensive, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: unauthorized, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: not_found (no active organization), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+    post:
+      tags: [events]
+      summary: "OTLP/HTTP log export (protobuf or JSON, passed through unchanged)"
+      security: [{ propertyKey: [] }]
+      requestBody: { required: true, content: { application/x-protobuf: { schema: { type: string, format: binary } }, application/protobuf: { schema: { type: string, format: binary } }, application/json: { schema: { type: object } } } }
+      responses:
+        "default": { description: "Collector response; status and content type are forwarded", content: { application/json: { schema: { type: object } }, application/x-protobuf: { schema: { type: string, format: binary } }, application/protobuf: { schema: { type: string, format: binary } } } }
+        "400": { description: bad_request (body could not be read or was cut short), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: unauthorized, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "403": { description: key_scope_mismatch, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "413": { description: payload_too_large, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "415": { description: unsupported_media_type, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited / quota_exceeded, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "503": { description: collector unavailable or ingest busy, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /v1/logs/patterns:
+    get:
+      tags: [query]
+      summary: "Cluster log lines into templates"
+      security: [{ session: [] }]
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+      responses:
+        "200": { description: Patterns, content: { application/json: { schema: { $ref: "#/components/schemas/PatternsResult" } } } }
+        "422": { description: bad_shape / invalid_query / ts_out_of_range / range_too_large / query_too_expensive, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: unauthorized, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: not_found (no active organization), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /v1/traces:
+    get:
+      tags: [query]
+      summary: "List root traces with the shared query grammar"
+      security: [{ session: [] }]
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+        - { name: limit, in: query, description: "Default 50. Values <= 0 or > 200 fall back to 50.", schema: { type: integer, default: 50 } }
+      responses:
+        "200": { description: Trace summaries, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/TraceSummary" } } } } }
+        "422": { description: bad_shape / invalid_query / ts_out_of_range / range_too_large / query_too_expensive, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: unauthorized, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: not_found (no active organization), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+    post:
+      tags: [events]
+      summary: "OTLP/HTTP trace export (protobuf or JSON, passed through unchanged)"
+      security: [{ propertyKey: [] }]
+      requestBody: { required: true, content: { application/x-protobuf: { schema: { type: string, format: binary } }, application/protobuf: { schema: { type: string, format: binary } }, application/json: { schema: { type: object } } } }
+      responses:
+        "default": { description: "Collector response; status and content type are forwarded", content: { application/json: { schema: { type: object } }, application/x-protobuf: { schema: { type: string, format: binary } }, application/protobuf: { schema: { type: string, format: binary } } } }
+        "400": { description: bad_request (body could not be read or was cut short), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: unauthorized, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "403": { description: key_scope_mismatch, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "413": { description: payload_too_large, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "415": { description: unsupported_media_type, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited / quota_exceeded, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "503": { description: collector unavailable or ingest busy, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /v1/traces/{id}:
+    get:
+      tags: [query]
+      summary: "Get one trace and its spans"
+      security: [{ session: [] }]
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { description: Trace, content: { application/json: { schema: { $ref: "#/components/schemas/Trace" } } } }
+        "401": { description: unauthorized, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: not_found (no active organization or unknown trace), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "422": { description: query_too_expensive, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /v1/services:
+    get:
+      tags: [query]
+      summary: "APM service list over the last hour of server spans"
+      security: [{ session: [] }]
+      responses:
+        "200": { description: Services, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/ServiceStats" } } } } }
+        "401": { description: unauthorized, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: not_found (no active organization), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "422": { description: query_too_expensive, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /v1/metrics/summary:
+    get:
+      tags: [query]
+      summary: "Metric names, types and ingest rates over the last hour"
+      security: [{ session: [] }]
+      responses:
+        "200": { description: Metrics, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/MetricSummary" } } } } }
+        "401": { description: unauthorized, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: not_found (no active organization), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "422": { description: query_too_expensive, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /v1/metrics:
+    post:
+      tags: [events]
+      summary: "OTLP/HTTP metric export (protobuf or JSON, passed through unchanged)"
+      security: [{ propertyKey: [] }]
+      requestBody: { required: true, content: { application/x-protobuf: { schema: { type: string, format: binary } }, application/protobuf: { schema: { type: string, format: binary } }, application/json: { schema: { type: object } } } }
+      responses:
+        "default": { description: "Collector response; status and content type are forwarded", content: { application/json: { schema: { type: object } }, application/x-protobuf: { schema: { type: string, format: binary } }, application/protobuf: { schema: { type: string, format: binary } } } }
+        "400": { description: bad_request (body could not be read or was cut short), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: unauthorized, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "403": { description: key_scope_mismatch, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "413": { description: payload_too_large, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "415": { description: unsupported_media_type, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited / quota_exceeded, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "503": { description: collector unavailable or ingest busy, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /v1/rum/summary:
+    get:
+      tags: [query]
+      summary: "RUM overview for a property"
+      security: [{ session: [] }]
+      parameters:
+        - { name: property, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+      responses:
+        "200": { description: RUM summary, content: { application/json: { schema: { $ref: "#/components/schemas/RumSummary" } } } }
+        "422": { description: ts_out_of_range / range_too_large / query_too_expensive, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: unauthorized, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: not_found (no active organization), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /v1/rum/vitals:
+    get:
+      tags: [query]
+      summary: "LCP, INP and CLS quantiles"
+      security: [{ session: [] }]
+      parameters:
+        - { name: property, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+      responses:
+        "200": { description: Vitals, content: { application/json: { schema: { $ref: "#/components/schemas/RumVitals" } } } }
+        "422": { description: ts_out_of_range / range_too_large / query_too_expensive, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: unauthorized, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: not_found (no active organization), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /v1/rum/errors:
+    get:
+      tags: [query]
+      summary: "Grouped JavaScript errors over 30 days"
+      security: [{ session: [] }]
+      responses:
+        "200": { description: Error groups, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/ErrorGroup" } } } } }
+        "401": { description: unauthorized, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: not_found (no active organization), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "422": { description: query_too_expensive, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /v1/rum/drilldown:
+    get:
+      tags: [query]
+      summary: "Conversion funnel and weekly retention cohorts"
+      security: [{ session: [] }]
+      parameters:
+        - { name: property, in: query, schema: { type: string } }
+        - { name: event, in: query, description: Conversion event, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+      responses:
+        "200": { description: Drilldown, content: { application/json: { schema: { $ref: "#/components/schemas/Drilldown" } } } }
+        "422": { description: ts_out_of_range / range_too_large / query_too_expensive, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: unauthorized, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: not_found (no active organization), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /v1/usage:
+    get:
+      tags: [workspaces]
+      summary: "Month-to-date usage by pillar in the organization timezone"
+      security: [{ session: [] }]
+      responses:
+        "200": { description: Usage report, content: { application/json: { schema: { $ref: "#/components/schemas/UsageReport" } } } }
+        "401": { description: unauthorized, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: not_found (no active organization), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "422": { description: query_too_expensive, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
   /v1/auth/sso/google:
     get:
       tags: [auth]
@@ -163,19 +419,155 @@ paths:
     post:
       tags: [auth]
       summary: "Trade the handoff code and PKCE verifier for a session token; also sets the session cookie"
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [handoff, verifier], properties: { handoff: { type: string }, verifier: { type: string } } } } } }
+      parameters: [{ name: upstat_oauth_handoff, in: cookie, required: false, description: "HttpOnly handoff cookie set by the SSO callback; frontend-only alternative to the request body" }]
+      requestBody: { required: false, description: "Body channel requires both fields; secondary allowed origins must use it. Only the frontend may instead send no body and redeem the HttpOnly handoff cookie; a bodyless secondary-origin request is refused with 401 handoff_verifier_required.", content: { application/json: { schema: { type: object, required: [handoff, verifier], additionalProperties: false, properties: { handoff: { type: string }, verifier: { type: string } } } } } }
       responses:
-        "200": { description: "{ data: { access_token, token_type, expires_in } }" }
-        "401": { description: handoff_invalid }
+        "200": { description: "{ data: { access_token, token_type, expires_in } }; sets the session cookie and clears the handoff cookie" }
+        "400": { description: "invalid_body (body read failed, bad JSON, media type or charset) / invalid_request (invalid handoff or verifier)" }
+        "401": { description: handoff_invalid / handoff_verifier_required }
+        "413": { description: request_too_large (body over 4096 bytes) }
+        "503": { description: sso_unavailable (handoff redemption failed) }
   /v1/auth/me:
     get: { tags: [auth], summary: Current session identity, security: [{ session: [] }], responses: { "200": { description: "{ data: { id, email, name } }" }, "401": { description: Unauthenticated } } }
   /v1/auth/logout:
     post: { tags: [auth], summary: Clear the session and handoff cookies, responses: { "204": { description: Cleared }, "403": { description: csrf_rejected } } }
+  /v1/auth/:
+    options:
+      tags: [auth]
+      summary: CORS preflight for the credentialed auth routes
+      description: "Registered as the /v1/auth/ subtree; allowed origins receive the CORS headers and a 204."
+      responses:
+        "204": { description: Preflight accepted }
+  /health:
+    get:
+      tags: [ops]
+      summary: Liveness probe (served by api/common, api/query and api/observability)
+      responses:
+        "200": { description: Process is up, content: { application/json: { schema: { $ref: "#/components/schemas/HealthResponse" } } } }
+  /ready:
+    get:
+      tags: [ops]
+      summary: Readiness probe (served by api/common, api/query and api/observability)
+      responses:
+        "200": { description: Dependencies and config are ready, content: { application/json: { schema: { $ref: "#/components/schemas/ReadyResponse" } } } }
+        "503": { description: Dependencies or config are not ready, content: { application/json: { schema: { $ref: "#/components/schemas/ReadyResponse" } } } }
+  /internal/jobs/{name}:
+    post:
+      tags: [internal]
+      summary: Run a scheduled job; the registered route is the /internal/jobs/ subtree
+      security: [{ schedulerToken: [] }]
+      parameters: [{ name: name, in: path, required: true, description: Name of a registered scheduled job (currently run-checks or prune), schema: { type: string } }]
+      responses:
+        "200": { description: Job result, content: { application/json: { schema: { $ref: "#/components/schemas/JobResult" } } } }
+        "401": { description: missing or invalid scheduler token, content: { application/json: { schema: { $ref: "#/components/schemas/JobError" } } } }
+        "403": { description: caller is not the configured invoker, content: { application/json: { schema: { $ref: "#/components/schemas/JobError" } } } }
+        "404": { description: unknown job, content: { application/json: { schema: { $ref: "#/components/schemas/JobError" } } } }
+        "405": { description: method not allowed, content: { application/json: { schema: { $ref: "#/components/schemas/JobError" } } } }
+        "500": { description: job failed, content: { application/json: { schema: { $ref: "#/components/schemas/JobError" } } } }
+        "503": { description: scheduler auth is not configured, content: { application/json: { schema: { $ref: "#/components/schemas/JobError" } } } }
+  /internal/v1/query:
+    post:
+      tags: [internal]
+      summary: Shared-grammar query for service-to-service callers
+      security: [{ internalToken: [] }, { internalIdToken: [] }]
+      parameters: [{ name: org_id, in: query, required: true, description: Organization ID, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/QueryRequest" } } } }
+      responses:
+        "200": { description: Results, content: { application/json: { schema: { $ref: "#/components/schemas/QueryResult" } } } }
+        "400": { description: bad_shape (malformed JSON body or body over 1 MiB), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: internal caller only, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "422": { description: bad_shape (missing org_id) / invalid_query / ts_out_of_range / range_too_large / query_too_expensive, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "503": { description: internal auth is not configured, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /internal/v1/monitors/{id}/history:
+    get:
+      tags: [internal]
+      summary: Uptime strips and recent checks for one monitor
+      security: [{ internalToken: [] }, { internalIdToken: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/Id" }
+        - { name: org_id, in: query, required: true, description: Organization ID, schema: { type: string } }
+      responses:
+        "200": { description: Monitor history, content: { application/json: { schema: { $ref: "#/components/schemas/MonitorHistory" } } } }
+        "401": { description: internal caller only, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "422": { description: bad_shape (missing org_id) / query_too_expensive, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "503": { description: internal auth is not configured, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /internal/v1/uptime:
+    get:
+      tags: [internal]
+      summary: Uptime strips and p95 latency for one or more monitors
+      security: [{ internalToken: [] }, { internalIdToken: [] }]
+      parameters:
+        - { name: org_id, in: query, required: true, description: Organization ID, schema: { type: string } }
+        - { name: days, in: query, description: "Default 90. Values <= 0 or > 400 fall back to 90.", schema: { type: integer, default: 90 } }
+        - { name: monitor_ids, in: query, description: Comma-separated monitor IDs, schema: { type: string } }
+      responses:
+        "200": { description: Uptime keyed by monitor ID, content: { application/json: { schema: { type: object, additionalProperties: { $ref: "#/components/schemas/UptimeSummary" } } } } }
+        "401": { description: internal caller only, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "422": { description: bad_shape (missing org_id) / query_too_expensive, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "503": { description: internal auth is not configured, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /internal/v1/has-data:
+    get:
+      tags: [internal]
+      summary: Whether the organization has sent any telemetry
+      security: [{ internalToken: [] }, { internalIdToken: [] }]
+      parameters: [{ name: org_id, in: query, required: true, description: Organization ID, schema: { type: string } }]
+      responses:
+        "200": { description: Telemetry flag, content: { application/json: { schema: { $ref: "#/components/schemas/HasDataResponse" } } } }
+        "401": { description: internal caller only, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "422": { description: bad_shape (missing org_id) / query_too_expensive, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "503": { description: internal auth is not configured, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /internal/v1/presence:
+    get:
+      tags: [internal]
+      summary: Which signals each catalog service sent in the last day
+      security: [{ internalToken: [] }, { internalIdToken: [] }]
+      parameters:
+        - { name: org_id, in: query, required: true, description: Organization ID, schema: { type: string } }
+        - { name: services, in: query, description: Comma-separated service names, schema: { type: string } }
+      responses:
+        "200": { description: Presence keyed by service name, content: { application/json: { schema: { type: object, additionalProperties: { $ref: "#/components/schemas/Presence" } } } } }
+        "401": { description: internal caller only, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "422": { description: bad_shape (missing org_id) / query_too_expensive, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "503": { description: internal auth is not configured, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /internal/v1/replay:
+    post:
+      tags: [internal]
+      summary: Re-evaluate a rule query over the last 24 hours at five-minute steps
+      security: [{ internalToken: [] }, { internalIdToken: [] }]
+      parameters: [{ name: org_id, in: query, required: true, description: Organization ID, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ReplayRequest" } } } }
+      responses:
+        "200": { description: Replay result, content: { application/json: { schema: { $ref: "#/components/schemas/Replay" } } } }
+        "400": { description: bad_shape (malformed JSON body or body over 1 MiB), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: internal caller only, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "422": { description: bad_shape (missing org_id) / invalid_query / query_too_expensive, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "429": { description: rate_limited (too many queries in flight), content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "500": { description: internal, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "503": { description: internal auth is not configured, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "504": { description: timeout, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
 
 components:
   securitySchemes:
     session: { type: http, scheme: bearer, bearerFormat: "Session JWT issued by POST /v1/auth/sso/exchange (also sent as an HttpOnly cookie)" }
-    propertyKey: { type: http, scheme: bearer, bearerFormat: "write-only property public key (pk_..., 24h rotation grace)" }
+    propertyKey: { type: http, scheme: bearer, bearerFormat: "write-only property public key (pk_..., 24h rotation grace); OTLP ingests also accept the Upstat-Ingest-Key header" }
+    internalToken: { type: apiKey, in: header, name: X-Internal-Token, description: "Shared INTERNAL_TOKEN for service-to-service query routes" }
+    internalIdToken: { type: http, scheme: bearer, bearerFormat: "Google ID token whose email is in the query service's INTERNAL_INVOKERS" }
+    schedulerToken: { type: http, scheme: bearer, bearerFormat: "Google ID token for the configured scheduler invoker" }
   parameters:
     Id: { name: id, in: path, required: true, schema: { type: string } }
     RunId: { name: runId, in: path, required: true, schema: { type: string } }
@@ -209,7 +601,16 @@ components:
     Check: {"type":"object","properties":{"id":{"type":"string"},"monitor_id":{"type":"string"},"up":{"type":"boolean"},"status_code":{"type":"integer"},"response_time_ms":{"type":"number"},"checked_at":{"type":"string","format":"date-time"},"region":{"type":"string"},"cause":{"type":["string","null"]}}}
     MonitorHistory: {"type":"object","properties":{"monitor_id":{"type":"string"},"days":{"type":"array","items":{"$ref":"#/components/schemas/UptimeDay"}},"recent_checks":{"type":"array","items":{"$ref":"#/components/schemas/Check"}},"uptime_90d_pct":{"type":["number","null"]}}}
     Insight: {"type":"object","properties":{"id":{"type":"string"},"monitor_id":{"type":"string"},"risk_score":{"type":"integer"},"severity":{"type":"string"},"anomaly_detected":{"type":"boolean"},"summary":{"type":"string"},"narrative":{"type":"string"},"recommended_action":{"type":"string"},"generated_at":{"type":"string","format":"date-time"}}}
-    Replay: {"type":"object","properties":{"query_string":{"type":"string"},"thresholds":{"$ref":"#/components/schemas/Thresholds"},"series":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"},"tags":{"type":"object","additionalProperties":{"type":"string"}},"points":{"type":"array","items":{"type":"object","properties":{"ts":{"type":"string","format":"date-time"},"value":{"type":["number","null"]}}}}}}},"step":{"type":"string"},"bands":{"type":"array","items":{"type":"object","properties":{"level":{"type":"string","enum":["warn","crit"]},"from":{"type":"string","format":"date-time"},"to":{"type":"string","format":"date-time"}}}},"markers":{"type":"array","items":{"type":"string","format":"date-time"}},"would_have_fired":{"type":"integer","description":"Number of crit-band markers that would have fired"}}}
+    Replay:
+      type: object
+      properties:
+        query_string: { type: string }
+        thresholds: { $ref: "#/components/schemas/Thresholds" }
+        series: { type: array, items: { $ref: "#/components/schemas/Series" } }
+        step: { type: string }
+        bands: { type: array, items: { type: object, properties: { level: { type: string, enum: [warn, crit] }, from: { type: string, format: date-time }, to: { type: string, format: date-time } } } }
+        markers: { type: array, items: { type: string, format: date-time } }
+        would_have_fired: { type: integer, description: Number of crit-band markers that would have fired }
     SyntheticCheckCreate: {"type":"object","required":["name","kind"],"properties":{"name":{"type":"string"},"kind":{"type":"string","enum":["multi_step","browser"]},"steps":{"type":"array","maxItems":20,"items":{"$ref":"#/components/schemas/SyntheticStepInput"}},"browser":{"$ref":"#/components/schemas/BrowserConfig"},"interval_seconds":{"type":"integer","minimum":60,"maximum":86400,"default":300}}}
     SyntheticCheck: {"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"kind":{"type":"string"},"steps":{"type":"array","items":{"$ref":"#/components/schemas/SyntheticStep"}},"browser":{"$ref":"#/components/schemas/BrowserConfig"},"interval_seconds":{"type":"integer"},"last_run_id":{"type":["string","null"]},"last_run_status":{"type":["string","null"]},"last_run_at":{"type":["string","null"],"format":"date-time"},"created_at":{"type":"string","format":"date-time"},"updated_at":{"type":"string","format":"date-time"}}}
     SyntheticRun: {"type":"object","properties":{"id":{"type":"string"},"check_id":{"type":"string"},"number":{"type":"integer"},"status":{"type":"string"},"started_at":{"type":"string","format":"date-time"},"total_ms":{"type":"integer"},"steps":{"type":"array","items":{"$ref":"#/components/schemas/SyntheticStepResult"}},"steps_total":{"type":"integer"},"failure_screenshot":{"$ref":"#/components/schemas/FailureScreenshot"}}}
@@ -282,12 +683,19 @@ components:
         accepted: { type: integer }
         rejected: { type: integer }
         rejections: { type: array, items: { type: object, properties: { index: { type: integer }, code: { enum: [unknown_event, unknown_dim, ts_out_of_range, bad_shape] } } } }
+    StatsPoint:
+      type: object
+      properties:
+        bucket: { type: string, format: date-time }
+        count: { type: integer, format: int64 }
+        uniques: { type: ["integer", "null"], format: int64 }
     StatsResponse:
       type: object
       properties:
-        series: { type: array, items: { type: object, properties: { bucket: { type: string, format: date-time }, count: { type: integer }, uniques: { type: integer } } } }
-        totals: { type: object, properties: { count: { type: integer }, uniques_daily_avg: { type: number } } }
+        series: { type: array, items: { $ref: "#/components/schemas/StatsPoint" } }
+        totals: { type: object, properties: { count: { type: integer, format: int64 }, uniques_daily_avg: { type: ["number", "null"] } } }
         uniques_additive: { type: boolean, description: always false (analytics-math.md §4) }
+        by_dim: { type: array, items: { $ref: "#/components/schemas/ValueCount" } }
     AlertRule:
       type: object
       properties:
@@ -295,3 +703,264 @@ components:
         channel_ids: { type: array, items: { type: string } }
         cooldown_minutes: { type: integer, default: 30 }
         renotify_minutes: { type: integer, default: 0 }
+    Point:
+      type: object
+      properties:
+        ts: { type: string, format: date-time }
+        value: { type: ["number", "null"] }
+    Series:
+      type: object
+      properties:
+        name: { type: string }
+        tags: { type: object, additionalProperties: { type: string } }
+        points: { type: array, items: { $ref: "#/components/schemas/Point" } }
+    Timeseries:
+      type: object
+      required: [kind, series]
+      properties:
+        kind: { type: string, enum: [timeseries] }
+        series: { type: array, items: { $ref: "#/components/schemas/Series" } }
+        step: { type: string }
+    Table:
+      type: object
+      required: [kind, columns, rows]
+      properties:
+        kind: { type: string, enum: [table] }
+        columns: { type: array, items: { type: string } }
+        rows: { type: array, items: { type: array, items: {} } }
+    QueryResult:
+      oneOf:
+        - { $ref: "#/components/schemas/Timeseries" }
+        - { $ref: "#/components/schemas/Table" }
+    QueryRequest:
+      type: object
+      required: [q, from, to]
+      properties:
+        q: { type: string, description: Shared query grammar expression }
+        from: { type: string, format: date-time }
+        to: { type: string, format: date-time }
+        step: { type: string }
+        signal: { type: string, enum: [logs, metrics, traces] }
+    LogEvent:
+      type: object
+      properties:
+        id: { type: string }
+        ts: { type: string, format: date-time }
+        service: { type: string }
+        level: { type: string, enum: [TRACE, DEBUG, INFO, WARN, ERROR] }
+        host: { type: string }
+        message: { type: string }
+        attrs: { type: object, additionalProperties: true }
+        trace_id: { type: string }
+    FacetCount:
+      type: object
+      properties:
+        value: { type: string }
+        count: { type: integer, format: int64 }
+    HistogramBucket:
+      type: object
+      properties:
+        ts: { type: string, format: date-time }
+        counts: { type: object, additionalProperties: { type: integer, format: int64 } }
+    LogPage:
+      type: object
+      properties:
+        events: { type: array, items: { $ref: "#/components/schemas/LogEvent" } }
+        next_cursor: { type: string, description: RFC3339Nano cursor for the next page; omitted on the last page }
+        histogram: { type: array, items: { $ref: "#/components/schemas/HistogramBucket" } }
+        facets: { type: object, additionalProperties: { type: array, items: { $ref: "#/components/schemas/FacetCount" } } }
+    LogPattern:
+      type: object
+      properties:
+        template: { type: string }
+        count: { type: integer, format: int64 }
+        dominant_level: { type: string }
+        trend: { type: array, items: { type: integer, format: int64 } }
+        samples: { type: array, items: { $ref: "#/components/schemas/LogEvent" } }
+    PatternsResult:
+      type: object
+      properties:
+        patterns: { type: array, items: { $ref: "#/components/schemas/LogPattern" } }
+        total_lines: { type: integer, format: int64 }
+        bucket_ms: { type: integer, format: int64 }
+        sampled: { type: boolean }
+    TraceSummary:
+      type: object
+      properties:
+        trace_id: { type: string }
+        root_service: { type: string }
+        root_name: { type: string }
+        start: { type: string, format: date-time }
+        duration_ms: { type: number }
+        span_count: { type: integer, format: int64 }
+        status: { type: string, enum: [ok, error] }
+    Span:
+      type: object
+      properties:
+        trace_id: { type: string }
+        span_id: { type: string }
+        parent_id: { type: ["string", "null"] }
+        service: { type: string }
+        name: { type: string }
+        start: { type: string, format: date-time }
+        duration_ns: { type: integer, format: int64 }
+        status: { type: string, enum: [ok, error] }
+        attrs: { type: object, additionalProperties: { type: string } }
+    Trace:
+      allOf:
+        - { $ref: "#/components/schemas/TraceSummary" }
+        - type: object
+          properties:
+            spans: { type: array, items: { $ref: "#/components/schemas/Span" } }
+    ServiceStats:
+      type: object
+      properties:
+        service: { type: string }
+        req_per_s: { type: number }
+        p50_ms: { type: number }
+        p95_ms: { type: number }
+        p99_ms: { type: number }
+        error_rate: { type: number }
+        apdex: { type: number }
+    MetricSummary:
+      type: object
+      properties:
+        name: { type: string }
+        type: { type: string }
+        unit: { type: string }
+        cardinality: { type: integer, format: int64 }
+        ingestion_rate_per_s: { type: number }
+        last_seen: { type: string, format: date-time }
+        tags: { type: array, items: { type: string } }
+    ValueCount:
+      type: object
+      properties:
+        value: { type: string }
+        count: { type: integer, format: int64 }
+    RumBucket:
+      type: object
+      properties:
+        bucket: { type: string, format: date-time }
+        count: { type: integer, format: int64 }
+        uniques: { type: integer, format: int64 }
+    RumSummary:
+      type: object
+      properties:
+        page_views: { type: integer, format: int64 }
+        visits: { type: integer, format: int64 }
+        bounce_rate: { type: ["number", "null"] }
+        avg_visit_seconds: { type: ["number", "null"] }
+        uniques_daily_avg: { type: number }
+        uniques_additive: { type: boolean, description: always false (analytics-math.md §4) }
+        series: { type: array, items: { $ref: "#/components/schemas/RumBucket" } }
+        top_pages: { type: array, items: { $ref: "#/components/schemas/ValueCount" } }
+        top_referrers: { type: array, items: { $ref: "#/components/schemas/ValueCount" } }
+        devices: { type: array, items: { $ref: "#/components/schemas/ValueCount" } }
+        countries: { type: array, items: { $ref: "#/components/schemas/ValueCount" } }
+    Quantiles:
+      type: object
+      properties:
+        p50: { type: number }
+        p75: { type: number }
+        p95: { type: number }
+    VitalsBucket:
+      type: object
+      properties:
+        bucket: { type: string, format: date-time }
+        lcp_ms: { type: number }
+        cls: { type: number }
+        inp_ms: { type: number }
+    RumVitals:
+      type: object
+      properties:
+        lcp_ms: { $ref: "#/components/schemas/Quantiles" }
+        cls: { $ref: "#/components/schemas/Quantiles" }
+        inp_ms: { $ref: "#/components/schemas/Quantiles" }
+        series: { type: array, items: { $ref: "#/components/schemas/VitalsBucket" } }
+    ErrorGroup:
+      type: object
+      properties:
+        fingerprint: { type: string }
+        message: { type: string }
+        count: { type: integer, format: int64 }
+        first_seen: { type: string, format: date-time }
+        last_seen: { type: string, format: date-time }
+        state: { type: string, enum: [new, ongoing, regressed] }
+        sparkline: { type: array, items: { type: integer, format: int64 } }
+    FunnelStage:
+      type: object
+      properties:
+        key: { type: string }
+        label: { type: string }
+        count: { type: integer, format: int64 }
+        pct_of_previous: { type: number }
+    Drilldown:
+      type: object
+      properties:
+        funnel:
+          type: object
+          properties:
+            stages: { type: array, items: { $ref: "#/components/schemas/FunnelStage" } }
+            conversion_event: { type: string }
+        retention:
+          type: object
+          properties:
+            weeks: { type: integer }
+            cohorts: { type: array, items: { type: object } }
+    UsageMeter:
+      type: object
+      properties:
+        pillar: { type: string, enum: [metrics, logs, traces, rum] }
+        label: { type: string }
+        value: { type: number }
+        display: { type: string }
+        peak: { type: number }
+        plan: { type: string }
+    UsageReport:
+      type: object
+      properties:
+        month_label: { type: string }
+        rows: { type: array, items: { $ref: "#/components/schemas/UsageMeter" } }
+    HealthResponse:
+      type: object
+      properties:
+        status: { type: string, enum: [up] }
+    ReadyResponse:
+      type: object
+      properties:
+        status: { type: string, enum: [ready, "not ready", not_ready], description: "common/query return 'not ready'; observability returns 'not_ready'" }
+    HasDataResponse:
+      type: object
+      properties:
+        has_data: { type: boolean }
+    UptimeSummary:
+      type: object
+      properties:
+        days: { type: array, items: { $ref: "#/components/schemas/UptimeDay" } }
+        uptime_pct: { type: ["number", "null"] }
+        p95_ms: { type: ["number", "null"] }
+    Presence:
+      type: object
+      properties:
+        metrics: { type: boolean }
+        logs: { type: boolean }
+        traces: { type: boolean }
+        rum: { type: boolean }
+    ReplayRequest:
+      type: object
+      required: [query_string, thresholds]
+      properties:
+        signal: { type: string, enum: [logs, metrics, traces], description: Accepted for compatibility; the signal is inferred from the query }
+        monitor_id: { type: string }
+        query_string: { type: string }
+        thresholds: { $ref: "#/components/schemas/Thresholds" }
+        cooldown_minutes: { type: integer }
+    JobResult:
+      type: object
+      properties:
+        job: { type: string, description: Name of the job that was run }
+        ms: { type: integer, format: int64 }
+    JobError:
+      type: object
+      properties:
+        error: { type: string }
