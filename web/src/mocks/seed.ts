@@ -17,6 +17,7 @@ import type {
   Member,
   MetricSummary,
   Monitor,
+  MonitorInsight,
   Org,
   Postmortem,
   SavedView,
@@ -61,6 +62,7 @@ export interface MockDb {
   members: Member[];
   dashboards: Dashboard[];
   monitors: Monitor[];
+  monitorInsights: MonitorInsight[];
   synthetics: SyntheticCheck[];
   /** Run history per synthetic check id, newest first. */
   syntheticRuns: Record<string, SyntheticRun[]>;
@@ -1093,6 +1095,19 @@ export function buildSeed(now: number): MockDb {
     members,
     dashboards,
     monitors,
+    monitorInsights: [
+      {
+        id: "insight_homepage",
+        monitor_id: "mon_homepage",
+        risk_score: 10,
+        severity: "low",
+        anomaly_detected: false,
+        summary: "Homepage checks are healthy",
+        narrative: "Recent checks completed successfully.",
+        recommended_action: "Continue monitoring availability.",
+        generated_at: iso(now),
+      },
+    ],
     synthetics,
     syntheticRuns,
     channels,
@@ -1189,6 +1204,7 @@ export function buildEmptySeed(
     ],
     dashboards: [],
     monitors: [],
+    monitorInsights: [],
     synthetics: [],
     syntheticRuns: {},
     channels: [],

@@ -47,3 +47,16 @@ export interface MonitorHistory {
   recent_checks: CheckResult[];
   uptime_90d_pct: number | null;
 }
+
+/** Analytics insight returned by GET /v1/monitors/{id}/insights. */
+export interface MonitorInsight {
+  id: string;
+  monitor_id: string;
+  risk_score: number;
+  severity: string;
+  anomaly_detected: boolean;
+  summary: string;
+  narrative: string;
+  recommended_action: string;
+  generated_at: string;
+}

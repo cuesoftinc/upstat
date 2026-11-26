@@ -16,6 +16,7 @@ import {
   useMonitorController,
 } from "@/controllers/monitors";
 import { useIncidentsController } from "@/controllers/incidents";
+import { MonitorInsights } from "./MonitorInsights";
 import { ReplayPanel } from "../../replay-panel";
 
 /**
@@ -190,27 +191,7 @@ export default function MonitorDetailPage() {
             )}
           </section>
 
-          <section
-            aria-labelledby="insight-heading"
-            className="rounded-(--radius) border border-border bg-bg-elev p-4"
-          >
-            <h2 id="insight-heading" className="mb-2 text-[16px] font-semibold">
-              Insight
-            </h2>
-            <p className="text-[13px] leading-[1.45] text-text-2">
-              Response time has drifted +18% over the last 7 days (p95{" "}
-              {m.last_response_time_ms ?? 96} ms →{" "}
-              {Math.round((m.last_response_time_ms ?? 96) * 1.18)} ms),
-              correlated with rising payload sizes. At this trend the{" "}
-              {m.timeout_seconds * 100} ms budget is at risk within ~3 weeks.
-            </p>
-            <Link
-              href="/dashboard/monitors/new?signal=trace"
-              className="mt-2 inline-block text-[13px] text-brand-text hover:underline"
-            >
-              Create a latency monitor from this insight →
-            </Link>
-          </section>
+          <MonitorInsights key={id} monitorId={id} />
         </div>
       </div>
     </div>
