@@ -15,7 +15,7 @@
     "prettier:cli": "prettier \"**/*.{ts,tsx,js,jsx,mjs,cjs}\"",
     "prettier:check": "npm run prettier:cli -- -l",
     "prettier:fix": "npm run prettier:cli -- --write",
-    "test": "jest"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "dependencies": {
     "@google-cloud/storage": "^9.0.0",
