@@ -1,5 +1,5 @@
 "use client";
-
+import { RequestError } from "@/components/ui/RequestError";
 import { useParams, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
@@ -127,6 +127,18 @@ export default function DashboardViewPage() {
       void ctrl.moveWidget(widgetId, preview);
     }
   }, [drag, ctrl]);
+
+  if (ctrl.error && !dashboard) {
+    return (
+      <div className="flex flex-col gap-4 px-6 py-5">
+        <RequestError
+          error={ctrl.error}
+          onRetry={ctrl.reload}
+          what="this dashboard"
+        />
+      </div>
+    );
+  }
 
   if (ctrl.loading || !dashboard) {
     return (

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { SevChip, type Sev } from "@/components/ui/SevChip";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ageLabel } from "@/controllers/shell";
+import { RequestError } from "@/components/ui/RequestError";
 import { useIncidentsController } from "@/controllers/incidents";
 import { DeclareIncidentModal } from "./DeclareIncidentModal";
 
@@ -16,7 +17,7 @@ import { DeclareIncidentModal } from "./DeclareIncidentModal";
  */
 export default function IncidentsPage() {
   const router = useRouter();
-  const { data, loading } = useIncidentsController();
+  const { data, loading, error, reload } = useIncidentsController();
   const [declareOpen, setDeclareOpen] = useState(false);
 
   return (
@@ -37,6 +38,8 @@ export default function IncidentsPage() {
             <Skeleton key={i} kind="line" />
           ))}
         </div>
+      ) : error ? (
+        <RequestError error={error} onRetry={reload} what="incidents" />
       ) : (data ?? []).length === 0 ? (
         <section
           aria-label="No incidents"

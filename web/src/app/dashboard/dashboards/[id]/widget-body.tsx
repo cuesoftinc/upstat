@@ -6,6 +6,7 @@
  * inside WidgetShell per design.md §8.2's closing note.
  */
 
+import { RequestError } from "@/components/ui/RequestError";
 import { Heatmap } from "@/components/ui/Heatmap";
 import { LogLine } from "@/components/ui/LogLine";
 import { QueryValue } from "@/components/ui/QueryValue";
@@ -61,6 +62,23 @@ export function WidgetBody({
   const data = useWidgetData(widget, vars);
   const ts = data.query?.data?.kind === "timeseries" ? data.query.data : null;
   const loading = data.query?.loading ?? false;
+
+  const failed = [
+    data.query,
+    data.logs,
+    data.slos,
+    data.monitors,
+    data.services,
+  ].find((r) => r?.error);
+  if (failed?.error) {
+    return (
+      <RequestError
+        error={failed.error}
+        onRetry={failed.reload}
+        what="this widget"
+      />
+    );
+  }
 
   switch (widget.type) {
     case "timeseries":

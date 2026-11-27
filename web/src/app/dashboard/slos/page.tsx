@@ -1,5 +1,5 @@
 "use client";
-
+import { RequestError } from "@/components/ui/RequestError";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -17,7 +17,13 @@ const WINDOWS = ["30d", "7d", "90d"];
  * MI-15) + the Define SLO panel (SLI source · target · rolling window).
  */
 export default function SlosPage() {
-  const { data, loading, create } = useSlosController();
+  const {
+    data,
+    loading,
+    error: loadError,
+    reload,
+    create,
+  } = useSlosController();
   const monitors = useMonitorsController();
   const [source, setSource] = useState<string | null>(null);
   const [target, setTarget] = useState("99.9");
@@ -89,6 +95,8 @@ export default function SlosPage() {
             <Skeleton key={i} kind="value" />
           ))}
         </div>
+      ) : loadError ? (
+        <RequestError error={loadError} onRetry={reload} what="SLOs" />
       ) : (data ?? []).length === 0 ? (
         <section
           aria-label="No SLOs"

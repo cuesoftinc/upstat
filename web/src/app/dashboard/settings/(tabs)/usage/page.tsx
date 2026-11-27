@@ -1,5 +1,6 @@
 "use client";
 
+import { RequestError } from "@/components/ui/RequestError";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { UsageMeterRow } from "@/components/ui/UsageMeterRow";
 import { useUsageController } from "@/controllers/settings";
@@ -17,7 +18,9 @@ export default function UsagePage() {
 
   return (
     <div className="flex flex-col gap-5" data-testid="settings-usage">
-      {usage.loading || !report ? (
+      {usage.error && !report ? (
+        <RequestError error={usage.error} onRetry={usage.reload} what="usage" />
+      ) : usage.loading || !report ? (
         <>
           <Skeleton kind="line" className="w-72" />
           {Array.from({ length: 4 }, (_, i) => (

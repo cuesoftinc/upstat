@@ -5,7 +5,7 @@
  * /dashboard/settings/<tab> (ratified 2026-07-20, §4 route map).
  * Views render controller state only; all mutations ride the controllers.
  */
-
+import { RequestError } from "@/components/ui/RequestError";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { APIKeyRow } from "@/components/ui/APIKeyRow";
@@ -54,7 +54,7 @@ const FALLBACK_TIMEZONES = [
 ];
 
 export function OrgSection() {
-  const { data: org, loading, update } = useOrgController();
+  const { data: org, loading, error, reload, update } = useOrgController();
   const [name, setName] = useState<string | null>(null);
   const [weeklyReport, setWeeklyReport] = useState(true);
   const [saved, setSaved] = useState(false);
@@ -67,9 +67,17 @@ export function OrgSection() {
     return zones.map((z) => ({ value: z, label: z }));
   }, []);
 
+  if (error && !org)
+    return (
+      <RequestError
+        error={error}
+        onRetry={reload}
+        what="organization settings"
+      />
+    );
+
   if (loading || !org)
     return <Skeleton kind="panel-axis" style={{ height: 180 }} />;
-
   const effectiveName = name ?? org.name;
   const pulse = () => {
     setSaved(true);
@@ -183,9 +191,14 @@ export function KeysSection({
       <SectionHeading id={isProperties ? "properties-heading" : "keys-heading"}>
         {isProperties ? "Property keys (RUM)" : "API keys & ingestion tokens"}
       </SectionHeading>
-
       {keys.loading ? (
         <Skeleton kind="line" />
+      ) : keys.error ? (
+        <RequestError
+          error={keys.error}
+          onRetry={keys.reload}
+          what={isProperties ? "property keys" : "API keys"}
+        />
       ) : list.length === 0 ? (
         <p className="text-[13px] leading-[1.45] text-text-2">
           {isProperties
@@ -309,6 +322,12 @@ export function MembersSection() {
       <SectionHeading id="members-heading">Members &amp; roles</SectionHeading>
       {members.loading ? (
         <Skeleton kind="line" />
+      ) : members.error ? (
+        <RequestError
+          error={members.error}
+          onRetry={members.reload}
+          what="members"
+        />
       ) : (
         <ul className="flex flex-col">
           {(members.data ?? []).map((member) => (
@@ -374,6 +393,12 @@ export function IntegrationsSection() {
       <SectionHeading id="integrations-heading">Integrations</SectionHeading>
       {channels.loading ? (
         <Skeleton kind="line" />
+      ) : channels.error ? (
+        <RequestError
+          error={channels.error}
+          onRetry={channels.reload}
+          what="integrations"
+        />
       ) : (
         <ul className="flex flex-col gap-2">
           {(channels.data ?? []).map((channel) => (

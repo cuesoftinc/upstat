@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { RequestError } from "@/components/ui/RequestError";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { SettingsRow } from "@/components/ui/SettingsRow";
@@ -25,6 +26,18 @@ export default function StatusPageBuilderPage() {
   const [draft, setDraft] = useState<StatusPageConfig | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+
+  if (config.error && !config.data) {
+    return (
+      <div className="flex flex-col gap-4 px-6 py-5">
+        <RequestError
+          error={config.error}
+          onRetry={config.reload}
+          what="the status page"
+        />
+      </div>
+    );
+  }
 
   if (config.loading || monitors.loading || !config.data) {
     return (
