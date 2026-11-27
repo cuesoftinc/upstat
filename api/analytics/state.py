@@ -45,29 +45,29 @@ class ValkeyState:
     async def get(self, key: str) -> dict | None:
         try:
             raw = await self._r.get(self._p + key)
-        except Exception:
-            log.warning("valkey read failed; treating as empty", extra={"key": key.split(":", 1)[0]})
+        except Exception as exc:
+            log.warning("valkey read failed; treating as empty", extra={"key": key.split(":", 1)[0], "error": type(exc).__name__})
             return None
         return json.loads(raw) if raw else None
 
     async def put(self, key: str, value: dict, ttl: int = TTL_SECONDS) -> None:
         try:
             await self._r.set(self._p + key, json.dumps(value), ex=ttl)
-        except Exception:
-            log.warning("valkey write failed", extra={"key": key.split(":", 1)[0]})
+        except Exception as exc:
+            log.warning("valkey write failed", extra={"key": key.split(":", 1)[0], "error": type(exc).__name__})
 
     async def delete(self, key: str) -> None:
         try:
             await self._r.delete(self._p + key)
-        except Exception:
-            log.warning("valkey delete failed")
+        except Exception as exc:
+            log.warning("valkey delete failed", extra={"error": type(exc).__name__})
 
     async def keys(self, prefix: str) -> list[str]:
         try:
             return [k.decode().removeprefix(self._p) if isinstance(k, bytes) else k.removeprefix(self._p)
                     async for k in self._r.scan_iter(match=self._p + prefix + "*", count=500)]
-        except Exception:
-            log.warning("valkey scan failed")
+        except Exception as exc:
+            log.warning("valkey scan failed", extra={"error": type(exc).__name__})
             return []
 
     async def aclose(self) -> None:

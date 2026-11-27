@@ -1,11 +1,13 @@
-"""Structured JSON logs for Cloud Logging: severity, logger, message, every
+"""Structured JSON logs on stdout for Cloud Logging: severity, logger, message, every
 `extra` field and the traceback of an exception. Callers never put secrets or
 webhook URLs in `extra` (never-log list)."""
 
 import json
 import logging
+import sys
 
-_STANDARD = set(logging.LogRecord("", 0, "", 0, "", (), None).__dict__) | {"message", "asctime"}
+# uvicorn adds color_message, an ANSI-coloured copy of the message.
+_STANDARD = set(logging.LogRecord("", 0, "", 0, "", (), None).__dict__) | {"message", "asctime", "color_message"}
 
 
 class JsonFormatter(logging.Formatter):
@@ -20,6 +22,6 @@ class JsonFormatter(logging.Formatter):
 
 
 def configure_logging(level: str) -> None:
-    handler = logging.StreamHandler()
+    handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(JsonFormatter())
     logging.basicConfig(level=level, handlers=[handler], force=True)

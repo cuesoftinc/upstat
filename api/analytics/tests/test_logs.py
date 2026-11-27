@@ -2,7 +2,7 @@ import json
 import logging
 import sys
 
-from app.logs import JsonFormatter
+from app.logs import JsonFormatter, configure_logging
 
 
 def record(**kwargs) -> dict:
@@ -31,3 +31,16 @@ def test_a_traceback_is_included():
 
 def test_values_that_are_not_json_are_stringified():
     assert record(msg="x", blob={1, 2})["blob"] == "{1, 2}"
+
+
+def test_lines_go_to_stdout(capsys):
+    root = logging.getLogger()
+    handlers, level = root.handlers[:], root.level
+    try:
+        configure_logging("INFO")
+        logging.getLogger("test.logs").info("ready")
+    finally:
+        root.handlers[:] = handlers
+        root.setLevel(level)
+    out, err = capsys.readouterr()
+    assert json.loads(out)["message"] == "ready" and err == ""
