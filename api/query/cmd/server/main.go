@@ -23,6 +23,7 @@ import (
 
 	"github.com/cuesoftinc/upstat/api/common/pkg/bus"
 	"github.com/cuesoftinc/upstat/api/common/pkg/httpx"
+	"github.com/cuesoftinc/upstat/api/common/pkg/logging"
 	"github.com/cuesoftinc/upstat/api/common/pkg/session"
 	"github.com/cuesoftinc/upstat/api/common/pkg/snapshot"
 	"github.com/cuesoftinc/upstat/api/common/pkg/store"
@@ -32,7 +33,7 @@ import (
 )
 
 func main() {
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+	slog.SetDefault(logging.New(os.Stdout, os.Getenv("LOG_LEVEL")))
 	if err := run(); err != nil {
 		slog.Error("exiting", "error", err)
 		os.Exit(1)
