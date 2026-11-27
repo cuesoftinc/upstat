@@ -86,6 +86,21 @@ func TestUptimeIDsTravelAsAParameter(t *testing.T) {
 	}
 }
 
+func TestUptimeClampsOversizedDaysToRetentionWindow(t *testing.T) {
+	s, r := recorded()
+	if _, err := s.Uptime(context.Background(), org, []string{"m1"}, 100000); err != nil {
+		t.Fatal(err)
+	}
+	if len(r.calls) != 2 {
+		t.Fatalf("calls = %d, want 2", len(r.calls))
+	}
+	now := time.Date(2026, 11, 5, 12, 0, 0, 0, time.UTC)
+	want := ts(now.AddDate(0, 0, -(MaxUptimeDays - 1)).Truncate(24 * time.Hour))
+	if got := r.calls[0].params["f"]; got != want {
+		t.Fatalf("first day = %q, want %q (400-day retention window)", got, want)
+	}
+}
+
 func TestTraceWindowLookupIsOrgScoped(t *testing.T) {
 	s, r := recorded()
 	if _, err := s.Trace(context.Background(), org, strings.Repeat("a", 32)); err != nil {

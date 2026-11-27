@@ -42,6 +42,11 @@ type UptimeSummary struct {
 	P95Ms     *float64    `json:"p95_ms"`
 }
 
+const (
+	DefaultUptimeDays = 90
+	MaxUptimeDays     = 400
+)
+
 func pct(passing, checks float64) *float64 {
 	if checks == 0 {
 		return nil
@@ -120,8 +125,10 @@ func (s *Service) Uptime(ctx context.Context, orgID string, ids []string, n int)
 	if len(ids) == 0 {
 		return out, nil
 	}
-	if n <= 0 || n > 400 {
-		n = 90
+	if n <= 0 {
+		n = DefaultUptimeDays
+	} else if n > MaxUptimeDays {
+		n = MaxUptimeDays
 	}
 	strips, overall, err := s.days(ctx, orgID, ids, n)
 	if err != nil {
