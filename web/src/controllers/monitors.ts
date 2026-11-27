@@ -77,3 +77,8 @@ export function useMonitorController(id: string) {
   const test = useRuleTest(useCallback(() => monitorsRepo.test(id), [id]));
   return { monitor, history, ...test };
 }
+
+/** Insights load independently of the monitor history and replay. */
+export function useMonitorInsightsController(id: string) {
+  return useRequest(() => monitorsRepo.insights(id), [id]);
+}

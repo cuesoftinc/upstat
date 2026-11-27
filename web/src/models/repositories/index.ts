@@ -15,6 +15,7 @@ import type {
   MetricSummary,
   Monitor,
   MonitorHistory,
+  MonitorInsight,
   OnboardingState,
   Org,
   Postmortem,
@@ -137,6 +138,9 @@ export const monitorsRepo = {
   remove: (id: string) => http.delete(`/v1/monitors/${id}`),
   history: (id: string) =>
     http.get<MonitorHistory>(`/v1/monitors/${id}/checks`),
+  insights: async (id: string): Promise<MonitorInsight[]> =>
+    (await http.get<MonitorInsight[] | null>(`/v1/monitors/${id}/insights`)) ??
+    [],
   /** MI-9: 24h response-time replay against timeout-derived thresholds. */
   test: (id: string) => http.post<RuleTestResult>(`/v1/monitors/${id}/test`),
 };
