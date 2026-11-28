@@ -214,7 +214,13 @@ export default function RumDrilldownPage() {
               <p className="mb-3 text-[12px] text-text-2">
                 cohort week 0–6 · % returning
               </p>
-              {drilldown.loading || !d ? (
+              {drilldown.error ? (
+                <RequestError
+                  error={drilldown.error}
+                  onRetry={drilldown.reload}
+                  what="retention data"
+                />
+              ) : drilldown.loading || !d ? (
                 <Skeleton kind="panel-axis" style={{ height: 140 }} />
               ) : (
                 <Heatmap

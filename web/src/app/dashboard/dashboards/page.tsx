@@ -9,6 +9,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { WidgetTypePicker } from "@/components/ui/WidgetTypePicker";
 import type { WidgetType } from "@/models";
+import { RequestError } from "@/components/ui/RequestError";
 import { ageLabel } from "@/controllers/shell";
 import { useDashboardsController } from "@/controllers/dashboards";
 import { defaultWidget } from "@/controllers/widgets";
@@ -19,8 +20,15 @@ import { defaultWidget } from "@/controllers/widgets";
  */
 export default function DashboardsPage() {
   const router = useRouter();
-  const { data, loading, create, toggleFavorite, importJson } =
-    useDashboardsController();
+  const {
+    data,
+    loading,
+    error: loadError,
+    reload,
+    create,
+    toggleFavorite,
+    importJson,
+  } = useDashboardsController();
   const [createOpen, setCreateOpen] = useState(false);
   const [name, setName] = useState("");
   const [type, setType] = useState<WidgetType | null>("timeseries");
@@ -94,6 +102,8 @@ export default function DashboardsPage() {
             <Skeleton key={i} kind="line" />
           ))}
         </div>
+      ) : loadError ? (
+        <RequestError error={loadError} onRetry={reload} what="dashboards" />
       ) : (data ?? []).length === 0 ? (
         <section
           aria-label="No dashboards"

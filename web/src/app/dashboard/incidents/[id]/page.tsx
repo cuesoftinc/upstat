@@ -7,6 +7,7 @@ import { IncidentHistoryEntry } from "@/components/ui/IncidentHistoryEntry";
 import { SevChip, type Sev } from "@/components/ui/SevChip";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Toast } from "@/components/ui/Toast";
+import { RequestError } from "@/components/ui/RequestError";
 import { useIncidentController } from "@/controllers/incidents";
 import { PostmortemSection } from "./postmortem-section";
 
@@ -19,6 +20,7 @@ export default function IncidentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const {
     incident,
+    timeline,
     entries,
     postUpdate,
     posting,
@@ -28,6 +30,18 @@ export default function IncidentDetailPage() {
     savingPostmortem,
     postmortemError,
   } = useIncidentController(id);
+
+  if (incident.error && !incident.data) {
+    return (
+      <div className="flex flex-col gap-4 px-6 py-5">
+        <RequestError
+          error={incident.error}
+          onRetry={incident.reload}
+          what="this incident"
+        />
+      </div>
+    );
+  }
 
   if (incident.loading || !incident.data) {
     return (
@@ -73,7 +87,13 @@ export default function IncidentDetailPage() {
       )}
 
       <section aria-label="Timeline" className="flex flex-col">
-        {entries.length === 0 ? (
+        {timeline.error && !timeline.data ? (
+          <RequestError
+            error={timeline.error}
+            onRetry={timeline.reload}
+            what="the timeline"
+          />
+        ) : entries.length === 0 ? (
           <p className="text-[13px] leading-[1.45] text-text-2">
             No updates yet.
           </p>
@@ -93,16 +113,23 @@ export default function IncidentDetailPage() {
 
       {/* B9: postmortem template on resolve — renders only once resolved
           (or when a composed doc already exists) */}
-      {!postmortem.loading && (
-        <PostmortemSection
-          incident={inc}
-          postmortem={postmortem.data}
-          entries={entries}
-          onSave={savePostmortem}
-          saving={savingPostmortem}
-          error={postmortemError}
-        />
-      )}
+      {!postmortem.loading &&
+        (postmortem.error ? (
+          <RequestError
+            error={postmortem.error}
+            onRetry={postmortem.reload}
+            what="the postmortem"
+          />
+        ) : (
+          <PostmortemSection
+            incident={inc}
+            postmortem={postmortem.data}
+            entries={entries}
+            onSave={savePostmortem}
+            saving={savingPostmortem}
+            error={postmortemError}
+          />
+        ))}
     </div>
   );
 }

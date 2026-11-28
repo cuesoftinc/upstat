@@ -166,6 +166,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- The dashboards, incidents, SLOs and Settings pages now show an error with a retry (and a no-access message on a 403) when a request fails, instead of an empty state or a loading skeleton that never ends, with a test for each page (#416).
+- The telemetry pages' error states are covered by a test for each page (#415).
 - The logs, metrics, traces, services and RUM pages now show an error with a retry (and a no-access message on a 403) when a request fails, instead of the empty or onboarding state or a loading skeleton that never ends (#415).
 - The monitors, uptime and synthetic check pages now show an error with a retry (and a no-access message on a 403) when a request fails, instead of an empty list or a loading skeleton that never ends (#414).
 - A render error in a page now shows a branded error page with Try again and Dashboard links (#435).
